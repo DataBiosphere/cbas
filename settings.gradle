@@ -1,0 +1,18 @@
+pluginManagement {
+	repositories {
+		resolutionStrategy {
+			eachPlugin {
+				if (requested.id.id == 'bio.terra.test-runner-plugin') {
+					useModule("bio.terra:terra-test-runner:${requested.version}")
+				}
+			}
+		}
+		maven {
+			url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
+		}
+		gradlePluginPortal()
+	}
+}
+
+rootProject.name = 'terra-batch-analysis'
+include 'service' // , 'client-resttemplate', 'integration'

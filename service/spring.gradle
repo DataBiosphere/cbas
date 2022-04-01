@@ -1,0 +1,35 @@
+configurations { compileOnly { extendsFrom annotationProcessor } }
+
+dependencies {
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.security:spring-security-oauth2-core'
+	implementation 'org.springframework.security:spring-security-oauth2-client'
+	implementation 'org.springframework.security:spring-security-oauth2-jose'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework.retry:spring-retry'
+
+	// allows mocking final classes
+	testImplementation 'org.mockito:mockito-inline'
+
+	// DB deps (still versioned by Spring):
+	implementation 'org.liquibase:liquibase-core'
+	runtimeOnly 'org.postgresql:postgresql'
+}
+
+test { useJUnitPlatform() }
+
+task bootRunDev {
+	bootRun.configure { systemProperty 'spring.profiles.active', 'human-readable-logging' }
+	finalizedBy(bootRun)
+}
+
+springBoot {
+	mainClass = 'bio.terra.batchanalysis.BatchAnalysisWebApplication'
+}
+

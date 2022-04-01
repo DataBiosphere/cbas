@@ -1,0 +1,30 @@
+jacocoTestReport {
+	reports {
+		html.required = true
+		xml.required = true
+	}
+
+	dependsOn test
+
+	// https://www.baeldung.com/jacoco-report-exclude#2-gradle-configuration
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['bio/terra/batchanalysis/generated/**'])
+		}))
+	}
+}
+
+spotbugs {
+	reportLevel = 'high'
+	effort = 'max'
+	reportsDir = file("${project.reporting.baseDir}/spotbugs")
+	excludeFilter = file('../common/spotbugsExclude.xml')
+}
+
+spotbugsMain {
+	reports {
+		sarif { enabled = true }
+	}
+}
+
+spotbugsTest { enabled = false }
