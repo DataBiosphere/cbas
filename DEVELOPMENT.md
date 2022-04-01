@@ -12,25 +12,23 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
 
 - Install Postgres 13.1: https://www.postgresql.org/download/
   - [The app](https://postgresapp.com/downloads.html) may be easier, just make sure to download the right version. It'll manage things for you and has a useful menulet where the server can be turned on and off. Don't forget to create a server if you go this route.
-- Install AdoptOpenJDK Java 11 (Hotspot). Here's an easy way on Mac, using [jEnv](https://www.jenv.be/) to manage the active version:
+- Install Adoptium Java 17 (Temurin). Here's an easy way on Mac, using [jEnv](https://www.jenv.be/) to manage the active version:
 
     ```sh
     brew install jenv
     # follow postinstall instructions to activate jenv...
-    
+
     # to add previously installed versions of Java to jEnv, list them:
     # /usr/libexec/java_home -V
     # and then add them:
     # jenv add /Library/Java/JavaVirtualMachines/<JAVA VERSION HERE>/Contents/Home
 
-    # follow instructions from https://github.com/AdoptOpenJDK/homebrew-openjdk to install adoptopenjdk11:
-    brew tap AdoptOpenJDK/openjdk
-    brew cask install adoptopenjdk11
+    brew install homebrew/cask-versions/temurin17
 
-    jenv add /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/Home
+    jenv add /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
     ```
 
-**NOTE**: You may encounter issues with the application when running an unexpected version of Java. So make sure you are running `AdoptOpenJDK Java 11 (Hotspot)` as specified above.
+**NOTE**: You may encounter issues with the application when running an unexpected version of Java. So make sure you are running `Temurin-17` as specified above.
 
 
 ### Database Configuration
