@@ -32,12 +32,12 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
 
 
 ### Database Configuration
-ECM relies on a Postgresql database server. There are two options for running the Postgres server:
+The Batch Analysis service relies on a Postgresql database server. There are two options for running the Postgres server:
 
 - Manual setup:  
   Setup Postgres using whatever method you like.
 - Convenient app setup:  
-  Install [the convenient app](https://postgresapp.com/), and create a database called `ecm`.
+  Install [the convenient app](https://postgresapp.com/), and create a database called `batchanalysis`.
 
 #### Initialize your database:
 ```sh
@@ -51,7 +51,7 @@ psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
 
 Unit tests will run on build.  Integration tests can be run by following the instructions in the [integration README](/integration/README.md). 
 
-### Running ECM Locally
+### Running The Service Locally
 
 Run in IntelliJ (recommended) or use the command line:
 
@@ -64,7 +64,7 @@ Then navigate to the Swagger: `http://localhost:8080/`
 
 ### IntelliJ Setup
 
-1. Open the repo normally (File > New > Project From Existing Sources). Select the folder, and then select Gradel as the external model. 
+1. Open the repo normally (File > New > Project From Existing Sources). Select the folder, and then select Gradle as the external model. 
 2. In project structure (the folder icon with a little tetromino over it in the upper
    right corner), make sure the project SDK is set to Java 17. If not, IntelliJ should
    detect it on your system in the dropdown, otherwise click "Add JDK..." and navigate to
@@ -78,7 +78,7 @@ Then navigate to the Swagger: `http://localhost:8080/`
 - Check out [gdub](https://github.com/gdubw/gdub), it'll save you typing `./gradlew` over
   and over, and also takes care of knowing when you're not in the root directory so you
   don't have to figure out the appropriate number of `../`s. 
-- In IntelliJ, instead of running the local server with `bootRun`, use the `ExternalCredsApplication` Spring
+- In IntelliJ, instead of running the local server with `bootRun`, use the `TerraBatchAnalysisApplication` Spring
   Boot configuration that IntelliJ auto-generates. To edit it, click on it (in the upper
   right of the window), and click `Edit Configurations`. 
     - For readable logs, put `human-readable-logging` in the `Active Profiles` field. 
