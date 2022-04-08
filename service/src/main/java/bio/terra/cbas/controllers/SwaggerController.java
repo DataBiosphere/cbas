@@ -37,6 +37,6 @@
 //  @GetMapping({"/", "/index.html", "swagger-ui.html"})
 //  public String getSwagger(Model model) {
 //    model.addAttribute("clientId", swaggerClientId);
-//    return "templates/swagger-ui";
+//    return "swagger-ui";
 //  }
 // }
