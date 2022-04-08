@@ -35,10 +35,10 @@ sourceSets.main.java.srcDir swaggerOutputSrc
 compileJava.dependsOn generateSwaggerCode
 
 // see https://github.com/n0mer/gradle-git-properties
-//gitProperties {
-//    keys = []
-//    customProperty('catalog.version.gitTag', { it.describe(tags: true) })
-//    customProperty('catalog.version.gitHash', { it.head().abbreviatedId })
-//    customProperty('catalog.version.github', { "https://github.com/DataBiosphere/composite-batch-analysis-service/tree/${it.describe(tags: true)}" })
-//    customProperty('catalog.version.build', version)
-//}
+gitProperties {
+    keys = []
+    customProperty('cbas.version.gitTag', { it.describe(tags: true) })
+    customProperty('cbas.version.gitHash', { it.head().abbreviatedId })
+    customProperty('cbas.version.github', { "https://github.com/DataBiosphere/terra-batch-analysis/tree/${it.describe(tags: true)}" })
+    customProperty('cbas.version.build', version)
+}
