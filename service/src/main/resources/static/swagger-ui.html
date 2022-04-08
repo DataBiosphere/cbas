@@ -1,0 +1,37 @@
+<!-- HTML for static distribution bundle build -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="description"
+    content="Data Catalog SwaggerUI"
+  />
+  <title>Data Catalog SwaggerUI</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/swagger-ui-dist/swagger-ui.css" >
+</head>
+
+<body>
+<div style="background-color: #cfc ; padding: 10px; border: 1px solid green;"></div>
+
+<div id="swagger-ui"></div>
+
+<script src="/webjars/swagger-ui-dist/swagger-ui-bundle.js"> </script>
+<script src="/webjars/swagger-ui-dist/swagger-ui-standalone-preset.js"> </script>
+<script>
+    window.onload = () => {
+      window.ui = SwaggerUIBundle({
+        url: 'openapi.yml',
+        dom_id: '#swagger-ui',
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "StandaloneLayout",
+      });
+    };
+  </script>
+</body>
+</html>

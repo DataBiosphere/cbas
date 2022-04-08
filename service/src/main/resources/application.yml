@@ -1,0 +1,46 @@
+logging:
+  level.bio.terra.batchanalysis: ${BATCHANALYSIS_LOG_LEVEL:debug}
+  pattern.level: '%X{requestId} %5p'
+
+server:
+  compression:
+    enabled: true
+    mime-types: text/css,application/javascript
+  port: 8080
+
+spring:
+  # application name and version are used to populate the logging serviceContext
+  # https://github.com/DataBiosphere/terra-common-lib/blob/480ab3daae282ddff0fef8dc329494a4422e32f1/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L118
+  application.name: batchanalysis
+  application.version: ${batchanalysis.version.gitHash:unknown}
+
+  config.import: optional:classpath:rendered/providers.yaml;classpath:rendered/version.properties;optional:classpath:rendered/allowed_jwks.yaml;optional:classpath:rendered/allowed_jwt_issuers.yaml
+
+  datasource:
+    hikari:
+      connection-timeout: 5000
+      maximum-pool-size: 8 # cpu count * 2 https://kwahome.medium.com/database-connections-less-is-more-86c406b6fad
+    password: ${DATABASE_USER_PASSWORD:cbas_password}
+    url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+    username: ${DATABASE_USER:cbas_user}
+
+  jackson:
+    serialization.indent_output: true
+    default-property-inclusion: non_null # this prevents a problem serializing VisaCriterion in openapi where `type` is included a second time with null value
+
+  main.banner-mode: off
+
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 0
+          must-revalidate: true
+        use-last-modified: false
+  liquibase:
+    change-log: changelog/changelog.yaml
+
+terra.common:
+  tracing:
+    stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}
+    samplingRate: ${SAMPLING_PROBABILITY:0}

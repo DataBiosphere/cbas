@@ -1,0 +1,4 @@
+rootProject.name = 'cbas'
+include('service') // , 'client', 'integration')
+
+gradle.ext.releaseVersion = '0.0.1'
