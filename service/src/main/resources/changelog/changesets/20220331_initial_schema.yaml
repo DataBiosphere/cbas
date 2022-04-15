@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+        - createTable:
+            tableName: method
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: method_url
+                  type: text
+                  constraints:
+                    nullable: false
