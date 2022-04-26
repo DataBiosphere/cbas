@@ -15,7 +15,6 @@ jobs:
         id: tag
         env:
           GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-          HOTFIX_BRANCHES: hotfix.*
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
           VERSION_FILE_PATH: settings.gradle
