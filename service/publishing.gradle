@@ -31,7 +31,7 @@ jib {
         mainClass = 'bio.terra.cbas.app.App'
         jvmFlags = [
             "-agentpath:" + cloudProfilerLocation + "/profiler_java_agent.so=" +
-                "-cprof_service=bio.terra.catalog" +
+                "-cprof_service=bio.terra.cbas" +
                 ",-cprof_service_version=" + version +
                 ",-cprof_enable_heap_sampling=true" +
                 ",-logtostderr" +
