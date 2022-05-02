@@ -1,6 +1,6 @@
 name: Tag
 on:
-  workflow_dispatch
+  workflow_dispatch:
   push:
     branches:
       - cjl_docker_publish
