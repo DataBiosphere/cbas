@@ -1,5 +1,9 @@
 name: Tag
-on: workflow_dispatch
+on:
+  workflow_dispatch
+  push:
+    branches:
+      - cjl_docker_publish
 
 jobs:
   tag-job:
