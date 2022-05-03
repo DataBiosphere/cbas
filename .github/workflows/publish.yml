@@ -10,9 +10,6 @@ on:
       tagOverride:
         description: 'Specify the tag to use for this publish'
         required: true
-  push:
-    branches:
-      - cjl_docker_publish
 
 env:
   # SERVICE_NAME: ${{ github.event.repository.name }}
