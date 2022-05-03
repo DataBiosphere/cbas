@@ -10,7 +10,9 @@ on:
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 env:
-  SERVICE_NAME: ${{ github.event.repository.name }}
+  # SERVICE_NAME: ${{ github.event.repository.name }}
+  # NB: Unlike terra-data-catalog, this doesn't match the repo name
+  SERVICE_NAME: composite-batch-analysis-service
   DOCKERHUB_ORG: broadinstitute
 
 jobs:
