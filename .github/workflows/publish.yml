@@ -6,6 +6,11 @@ on:
     branches:
       - cjl_docker_publish
 
+inputs:
+  tagOverride:
+    description: 'Specify or override the tag used for this publish'
+    required: false
+
 # Note: Adapted from terra-data-catalog.
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
@@ -32,9 +37,14 @@ jobs:
         # Sets up a step output called TAG with the appropriate tag
         id: tag
         run:
-          echo ::set-output name=TAG::cjl_test_tag
-          # TODO: Revert back to this after testing:
-          # echo ::set-output name=TAG::$(git describe --tags)
+          TAG_OVERRIDE=${{ github.event.inputs.tagOverride }}
+          if [[ ! -z "${TAG_OVERRIDE}" ]]
+          then
+            echo ::set-output name=TAG::${TAG_OVERRIDE}
+          else
+            echo ::set-output name=TAG::cjl_tag_test_2
+            # TODO: REVERT TO: echo ::set-output name=TAG::$(git describe --tags)
+          fi
 
       - name: Construct docker image name and tag
         id: image-name
