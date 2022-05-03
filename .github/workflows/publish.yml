@@ -1,4 +1,8 @@
 name: Publish and deploy
+
+# Note: Adapted from terra-data-catalog.
+# For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
+
 on:
   create:
   workflow_dispatch:
@@ -10,9 +14,6 @@ on:
     branches:
       - cjl_docker_publish
 
-# Note: Adapted from terra-data-catalog.
-# For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
-
 env:
   # SERVICE_NAME: ${{ github.event.repository.name }}
   # NB: Unlike terra-data-catalog, this doesn't match the repo name
@@ -21,7 +22,7 @@ env:
 
 jobs:
   publish-job:
-#    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
