@@ -38,8 +38,7 @@ jobs:
           then
             echo ::set-output name=TAG::${TAG_OVERRIDE}
           else
-            echo ::set-output name=TAG::cjl_tag_test_2
-            # TODO: REVERT TO: echo ::set-output name=TAG::$(git describe --tags)
+            echo ::set-output name=TAG::$(git describe --tags)
           fi
 
       - name: Construct docker image name and tag
