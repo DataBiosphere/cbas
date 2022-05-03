@@ -1,5 +1,10 @@
 name: Publish and deploy
-on: create
+on:
+  create:
+  workflow_dispatch:
+  push:
+    branches:
+      - cjl_docker_publish
 
 # Note: Adapted from terra-data-catalog.
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
@@ -10,7 +15,7 @@ env:
 
 jobs:
   publish-job:
-    if: startsWith(github.ref, 'refs/tags/')
+#    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -25,7 +30,10 @@ jobs:
         description: |
           Sets up a step output called TAG with the appropriate tag
         id: tag
-        run: echo ::set-output name=TAG::$(git describe --tags)
+        run:
+          echo ::set-output name=TAG::cjl_test_tag
+          # TODO: Revert back to this after testing:
+          # echo ::set-output name=TAG::$(git describe --tags)
 
       - name: Construct docker image name and tag
         id: image-name
