@@ -36,7 +36,7 @@ jobs:
       - name: Parse tag
         # Sets up a step output called TAG with the appropriate tag
         id: tag
-        run:
+        run: |
           TAG_OVERRIDE=${{ github.event.inputs.tagOverride }}
           if [[ ! -z "${TAG_OVERRIDE}" ]]
           then
