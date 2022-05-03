@@ -2,14 +2,13 @@ name: Publish and deploy
 on:
   create:
   workflow_dispatch:
+    inputs:
+      tagOverride:
+        description: 'Specify the tag to use for this publish'
+        required: true
   push:
     branches:
       - cjl_docker_publish
-
-inputs:
-  tagOverride:
-    description: 'Specify or override the tag used for this publish'
-    required: false
 
 # Note: Adapted from terra-data-catalog.
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
