@@ -27,8 +27,7 @@ jobs:
           cache: 'gradle'
 
       - name: Parse tag
-        description: |
-          Sets up a step output called TAG with the appropriate tag
+        # Sets up a step output called TAG with the appropriate tag
         id: tag
         run:
           echo ::set-output name=TAG::cjl_test_tag
