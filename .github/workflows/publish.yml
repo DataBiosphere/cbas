@@ -12,7 +12,6 @@ on:
         required: true
 
 env:
-  # SERVICE_NAME: ${{ github.event.repository.name }}
   # NB: Unlike terra-data-catalog, this doesn't match the repo name
   SERVICE_NAME: composite-batch-analysis-service
   DOCKERHUB_ORG: broadinstitute
