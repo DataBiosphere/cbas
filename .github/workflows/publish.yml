@@ -18,13 +18,13 @@ env:
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
-  permissions:
-    contents: 'read'
-    id-token: 'write'
-
   publish-job:
     if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK
