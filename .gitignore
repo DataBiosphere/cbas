@@ -30,3 +30,6 @@ bin/
 
 # Mac directory metadata
 .DS_Store
+
+# Ignore generated credentials from google-github-actions/auth, just in case
+gha-creds-*.json
