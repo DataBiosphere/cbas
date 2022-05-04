@@ -15,6 +15,7 @@ env:
   # NB: Unlike terra-data-catalog, this doesn't match the repo name
   SERVICE_NAME: composite-batch-analysis-service
   DOCKERHUB_ORG: broadinstitute
+  GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
   publish-job:
@@ -41,10 +42,11 @@ jobs:
             echo ::set-output name=TAG::$(git describe --tags)
           fi
 
-      - name: Construct docker image name and tag
+      - name: Construct dockerhub and GCR image names
         id: image-name
         run: |
           echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
+          echo ::set-output name=GCR_NAME::gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
 
       - name: Build image locally with jib
         run: |
@@ -61,3 +63,17 @@ jobs:
       - name: Push dockerhub image
         run: docker push ${{ steps.image-name.outputs.DOCKERHUB_NAME }}
 
+      - name: Re-tag image for GCR
+        run: docker tag ${{ steps.image-name.outputs.DOCKERHUB_NAME }} ${{ steps.image-name.outputs.GCR_NAME }}
+
+      - name: Auth to GCR
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_email: ${{ secrets.GCR_PUBLISH_EMAIL }}
+          service_account_key: ${{ secrets.GCR_PUBLISH_KEY_B64 }}
+
+      - name: Explicitly auth Docker for GCR
+        run: gcloud auth configure-docker --quiet
+
+      - name: Push GCR image
+        run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
