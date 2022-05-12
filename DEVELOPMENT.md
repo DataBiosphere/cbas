@@ -75,7 +75,7 @@ Then navigate to the Swagger: `http://localhost:8080/swagger-ui.html`
 4. See some optional tips below in the ["Tips"](#tips) section.
 
 ## Tips
-- Check out [gdub](https://github.com/gdubw/gdub), it'll save you typing `./gradlew` over
+- Check out [gng](https://github.com/gdubw/gng), it'll save you typing `./gradlew` over
   and over, and also takes care of knowing when you're not in the root directory so you
   don't have to figure out the appropriate number of `../`s.
 - In IntelliJ, instead of running the local server with `bootRun`, use the `TerraBatchAnalysisApplication` Spring
