@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
-    id 'bio.terra.catalog.java-application-conventions'
+//    id 'bio.terra.catalog.java-application-conventions'
     id 'io.spring.dependency-management'
     id 'bio.terra.test-runner-plugin'
 }
@@ -10,6 +10,16 @@ dependencyManagement {
     imports {
         mavenBom(SpringBootPlugin.BOM_COORDINATES)
     }
+}
+
+// In `terra-data-catalog` the only `repositories { }` stanzas are in
+// the top-level `buildSrc` directory. But for some reason it does not get
+// inherited (or whatever the mechanism is) in this project.
+repositories {
+    maven {
+        url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
+    }
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -25,6 +35,6 @@ dependencies {
     implementation 'bio.terra:terra-test-runner:0.1.4-SNAPSHOT'
 
     // Requires client libraries
-    implementation project(':client')
-    implementation project(':rawls-client')
+//    implementation project(':client')
+//    implementation project(':rawls-client')
 }
