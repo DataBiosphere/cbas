@@ -1,0 +1,8 @@
+{
+  "name": "FullIntegration",
+  "description": "All integration tests",
+  "serverSpecificationFile": "cbas-local.json",
+  "testConfigurationFiles": [
+    "integration/GetStatus.json",
+  ]
+}
