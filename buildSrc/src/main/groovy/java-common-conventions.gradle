@@ -37,7 +37,6 @@ repositories {
     maven {
         url 'https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/'
     }
-    gradlePluginPortal()
 }
 
 dependencies {
