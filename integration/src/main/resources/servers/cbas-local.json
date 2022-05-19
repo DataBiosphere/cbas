@@ -3,9 +3,8 @@
   "description": "",
 
   "catalogUri": "http://localhost:8080",
-  "cromwellUri": "https://cromiam-priv.dsde-dev.broadinstitute.org/",
 
-  "testRunnerServiceAccountFile": "/dev/null",
+  "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
   "skipKubernetes": true

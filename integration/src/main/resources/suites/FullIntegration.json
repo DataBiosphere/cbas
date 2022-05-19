@@ -3,6 +3,6 @@
   "description": "All integration tests",
   "serverSpecificationFile": "cbas-local.json",
   "testConfigurationFiles": [
-    "integration/GetStatus.json",
+    "integration/GetStatus.json"
   ]
 }
