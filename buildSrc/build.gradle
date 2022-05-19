@@ -7,12 +7,9 @@ repositories {
         url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
     }
     gradlePluginPortal()
-    mavenCentral()
 }
 
 dependencies {
-    implementation 'org.hamcrest:hamcrest:2.2'
-
     implementation 'com.diffplug.spotless:spotless-plugin-gradle:6.3.0'
     implementation 'com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin:3.2.0'
     implementation 'com.srcclr.gradle:com.srcclr.gradle.gradle.plugin:3.1.10'
