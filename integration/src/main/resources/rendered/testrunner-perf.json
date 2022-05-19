@@ -1,4 +1,4 @@
 {
   "placeholder": "Not actually checking in a service account key",
-  "next steps": "Figure out if we need an SA; if so, create and securely store is key"
+  "next steps": "Figure out if we need an SA; if so, create and securely store the key"
 }
