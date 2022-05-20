@@ -18,7 +18,7 @@ dependencies {
     implementation 'org.junit.jupiter:junit-jupiter-api'
     implementation 'org.hamcrest:hamcrest'
 
-    implementation 'ya29 oh just kidding'
+    implementation 'ya29_oh_just_kidding'
 
     // Google Dependencies
     implementation 'com.google.auth:google-auth-library-oauth2-http:1.4.0'
