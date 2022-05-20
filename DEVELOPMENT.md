@@ -10,6 +10,11 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
 
 ### Prerequisites:
 
+- Verify that your checked-out repo is protected by `git-secrets`
+  - Run `git-secrets --list` from the repo root. A long list of configured rules should print out.
+    - DSP-issued workstations should have everything pre-configured
+  - If the command is not found, run `brew install git-secrets`
+  - If there are no rules, use the script [here](https://github.com/broadinstitute/dsp-appsec-gitsecrets-client#setup) to add them
 - Install Postgres 13.1: https://www.postgresql.org/download/
   - [The app](https://postgresapp.com/downloads.html) may be easier, just make sure to download the right version. It'll manage things for you and has a useful menulet where the server can be turned on and off. Don't forget to create a server if you go this route.
 - Install Adoptium Java 17 (Temurin). Here's an easy way on Mac, using [jEnv](https://www.jenv.be/) to manage the active version:
