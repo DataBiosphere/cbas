@@ -1,6 +1,7 @@
 import org.springframework.boot.gradle.plugin.SpringBootPlugin
 
 plugins {
+    id 'java-application-conventions'
     id 'io.spring.dependency-management'
     id 'bio.terra.test-runner-plugin'
 }
@@ -9,17 +10,6 @@ dependencyManagement {
     imports {
         mavenBom(SpringBootPlugin.BOM_COORDINATES)
     }
-}
-
-// In `terra-data-catalog` the only `repositories { }` stanzas are in
-// the top-level `buildSrc` directory. But for some reason it does not get
-// inherited (or whatever the mechanism is) in this project.
-repositories {
-    maven {
-        url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
-    }
-    gradlePluginPortal()
-    mavenCentral()
 }
 
 dependencies {
