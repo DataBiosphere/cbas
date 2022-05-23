@@ -2,8 +2,6 @@
   "name": "",
   "description": "",
 
-  "catalogUri": "http://localhost:8080",
-
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 
   "skipDeployment": true,
