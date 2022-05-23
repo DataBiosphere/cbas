@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.1'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:3.3'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.6.6'
-    implementation 'bio.terra:terra-test-runner:0.0.8-SNAPSHOT'
+    implementation 'bio.terra:terra-test-runner:0.1.4-SNAPSHOT'
     // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
     implementation 'org.apache.commons:commons-compress:1.21'
 }
