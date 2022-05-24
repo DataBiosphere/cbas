@@ -1,1 +1,18 @@
-// TODO! Maybe get started by copy/pasting from data-catalog?
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+    id 'java-library-conventions'
+    id 'maven-publish'
+    id 'io.spring.dependency-management'
+    id 'com.jfrog.artifactory' version '4.18.2'
+    id 'org.hidetake.swagger.generator'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(SpringBootPlugin.BOM_COORDINATES)
+    }
+}
+
+apply from: 'artifactory.gradle'
+apply from: 'swagger.gradle'
