@@ -4,6 +4,19 @@ info:
   description: Manage batch analyses, workflows, and submissions in userspace
   version: 0.0.1
 paths:
+  /status:
+    get:
+      summary: Check status of the service
+      tags: [ public ]
+      operationId: getStatus
+      security: [ ]
+      responses:
+        '200':
+          $ref: '#/components/responses/SystemStatusResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/SystemStatusResponse'
   /api/batch/v1/methods:
     get:
       summary: Lists known methods
@@ -25,7 +38,12 @@ paths:
 
 components:
   responses:
-
+    SystemStatusResponse:
+      description: A JSON description of the subsystems and their statuses.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SystemStatus'
     NotFound:
       description: Not found (or unauthorized)
       content:
@@ -52,3 +70,21 @@ components:
           type: array
           items:
             type: string
+    SystemStatus:
+      required: [ ok, systems ]
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: whether any system(s) need attention
+        systems:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              ok:
+                type: boolean
+              messages:
+                type: array
+                items:
+                  type: string
