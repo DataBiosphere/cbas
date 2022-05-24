@@ -13,14 +13,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.10'
-      - name: Install black and link shellcheck into expected location
-        run: |
-          pip install black
-          sudo ln -s $(which shellcheck) /usr/local/bin/shellcheck
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
