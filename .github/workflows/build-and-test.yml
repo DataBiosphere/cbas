@@ -1,0 +1,78 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: [ '*.md' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build all projects without running tests
+        run: ./gradlew --build-cache build -x test
+
+      - name: Upload spotbugs results
+        uses: github/codeql-action/upload-sarif@main
+        with:
+          sarif_file: service/build/reports/spotbugs/main.sarif
+
+
+  integration-tests:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: [ "5432:5432" ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make sure Postgres is ready and init
+        env:
+          PGPASSWORD: postgres
+        run: |
+          pg_isready -h localhost -t 10
+          psql -h localhost -U postgres -f ./common/postgres-init.sql
+      - name: Render GitHub Secrets
+        run: |
+          echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
+          echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
+      - name: Launch the background process for integration tests
+        run: ./gradlew --build-cache bootRun | tee bootrun.log &
+
+      - name: Wait for boot run to be ready
+        run: |
+          timeout 60 bash -c 'until echo > /dev/tcp/localhost/8080; do sleep 1; done'
+          resultStatus=$(echo > /dev/tcp/localhost/8080; echo $?)
+          if [[ $resultStatus == 0 ]]; then
+            echo "Server started successfully"
+          else
+            echo "Server did not start successfully. Dumping log file"
+            cat bootrun.log
+            exit 1
+          fi
+      - name: Run the integration test suite
+        run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
+
