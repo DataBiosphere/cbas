@@ -23,4 +23,7 @@ dependencies {
 
     // Terra Test Runner Library
     implementation 'bio.terra:terra-test-runner:0.1.4-SNAPSHOT'
+
+    // The CBAS client library:
+    implementation project(':client')
 }

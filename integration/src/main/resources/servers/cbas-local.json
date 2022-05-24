@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "cbas-local",
+  "description": "CBAS Local Env",
 
   "testRunnerServiceAccountFile": "testrunner-perf.json",
 
