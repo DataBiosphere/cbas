@@ -2,3 +2,7 @@ plugins {
     id 'java-common-conventions'
     id 'java-library'
 }
+
+java {
+    withSourcesJar()
+}
