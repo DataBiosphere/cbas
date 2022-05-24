@@ -82,5 +82,5 @@ jobs:
             exit 1
           fi
       - name: Run the integration test suite
-        run: ./gradlew --build-cache runTest --args="suites/dev/FullIntegration.json build/reports"
+        run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
 
