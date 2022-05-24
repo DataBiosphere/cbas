@@ -28,6 +28,38 @@ jobs:
         with:
           sarif_file: service/build/reports/spotbugs/main.sarif
 
+  # TODO (BW-1246): Add the sonarqube part of 'unit-tests-and-sonarqube'
+  unit-tests-and-sonarqube:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: [ "5432:5432" ]
+
+    steps:
+      - uses: actions/checkout@v2
+        # Needed by sonar to get the git history for the branch the PR will be merged into.
+        with:
+          fetch-depth: 0
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make sure Postgres is ready and init
+        env:
+          PGPASSWORD: postgres
+        run: |
+          pg_isready -h localhost -t 10
+          psql -h localhost -U postgres -f ./common/postgres-init.sql
+      - name: Test with coverage
+        run: ./gradlew --build-cache test jacocoTestReport
 
   integration-tests:
     needs: [ build ]
