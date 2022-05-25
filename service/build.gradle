@@ -43,8 +43,8 @@ test {
 
 sonarqube {
     properties {
-        property "sonar.projectName", "composite-batch-analysis-service"
-        property 'sonar.projectKey', 'composite-batch-analysis-service'
+        property 'sonar.projectName', 'terra-batch-analysis'
+        property 'sonar.projectKey', 'DataBiosphere_terra-batch-analysis'
         property 'sonar.organization', 'broad-databiosphere'
         property 'sonar.host.url', 'https://sonarcloud.io'
     }

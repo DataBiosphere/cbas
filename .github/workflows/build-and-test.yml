@@ -77,6 +77,20 @@ jobs:
           pg_isready -h localhost -t 10
           psql -h localhost -U postgres -f ./common/postgres-init.sql
 
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+
       - name: Test with coverage
         run: ./gradlew --build-cache test jacocoTestReport
 
