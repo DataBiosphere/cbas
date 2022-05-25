@@ -38,7 +38,7 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform ()
+    useJUnitPlatform()
 }
 
 sonarqube {
