@@ -148,3 +148,15 @@ jobs:
       - name: Run the integration test suite
         run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
 
+  dispatch-tag:
+    needs: [ build, unit-tests-and-sonarqube, source-clear, integration-tests ]
+    runs-on: ubuntu-latest
+
+    if: success() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Fire off tag action
+        uses: broadinstitute/workflow-dispatch@v1
+        with:
+          workflow: Tag
+          token: ${{ secrets.BROADBOT_TOKEN }}
