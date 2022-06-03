@@ -50,7 +50,7 @@ jobs:
         id: image-name
         run: |
           echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
-          echo ::set-output name=GCR_NAME::gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
+          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
 
       - name: Build image locally with jib
         run: |
