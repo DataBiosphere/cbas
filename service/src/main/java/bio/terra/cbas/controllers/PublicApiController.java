@@ -42,14 +42,4 @@ public class PublicApiController implements PublicApi {
         HttpStatus.OK);
   }
 
-  //  private final RestTemplate restTemplate;
-  //
-  //  public RestService(RestTemplateBuilder restTemplateBuilder) {
-  //    this.restTemplate = restTemplateBuilder.build();
-  //  }
-  //
-  //  public String getPostsPlainJSON() {
-  //    String url = "https://jsonplaceholder.typicode.com/posts";
-  //    return this.restTemplate.getForObject(url, String.class);
-  //  }
 }
