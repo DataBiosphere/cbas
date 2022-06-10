@@ -4,7 +4,6 @@ import bio.terra.cbas.api.PublicApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
-import org.apache.http.client.HttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,5 +40,4 @@ public class PublicApiController implements PublicApi {
             .putSystemsItem("Cromwell", new SystemStatusSystems().ok(isOk).addMessagesItem(result)),
         HttpStatus.OK);
   }
-
 }
