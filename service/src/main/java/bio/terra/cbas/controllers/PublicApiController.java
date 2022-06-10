@@ -4,11 +4,12 @@ import bio.terra.cbas.api.PublicApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
+import java.net.URL;
+import java.net.URLConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.client.RestTemplate;
 
 @Controller
 public class PublicApiController implements PublicApi {
@@ -23,11 +24,15 @@ public class PublicApiController implements PublicApi {
   @Override
   public ResponseEntity<SystemStatus> getStatus() {
 
-    RestTemplate restTemplate = new RestTemplate();
     String result;
-    Boolean isOk;
+    boolean isOk;
     try {
-      result = restTemplate.getForObject(this.cromwellConfig.healthUri(), String.class);
+      URL url = new URL(this.cromwellConfig.healthUri());
+      URLConnection connection = url.openConnection();
+      connection.setConnectTimeout(5000);
+      var stream = connection.getInputStream();
+
+      result = new String(stream.readAllBytes());
       isOk = true;
     } catch (Exception e) {
       result = e.getLocalizedMessage();
