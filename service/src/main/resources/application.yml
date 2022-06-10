@@ -38,6 +38,11 @@ spring:
   liquibase:
     change-log: changelog/changelog.yaml
 
+workflow-engines:
+  cromwell:
+    baseUri: "http://localhost:8000"
+    healthUri: "http://localhost:8000/engine/v1/status"
+
 terra.common:
   tracing:
     stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}
