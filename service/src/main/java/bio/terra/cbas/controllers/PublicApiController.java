@@ -1,8 +1,11 @@
 package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.PublicApi;
+import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
+import org.apache.http.client.HttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,18 +14,31 @@ import org.springframework.web.client.RestTemplate;
 @Controller
 public class PublicApiController implements PublicApi {
 
+  private final CromwellServerConfiguration cromwellConfig;
+
+  @Autowired
+  public PublicApiController(CromwellServerConfiguration cromwellConfig) {
+    this.cromwellConfig = cromwellConfig;
+  }
+
   @Override
   public ResponseEntity<SystemStatus> getStatus() {
 
     RestTemplate restTemplate = new RestTemplate();
-    String x = restTemplate.getForObject("https://www.broadinstitute.org", String.class);
+    String result;
+    Boolean isOk;
+    try {
+      result = restTemplate.getForObject(this.cromwellConfig.healthUri(), String.class);
+      isOk = true;
+    } catch (Exception e) {
+      result = e.getLocalizedMessage();
+      isOk = false;
+    }
 
     return new ResponseEntity<>(
         new SystemStatus()
             .ok(true)
-            .putSystemsItem(
-                "Cromwell",
-                new SystemStatusSystems().ok(true).addMessagesItem(x.substring(0, 100))),
+            .putSystemsItem("Cromwell", new SystemStatusSystems().ok(isOk).addMessagesItem(result)),
         HttpStatus.OK);
   }
 
