@@ -6,6 +6,7 @@ import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class PublicApiController implements PublicApi {
       connection.setConnectTimeout(5000);
       var stream = connection.getInputStream();
 
-      result = new String(stream.readAllBytes());
+      result = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
       isOk = true;
     } catch (Exception e) {
       result = e.getLocalizedMessage();
