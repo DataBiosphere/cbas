@@ -33,7 +33,7 @@ public class PublicApiController implements PublicApi {
       connection.setConnectTimeout(5000);
       connection.setReadTimeout(5000);
       try (var stream = connection.getInputStream()) {
-        result = new String(stream.readAllBytes());
+        result = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
         isOk = true;
       } catch (Exception e) {
         result = e.getLocalizedMessage();
