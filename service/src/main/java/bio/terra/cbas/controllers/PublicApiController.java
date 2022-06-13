@@ -31,6 +31,7 @@ public class PublicApiController implements PublicApi {
       URL url = new URL(this.cromwellConfig.healthUri());
       URLConnection connection = url.openConnection();
       connection.setConnectTimeout(5000);
+      connection.setReadTimeout(5000);
       try (var stream = connection.getInputStream()) {
         result = new String(stream.readAllBytes());
         isOk = true;
