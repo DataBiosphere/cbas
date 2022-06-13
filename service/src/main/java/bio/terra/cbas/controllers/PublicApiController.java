@@ -35,9 +35,6 @@ public class PublicApiController implements PublicApi {
       try (var stream = connection.getInputStream()) {
         result = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
         isOk = true;
-      } catch (Exception e) {
-        result = e.getLocalizedMessage();
-        isOk = false;
       }
     } catch (Exception e) {
       result = e.getLocalizedMessage();
