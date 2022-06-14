@@ -31,10 +31,11 @@ public class PublicApiController implements PublicApi {
       URL url = new URL(this.cromwellConfig.healthUri());
       URLConnection connection = url.openConnection();
       connection.setConnectTimeout(5000);
-      var stream = connection.getInputStream();
-
-      result = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-      isOk = true;
+      connection.setReadTimeout(5000);
+      try (var stream = connection.getInputStream()) {
+        result = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        isOk = true;
+      }
     } catch (Exception e) {
       result = e.getLocalizedMessage();
       isOk = false;
