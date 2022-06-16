@@ -17,6 +17,27 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
+  "/api/batch/v1/runs":
+    post:
+      tags: [ runs ]
+      summary: Run a single instance of a workflow with static inputs.
+      operationId: postRun
+      requestBody:
+        $ref: '#/components/requestBodies/PostRunRequest'
+#        description: Request body to run a single instance of a workflow (by URL) with static inputs.
+#        content:
+#          multipart/form-data:
+#            schema:
+#              $ref: '#/components/schemas/RunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostRunResponse'
+        '201':
+          $ref: '#/components/responses/PostRunResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/batch/v1/methods:
     get:
       summary: Lists known methods
@@ -37,13 +58,33 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 components:
+  requestBodies:
+    PostRunRequest:
+      description: Request body to run a single instance of a workflow (by URL) with static inputs.
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/RunRequest'
+
   responses:
+    PostRunResponse:
+      description: Response from creating a new run
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunStateResponse'
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/SystemStatus'
+    UserError:
+      description: User error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorReport'
     NotFound:
       description: Not found (or unauthorized)
       content:
@@ -58,13 +99,32 @@ components:
             $ref: '#/components/schemas/ErrorReport'
 
   schemas:
+    RunRequest:
+      type: object
+      properties:
+        workflow_url:
+          type: string
+          description: URL to the workflow script to run
+        workflow_params:
+          type: object
+          description: Input set
+    RunStateResponse:
+      type: object
+      required: [run_id]
+      properties:
+        run_id:
+          type:
+            string
+          example: 00000000-0000-0000-0000-000000000000
+        state:
+          $ref: '#/components/schemas/RunState'
     ErrorReport:
       type: object
-      required: [message, statusCode, causes]
+      required: [ message, status_code, causes]
       properties:
         message:
           type: string
-        statusCode:
+        status_code:
           type: integer
         causes:
           type: array
@@ -88,3 +148,18 @@ components:
                 type: array
                 items:
                   type: string
+    RunState:
+      title: RunState
+      example: QUEUED
+      enum:
+        - UNKNOWN
+        - QUEUED
+        - INITIALIZING
+        - RUNNING
+        - PAUSED
+        - COMPLETE
+        - EXECUTOR_ERROR
+        - SYSTEM_ERROR
+        - CANCELED
+        - CANCELING
+      type: string
