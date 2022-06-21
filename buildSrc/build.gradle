@@ -6,10 +6,17 @@ repositories {
     maven {
         url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
     }
+    maven {
+        url 'https://broadinstitute.jfrog.io/artifactory/libs-release-local'
+    }
+//    maven {
+//        url 'https://broadinstitute.jfrog.io/artifactory-snapshots/libs-snapshot'
+//    }
     gradlePluginPortal()
 }
 
 dependencies {
+    implementation "org.broadinstitute.cromwell:cromwell-client_2.12:0.1-b7108d4d3-SNAP"
     implementation 'com.diffplug.spotless:spotless-plugin-gradle:6.3.0'
     implementation 'com.google.cloud.tools.jib:com.google.cloud.tools.jib.gradle.plugin:3.2.0'
     implementation 'com.srcclr.gradle:com.srcclr.gradle.gradle.plugin:3.1.10'
