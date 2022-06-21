@@ -9,9 +9,6 @@ repositories {
     maven {
         url 'https://broadinstitute.jfrog.io/artifactory/libs-release-local'
     }
-//    maven {
-//        url 'https://broadinstitute.jfrog.io/artifactory-snapshots/libs-snapshot'
-//    }
     gradlePluginPortal()
 }
 
