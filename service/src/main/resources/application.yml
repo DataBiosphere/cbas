@@ -40,8 +40,8 @@ spring:
 
 workflow-engines:
   cromwell:
-    baseUri: "https://cromwell-fiab.dsde-dev.broadinstitute.org:21443"
-    healthUri: "https://cromwell-fiab.dsde-dev.broadinstitute.org:21443/engine/v1/status"
+    baseUri: "http://localhost:8000"
+    healthUri: "http://localhost:8000/engine/v1/status"
 
 terra.common:
   tracing:
