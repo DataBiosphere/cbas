@@ -27,8 +27,6 @@ public class RunsApiController implements RunsApi {
 
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
-    client.setDebugging(true);
-    client.setLenientOnJson(true);
     WorkflowsApi workflowsApi = new WorkflowsApi(client);
     String runId = UUID.randomUUID().toString();
 
