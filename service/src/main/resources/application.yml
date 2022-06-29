@@ -38,12 +38,10 @@ spring:
   liquibase:
     change-log: changelog/changelog.yaml
 
-# This is the hostname of Adam's laptop and is NOT generalizable
-# Workaround for unexplained inability to use `http://localhost:8000`
 workflow-engines:
   cromwell:
-    baseUri: "http://wm334-2ce.lan:8000"
-    healthUri: "http://wm334-2ce.lan:8000/engine/v1/status"
+    baseUri: "http://localhost:8000"
+    healthUri: "http://localhost:8000/engine/v1/status"
 
 terra.common:
   tracing:
