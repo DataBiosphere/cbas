@@ -6,6 +6,9 @@ repositories {
     maven {
         url 'https://broadinstitute.jfrog.io/artifactory/plugins-snapshot'
     }
+    maven {
+        url 'https://broadinstitute.jfrog.io/artifactory/libs-release-local'
+    }
     gradlePluginPortal()
 }
 
