@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Controller
 public class RunsApiController implements RunsApi {
@@ -23,6 +24,7 @@ public class RunsApiController implements RunsApi {
   }
 
   @Override
+  @CrossOrigin
   public ResponseEntity<RunStateResponse> postRun(String workflowUrl, Object workflowParams) {
 
     ApiClient client = new ApiClient();
@@ -38,7 +40,7 @@ public class RunsApiController implements RunsApi {
           null,
           workflowUrl,
           null,
-          null,
+          workflowParams.toString(),
           null,
           null,
           null,
