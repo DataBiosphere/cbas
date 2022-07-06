@@ -38,7 +38,7 @@ public class RunsApiController implements RunsApi {
           null,
           workflowUrl,
           null,
-          null,
+          workflowParams.toString(),
           null,
           null,
           null,
