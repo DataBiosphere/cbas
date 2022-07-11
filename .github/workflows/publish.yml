@@ -86,6 +86,13 @@ jobs:
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
 
+      - name: Clone Cromwhelm
+        uses: actions/checkout@v2
+        with:
+          repository: broadinstitute/cromwhelm
+          token: ${{ secrets.BROADBOT_GITHUB_TOKEN }} # Has to be set at checkout AND later when pushing to work
+          path: cromwhelm
+
       - name: Update CBAS Helm Chart in cromwhelm
         env:
           BROADBOT_GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
