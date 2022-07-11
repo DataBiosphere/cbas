@@ -85,3 +85,21 @@ jobs:
 
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
+
+      - name: Update CBAS Helm Chart in cromwhelm
+        env:
+          BROADBOT_GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
+        run: |
+          set -e
+          cd cromwhelm
+          git checkout main
+          ls -la
+          HELM_CUR_TAG=$(grep "/composite-batch-analysis-service:" cromwell-helm/templates/cbas-deployment.yaml | sed "s,.*/composite-batch-analysis-service:,,")
+          HELM_NEW_TAG=${{ steps.tag.outputs.TAG }}
+          [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" cromwell-helm/templates/cbas-deployment.yaml
+          git diff
+          git config --global user.name "broadbot"
+          git config --global user.email "broadbot@broadinstitute.org"
+          git commit -am "Auto update to CBAS version $HELM_NEW_TAG"
+          git push https://broadbot:$BROADBOT_GITHUB_TOKEN@github.com/broadinstitute/cromwhelm.git main
