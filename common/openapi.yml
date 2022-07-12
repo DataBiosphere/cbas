@@ -27,8 +27,6 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/GetRunResponse'
-        '201':
-          $ref: '#/components/responses/GetRunResponse'
         '400':
           $ref: '#/components/responses/UserError'
         '500':
@@ -143,20 +141,20 @@ components:
         runs:
           type: array
           items:
-            run_id:
-              type: string
-            request:
-              $ref: '#/components/schemas/RunRequest'
-            state:
-              $ref: '#/components/schemas/RunState'
-            run_log:
-              $ref: '#/components/schemas/Log'
-            task_logs:
-              type: array
-              items:
-                $ref: '#/components/schemas/Log'
-            outputs:
-              type: object
+            type: object
+            properties:
+              run_id:
+                type: string
+              request:
+                $ref: '#/components/schemas/RunRequest'
+              state:
+                $ref: '#/components/schemas/RunState'
+              task_logs:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Log'
+              outputs:
+                type: object
     Log:
       type: object
       properties:

@@ -26,12 +26,12 @@ public class RunsApiController implements RunsApi {
   // add new endpoint here @@Override
   // add details about updating swagger to development.md
   @Override
-  public ResponseEntity<RunLogResponse> getRun(String runId){
-
+  public ResponseEntity<RunLogResponse> getRun(RunLogResponse body){
+    return new ResponseEntity<>(new RunLogResponse(), HttpStatus.OK);
   }
 
   @Override
-  public ResponseEntity<RunStateResponse> postRun(String workflowUrl, Object workflowParams) {
+  public ResponseEntity<RunStateResponse> postRun(String workflowUrl, Object workflowParams, String workflowType) {
 
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
