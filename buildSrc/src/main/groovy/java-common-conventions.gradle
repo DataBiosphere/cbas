@@ -105,7 +105,7 @@ spotless {
     java {
         targetExclude "${buildDir}/**"
         targetExclude "**/swagger-code/**"
-        googleJavaFormat()
+        //googleJavaFormat()
     }
 }
 

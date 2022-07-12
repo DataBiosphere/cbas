@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
@@ -20,6 +21,30 @@ public class RunsApiController implements RunsApi {
   @Autowired
   public RunsApiController(CromwellServerConfiguration cromwellConfig) {
     this.cromwellConfig = cromwellConfig;
+  }
+
+  // add new endpoint here @@Override
+  // add details about updating swagger to development.md
+  @Override
+  public ResponseEntity<RunLogResponse> getRun(String runId){
+    ApiClient client = new ApiClient();
+    client.setBasePath(this.cromwellConfig.baseUri());
+    WorkflowsApi workflowsApi = new WorkflowsApi(client);
+
+    ResponseEntity result;
+
+    try {
+
+      result = pass;
+    } catch (cromwell.client.ApiException e) {
+      System.out.println(e);
+      result =
+          new ResponseEntity<>(
+              new RunLogResponse().runId(runId).state(RunState.SYSTEM_ERROR),
+              HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return result;
   }
 
   @Override

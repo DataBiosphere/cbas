@@ -81,30 +81,11 @@ components:
           schema:
             $ref: '#/components/schemas/RunRequest'
     GetRunLogs:
-#      type: object
       description: Return a list of runs with details.
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/RunLogResponse'
-#      properties:
-#        id:
-#          type: string
-#        request:
-#          $ref: '#/components/schemas/RunRequest'
-#        state:
-#          $ref: '#/components/schemas/RunState'
-#        run_log:
-#          $ref: '#/components/schemas/Log'
-#        task_logs:
-#          type: array
-#          items:
-#            $ref: '#/components/schemas/Log'
-#            description: Logs and other info for the workflow run.
-#        outputs:
-#          type: object
-#          description: Outputs from the workflow run.
-
 
   responses:
     PostRunResponse:
@@ -118,7 +99,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RunList'
+            $ref: '#/components/schemas/RunLogResponse'
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
@@ -158,25 +139,24 @@ components:
           type: string
     RunLogResponse:
       type: object
-      required: [run_id]
       properties:
-        run_id:
-          type: string
-        request:
-          $ref: '#/components/schemas/RunRequest'
-        state:
-          $ref: '#/components/schemas/RunState'
-        run_log:
-          $ref: '#/components/schemas/Log' # DOES NOT YET EXIST
-        task_logs:
-          allOf:
-            - type: array
-            - items:
-              - $ref: '#/components/schemas/Log'
-              - description: Logs and other info for the workflow run.
-        outputs:
-          type: object
-          description: Outputs from the workflow run.
+        runs:
+          type: array
+          items:
+            run_id:
+              type: string
+            request:
+              $ref: '#/components/schemas/RunRequest'
+            state:
+              $ref: '#/components/schemas/RunState'
+            run_log:
+              $ref: '#/components/schemas/Log'
+            task_logs:
+              type: array
+              items:
+                $ref: '#/components/schemas/Log'
+            outputs:
+              type: object
     Log:
       type: object
       properties:
