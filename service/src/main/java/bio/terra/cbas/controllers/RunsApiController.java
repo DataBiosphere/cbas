@@ -27,24 +27,7 @@ public class RunsApiController implements RunsApi {
   // add details about updating swagger to development.md
   @Override
   public ResponseEntity<RunLogResponse> getRun(String runId){
-    ApiClient client = new ApiClient();
-    client.setBasePath(this.cromwellConfig.baseUri());
-    WorkflowsApi workflowsApi = new WorkflowsApi(client);
 
-    ResponseEntity result;
-
-    try {
-
-      result = pass;
-    } catch (cromwell.client.ApiException e) {
-      System.out.println(e);
-      result =
-          new ResponseEntity<>(
-              new RunLogResponse().runId(runId).state(RunState.SYSTEM_ERROR),
-              HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    return result;
   }
 
   @Override
