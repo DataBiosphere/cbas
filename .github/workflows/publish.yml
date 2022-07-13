@@ -18,70 +18,103 @@ env:
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
-  publish-job:
-    if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
+  - publish-job:
+      if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
+      runs-on: ubuntu-latest
+      permissions:
+        contents: 'read'
+        id-token: 'write'
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: 'gradle'
+      steps:
+        - uses: actions/checkout@v2
+        - name: Set up JDK
+          uses: actions/setup-java@v2
+          with:
+            java-version: '17'
+            distribution: 'temurin'
+            cache: 'gradle'
 
-      - name: Parse tag
-        # Sets up a step output called TAG with the appropriate tag
-        id: tag
-        run: |
-          TAG_OVERRIDE=${{ github.event.inputs.tagOverride }}
-          if [[ ! -z "${TAG_OVERRIDE}" ]]
-          then
-            echo ::set-output name=TAG::${TAG_OVERRIDE}
-          else
-            echo ::set-output name=TAG::$(git describe --tags)
-          fi
+        - name: Parse tag
+          # Sets up a step output called TAG with the appropriate tag
+          id: tag
+          run: |
+            TAG_OVERRIDE=${{ github.event.inputs.tagOverride }}
+            if [[ ! -z "${TAG_OVERRIDE}" ]]
+            then
+              echo ::set-output name=TAG::${TAG_OVERRIDE}
+            else
+              echo ::set-output name=TAG::$(git describe --tags)
+            fi
 
-      - name: Construct dockerhub and GCR image names
-        id: image-name
-        run: |
-          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
-          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
+        - name: Construct dockerhub and GCR image names
+          id: image-name
+          run: |
+            echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
+            echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
 
-      - name: Build image locally with jib
-        run: |
-          ./gradlew --build-cache :service:jibDockerBuild \
-          --image=${{ steps.image-name.outputs.DOCKERHUB_NAME }} \
-          -Djib.console=plain
+        - name: Build image locally with jib
+          run: |
+            ./gradlew --build-cache :service:jibDockerBuild \
+            --image=${{ steps.image-name.outputs.DOCKERHUB_NAME }} \
+            -Djib.console=plain
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: dsdejenkins
-          password: ${{ secrets.DSDEJENKINS_DOCKERHUB_PASSWORD }}
+        - name: Login to Docker Hub
+          uses: docker/login-action@v1
+          with:
+            username: dsdejenkins
+            password: ${{ secrets.DSDEJENKINS_DOCKERHUB_PASSWORD }}
 
-      - name: Push dockerhub image
-        run: docker push ${{ steps.image-name.outputs.DOCKERHUB_NAME }}
+        - name: Push dockerhub image
+          run: docker push ${{ steps.image-name.outputs.DOCKERHUB_NAME }}
 
-      - name: Re-tag image for GCR
-        run: docker tag ${{ steps.image-name.outputs.DOCKERHUB_NAME }} ${{ steps.image-name.outputs.GCR_NAME }}
+        - name: Re-tag image for GCR
+          run: docker tag ${{ steps.image-name.outputs.DOCKERHUB_NAME }} ${{ steps.image-name.outputs.GCR_NAME }}
 
-      - name: Set up gcloud
-        uses: google-github-actions/setup-gcloud@v0
+        - name: Set up gcloud
+          uses: google-github-actions/setup-gcloud@v0
 
-      - name: Authenticate to Google Cloud
-        uses: 'google-github-actions/auth@v0'
-        with:
-          # Centralized in dsp-tools-k8s; ask in #dsp-devops-champions for help troubleshooting
-          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
-          service_account: 'gcr-publish@broad-dsp-gcr-public.iam.gserviceaccount.com'
+        - name: Authenticate to Google Cloud
+          uses: 'google-github-actions/auth@v0'
+          with:
+            # Centralized in dsp-tools-k8s; ask in #dsp-devops-champions for help troubleshooting
+            workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+            service_account: 'gcr-publish@broad-dsp-gcr-public.iam.gserviceaccount.com'
 
-      - name: Explicitly auth Docker for GCR
-        run: gcloud auth configure-docker --quiet
+        - name: Explicitly auth Docker for GCR
+          run: gcloud auth configure-docker --quiet
 
-      - name: Push GCR image
-        run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
+        - name: Push GCR image
+          run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
+
+  - update-helm-chart-job:
+      if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
+      runs-on: ubuntu-latest
+      permissions:
+        contents: 'read'
+        id-token: 'write'
+
+      steps:
+        - name: Clone Cromwhelm
+          uses: actions/checkout@v2
+          with:
+            repository: broadinstitute/cromwhelm
+            token: ${{ secrets.BROADBOT_GITHUB_TOKEN }} # Has to be set at checkout AND later when pushing to work
+            path: cromwhelm
+
+        - name: Update CBAS Helm Chart in cromwhelm
+          env:
+            BROADBOT_GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
+          run: |
+            set -e
+            cd cromwhelm
+            git checkout main
+            ls -la
+            HELM_CUR_TAG=$(grep "/composite-batch-analysis-service:" cromwell-helm/templates/cbas-deployment.yaml | sed "s,.*/composite-batch-analysis-service:,,")
+            HELM_NEW_TAG=${{ steps.tag.outputs.TAG }}
+            [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
+            sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" cromwell-helm/templates/cbas-deployment.yaml
+            git diff
+            git config --global user.name "broadbot"
+            git config --global user.email "broadbot@broadinstitute.org"
+            git commit -am "Auto update to CBAS version $HELM_NEW_TAG"
+            git push https://broadbot:$BROADBOT_GITHUB_TOKEN@github.com/broadinstitute/cromwhelm.git main
