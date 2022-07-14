@@ -9,6 +9,9 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
+import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -48,7 +51,8 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRun() {
     List<LogRunRequest> runs = new ArrayList<>();
     String runId = UUID.randomUUID().toString();
-    String name = "BAS";
+    String name = "CBAS";
+    Date now = new Date();
 
     runs.add((new LogRunRequest()
             .runId(runId)
@@ -56,7 +60,7 @@ public class RunsApiController implements RunsApi {
             .workflowUrl("urlHere")
             .name(name)
             .workflowParams("params")
-            .submissionDate("today")
+            .submissionDate(now)
         ));
 
     return ResponseEntity.ok(new RunLogResponse().runs(runs));

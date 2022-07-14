@@ -141,6 +141,7 @@ components:
           type: string
         submission_date:
           type: string
+          format: date-time
     RunLogResponse:
       type: object
       properties:
