@@ -22,8 +22,6 @@ paths:
       tags: [ runs ]
       summary: Get a log of a workflow.
       operationId: getRun
-      requestBody:
-        $ref: '#/components/requestBodies/GetRunLogs'
       responses:
         '200':
           $ref: '#/components/responses/GetRunResponse'
@@ -78,12 +76,6 @@ components:
         multipart/form-data:
           schema:
             $ref: '#/components/schemas/RunRequest'
-    GetRunLogs:
-      description: Return a list of runs with details.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RunLogResponse'
 
   responses:
     PostRunResponse:
@@ -133,7 +125,21 @@ components:
         workflow_params:
           type: object
           description: Input set
-        workflow_type:
+    LogRunRequest:
+      type: object
+      properties:
+        run_id:
+          type: string
+        workflow_url:
+          type: string
+          description: URL to the workflow script to run
+        name:
+          type: string
+        state:
+          $ref: '#/components/schemas/RunState'
+        workflow_params:
+          type: string
+        submission_date:
           type: string
     RunLogResponse:
       type: object
@@ -141,32 +147,36 @@ components:
         runs:
           type: array
           items:
-            type: object
-            properties:
-              run_id:
-                type: string
-              request:
-                $ref: '#/components/schemas/RunRequest'
-              state:
-                $ref: '#/components/schemas/RunState'
-              task_logs:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Log'
-              outputs:
-                type: object
-    Log:
-      type: object
-      properties:
-        name:
-          type: string
-          description: task or workflow name
-        start_time:
-          type: string
-          description: When command started executing
-        end_time:
-          type: string
-          description: When command stopped executing (completed, failed, or cancelled).
+            $ref: '#/components/schemas/LogRunRequest'
+#            properties:
+#              run_id:
+#                type: string
+#              request:
+#                type: object
+#                additionalProperties:
+#                  $ref: '#/components/schemas/RunRequest'
+#              state:
+#                $ref: '#/components/schemas/RunState'
+#              task_logs:
+#                type: object
+#                items:
+#                  type: object
+#                  additionalProperties:
+#                    $ref: '#/components/schemas/Log'
+#              outputs:
+#                type: object
+#    Log:
+#      type: object
+#      properties:
+#        name:
+#          type: string
+#          description: task or workflow name
+#        start_time:
+#          type: string
+#          description: When command started executing
+#        end_time:
+#          type: string
+#          description: When command stopped executing (completed, failed, or cancelled).
 
     RunStateResponse:
       type: object
