@@ -12,8 +12,7 @@ on:
         required: true
 
 env:
-  # NB: Unlike terra-data-catalog, this doesn't match the repo name
-  SERVICE_NAME: composite-batch-analysis-service
+  SERVICE_NAME: cbas
   DOCKERHUB_ORG: broadinstitute
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
