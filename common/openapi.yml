@@ -149,36 +149,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LogRunRequest'
-#            properties:
-#              run_id:
-#                type: string
-#              request:
-#                type: object
-#                additionalProperties:
-#                  $ref: '#/components/schemas/RunRequest'
-#              state:
-#                $ref: '#/components/schemas/RunState'
-#              task_logs:
-#                type: object
-#                items:
-#                  type: object
-#                  additionalProperties:
-#                    $ref: '#/components/schemas/Log'
-#              outputs:
-#                type: object
-#    Log:
-#      type: object
-#      properties:
-#        name:
-#          type: string
-#          description: task or workflow name
-#        start_time:
-#          type: string
-#          description: When command started executing
-#        end_time:
-#          type: string
-#          description: When command stopped executing (completed, failed, or cancelled).
-
     RunStateResponse:
       type: object
       required: [run_id]
