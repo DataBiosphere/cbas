@@ -8,8 +8,8 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
-import java.util.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +34,14 @@ public class RunsApiController implements RunsApi {
     String name = "CBAS";
     Date now = new Date();
 
-    runs.add((new LogRunRequest()
+    runs.add(
+        (new LogRunRequest()
             .runId(runId)
             .state(RunState.UNKNOWN)
             .workflowUrl("urlHere")
             .name(name)
             .workflowParams("params")
-            .submissionDate(now)
-        ));
+            .submissionDate(now)));
 
     return ResponseEntity.ok(new RunLogResponse().runs(runs));
   }
