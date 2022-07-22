@@ -35,13 +35,13 @@ public class RunsApiController implements RunsApi {
     Date now = new Date();
 
     runs.add(
-        (new LogRunRequest()
+        new LogRunRequest()
             .runId(runId)
             .state(RunState.UNKNOWN)
             .workflowUrl("urlHere")
             .name(name)
             .workflowParams("params")
-            .submissionDate(now)));
+            .submissionDate(now));
 
     return ResponseEntity.ok(new RunLogResponse().runs(runs));
   }
