@@ -2,10 +2,15 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.model.LogRunRequest;
+import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +25,25 @@ public class RunsApiController implements RunsApi {
   @Autowired
   public RunsApiController(CromwellServerConfiguration cromwellConfig) {
     this.cromwellConfig = cromwellConfig;
+  }
+
+  @Override
+  public ResponseEntity<RunLogResponse> getRun() {
+    List<LogRunRequest> runs = new ArrayList<>();
+    String runId = UUID.randomUUID().toString();
+    String name = "CBAS";
+    Date now = new Date();
+
+    runs.add(
+        new LogRunRequest()
+            .runId(runId)
+            .state(RunState.UNKNOWN)
+            .workflowUrl("urlHere")
+            .name(name)
+            .workflowParams("params")
+            .submissionDate(now));
+
+    return ResponseEntity.ok(new RunLogResponse().runs(runs));
   }
 
   @Override
