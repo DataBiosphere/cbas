@@ -9,7 +9,6 @@ import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,21 +28,35 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<RunLogResponse> getRun() {
+
+    ApiClient client = new ApiClient();
+    client.setBasePath(this.cromwellConfig.baseUri());
+    WorkflowsApi workflowsApi = new WorkflowsApi(client);
+    LogRunRequest metadata = new LogRunRequest();
+
     List<LogRunRequest> runs = new ArrayList<>();
-    String runId = UUID.randomUUID().toString();
-    String name = "CBAS";
-    Date now = new Date();
 
     runs.add(
         new LogRunRequest()
-            .runId(runId)
-            .state(RunState.UNKNOWN)
-            .workflowUrl("urlHere")
-            .name(name)
-            .workflowParams("params")
-            .submissionDate(now));
+            .runId(metadata.getRunId())
+            .state(metadata.getState())
+            .workflowUrl(metadata.getWorkflowUrl())
+            .name(metadata.getName())
+            .workflowParams(metadata.getWorkflowParams())
+            .submissionDate(metadata.getSubmissionDate()));
 
-    return ResponseEntity.ok(new RunLogResponse().runs(runs));
+    ResponseEntity result;
+
+    try {
+      workflowsApi.metadata("v1", metadata.getRunId(), null, null, null);
+
+      result = new ResponseEntity<>(new RunLogResponse().runs(runs), HttpStatus.OK);
+    } catch (cromwell.client.ApiException e) {
+      result =
+          new ResponseEntity<>(new RunLogResponse().runs(runs), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return result;
   }
 
   @Override
