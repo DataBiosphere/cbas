@@ -9,8 +9,11 @@ import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import cromwell.client.model.WorkflowQueryResponse;
+import cromwell.client.model.WorkflowQueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +51,7 @@ public class RunsApiController implements RunsApi {
     ResponseEntity result;
 
     try {
-      workflowsApi.metadata("v1", metadata.getRunId(), null, null, null);
+      workflowsApi.queryGet("v1", null, null, null, null, null, null,null, null, null, null, null, null);
 
       result = new ResponseEntity<>(new RunLogResponse().runs(runs), HttpStatus.OK);
     } catch (cromwell.client.ApiException e) {

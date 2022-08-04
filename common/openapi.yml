@@ -138,7 +138,7 @@ components:
         state:
           $ref: '#/components/schemas/RunState'
         workflow_params:
-          type: string
+          type: object
         submission_date:
           type: string
           format: date-time
