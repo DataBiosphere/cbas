@@ -20,8 +20,8 @@ paths:
   "/api/batch/v1/runs":
     get:
       tags: [ runs ]
-      summary: Get a log of a workflow.
-      operationId: getRun
+      summary: Get list of all runs
+      operationId: getRuns
       responses:
         '200':
           $ref: '#/components/responses/GetRunResponse'
@@ -35,11 +35,6 @@ paths:
       operationId: postRun
       requestBody:
         $ref: '#/components/requestBodies/PostRunRequest'
-#        description: Request body to run a single instance of a workflow (by URL) with static inputs.
-#        content:
-#          multipart/form-data:
-#            schema:
-#              $ref: '#/components/schemas/RunRequest'
       responses:
         '200':
           $ref: '#/components/responses/PostRunResponse'
@@ -138,7 +133,7 @@ components:
         state:
           $ref: '#/components/schemas/RunState'
         workflow_params:
-          type: object
+          type: string
         submission_date:
           type: string
           format: date-time
