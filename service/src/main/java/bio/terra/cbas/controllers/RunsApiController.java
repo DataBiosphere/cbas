@@ -8,12 +8,12 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
 import cromwell.client.api.WorkflowsApi;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 import cromwell.client.model.WorkflowQueryResponse;
 import cromwell.client.model.WorkflowQueryResult;
+import java.time.OffsetDateTime;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,42 +24,65 @@ public class RunsApiController implements RunsApi {
 
   private final CromwellServerConfiguration cromwellConfig;
 
+  private RunState convertToRunState(String workflowStatus) {
+    return switch (workflowStatus) {
+      case "On Hold" -> RunState.PAUSED;
+      case "Submitted" -> RunState.QUEUED;
+      case "Running" -> RunState.RUNNING;
+      case "Aborting" -> RunState.CANCELING;
+      case "Aborted" -> RunState.CANCELED;
+      case "Succeeded" -> RunState.COMPLETE;
+      case "Failed" -> RunState.EXECUTOR_ERROR;
+      default -> RunState.UNKNOWN;
+    };
+  }
+
+  private Date convertToDate(OffsetDateTime submissionTimestamp) {
+    if (submissionTimestamp != null) {
+      return new Date(submissionTimestamp.toInstant().toEpochMilli());
+    }
+
+    return null;
+  }
+
+  private LogRunRequest convertToLogRunRequest(WorkflowQueryResult queryResult) {
+    // Note: Cromwell's /query endpoint doesn't return 'workflowUrl' or 'workflowInputs' hence
+    // Setting it 'null' for now
+    return new LogRunRequest()
+        .runId(queryResult.getId())
+        .state(convertToRunState(queryResult.getStatus()))
+        .workflowUrl(null)
+        .name(queryResult.getName())
+        .workflowParams(null)
+        .submissionDate(convertToDate(queryResult.getSubmission()));
+  }
+
   @Autowired
   public RunsApiController(CromwellServerConfiguration cromwellConfig) {
     this.cromwellConfig = cromwellConfig;
   }
 
   @Override
-  public ResponseEntity<RunLogResponse> getRun() {
-
+  public ResponseEntity<RunLogResponse> getRuns() {
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
     WorkflowsApi workflowsApi = new WorkflowsApi(client);
-    LogRunRequest metadata = new LogRunRequest();
-
-    List<LogRunRequest> runs = new ArrayList<>();
-
-    runs.add(
-        new LogRunRequest()
-            .runId(metadata.getRunId())
-            .state(metadata.getState())
-            .workflowUrl(metadata.getWorkflowUrl())
-            .name(metadata.getName())
-            .workflowParams(metadata.getWorkflowParams())
-            .submissionDate(metadata.getSubmissionDate()));
-
-    ResponseEntity result;
 
     try {
-      workflowsApi.queryGet("v1", null, null, null, null, null, null,null, null, null, null, null, null);
+      WorkflowQueryResponse queryResponse =
+          workflowsApi.queryGet(
+              "v1", null, null, null, null, null, null, null, null, null, null, null, null);
 
-      result = new ResponseEntity<>(new RunLogResponse().runs(runs), HttpStatus.OK);
+      List<LogRunRequest> runsList =
+          queryResponse.getResults().stream()
+              .map(queryResult -> convertToLogRunRequest(queryResult))
+              .toList();
+
+      return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
     } catch (cromwell.client.ApiException e) {
-      result =
-          new ResponseEntity<>(new RunLogResponse().runs(runs), HttpStatus.INTERNAL_SERVER_ERROR);
+      System.out.println(e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    return result;
   }
 
   @Override
@@ -69,8 +92,6 @@ public class RunsApiController implements RunsApi {
     client.setBasePath(this.cromwellConfig.baseUri());
     WorkflowsApi workflowsApi = new WorkflowsApi(client);
     String runId = UUID.randomUUID().toString();
-
-    ResponseEntity result;
 
     try {
       workflowsApi.submit(
@@ -91,17 +112,11 @@ public class RunsApiController implements RunsApi {
           null,
           null);
 
-      result =
-          new ResponseEntity<>(
-              new RunStateResponse().runId(runId).state(RunState.QUEUED), HttpStatus.CREATED);
+      return new ResponseEntity<>(
+          new RunStateResponse().runId(runId).state(RunState.QUEUED), HttpStatus.CREATED);
     } catch (cromwell.client.ApiException e) {
-      System.out.println(e);
-      result =
-          new ResponseEntity<>(
-              new RunStateResponse().runId(runId).state(RunState.SYSTEM_ERROR),
-              HttpStatus.INTERNAL_SERVER_ERROR);
+      System.out.println(e.getMessage());
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    return result;
   }
 }
