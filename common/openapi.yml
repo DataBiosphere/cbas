@@ -120,7 +120,7 @@ components:
         workflow_params:
           type: object
           description: Input set
-    LogRunRequest:
+    RunLog:
       type: object
       properties:
         run_id:
@@ -143,7 +143,7 @@ components:
         runs:
           type: array
           items:
-            $ref: '#/components/schemas/LogRunRequest'
+            $ref: '#/components/schemas/RunLog'
     RunStateResponse:
       type: object
       required: [run_id]

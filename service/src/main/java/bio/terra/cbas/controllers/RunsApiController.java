@@ -2,7 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
-import bio.terra.cbas.model.LogRunRequest;
+import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
@@ -45,10 +45,10 @@ public class RunsApiController implements RunsApi {
     return null;
   }
 
-  private LogRunRequest convertToLogRunRequest(WorkflowQueryResult queryResult) {
+  private RunLog convertToRunLog(WorkflowQueryResult queryResult) {
     // Note: Cromwell's /query endpoint doesn't return 'workflowUrl' or 'workflowInputs' hence
     // Setting it 'null' for now
-    return new LogRunRequest()
+    return new RunLog()
         .runId(queryResult.getId())
         .state(convertToRunState(queryResult.getStatus()))
         .workflowUrl(null)
@@ -73,14 +73,14 @@ public class RunsApiController implements RunsApi {
           workflowsApi.queryGet(
               "v1", null, null, null, null, null, null, null, null, null, null, null, null);
 
-      List<LogRunRequest> runsList =
+      List<RunLog> runsList =
           queryResponse.getResults().stream()
-              .map(queryResult -> convertToLogRunRequest(queryResult))
+              .map(queryResult -> convertToRunLog(queryResult))
               .toList();
 
       return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
     } catch (cromwell.client.ApiException e) {
-      System.out.println(e.getMessage());
+      System.out.println(e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -115,7 +115,7 @@ public class RunsApiController implements RunsApi {
       return new ResponseEntity<>(
           new RunStateResponse().runId(runId).state(RunState.QUEUED), HttpStatus.CREATED);
     } catch (cromwell.client.ApiException e) {
-      System.out.println(e.getMessage());
+      System.out.println(e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
