@@ -3,6 +3,9 @@ info:
   title: Terra Batch Analysis
   description: Manage batch analyses, workflows, and submissions in userspace
   version: 0.0.1
+servers:
+  - url: ./
+    description: Relative to the current swagger page
 paths:
   /status:
     get:
