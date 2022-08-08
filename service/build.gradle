@@ -13,7 +13,7 @@ apply from: 'generators.gradle'
 apply from: 'publishing.gradle'
 
 dependencies {
-    implementation "org.broadinstitute.cromwell:cromwell-client_2.12:0.1-b7108d4d3-SNAP"
+    implementation "org.broadinstitute.cromwell:cromwell-client_2.13:0.1-2eb5843a8-SNAP"
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
