@@ -94,7 +94,7 @@ jobs:
 
       - name: Update CBAS Helm Chart in cromwhelm
         env:
-          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }} # Comment to be removed later on
+          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
         run: |
           set -e
           cd cromwhelm
