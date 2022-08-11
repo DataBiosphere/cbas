@@ -89,23 +89,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: broadinstitute/cromwhelm
-          token: ${{ secrets.BROADBOT_GITHUB_TOKEN }} # Has to be set at checkout AND later when pushing to work
+          token: ${{ secrets.BROADBOT_TOKEN }} # Has to be set at checkout AND later when pushing to work
           path: cromwhelm
 
       - name: Update CBAS Helm Chart in cromwhelm
         env:
-          BROADBOT_GITHUB_TOKEN: ${{ secrets.BROADBOT_GITHUB_TOKEN }}
+          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }} # Comment to be removed later on
         run: |
           set -e
           cd cromwhelm
           git checkout main
           ls -la
-          HELM_CUR_TAG=$(grep "/composite-batch-analysis-service:" cromwell-helm/templates/cbas-deployment.yaml | sed "s,.*/composite-batch-analysis-service:,,")
+          HELM_CUR_TAG=$(grep "/cbas:" cromwell-helm/values.yaml | sed "s,.*/cbas:,,")
           HELM_NEW_TAG=${{ steps.tag.outputs.TAG }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
-          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" cromwell-helm/templates/cbas-deployment.yaml
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" cromwell-helm/values.yaml
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" coa-helm/values.yaml
           git diff
           git config --global user.name "broadbot"
           git config --global user.email "broadbot@broadinstitute.org"
-          git commit -am "Auto update to CBAS version $HELM_NEW_TAG"
-          git push https://broadbot:$BROADBOT_GITHUB_TOKEN@github.com/broadinstitute/cromwhelm.git main
+          git commit -am "Auto update CBAS version to $HELM_NEW_TAG"
+          git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
