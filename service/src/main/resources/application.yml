@@ -43,6 +43,10 @@ workflow-engines:
     baseUri: "http://localhost:8000"
     healthUri: "http://localhost:8000/engine/v1/status"
 
+wds:
+  baseUri: "http://localhost:8001"
+  healthcheckEndpoint: "/swagger/swagger-ui.html"
+
 terra.common:
   tracing:
     stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}
