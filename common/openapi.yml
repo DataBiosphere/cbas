@@ -239,15 +239,8 @@ components:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
         parameter_value:
+          description: The literal value to use. Can be any type, but must match the declared parameter_type.
           required: True
-          oneOf:
-            - type: string
-            - type: integer
-            - type: array
-            - type: boolean
-            - type: number
-            - type: object
-            - type: "null"
           example: hello world
     ParameterDefinitionEntityLookup:
       type: object
