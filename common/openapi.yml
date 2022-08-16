@@ -210,16 +210,17 @@ components:
       type: string
 
     # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can
-    # be used as parameter definitions. In addition it acts as the superclass for the various
-    # ParameterDefinitionX classes below. Because the codegen is imperfect, we have to explicitly
+    # be used as parameter definitions.
+    # In addition, in Java it acts as the superclass for the various
+    # ParameterDefinitionXYZ classes below. Because the codegen is imperfect, we have to explicitly
     # add 'allOf: ParameterDefinition' declarations to those classes to force the codegen to make
-    # them subclasses in java. In terms of how the swagger UI works, they seem to make no difference
+    # them subclasses... but in terms of how the swagger UI works, they seem to make no difference
     ParameterDefinition:
       title: ParameterDefinition
       properties:
         definitionType:
           type: string
-          description: Indicates that this is a literal value.
+          description: Indicates what type of parameter declaration this is.
           required: true
           enum: [ literal, entity_lookup ]
           example: entity_lookup
