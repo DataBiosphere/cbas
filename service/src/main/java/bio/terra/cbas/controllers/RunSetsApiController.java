@@ -25,6 +25,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    log.info(request.toString());
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(UUID.randomUUID().toString())

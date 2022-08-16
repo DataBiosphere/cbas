@@ -19,7 +19,7 @@ dependencies {
     implementation 'de.undercouch.download:de.undercouch.download.gradle.plugin:5.0.1'
     implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.2'
     implementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.0.11.RELEASE'
-    implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.1'
+    implementation 'org.hidetake.swagger.generator:org.hidetake.swagger.generator.gradle.plugin:2.19.2'
     implementation 'org.sonarqube:org.sonarqube.gradle.plugin:3.3'
     implementation 'org.springframework.boot:spring-boot-gradle-plugin:2.6.6'
     implementation 'bio.terra:terra-test-runner:0.1.4-SNAPSHOT'

@@ -7,6 +7,21 @@ servers:
   - url: ./
     description: Relative to the current swagger page
 paths:
+  /pets:
+    patch:
+      tags: [ public ]
+      operationId: getPets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/Cat'
+                - $ref: '#/components/schemas/Dog'
+      responses:
+        '200':
+          description: Updated
+
   /status:
     get:
       summary: Check status of the service
@@ -181,14 +196,8 @@ components:
         parameter_type:
           $ref: '#/components/schemas/ParameterValueType'
         source:
-          oneOf:
-            - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
-            - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
-          discriminator:
-            propertyName: definition_type
-            mapping:
-              literal: '#/components/schemas/ParameterDefinitionLiteralValue'
-              entity_lookup: '#/components/schemas/ParameterDefinitionEntityLookup'
+          $ref: '#/components/schemas/ParameterDefinition'
+
     ParameterValueType:
       title: ParameterValueType
       example: String
@@ -199,16 +208,31 @@ components:
         - Boolean
         - Float
       type: string
+
+    ParameterDefinition:
+      title: ParameterDefinition
+      oneOf:
+        - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
+        - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
+      discriminator:
+        propertyName: definitionType
+        mapping:
+          literal: 'ParameterDefinitionLiteralValue'
+          entity_lookup: 'ParameterDefinitionEntityLookup'
+
     ParameterDefinitionLiteralValue:
       type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        definition_type:
+        definitionType:
           type: string
           description: Indicates that this is a literal value.
           required: true
           enum: [ 'literal' ]
           example: literal
         param_value:
+          required: true
           oneOf:
             - type: string
             - type: integer
@@ -220,8 +244,10 @@ components:
           example: hello world
     ParameterDefinitionEntityLookup:
       type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        definition_type:
+        definitionType:
           type: string
           description: Indicates that this is an entity lookup.
           required: true
@@ -230,6 +256,7 @@ components:
         entity_attribute:
           type: string
           description: The attribute name on the entity to use.
+          required: true
           example: entity_field_foo_rating
     RunSetStateResponse:
       type: object
@@ -344,3 +371,18 @@ components:
         - SET_ERROR
       type: string
 
+    Dog:
+      type: object
+      properties:
+        bark:
+          type: boolean
+        breed:
+          type: string
+          enum: [Dingo, Husky, Retriever, Shepherd]
+    Cat:
+      type: object
+      properties:
+        hunts:
+          type: boolean
+        age:
+          type: integer
