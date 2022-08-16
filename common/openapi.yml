@@ -211,6 +211,13 @@ components:
 
     ParameterDefinition:
       title: ParameterDefinition
+      properties:
+        definitionType:
+          type: string
+          description: Indicates that this is a literal value.
+          required: true
+          enum: [ literal, entity_lookup ]
+          example: entity_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
@@ -225,14 +232,8 @@ components:
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        definitionType:
-          type: string
-          description: Indicates that this is a literal value.
-          required: true
-          enum: [ 'literal' ]
-          example: literal
-        param_value:
-          required: true
+        parameter_value:
+          required: True
           oneOf:
             - type: string
             - type: integer
@@ -247,12 +248,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        definitionType:
-          type: string
-          description: Indicates that this is an entity lookup.
-          required: true
-          enum: [ 'entity_lookup' ]
-          example: 'entity_lookup'
         entity_attribute:
           type: string
           description: The attribute name on the entity to use.
