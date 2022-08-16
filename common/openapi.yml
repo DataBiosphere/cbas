@@ -209,6 +209,11 @@ components:
         - Float
       type: string
 
+    # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can
+    # be used as parameter definitions. In addition it acts as the superclass for the various
+    # ParameterDefinitionX classes below. Because the codegen is imperfect, we have to explicitly
+    # add 'allOf: ParameterDefinition' declarations to those classes to force the codegen to make
+    # them subclasses in java. In terms of how the swagger UI works, they seem to make no difference
     ParameterDefinition:
       title: ParameterDefinition
       properties:
