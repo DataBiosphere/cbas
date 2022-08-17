@@ -203,7 +203,8 @@ components:
     ParameterDefinition:
       title: ParameterDefinition
       properties:
-        definitionType:
+        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
+        "type":
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
@@ -213,7 +214,7 @@ components:
         - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
       discriminator:
-        propertyName: definitionType
+        propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
           entity_lookup: 'ParameterDefinitionEntityLookup'
