@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Terra Batch Analysis
-  description: Manage batch analyses, workflows, and submissions in userspace
+  description: Manage batch analyses, run configurations, and run sets in userspace
   version: 0.0.1
 servers:
   - url: ./
@@ -47,6 +47,22 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+  /api/batch/v1/run_sets:
+    post:
+      tags: [ run_sets ]
+      summary: Combine an inputs definition with WDS entities to run a series of workflows
+      operationId: postRunSet
+      requestBody:
+        $ref: '#/components/requestBodies/PostRunSetRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostRunSetResponse'
+        '201':
+          $ref: '#/components/responses/PostRunSetResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/batch/v1/methods:
     get:
       summary: Lists known methods
@@ -75,6 +91,13 @@ components:
           schema:
             $ref: '#/components/schemas/RunRequest'
 
+    PostRunSetRequest:
+      description: Request body to run a set of workflows (by URL) with WDS inputs.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunSetRequest'
+
   responses:
     PostRunResponse:
       description: Response from creating a new run
@@ -82,6 +105,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunStateResponse'
+    PostRunSetResponse:
+      description: Response from creating a new run set
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunSetStateResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -114,6 +143,116 @@ components:
             $ref: '#/components/schemas/ErrorReport'
 
   schemas:
+    RunSetRequest:
+      type: object
+      properties:
+        workflow_url:
+          type: string
+          description: URL to the workflow script to run
+          example: 'http://www.example.com/example.wdl'
+        workflow_param_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowParamDefinition'
+          description: Declarative input definition for combination with WDS entities
+        wds_entities:
+          $ref: '#/components/schemas/WdsEntitySet'
+
+    WdsEntitySet:
+      type: object
+      properties:
+        entity_type:
+          type: string
+          example: FOO
+        entity_ids:
+          type: array
+          items:
+            type: string
+          example:
+            - F0011111-1111-1111-1111-111111111111
+      description: The set of WDS entities to use when constructing the inputs.
+
+    WorkflowParamDefinition:
+      type: object
+      properties:
+        parameter_name:
+          type: string
+          example: workflow_input_foo_rating
+        parameter_type:
+          $ref: '#/components/schemas/ParameterValueType'
+        source:
+          $ref: '#/components/schemas/ParameterDefinition'
+
+    ParameterValueType:
+      title: ParameterValueType
+      example: String
+      description: What type of value this parameter expects
+      enum:
+        - String
+        - Int
+        - Boolean
+        - Float
+      type: string
+
+    # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can
+    # be used as parameter definitions.
+    # In addition, in Java it acts as the superclass for the various
+    # ParameterDefinitionXYZ classes below. Because the codegen is imperfect, we have to explicitly
+    # add 'allOf: ParameterDefinition' declarations to those classes to force the codegen to make
+    # them subclasses... but in terms of how the swagger UI works, they seem to make no difference
+    ParameterDefinition:
+      title: ParameterDefinition
+      properties:
+        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
+        "type":
+          type: string
+          description: Indicates what type of parameter declaration this is.
+          required: true
+          enum: [ literal, entity_lookup ]
+          example: entity_lookup
+      oneOf:
+        - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
+        - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
+      discriminator:
+        propertyName: "type"
+        mapping:
+          literal: 'ParameterDefinitionLiteralValue'
+          entity_lookup: 'ParameterDefinitionEntityLookup'
+
+    ParameterDefinitionLiteralValue:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
+      properties:
+        parameter_value:
+          description: The literal value to use. Can be any type, but must match the declared parameter_type.
+          required: True
+          example: hello world
+    ParameterDefinitionEntityLookup:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
+      properties:
+        entity_attribute:
+          type: string
+          description: The attribute name on the entity to use.
+          required: true
+          example: entity_field_foo_rating
+    RunSetStateResponse:
+      type: object
+      required: [run_set_id]
+      properties:
+        run_set_id:
+          type:
+            string
+          example: 00000000-0000-0000-0000-000000000000
+        runs:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunStateResponse'
+        state:
+          $ref: '#/components/schemas/RunSetState'
+
     RunRequest:
       type: object
       properties:
@@ -201,4 +340,13 @@ components:
         - SYSTEM_ERROR
         - CANCELED
         - CANCELING
+      type: string
+    RunSetState:
+      title: RunSetState
+      example: RUNNING
+      enum:
+        - SET_UNKNOWN_STATE
+        - SET_RUNNING
+        - SET_COMPLETE
+        - SET_ERROR
       type: string
