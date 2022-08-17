@@ -7,21 +7,6 @@ servers:
   - url: ./
     description: Relative to the current swagger page
 paths:
-  /pets:
-    patch:
-      tags: [ public ]
-      operationId: getPets
-      requestBody:
-        content:
-          application/json:
-            schema:
-              oneOf:
-                - $ref: '#/components/schemas/Cat'
-                - $ref: '#/components/schemas/Dog'
-      responses:
-        '200':
-          description: Updated
-
   /status:
     get:
       summary: Check status of the service
@@ -364,19 +349,3 @@ components:
         - SET_COMPLETE
         - SET_ERROR
       type: string
-
-    Dog:
-      type: object
-      properties:
-        bark:
-          type: boolean
-        breed:
-          type: string
-          enum: [Dingo, Husky, Retriever, Shepherd]
-    Cat:
-      type: object
-      properties:
-        hunts:
-          type: boolean
-        age:
-          type: integer
