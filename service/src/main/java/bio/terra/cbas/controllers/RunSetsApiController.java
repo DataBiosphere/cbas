@@ -48,9 +48,9 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
 
-    for (ResponseEntity<RunSetStateResponse> errorResponse :
-        checkInvalidRequest(request).stream().toList()) {
-      return errorResponse;
+    Optional<ResponseEntity<RunSetStateResponse>> errorResponse = checkInvalidRequest(request);
+    if (errorResponse.isPresent()) {
+      return errorResponse.get();
     }
 
     // Fetch the entity from WDS:
