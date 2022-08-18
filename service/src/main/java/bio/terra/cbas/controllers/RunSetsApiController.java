@@ -8,7 +8,7 @@ import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
-import bio.terra.cbas.runSets.inputs.InputGenerator;
+import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import cromwell.client.api.WorkflowsApi;

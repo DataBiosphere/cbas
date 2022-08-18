@@ -1,4 +1,4 @@
-package bio.terra.cbas.runSets.inputs;
+package bio.terra.cbas.runsets.inputs;
 
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionEntityLookup;
@@ -26,5 +26,9 @@ public class InputGenerator {
       params.put(parameterName, parameterValue);
     }
     return params;
+  }
+
+  private InputGenerator() {
+    // Do not use. No construction necessary for static utility class.
   }
 }

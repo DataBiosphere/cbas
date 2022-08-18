@@ -1,4 +1,4 @@
-package bio.terra.cbas.runSets.inputs;
+package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
