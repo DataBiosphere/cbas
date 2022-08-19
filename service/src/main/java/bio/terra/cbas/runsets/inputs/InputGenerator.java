@@ -17,7 +17,7 @@ public class InputGenerator {
 
   private static final JsonMapper jsonMapper =
       // Json order doesn't really matter, but for test cases it's convenient to have them
-      // be consisten.
+      // be consistent.
       JsonMapper.builder()
           .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
           .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
