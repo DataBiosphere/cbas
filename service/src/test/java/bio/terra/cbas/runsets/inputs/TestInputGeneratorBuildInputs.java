@@ -11,7 +11,7 @@ import java.util.Map;
 import org.databiosphere.workspacedata.model.EntityResponse;
 import org.junit.jupiter.api.Test;
 
-class InputGeneratorTest {
+class TestInputGeneratorBuildInputs {
 
   static ObjectMapper objectMapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

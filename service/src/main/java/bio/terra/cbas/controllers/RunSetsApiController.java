@@ -9,8 +9,7 @@ import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.api.WorkflowsApi;
 import cromwell.client.model.WorkflowIdAndStatus;
 import java.util.Map;
@@ -26,11 +25,8 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class RunSetsApiController implements RunSetsApi {
-
   private final WdsServerConfiguration wdsConfig;
   private final CromwellServerConfiguration cromwellConfig;
-
-  private final Gson gson = new GsonBuilder().create();
 
   private final EntitiesApi entitiesApi;
   private final WorkflowsApi workflowsApi;
@@ -77,6 +73,10 @@ public class RunSetsApiController implements RunSetsApi {
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
+    } catch (JsonProcessingException e) {
+      // Should be super rare than jackson cannot convert an object to Json...
+      log.warn("Failed to convert inputs object to JSON", e);
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     // Return the result:
@@ -92,14 +92,14 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private WorkflowIdAndStatus submitWorkflow(String workflowUrl, Map<String, Object> params)
-      throws cromwell.client.ApiException {
+      throws cromwell.client.ApiException, JsonProcessingException {
 
     return workflowsApi.submit(
         "v1",
         null,
         workflowUrl,
         null,
-        gson.toJson(params),
+        InputGenerator.inputsToJson(params),
         null,
         null,
         null,
