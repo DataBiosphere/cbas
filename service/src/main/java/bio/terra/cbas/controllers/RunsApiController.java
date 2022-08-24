@@ -7,6 +7,8 @@ import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import cromwell.client.ApiClient;
+import cromwell.client.ApiException;
+import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
 import cromwell.client.api.WorkflowsApi;
 import cromwell.client.model.WorkflowQueryResponse;
 import cromwell.client.model.WorkflowQueryResult;
@@ -90,33 +92,17 @@ public class RunsApiController implements RunsApi {
 
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
-    WorkflowsApi workflowsApi = new WorkflowsApi(client);
+    Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi = new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(client);
     String runId = UUID.randomUUID().toString();
 
     try {
-      workflowsApi.submit(
-          "v1",
-          null,
-          workflowUrl,
-          null,
-          workflowParams.toString(),
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null,
-          null);
+      wesApi.runWorkflow(workflowParams.toString(), null,null,null,null, workflowUrl, null);
 
       return new ResponseEntity<>(
           new RunStateResponse().runId(runId).state(RunState.QUEUED), HttpStatus.CREATED);
-    } catch (cromwell.client.ApiException e) {
+    } catch (ApiException e) {
       System.out.println(e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
+}
 }
