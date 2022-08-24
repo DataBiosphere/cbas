@@ -92,11 +92,12 @@ public class RunsApiController implements RunsApi {
 
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
-    Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi = new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(client);
+    Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi =
+        new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(client);
     String runId = UUID.randomUUID().toString();
 
     try {
-      wesApi.runWorkflow(workflowParams.toString(), null,null,null,null, workflowUrl, null);
+      wesApi.runWorkflow(workflowParams.toString(), null, null, null, null, workflowUrl, null);
 
       return new ResponseEntity<>(
           new RunStateResponse().runId(runId).state(RunState.QUEUED), HttpStatus.CREATED);
@@ -104,5 +105,5 @@ public class RunsApiController implements RunsApi {
       System.out.println(e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
+  }
 }
