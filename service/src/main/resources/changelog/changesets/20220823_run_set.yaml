@@ -4,17 +4,18 @@ databaseChangeLog:
       author: chrisl
       changes:
         - createTable:
-            tableName: method
+            tableName: run_set
             columns:
               - column:
                   name: id
-                  type: int
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: method_url
-                  type: text
+                  name: method_id
+                  type: uuid
                   constraints:
                     nullable: false
+                    foreignKeyName: fk_run_set_method
+                    references: method(id)

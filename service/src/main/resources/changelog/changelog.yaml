@@ -1,4 +1,10 @@
 databaseChangeLog:
   - include:
-      file: changesets/20220331_initial_schema.yaml
+      file: changesets/20220823_method.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/20220823_run_set.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/20220823_run.yaml
       relativeToChangelogFile: true
