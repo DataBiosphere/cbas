@@ -262,6 +262,14 @@ components:
         workflow_params:
           type: object
           description: Input set
+#        workflow_attachments:
+#          type: array
+#          description: Files for workflow to run
+#          required: false
+#          items:
+#            type: string
+#            format: binary
+
     RunLog:
       type: object
       properties:
