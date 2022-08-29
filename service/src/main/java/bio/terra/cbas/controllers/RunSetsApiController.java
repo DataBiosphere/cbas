@@ -10,8 +10,10 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import cromwell.client.ApiClient;
+import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
 import cromwell.client.api.WorkflowsApi;
-import cromwell.client.model.WorkflowIdAndStatus;
+import cromwell.client.model.RunId;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +33,8 @@ public class RunSetsApiController implements RunSetsApi {
   private final EntitiesApi entitiesApi;
   private final WorkflowsApi workflowsApi;
 
+  private final Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi;
+
   @Autowired
   public RunSetsApiController(
       CromwellServerConfiguration cromwellConfig, WdsServerConfiguration wdsConfig) {
@@ -39,6 +43,10 @@ public class RunSetsApiController implements RunSetsApi {
 
     entitiesApi = wdsConfig.entitiesApi();
     workflowsApi = cromwellConfig.workflowsApi();
+
+    ApiClient client = new ApiClient();
+    client.setBasePath(this.cromwellConfig.baseUri());
+    wesApi = new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(client);
   }
 
   @Override
@@ -67,50 +75,35 @@ public class RunSetsApiController implements RunSetsApi {
         InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), entityResponse);
 
     // Submit the workflow and get its ID:
-    WorkflowIdAndStatus workflowResponse;
+    RunId workflowResponse;
     try {
       workflowResponse = submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
     } catch (JsonProcessingException e) {
-      // Should be super rare than jackson cannot convert an object to Json...
+      // Should be super rare that jackson cannot convert an object to Json...
       log.warn("Failed to convert inputs object to JSON", e);
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
+
+//    RunStateResponse state = new RunStateResponse();
 
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(UUID.randomUUID().toString())
             .addRunsItem(
-                new RunStateResponse()
-                    .runId(workflowResponse.getId())
-                    .state(cromwellToCbasRunStatus(workflowResponse.getStatus())))
+                new RunStateResponse().runId(workflowResponse.getRunId()).state(RunState.RUNNING))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
   }
 
-  private WorkflowIdAndStatus submitWorkflow(String workflowUrl, Map<String, Object> params)
+  private RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
       throws cromwell.client.ApiException, JsonProcessingException {
 
-    return workflowsApi.submit(
-        "v1",
-        null,
-        workflowUrl,
-        null,
-        InputGenerator.inputsToJson(params),
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
+    return wesApi.runWorkflow(
+        InputGenerator.inputsToJson(params), null, null, null, null, workflowUrl, null);
   }
 
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
@@ -123,15 +116,15 @@ public class RunSetsApiController implements RunSetsApi {
     return Optional.empty();
   }
 
-  static RunState cromwellToCbasRunStatus(String cromwellStatus) {
-    return switch (cromwellStatus) {
-      case "Succeeded" -> RunState.COMPLETE;
-      case "Running" -> RunState.RUNNING;
-      case "Failed" -> RunState.EXECUTOR_ERROR;
-      case "Submitted" -> RunState.QUEUED;
-      case "Aborting" -> RunState.CANCELING;
-      case "Aborted" -> RunState.CANCELED;
-      default -> RunState.UNKNOWN;
-    };
-  }
+  //  static RunState cromwellToCbasRunStatus(String cromwellStatus) {
+  //    return switch (cromwellStatus) {
+  //      case "Succeeded" -> RunState.COMPLETE;
+  //      case "Running" -> RunState.RUNNING;
+  //      case "Failed" -> RunState.EXECUTOR_ERROR;
+  //      case "Submitted" -> RunState.QUEUED;
+  //      case "Aborting" -> RunState.CANCELING;
+  //      case "Aborted" -> RunState.CANCELED;
+  //      default -> RunState.UNKNOWN;
+  //    };
+  //  }
 }
