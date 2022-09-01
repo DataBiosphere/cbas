@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
 @ContextConfiguration(classes = RunSetsApiController.class)
-public class TestRunSetsApiController {
+class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
 
