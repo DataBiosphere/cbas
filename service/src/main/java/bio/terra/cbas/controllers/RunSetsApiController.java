@@ -87,14 +87,13 @@ public class RunSetsApiController implements RunSetsApi {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    //    RunStateResponse state = new RunStateResponse();
 
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(UUID.randomUUID().toString())
             .addRunsItem(
-                new RunStateResponse().runId(workflowResponse.getRunId()).state(RunState.RUNNING))
+                new RunStateResponse().runId(workflowResponse.getRunId()).state(RunState.UNKNOWN))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
   }
@@ -116,15 +115,4 @@ public class RunSetsApiController implements RunSetsApi {
     return Optional.empty();
   }
 
-  //  static RunState cromwellToCbasRunStatus(String cromwellStatus) {
-  //    return switch (cromwellStatus) {
-  //      case "Succeeded" -> RunState.COMPLETE;
-  //      case "Running" -> RunState.RUNNING;
-  //      case "Failed" -> RunState.EXECUTOR_ERROR;
-  //      case "Submitted" -> RunState.QUEUED;
-  //      case "Aborting" -> RunState.CANCELING;
-  //      case "Aborted" -> RunState.CANCELED;
-  //      default -> RunState.UNKNOWN;
-  //    };
-  //  }
 }
