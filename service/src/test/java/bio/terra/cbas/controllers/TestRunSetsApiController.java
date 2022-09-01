@@ -1,7 +1,8 @@
 package bio.terra.cbas.controllers;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -132,11 +133,8 @@ public class TestRunSetsApiController {
     assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
     assertEquals(entityId, newRunCaptor.getValue().entityId());
     // Assert that the submission timestamp is more recent than 60 seconds ago
-    assertTrue(
-        newRunCaptor
-                .getValue()
-                .submissionTimestamp()
-                .compareTo(OffsetDateTime.now().minus(Duration.ofSeconds(60)))
-            > 0);
+    assertThat(
+        newRunCaptor.getValue().submissionTimestamp(),
+        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
   }
 }
