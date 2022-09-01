@@ -87,7 +87,6 @@ public class RunSetsApiController implements RunSetsApi {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
@@ -114,5 +113,4 @@ public class RunSetsApiController implements RunSetsApi {
 
     return Optional.empty();
   }
-
 }
