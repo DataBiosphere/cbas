@@ -4,11 +4,12 @@ import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.cromwell.CromwellService;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
+import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
@@ -16,7 +17,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cromwell.client.model.WorkflowIdAndStatus;
+import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -32,12 +33,11 @@ public class RunSetsApiController implements RunSetsApi {
 
   private final CromwellService cromwellService;
   private final WdsService wdsService;
-
   private final MethodDao methodDao;
   private final RunSetDao runSetDao;
   private final RunDao runDao;
-
   private final ObjectMapper objectMapper;
+  private static final RunState UnknownRunState = RunState.UNKNOWN;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -97,14 +97,14 @@ public class RunSetsApiController implements RunSetsApi {
         InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), entityResponse);
 
     // Submit the workflow and get its ID:
-    WorkflowIdAndStatus workflowResponse;
+    RunId workflowResponse;
     try {
       workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
     } catch (JsonProcessingException e) {
-      // Should be super rare than jackson cannot convert an object to Json...
+      // Should be super rare that jackson cannot convert an object to Json...
       log.warn("Failed to convert inputs object to JSON", e);
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
@@ -114,20 +114,17 @@ public class RunSetsApiController implements RunSetsApi {
     runDao.createRun(
         new Run(
             runId,
-            workflowResponse.getId(),
+            workflowResponse.getRunId(),
             runSetId,
             request.getWdsEntities().getEntityIds().get(0),
             OffsetDateTime.now(),
-            workflowResponse.getStatus()));
+            UnknownRunState.toString()));
 
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(runSetId.toString())
-            .addRunsItem(
-                new RunStateResponse()
-                    .runId(runId.toString())
-                    .state(CromwellService.cromwellToCbasRunStatus(workflowResponse.getStatus())))
+            .addRunsItem(new RunStateResponse().runId(runId.toString()).state(UnknownRunState))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
   }

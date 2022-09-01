@@ -12,14 +12,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.cromwell.CromwellService;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetStateResponse;
+import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cromwell.client.model.WorkflowIdAndStatus;
+import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -67,7 +68,6 @@ public class TestRunSetsApiController {
     EntityAttributes entityAttributes = new EntityAttributes();
     entityAttributes.put(entityAttribute, entityAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
-    final String cromwellWorkflowStatus = "Submitted";
 
     // Set up API responses:
     when(wdsService.getEntity(entityType, entityId))
@@ -75,8 +75,7 @@ public class TestRunSetsApiController {
             new EntityResponse().type(entityType).id(entityId).attributes(entityAttributes));
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
-        .thenReturn(
-            new WorkflowIdAndStatus().id(cromwellWorkflowId).status(cromwellWorkflowStatus));
+        .thenReturn(new RunId().runId(cromwellWorkflowId));
 
     String request =
         """
@@ -130,7 +129,7 @@ public class TestRunSetsApiController {
     verify(runDao).createRun(newRunCaptor.capture());
     assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().runSetId());
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
-    assertEquals(cromwellWorkflowStatus, newRunCaptor.getValue().status());
+    assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
     assertEquals(entityId, newRunCaptor.getValue().entityId());
     // Assert that the submission timestamp is more recent than 60 seconds ago
     assertTrue(

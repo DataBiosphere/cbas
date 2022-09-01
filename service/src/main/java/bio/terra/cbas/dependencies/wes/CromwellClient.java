@@ -1,8 +1,8 @@
-package bio.terra.cbas.dependencies.cromwell;
+package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import cromwell.client.ApiClient;
-import cromwell.client.api.WorkflowsApi;
+import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +18,7 @@ public class CromwellClient {
     return new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
   }
 
-  WorkflowsApi workflowsApi() {
-    return new WorkflowsApi(getApiClient());
+  Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesAPI() {
+    return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(getApiClient());
   }
 }
