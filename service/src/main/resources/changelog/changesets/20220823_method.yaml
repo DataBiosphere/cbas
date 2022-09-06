@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+      - createTable:
+          tableName: method
+          columns:
+            - column:
+                name: id
+                type: uuid
+                constraints:
+                  primaryKey: true
+                  nullable: false
+            - column:
+                name: method_url
+                type: text
+                constraints:
+                  nullable: false
+            - column:
+                name: input_definition
+                type: text
+                constraints:
+                  nullable: false
+            - column:
+                name: entity_type
+                type: text
+                constraints:
+                  nullable: true

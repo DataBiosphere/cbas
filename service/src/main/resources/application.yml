@@ -14,14 +14,6 @@ spring:
   application.name: cbas
   application.version: ${cbas.version.gitHash:unknown}
 
-  datasource:
-    hikari:
-      connection-timeout: 5000
-      maximum-pool-size: 8 # cpu count * 2 https://kwahome.medium.com/database-connections-less-is-more-86c406b6fad
-    password: ${DATABASE_USER_PASSWORD:cbas_password}
-    url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
-    username: ${DATABASE_USER:cbas_user}
-
   jackson:
     serialization.indent_output: true
     default-property-inclusion: non_null # this prevents a problem serializing VisaCriterion in openapi where `type` is included a second time with null value
@@ -36,7 +28,16 @@ spring:
           must-revalidate: true
         use-last-modified: false
   liquibase:
+    url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+    user: ${DATABASE_USER:cbas_user}
+    password: ${DATABASE_USER_PASSWORD:cbas_password}
     change-log: changelog/changelog.yaml
+
+cbas:
+  cbas-database:
+    uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+    password: ${DATABASE_USER_PASSWORD:cbas_password}
+    username: ${DATABASE_USER:cbas_user}
 
 workflow-engines:
   cromwell:

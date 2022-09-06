@@ -1,52 +1,57 @@
 package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunSetsApi;
-import bio.terra.cbas.config.CromwellServerConfiguration;
-import bio.terra.cbas.config.WdsServerConfiguration;
+import bio.terra.cbas.dao.MethodDao;
+import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.Run;
+import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import cromwell.client.ApiClient;
-import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
-import cromwell.client.api.WorkflowsApi;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
+import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.databiosphere.workspacedata.api.EntitiesApi;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.EntityResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class RunSetsApiController implements RunSetsApi {
-  private final WdsServerConfiguration wdsConfig;
-  private final CromwellServerConfiguration cromwellConfig;
 
-  private final EntitiesApi entitiesApi;
-  private final WorkflowsApi workflowsApi;
+  private final CromwellService cromwellService;
+  private final WdsService wdsService;
+  private final MethodDao methodDao;
+  private final RunSetDao runSetDao;
+  private final RunDao runDao;
+  private final ObjectMapper objectMapper;
+  private static final RunState UnknownRunState = RunState.UNKNOWN;
 
-  private final Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi;
-
-  @Autowired
   public RunSetsApiController(
-      CromwellServerConfiguration cromwellConfig, WdsServerConfiguration wdsConfig) {
-    this.wdsConfig = wdsConfig;
-    this.cromwellConfig = cromwellConfig;
-
-    entitiesApi = wdsConfig.entitiesApi();
-    workflowsApi = cromwellConfig.workflowsApi();
-
-    ApiClient client = new ApiClient();
-    client.setBasePath(this.cromwellConfig.baseUri());
-    wesApi = new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(client);
+      CromwellService cromwellService,
+      WdsService wdsService,
+      ObjectMapper objectMapper,
+      MethodDao methodDao,
+      RunDao runDao,
+      RunSetDao runSetDao) {
+    this.cromwellService = cromwellService;
+    this.wdsService = wdsService;
+    this.objectMapper = objectMapper;
+    this.methodDao = methodDao;
+    this.runSetDao = runSetDao;
+    this.runDao = runDao;
   }
 
   @Override
@@ -57,13 +62,30 @@ public class RunSetsApiController implements RunSetsApi {
       return errorResponse.get();
     }
 
+    // Store the method
+    UUID methodId = UUID.randomUUID();
+    try {
+      methodDao.createMethod(
+          new Method(
+              methodId,
+              request.getWorkflowUrl(),
+              objectMapper.writeValueAsString(request.getWorkflowParamDefinitions()),
+              request.getWdsEntities().getEntityType()));
+    } catch (JsonProcessingException e) {
+      log.warn("Failed to record method to database", e);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Create a new run_set:
+    UUID runSetId = UUID.randomUUID();
+    runSetDao.createRunSet(new RunSet(runSetId, methodId));
+
     // Fetch the entity from WDS:
     EntityResponse entityResponse;
     try {
       String entityType = request.getWdsEntities().getEntityType();
       String entityId = request.getWdsEntities().getEntityIds().get(0);
-      entityResponse =
-          entitiesApi.getEntity(wdsConfig.instanceId(), wdsConfig.apiV(), entityType, entityId);
+      entityResponse = wdsService.getEntity(entityType, entityId);
     } catch (ApiException e) {
       log.warn("Entity lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
@@ -77,7 +99,7 @@ public class RunSetsApiController implements RunSetsApi {
     // Submit the workflow and get its ID:
     RunId workflowResponse;
     try {
-      workflowResponse = submitWorkflow(request.getWorkflowUrl(), params);
+      workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
@@ -87,21 +109,24 @@ public class RunSetsApiController implements RunSetsApi {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
+    // Store the run:
+    UUID runId = UUID.randomUUID();
+    runDao.createRun(
+        new Run(
+            runId,
+            workflowResponse.getRunId(),
+            runSetId,
+            request.getWdsEntities().getEntityIds().get(0),
+            OffsetDateTime.now(),
+            UnknownRunState.toString()));
+
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
-            .runSetId(UUID.randomUUID().toString())
-            .addRunsItem(
-                new RunStateResponse().runId(workflowResponse.getRunId()).state(RunState.UNKNOWN))
+            .runSetId(runSetId.toString())
+            .addRunsItem(new RunStateResponse().runId(runId.toString()).state(UnknownRunState))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
-  }
-
-  private RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
-      throws cromwell.client.ApiException, JsonProcessingException {
-
-    return wesApi.runWorkflow(
-        InputGenerator.inputsToJson(params), null, null, null, null, workflowUrl, null);
   }
 
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
