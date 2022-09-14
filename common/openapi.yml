@@ -149,7 +149,7 @@ components:
         workflow_url:
           type: string
           description: URL to the workflow script to run
-          example: 'http://www.example.com/example.wdl'
+          example: 'https://www.example.com/example.wdl'
         workflow_param_definitions:
           type: array
           items:
@@ -278,12 +278,14 @@ components:
         workflow_url:
           type: string
           description: URL to the workflow script to run
-        name:
-          type: string
-        state:
-          $ref: '#/components/schemas/RunState'
-        workflow_params:
-          type: string
+# The below information is not currently returned in our current model on the API.
+# May be returned in later work.
+#        name:
+#          type: string
+#        state:
+#          $ref: '#/components/schemas/RunState'
+#        workflow_params:
+#          type: string
         submission_date:
           type: string
           format: date-time

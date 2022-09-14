@@ -6,7 +6,12 @@ import java.util.UUID;
 public record Run(
     UUID id,
     String engineId,
-    UUID runSetId,
+    RunSet runSet,
     String entityId,
     OffsetDateTime submissionTimestamp,
-    String status) {}
+    String status) {
+
+  public UUID runSetId() {
+    return runSet.id();
+  }
+}
