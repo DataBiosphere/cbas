@@ -278,14 +278,12 @@ components:
         workflow_url:
           type: string
           description: URL to the workflow script to run
-# The below information is not currently returned in our current model on the API.
-# May be returned in later work.
-#        name:
-#          type: string
-#        state:
-#          $ref: '#/components/schemas/RunState'
-#        workflow_params:
-#          type: string
+        name:
+          type: string
+        state:
+          $ref: '#/components/schemas/RunState'
+        workflow_params:
+          type: string
         submission_date:
           type: string
           format: date-time

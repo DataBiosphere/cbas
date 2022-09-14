@@ -53,17 +53,20 @@ public class RunsApiController implements RunsApi {
   private RunLog runToRunLog(Run run) {
 
     System.out.println(run);
+    //
+    //    System.out.println(
+    //        new RunLog()
+    //            .runId(run.id().toString())
+    //            .workflowUrl(run.runSet().method().methodUrl())
+    //            .submissionDate(convertToDate(run.submissionTimestamp())));
 
-    System.out.println(
-        new RunLog()
-            .runId(run.id().toString())
-            .workflowUrl(run.runSet().method().methodUrl())
-            .submissionDate(convertToDate(run.submissionTimestamp())));
+    var here = convertToDate(run.submissionTimestamp());
+    System.out.println("CONVERTED DATE ******** " + here);
 
     return new RunLog()
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
-        .submissionDate(convertToDate(run.submissionTimestamp()));
+        .submissionDate(here);
   }
 
   @Override
