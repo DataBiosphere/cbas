@@ -1,6 +1,5 @@
 package bio.terra.cbas.dao;
 
-import bio.terra.cbas.exception.RunQueryNotFoundException;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -9,7 +8,6 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -36,11 +34,7 @@ public class RunDao {
         "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.id"
             + " INNER JOIN method ON run_set.method_id = method.id";
 
-    try {
-      return jdbcTemplate.query(sql, new RunMapper());
-    } catch (EmptyResultDataAccessException er) {
-      throw new RunQueryNotFoundException("Runs not found.");
-    }
+    return jdbcTemplate.query(sql, new RunMapper());
   }
 
   private static class RunMapper implements RowMapper<Run> {

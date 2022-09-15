@@ -42,9 +42,9 @@ public class RunsApiController implements RunsApi {
     };
   }
 
-  public Date convertToDate(OffsetDateTime submissionTimestamp) {
+  private Date convertToDate(OffsetDateTime submissionTimestamp) {
     if (submissionTimestamp != null) {
-      return Date.from(submissionTimestamp.toInstant());
+      return new Date(submissionTimestamp.toInstant().toEpochMilli());
     }
 
     return null;
@@ -52,32 +52,18 @@ public class RunsApiController implements RunsApi {
 
   private RunLog runToRunLog(Run run) {
 
-    System.out.println(run);
-    //
-    //    System.out.println(
-    //        new RunLog()
-    //            .runId(run.id().toString())
-    //            .workflowUrl(run.runSet().method().methodUrl())
-    //            .submissionDate(convertToDate(run.submissionTimestamp())));
-
-    var here = convertToDate(run.submissionTimestamp());
-    System.out.println("CONVERTED DATE ******** " + here);
-
     return new RunLog()
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
-        .submissionDate(here);
+        .submissionDate(convertToDate(run.submissionTimestamp()))
+        .state(convertToRunState(run.status()));
   }
 
   @Override
   public ResponseEntity<RunLogResponse> getRuns() {
 
     var queryResults = runDao.retrieve();
-    // System.out.println(queryResults);
     List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
-    System.out.println(runsList);
-    System.out.println(new RunLogResponse().runs(runsList));
-
     return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
   }
 
