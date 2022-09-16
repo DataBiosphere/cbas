@@ -24,7 +24,9 @@ public class RunsApiController implements RunsApi {
   private final CromwellServerConfiguration cromwellConfig;
   private final RunDao runDao;
 
-  public RunsApiController(CromwellServerConfiguration cromwellConfig, RunDao runDao) {
+
+  public RunsApiController(
+      CromwellServerConfiguration cromwellConfig, RunDao runDao) {
     this.cromwellConfig = cromwellConfig;
     this.runDao = runDao;
   }
@@ -55,8 +57,11 @@ public class RunsApiController implements RunsApi {
     return new RunLog()
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
+        .name(run.entityId())
+        .state(convertToRunState(run.status()))
+        .workflowParams(null)
         .submissionDate(convertToDate(run.submissionTimestamp()))
-        .state(convertToRunState(run.status()));
+        ;
   }
 
   @Override
@@ -64,6 +69,7 @@ public class RunsApiController implements RunsApi {
 
     var queryResults = runDao.retrieve();
     List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
+    System.out.println(new RunLogResponse().runs(runsList));
     return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
   }
 
