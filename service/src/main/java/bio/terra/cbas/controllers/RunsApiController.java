@@ -24,9 +24,7 @@ public class RunsApiController implements RunsApi {
   private final CromwellServerConfiguration cromwellConfig;
   private final RunDao runDao;
 
-
-  public RunsApiController(
-      CromwellServerConfiguration cromwellConfig, RunDao runDao) {
+  public RunsApiController(CromwellServerConfiguration cromwellConfig, RunDao runDao) {
     this.cromwellConfig = cromwellConfig;
     this.runDao = runDao;
   }
@@ -60,8 +58,7 @@ public class RunsApiController implements RunsApi {
         .name(run.entityId())
         .state(convertToRunState(run.status()))
         .workflowParams(null)
-        .submissionDate(convertToDate(run.submissionTimestamp()))
-        ;
+        .submissionDate(convertToDate(run.submissionTimestamp()));
   }
 
   @Override
