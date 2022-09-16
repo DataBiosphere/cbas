@@ -59,9 +59,8 @@ public class RunsApiController implements RunsApi {
         .workflowUrl(run.runSet().method().methodUrl())
         .name(run.entityId())
         .state(convertToRunState(run.status()))
-        .workflowParams(null)
-        .submissionDate(convertToDate(run.submissionTimestamp()))
-        ;
+        .workflowParams(run.runSet().method().inputDefinition())
+        .submissionDate(convertToDate(run.submissionTimestamp()));
   }
 
   @Override
