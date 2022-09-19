@@ -14,12 +14,6 @@ spring:
   application.name: cbas
   application.version: ${cbas.version.gitHash:unknown}
 
-  mvc:
-    format:
-      date: yyyy-MM-dd
-      date-time: yyyy-MM-dd HH:mm:ss
-      time: HH:mm:ss
-
   jackson:
     serialization.indent_output: true
     default-property-inclusion: non_null # this prevents a problem serializing VisaCriterion in openapi where `type` is included a second time with null value

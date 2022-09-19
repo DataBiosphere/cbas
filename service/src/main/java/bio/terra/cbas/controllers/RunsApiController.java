@@ -66,7 +66,6 @@ public class RunsApiController implements RunsApi {
 
     var queryResults = runDao.retrieve();
     List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
-    System.out.println(new RunLogResponse().runs(runsList));
     return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
   }
 
