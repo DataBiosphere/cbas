@@ -149,7 +149,7 @@ components:
         workflow_url:
           type: string
           description: URL to the workflow script to run
-          example: 'http://www.example.com/example.wdl'
+          example: 'https://www.example.com/example.wdl'
         workflow_param_definitions:
           type: array
           items:

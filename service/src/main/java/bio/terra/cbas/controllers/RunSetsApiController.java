@@ -64,13 +64,16 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Store the method
     UUID methodId = UUID.randomUUID();
+
+    Method method;
     try {
-      methodDao.createMethod(
+      method =
           new Method(
               methodId,
               request.getWorkflowUrl(),
               objectMapper.writeValueAsString(request.getWorkflowParamDefinitions()),
-              request.getWdsEntities().getEntityType()));
+              request.getWdsEntities().getEntityType());
+      methodDao.createMethod(method);
     } catch (JsonProcessingException e) {
       log.warn("Failed to record method to database", e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -78,7 +81,8 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Create a new run_set:
     UUID runSetId = UUID.randomUUID();
-    runSetDao.createRunSet(new RunSet(runSetId, methodId));
+    RunSet runSet = new RunSet(runSetId, method);
+    runSetDao.createRunSet(runSet);
 
     // Fetch the entity from WDS:
     EntityResponse entityResponse;
@@ -115,7 +119,7 @@ public class RunSetsApiController implements RunSetsApi {
         new Run(
             runId,
             workflowResponse.getRunId(),
-            runSetId,
+            runSet,
             request.getWdsEntities().getEntityIds().get(0),
             OffsetDateTime.now(),
             UnknownRunState.toString()));

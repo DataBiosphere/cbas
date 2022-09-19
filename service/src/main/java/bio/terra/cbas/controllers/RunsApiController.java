@@ -2,29 +2,32 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.Run;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
-import cromwell.client.api.WorkflowsApi;
-import cromwell.client.model.WorkflowQueryResponse;
-import cromwell.client.model.WorkflowQueryResult;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 @Controller
 public class RunsApiController implements RunsApi {
-
   private final CromwellServerConfiguration cromwellConfig;
+  private final RunDao runDao;
+
+  public RunsApiController(CromwellServerConfiguration cromwellConfig, RunDao runDao) {
+    this.cromwellConfig = cromwellConfig;
+    this.runDao = runDao;
+  }
 
   private RunState convertToRunState(String workflowStatus) {
     return switch (workflowStatus) {
@@ -47,44 +50,23 @@ public class RunsApiController implements RunsApi {
     return null;
   }
 
-  private RunLog convertToRunLog(WorkflowQueryResult queryResult) {
-    // Note: Cromwell's /query endpoint doesn't return 'workflowUrl' or 'workflowInputs' hence
-    // Setting it 'null' for now
-    return new RunLog()
-        .runId(queryResult.getId())
-        .state(convertToRunState(queryResult.getStatus()))
-        .workflowUrl(null)
-        .name(queryResult.getName())
-        .workflowParams(null)
-        .submissionDate(convertToDate(queryResult.getSubmission()));
-  }
+  private RunLog runToRunLog(Run run) {
 
-  @Autowired
-  public RunsApiController(CromwellServerConfiguration cromwellConfig) {
-    this.cromwellConfig = cromwellConfig;
+    return new RunLog()
+        .runId(run.id().toString())
+        .workflowUrl(run.runSet().method().methodUrl())
+        .name(null)
+        .state(convertToRunState(run.status()))
+        .workflowParams(run.runSet().method().inputDefinition())
+        .submissionDate(convertToDate(run.submissionTimestamp()));
   }
 
   @Override
   public ResponseEntity<RunLogResponse> getRuns() {
-    ApiClient client = new ApiClient();
-    client.setBasePath(this.cromwellConfig.baseUri());
-    WorkflowsApi workflowsApi = new WorkflowsApi(client);
 
-    try {
-      WorkflowQueryResponse queryResponse =
-          workflowsApi.queryGet(
-              "v1", null, null, null, null, null, null, null, null, null, null, null, null);
-
-      List<RunLog> runsList =
-          queryResponse.getResults().stream()
-              .map(queryResult -> convertToRunLog(queryResult))
-              .toList();
-
-      return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
-    } catch (cromwell.client.ApiException e) {
-      System.out.println(e);
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    var queryResults = runDao.retrieve();
+    List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
+    return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
   }
 
   @Override
