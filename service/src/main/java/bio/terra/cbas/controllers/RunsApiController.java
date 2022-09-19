@@ -55,7 +55,7 @@ public class RunsApiController implements RunsApi {
     return new RunLog()
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
-        .name(run.entityId())
+        .name(null)
         .state(convertToRunState(run.status()))
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()));
@@ -66,7 +66,6 @@ public class RunsApiController implements RunsApi {
 
     var queryResults = runDao.retrieve();
     List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
-    System.out.println(new RunLogResponse().runs(runsList));
     return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
   }
 
