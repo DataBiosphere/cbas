@@ -124,11 +124,11 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(newMethodCaptor.getValue().id(), newRunSetCaptor.getValue().methodId());
+    assertEquals(newMethodCaptor.getValue().id(), newRunSetCaptor.getValue().getMethodId());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao).createRun(newRunCaptor.capture());
-    assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().runSetId());
+    assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().getRunSetId());
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
     assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
     assertEquals(entityId, newRunCaptor.getValue().entityId());

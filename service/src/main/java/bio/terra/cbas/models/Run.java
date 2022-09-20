@@ -11,7 +11,7 @@ public record Run(
     OffsetDateTime submissionTimestamp,
     String status) {
 
-  public UUID runSetId() {
+  public UUID getRunSetId() {
     return runSet.id();
   }
 }
