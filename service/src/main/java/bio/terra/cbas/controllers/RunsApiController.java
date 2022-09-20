@@ -1,7 +1,6 @@
 package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
-import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
@@ -16,11 +15,9 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class RunsApiController implements RunsApi {
-  private final CromwellServerConfiguration cromwellConfig;
   private final RunDao runDao;
 
-  public RunsApiController(CromwellServerConfiguration cromwellConfig, RunDao runDao) {
-    this.cromwellConfig = cromwellConfig;
+  public RunsApiController(RunDao runDao) {
     this.runDao = runDao;
   }
 
