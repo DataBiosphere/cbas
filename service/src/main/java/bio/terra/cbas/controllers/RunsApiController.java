@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
