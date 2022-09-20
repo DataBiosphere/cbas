@@ -14,4 +14,8 @@ public record Run(
   public UUID getRunSetId() {
     return runSet.id();
   }
+
+  public Run withStatus(String newStatus) {
+    return new Run(id, engineId, runSet, entityId, submissionTimestamp, newStatus);
+  }
 }

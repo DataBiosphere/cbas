@@ -6,6 +6,7 @@ import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
@@ -15,23 +16,12 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class RunsApiController implements RunsApi {
+  private final SmartRunsPoller smartPoller;
   private final RunDao runDao;
 
-  public RunsApiController(RunDao runDao) {
+  public RunsApiController(RunDao runDao, SmartRunsPoller smartPoller) {
     this.runDao = runDao;
-  }
-
-  private RunState convertToRunState(String workflowStatus) {
-    return switch (workflowStatus) {
-      case "On Hold" -> RunState.PAUSED;
-      case "Submitted" -> RunState.QUEUED;
-      case "Running" -> RunState.RUNNING;
-      case "Aborting" -> RunState.CANCELING;
-      case "Aborted" -> RunState.CANCELED;
-      case "Succeeded" -> RunState.COMPLETE;
-      case "Failed" -> RunState.EXECUTOR_ERROR;
-      default -> RunState.UNKNOWN;
-    };
+    this.smartPoller = smartPoller;
   }
 
   private Date convertToDate(OffsetDateTime submissionTimestamp) {
@@ -48,7 +38,7 @@ public class RunsApiController implements RunsApi {
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
         .name(null)
-        .state(convertToRunState(run.status()))
+        .state(RunState.fromValue(run.status())) // works because cbas Run statuses are a match for WES run statuses
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()));
   }
@@ -56,8 +46,10 @@ public class RunsApiController implements RunsApi {
   @Override
   public ResponseEntity<RunLogResponse> getRuns() {
 
-    var queryResults = runDao.retrieve();
-    List<RunLog> runsList = queryResults.stream().map(this::runToRunLog).toList();
-    return new ResponseEntity<>(new RunLogResponse().runs(runsList), HttpStatus.OK);
+    List<Run> queryResults = runDao.getRuns();
+    List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
+
+    List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();
+    return new ResponseEntity<>(new RunLogResponse().runs(responseList), HttpStatus.OK);
   }
 }
