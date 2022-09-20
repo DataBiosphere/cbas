@@ -1,6 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
@@ -38,7 +37,9 @@ public class RunsApiController implements RunsApi {
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
         .name(null)
-        .state(RunState.fromValue(run.status())) // works because cbas Run statuses are a match for WES run statuses
+        .state(
+            RunState.fromValue(
+                run.status())) // works because cbas Run statuses are a match for WES run statuses
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()));
   }
