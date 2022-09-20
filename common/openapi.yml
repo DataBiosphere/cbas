@@ -32,6 +32,21 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+    post:
+      tags: [ runs ]
+      summary: Run a single instance of a workflow with static inputs.
+      operationId: postRun
+      requestBody:
+        $ref: '#/components/requestBodies/PostRunRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostRunResponse'
+        '201':
+          $ref: '#/components/responses/PostRunResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/batch/v1/run_sets:
     post:
       tags: [ run_sets ]
@@ -69,6 +84,13 @@ paths:
 
 components:
   requestBodies:
+    PostRunRequest:
+      description: Request body to run a single instance of a workflow (by URL) with static inputs.
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/RunRequest'
+
     PostRunSetRequest:
       description: Request body to run a set of workflows (by URL) with WDS inputs.
       content:
@@ -77,6 +99,12 @@ components:
             $ref: '#/components/schemas/RunSetRequest'
 
   responses:
+    PostRunResponse:
+      description: Response from creating a new run
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunStateResponse'
     PostRunSetResponse:
       description: Response from creating a new run set
       content:
@@ -224,6 +252,23 @@ components:
             $ref: '#/components/schemas/RunStateResponse'
         state:
           $ref: '#/components/schemas/RunSetState'
+
+    RunRequest:
+      type: object
+      properties:
+        workflow_url:
+          type: string
+          description: URL to the workflow script to run
+        workflow_params:
+          type: object
+          description: Input set
+#        workflow_attachments:
+#          type: array
+#          description: Files for workflow to run
+#          required: false
+#          items:
+#            type: string
+#            format: binary
 
     RunLog:
       type: object
