@@ -8,6 +8,8 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Run;
 import cromwell.client.ApiException;
 import cromwell.client.model.State;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +32,16 @@ public class SmartRunsPoller {
   }
 
   public List<Run> updateRuns(List<Run> runs) {
+
+    // For metrics:
+    OffsetDateTime startTime = OffsetDateTime.now();
+
     // Filter only updatable runs:
     Stream<Run> updatableRuns = runs.stream().filter(this::nonTerminal);
+
+    // This has the nice outcome of counting even if the size is 0, which means this metric
+    // is created and stays current even if nothing is being updated:
+    logger.debug("METRIC: COUNT runs needing status update: {}", updatableRuns.count());
 
     // Group by current (engine) status:
     Map<State, List<Run>> engineStatus =
@@ -39,9 +49,12 @@ public class SmartRunsPoller {
             groupingBy(
                 r -> {
                   try {
-                    return cromwellService.runStatus(r.engineId()).getState();
+                    var result = cromwellService.runStatus(r.engineId()).getState();
+                    logger.debug("METRIC: INCREMENT runs polled for status update successfully");
+                    return result;
                   } catch (ApiException e) {
                     logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
+                    logger.debug("METRIC: INCREMENT runs polled for status update unsuccessfully");
                     return State.fromValue(r.status());
                   }
                 }));
@@ -52,6 +65,7 @@ public class SmartRunsPoller {
       for (Run r : stateEntry.getValue()) {
         if (!r.status().equals(stateEntry.getKey().toString())) {
           logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
+          logger.debug("METRIC: INCREMENT runs transitioned to final status");
           var changes = runDao.updateRunStatus(r, stateEntry.getKey().toString());
           if (changes == 1) {
             updatedRuns.remove(r);
@@ -61,7 +75,10 @@ public class SmartRunsPoller {
       }
     }
 
-    return List.copyOf(updatedRuns);
+    var result = List.copyOf(updatedRuns);
+    var pollAndUpdateMillis = ChronoUnit.MILLIS.between(startTime, OffsetDateTime.now());
+    logger.debug("METRIC: TIMER smart status poll: {}", pollAndUpdateMillis);
+    return result;
   }
 
   private boolean isTerminal(Run run) {
