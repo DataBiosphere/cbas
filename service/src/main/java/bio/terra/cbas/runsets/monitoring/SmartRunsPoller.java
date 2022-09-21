@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -36,27 +35,30 @@ public class SmartRunsPoller {
     OffsetDateTime startTime = OffsetDateTime.now();
 
     // Filter only updatable runs:
-    Stream<Run> updatableRuns = runs.stream().filter(Run::nonTerminal);
+    List<Run> updatableRuns = runs.stream().filter(Run::nonTerminal).toList();
 
     // This has the nice outcome of counting even if the size is 0, which means this metric
     // is created and stays current even if nothing is being updated:
-    logger.debug("METRIC: COUNT runs needing status update: {}", updatableRuns.count());
+    logger.debug("METRIC: COUNT runs needing status update: {}", updatableRuns.size());
 
     // Group by current (engine) status:
     Map<State, List<Run>> engineStatuses =
-        updatableRuns.collect(
-            groupingBy(
-                r -> {
-                  try {
-                    var result = cromwellService.runStatus(r.engineId()).getState();
-                    logger.debug("METRIC: INCREMENT runs polled for status update successfully");
-                    return result;
-                  } catch (ApiException e) {
-                    logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
-                    logger.debug("METRIC: INCREMENT runs polled for status update unsuccessfully");
-                    return State.fromValue(r.status());
-                  }
-                }));
+        updatableRuns.stream()
+            .collect(
+                groupingBy(
+                    r -> {
+                      try {
+                        var result = cromwellService.runStatus(r.engineId()).getState();
+                        logger.debug(
+                            "METRIC: INCREMENT runs polled for status update successfully");
+                        return result;
+                      } catch (ApiException e) {
+                        logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
+                        logger.debug(
+                            "METRIC: INCREMENT runs polled for status update unsuccessfully");
+                        return State.fromValue(r.status());
+                      }
+                    }));
 
     Set<Run> updatedRuns = new HashSet<>(runs);
 
