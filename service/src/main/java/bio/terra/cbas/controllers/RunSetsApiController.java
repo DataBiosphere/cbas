@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -85,11 +85,11 @@ public class RunSetsApiController implements RunSetsApi {
     runSetDao.createRunSet(runSet);
 
     // Fetch the entity from WDS:
-    EntityResponse entityResponse;
+    RecordResponse recordResponse;
     try {
       String entityType = request.getWdsEntities().getEntityType();
       String entityId = request.getWdsEntities().getEntityIds().get(0);
-      entityResponse = wdsService.getEntity(entityType, entityId);
+      recordResponse = wdsService.getRecord(entityType, entityId);
     } catch (ApiException e) {
       log.warn("Entity lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
@@ -98,7 +98,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Build the inputs set from workflow parameter definitions and the fetched entity:
     Map<String, Object> params =
-        InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), entityResponse);
+        InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), recordResponse);
 
     // Submit the workflow and get its ID:
     RunId workflowResponse;

@@ -1,6 +1,6 @@
 package bio.terra.cbas.config;
 
-import org.databiosphere.workspacedata.api.EntitiesApi;
+import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -11,10 +11,10 @@ public record WdsServerConfiguration(
     return "%s/%s".formatted(baseUri, healthcheckEndpoint);
   }
 
-  public EntitiesApi entitiesApi() {
+  public RecordsApi recordsApi() {
     ApiClient wdsApiClient = new ApiClient();
     wdsApiClient.setBasePath(baseUri);
 
-    return new EntitiesApi(wdsApiClient);
+    return new RecordsApi(wdsApiClient);
   }
 }

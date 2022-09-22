@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
 
 class TestInputGeneratorBuildInputs {
@@ -20,28 +20,28 @@ class TestInputGeneratorBuildInputs {
   void stringLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(literalFooParameter("String", "\"hello world\"")), emptyEntity());
+            List.of(literalFooParameter("String", "\"hello world\"")), emptyRecord());
     assertEquals(Map.of("literal_foo", "hello world"), actual);
   }
 
   @Test
   void intLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1), actual);
   }
 
   @Test
   void booleanLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyRecord());
     assertEquals(Map.of("literal_foo", false), actual);
   }
 
   @Test
   void floatLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1.1), actual);
   }
 
@@ -131,9 +131,9 @@ class TestInputGeneratorBuildInputs {
     return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
   }
 
-  // Stock Entity Responses:
+  // Stock Record Responses:
 
-  private static EntityResponse emptyEntity() throws JsonProcessingException {
+  private static RecordResponse emptyRecord() throws JsonProcessingException {
     return objectMapper.readValue(
         """
         {
@@ -142,15 +142,15 @@ class TestInputGeneratorBuildInputs {
           "attributes": {
           },
           "metadata": {
-            "provenance": "TODO: ENTITYMETADATA"
+            "provenance": "TODO: ENTITYMETADATA (or is it RECORDMETADATA now?)"
           }
         }"""
             .stripIndent()
             .trim(),
-        EntityResponse.class);
+        RecordResponse.class);
   }
 
-  private static EntityResponse fooRatingEntity(String rawAttributeJson)
+  private static RecordResponse fooRatingEntity(String rawAttributeJson)
       throws JsonProcessingException {
     return objectMapper.readValue(
         """
@@ -161,12 +161,12 @@ class TestInputGeneratorBuildInputs {
             "foo-rating": %s
           },
           "metadata": {
-            "provenance": "TODO: ENTITYMETADATA"
+            "provenance": "TODO: ENTITYMETADATA (or is it RECORDMETADATA now?)"
           }
         }"""
             .formatted(rawAttributeJson)
             .stripIndent()
             .trim(),
-        EntityResponse.class);
+        RecordResponse.class);
   }
 }

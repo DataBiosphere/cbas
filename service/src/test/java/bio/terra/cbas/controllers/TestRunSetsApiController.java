@@ -25,8 +25,8 @@ import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import org.databiosphere.workspacedata.model.EntityAttributes;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,14 +66,14 @@ class TestRunSetsApiController {
     final String entityId = "MY_ENTITY_ID";
     final String entityAttribute = "MY_ENTITY_ATTRIBUTE";
     final int entityAttributeValue = 100;
-    EntityAttributes entityAttributes = new EntityAttributes();
-    entityAttributes.put(entityAttribute, entityAttributeValue);
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(entityAttribute, entityAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
 
     // Set up API responses:
-    when(wdsService.getEntity(entityType, entityId))
+    when(wdsService.getRecord(entityType, entityId))
         .thenReturn(
-            new EntityResponse().type(entityType).id(entityId).attributes(entityAttributes));
+            new RecordResponse().type(entityType).id(entityId).attributes(recordAttributes));
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId));
