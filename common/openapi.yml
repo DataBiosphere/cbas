@@ -35,7 +35,7 @@ paths:
   /api/batch/v1/run_sets:
     post:
       tags: [ run_sets ]
-      summary: Combine an inputs definition with WDS entities to run a series of workflows
+      summary: Combine an inputs definition with WDS records to run a series of workflows
       operationId: postRunSet
       requestBody:
         $ref: '#/components/requestBodies/PostRunSetRequest'
@@ -126,23 +126,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowParamDefinition'
-          description: Declarative input definition for combination with WDS entities
-        wds_entities:
-          $ref: '#/components/schemas/WdsEntitySet'
+          description: Declarative input definition for combination with WDS records
+        wds_records:
+          $ref: '#/components/schemas/WdsRecordSet'
 
-    WdsEntitySet:
+    WdsRecordSet:
       type: object
       properties:
-        entity_type:
+        record_type:
           type: string
           example: FOO
-        entity_ids:
+        record_ids:
           type: array
           items:
             type: string
           example:
             - F0011111-1111-1111-1111-111111111111
-      description: The set of WDS entities to use when constructing the inputs.
+      description: The set of WDS records to use when constructing the inputs.
 
     WorkflowParamDefinition:
       type: object
@@ -180,16 +180,16 @@ components:
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
-          enum: [ literal, entity_lookup ]
-          example: entity_lookup
+          enum: [ literal, record_lookup ]
+          example: record_lookup
       oneOf:
-        - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
+        - $ref: '#/components/schemas/ParameterDefinitionRecordLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
       discriminator:
         propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
-          entity_lookup: 'ParameterDefinitionEntityLookup'
+          record_lookup: 'ParameterDefinitionRecordLookup'
 
     ParameterDefinitionLiteralValue:
       type: object
@@ -200,16 +200,16 @@ components:
           description: The literal value to use. Can be any type, but must match the declared parameter_type.
           required: True
           example: hello world
-    ParameterDefinitionEntityLookup:
+    ParameterDefinitionRecordLookup:
       type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        entity_attribute:
+        record_attribute:
           type: string
-          description: The attribute name on the entity to use.
+          description: The attribute name on the record to use.
           required: true
-          example: entity_field_foo_rating
+          example: record_field_foo_rating
     RunSetStateResponse:
       type: object
       required: [run_set_id]

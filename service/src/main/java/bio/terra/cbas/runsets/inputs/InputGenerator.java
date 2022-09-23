@@ -1,8 +1,8 @@
 package bio.terra.cbas.runsets.inputs;
 
 import bio.terra.cbas.model.ParameterDefinition;
-import bio.terra.cbas.model.ParameterDefinitionEntityLookup;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
+import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.WorkflowParamDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -33,7 +33,7 @@ public class InputGenerator {
         parameterValue = ((ParameterDefinitionLiteralValue) param.getSource()).getParameterValue();
       } else {
         String attributeName =
-            ((ParameterDefinitionEntityLookup) param.getSource()).getEntityAttribute();
+            ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
         parameterValue = entity.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);

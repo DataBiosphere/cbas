@@ -44,6 +44,45 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 - Convenient app setup:
   Install [the convenient app](https://postgresapp.com/), and create a database called `bio.terra.batchanalysis`.
 
+### Dependencies
+
+*this section is a work-in-progress*
+
+#### Workspace Data Service (WDS)
+
+TODO: Instructions on how to run the docker container
+
+Initialize an instance with e.g. UUID `00000000-0000-0000-0000-000000000000`:
+```
+curl -X 'POST' \
+  'http://localhost:8001/00000000-0000-0000-0000-000000000000/v0.2/' \
+  -H 'accept: */*' \
+  -d ''
+```
+
+Add a record `FOO1` of type `FOO` to instance `00000000-0000-0000-0000-000000000000`:
+```
+curl -X 'PUT' \
+  'http://localhost:8001/00000000-0000-0000-0000-000000000000/records/v0.2/FOO/FOO1' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "attributes": {
+    "foo_rating": 1000
+  }
+}'
+```
+
+In the `wds` database, the record will be written to a schema with the same name as the instance ID.
+Select that schema with the following SQL command (for e.g. the instance ID `00000000-0000-0000-0000-000000000000`):
+
+```
+SET search_path TO "00000000-0000-0000-0000-000000000000";
+```
+
+Then, run the Postgres command `\dt` to show the existing tables.
+
+
 #### Initialize your database:
 ```sh
 psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql

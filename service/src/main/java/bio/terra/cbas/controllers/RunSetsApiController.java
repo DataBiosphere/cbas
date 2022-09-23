@@ -72,7 +72,7 @@ public class RunSetsApiController implements RunSetsApi {
               methodId,
               request.getWorkflowUrl(),
               objectMapper.writeValueAsString(request.getWorkflowParamDefinitions()),
-              request.getWdsEntities().getEntityType());
+              request.getWdsRecords().getRecordType());
       methodDao.createMethod(method);
     } catch (JsonProcessingException e) {
       log.warn("Failed to record method to database", e);
@@ -87,8 +87,8 @@ public class RunSetsApiController implements RunSetsApi {
     // Fetch the entity from WDS:
     RecordResponse recordResponse;
     try {
-      String entityType = request.getWdsEntities().getEntityType();
-      String entityId = request.getWdsEntities().getEntityIds().get(0);
+      String entityType = request.getWdsRecords().getRecordType();
+      String entityId = request.getWdsRecords().getRecordIds().get(0);
       recordResponse = wdsService.getRecord(entityType, entityId);
     } catch (ApiException e) {
       log.warn("Entity lookup failed. ApiException", e);
@@ -120,7 +120,7 @@ public class RunSetsApiController implements RunSetsApi {
             runId,
             workflowResponse.getRunId(),
             runSet,
-            request.getWdsEntities().getEntityIds().get(0),
+            request.getWdsRecords().getRecordIds().get(0),
             OffsetDateTime.now(),
             UnknownRunState.toString()));
 
@@ -135,7 +135,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
       RunSetRequest request) {
-    if (request.getWdsEntities().getEntityIds().size() != 1) {
+    if (request.getWdsRecords().getRecordIds().size() != 1) {
       log.warn("Bad user request: current support is exactly one entity per request");
       return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }

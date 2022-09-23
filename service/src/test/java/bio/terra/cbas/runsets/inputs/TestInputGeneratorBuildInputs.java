@@ -46,34 +46,34 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void stringEntityLookup() throws JsonProcessingException {
+  void stringRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("String")), fooRatingEntity("\"exquisite\""));
+            List.of(fooRatingRecordLookupParameter("String")), fooRatingRecord("\"exquisite\""));
     assertEquals(Map.of("lookup_foo", "exquisite"), actual);
   }
 
   @Test
-  void numberEntityLookup() throws JsonProcessingException {
+  void numberRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Int")), fooRatingEntity("1000"));
+            List.of(fooRatingRecordLookupParameter("Int")), fooRatingRecord("1000"));
     assertEquals(Map.of("lookup_foo", 1000), actual);
   }
 
   @Test
-  void booleanEntityLookup() throws JsonProcessingException {
+  void booleanRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Boolean")), fooRatingEntity("true"));
+            List.of(fooRatingRecordLookupParameter("Boolean")), fooRatingRecord("true"));
     assertEquals(Map.of("lookup_foo", true), actual);
   }
 
   @Test
-  void floatEntityLookup() throws JsonProcessingException {
+  void floatRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Float")), fooRatingEntity("1000.0001"));
+            List.of(fooRatingRecordLookupParameter("Float")), fooRatingRecord("1000.0001"));
     assertEquals(Map.of("lookup_foo", 1000.0001), actual);
   }
 
@@ -82,9 +82,9 @@ class TestInputGeneratorBuildInputs {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
-                fooRatingEntityLookupParameter("String"),
+                fooRatingRecordLookupParameter("String"),
                 literalFooParameter("String", "\"hello world\"")),
-            fooRatingEntity("\"exquisite\""));
+            fooRatingRecord("\"exquisite\""));
     assertEquals(
         Map.of(
             "literal_foo", "hello world",
@@ -112,7 +112,7 @@ class TestInputGeneratorBuildInputs {
     return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
   }
 
-  private static WorkflowParamDefinition fooRatingEntityLookupParameter(String parameterType)
+  private static WorkflowParamDefinition fooRatingRecordLookupParameter(String parameterType)
       throws JsonProcessingException {
     String paramDefinitionJson =
         """
@@ -120,8 +120,8 @@ class TestInputGeneratorBuildInputs {
           "parameter_name": "lookup_foo",
           "parameter_type": "%s",
           "source": {
-            "type": "entity_lookup",
-            "entity_attribute": "foo-rating"
+            "type": "record_lookup",
+            "record_attribute": "foo-rating"
           }
         }"""
             .formatted(parameterType)
@@ -142,7 +142,7 @@ class TestInputGeneratorBuildInputs {
           "attributes": {
           },
           "metadata": {
-            "provenance": "TODO: ENTITYMETADATA (or is it RECORDMETADATA now?)"
+            "provenance": "TODO: RECORDMETADATA"
           }
         }"""
             .stripIndent()
@@ -150,7 +150,7 @@ class TestInputGeneratorBuildInputs {
         RecordResponse.class);
   }
 
-  private static RecordResponse fooRatingEntity(String rawAttributeJson)
+  private static RecordResponse fooRatingRecord(String rawAttributeJson)
       throws JsonProcessingException {
     return objectMapper.readValue(
         """
@@ -161,7 +161,7 @@ class TestInputGeneratorBuildInputs {
             "foo-rating": %s
           },
           "metadata": {
-            "provenance": "TODO: ENTITYMETADATA (or is it RECORDMETADATA now?)"
+            "provenance": "TODO: RECORDMETADATA"
           }
         }"""
             .formatted(rawAttributeJson)
