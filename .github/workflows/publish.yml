@@ -100,11 +100,10 @@ jobs:
           cd cromwhelm
           git checkout main
           ls -la
-          HELM_CUR_TAG=$(grep "/cbas:" cromwell-helm/values.yaml | sed "s,.*/cbas:,,")
+          HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
           HELM_NEW_TAG=${{ steps.tag.outputs.TAG }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
-          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" cromwell-helm/values.yaml
-          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" coa-helm/values.yaml
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" terra-batch-libchart/values.yaml
           git diff
           git config --global user.name "broadbot"
           git config --global user.email "broadbot@broadinstitute.org"
