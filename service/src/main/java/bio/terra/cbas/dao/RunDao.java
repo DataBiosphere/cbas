@@ -44,6 +44,7 @@ public class RunDao {
               rs.getObject("method_id", UUID.class),
               rs.getString("method_url"),
               rs.getString("input_definition"),
+              rs.getString("output_definition"),
               rs.getString("entity_type"));
 
       RunSet runSet = new RunSet(rs.getObject("run_set_id", UUID.class), method);

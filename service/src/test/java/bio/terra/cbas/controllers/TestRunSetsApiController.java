@@ -69,6 +69,7 @@ class TestRunSetsApiController {
     EntityAttributes entityAttributes = new EntityAttributes();
     entityAttributes.put(entityAttribute, entityAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
+    final String oututDefinitionAsString = "";
 
     // Set up API responses:
     when(wdsService.getEntity(entityType, entityId))
@@ -97,6 +98,13 @@ class TestRunSetsApiController {
               "record_attribute" : "MY_ENTITY_ATTRIBUTE"
             }
           } ],
+          "workflow_output_definitions" : [
+            {
+              "output_name": "myWorkflow.myCall.outputName1",
+              "output_type" : "String",
+              "entity_attribute": "foo_rating"
+            }
+          ],
           "wds_entities" : {
             "entity_type" : "%s",
             "entity_ids" : [ "%s" ]
@@ -121,6 +129,7 @@ class TestRunSetsApiController {
     verify(methodDao).createMethod(newMethodCaptor.capture());
     assertEquals(entityType, newMethodCaptor.getValue().entityType());
     assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
+    assertEquals(oututDefinitionAsString, newMethodCaptor.getValue().outputDefinition());
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());

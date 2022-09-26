@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: "add_output_definition_in_method"
+      author: sshah
+      changes:
+        - addColumn:
+            tableName: method
+            columns:
+              - column:
+                  name: output_definition
+                  type: text
+                  constraints:
+                    nullable: true
+

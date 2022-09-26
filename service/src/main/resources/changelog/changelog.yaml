@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       file: changesets/20220823_run.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20220926_add_output_definition_in_method.yaml
+      relativeToChangelogFile: true
