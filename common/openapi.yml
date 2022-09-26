@@ -129,6 +129,10 @@ components:
           description: Declarative input definition for combination with WDS entities
         wds_entities:
           $ref: '#/components/schemas/WdsEntitySet'
+        workflow_output_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowOutputDefinition'
 
     WdsEntitySet:
       type: object
@@ -154,6 +158,20 @@ components:
           $ref: '#/components/schemas/ParameterValueType'
         source:
           $ref: '#/components/schemas/ParameterDefinition'
+
+    WorkflowOutputDefinition:
+      type: object
+      properties:
+        output_name:
+          type: string
+          example: workflow_output_foo_rating
+        output_type:
+          $ref: '#/components/schemas/ParameterValueType'
+        entity_attribute:
+          type: string
+          description: The attribute name on the entity to use.
+          required: true
+          example: entity_field_foo_rating
 
     ParameterValueType:
       title: ParameterValueType
