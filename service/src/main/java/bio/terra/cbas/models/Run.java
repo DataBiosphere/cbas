@@ -7,7 +7,7 @@ public record Run(
     UUID id,
     String engineId,
     RunSet runSet,
-    String entityId,
+    String recordId,
     OffsetDateTime submissionTimestamp,
     String status) {
 

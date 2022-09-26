@@ -87,9 +87,9 @@ public class RunSetsApiController implements RunSetsApi {
     // Fetch the entity from WDS:
     RecordResponse recordResponse;
     try {
-      String entityType = request.getWdsRecords().getRecordType();
-      String entityId = request.getWdsRecords().getRecordIds().get(0);
-      recordResponse = wdsService.getRecord(entityType, entityId);
+      String recordType = request.getWdsRecords().getRecordType();
+      String recordId = request.getWdsRecords().getRecordIds().get(0);
+      recordResponse = wdsService.getRecord(recordType, recordId);
     } catch (ApiException e) {
       log.warn("Entity lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:

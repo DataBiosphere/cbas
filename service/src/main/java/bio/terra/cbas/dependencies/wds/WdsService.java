@@ -16,13 +16,13 @@ public class WdsService {
     this.wdsServerConfiguration = wdsServerConfiguration;
   }
 
-  public RecordResponse getRecord(String entityType, String entityId) throws ApiException {
+  public RecordResponse getRecord(String recordType, String recordId) throws ApiException {
     return wdsClient
         .recordsApi()
         .getRecord(
             wdsServerConfiguration.instanceId(),
             wdsServerConfiguration.apiV(),
-            entityType,
-            entityId);
+            recordType,
+            recordId);
   }
 }

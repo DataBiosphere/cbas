@@ -62,18 +62,18 @@ class TestRunSetsApiController {
   void chainCallsTogether() throws Exception {
 
     final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
-    final String entityType = "MY_ENTITY_TYPE";
-    final String entityId = "MY_ENTITY_ID";
-    final String entityAttribute = "MY_ENTITY_ATTRIBUTE";
-    final int entityAttributeValue = 100;
+    final String recordType = "MY_RECORD_TYPE";
+    final String recordId = "MY_RECORD_ID";
+    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+    final int recordAttributeValue = 100;
     RecordAttributes recordAttributes = new RecordAttributes();
-    recordAttributes.put(entityAttribute, entityAttributeValue);
+    recordAttributes.put(recordAttribute, recordAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
 
     // Set up API responses:
-    when(wdsService.getRecord(entityType, entityId))
+    when(wdsService.getRecord(recordType, recordId))
         .thenReturn(
-            new RecordResponse().type(entityType).id(entityId).attributes(recordAttributes));
+            new RecordResponse().type(recordType).id(recordId).attributes(recordAttributes));
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId));
@@ -93,17 +93,17 @@ class TestRunSetsApiController {
             "parameter_name" : "myworkflow.mycall.inputname2",
             "parameter_type" : "Int",
             "source" : {
-              "type" : "entity_lookup",
-              "entity_attribute" : "MY_ENTITY_ATTRIBUTE"
+              "type" : "record_lookup",
+              "record_attribute" : "MY_RECORD_ATTRIBUTE"
             }
           } ],
-          "wds_entities" : {
-            "entity_type" : "%s",
-            "entity_ids" : [ "%s" ]
+          "wds_records" : {
+            "record_type" : "%s",
+            "record_ids" : [ "%s" ]
           }
         }
         """
-            .formatted(workflowUrl, entityType, entityId);
+            .formatted(workflowUrl, recordType, recordId);
 
     MvcResult result =
         mockMvc
@@ -119,7 +119,7 @@ class TestRunSetsApiController {
     // Verify database storage:
     ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
     verify(methodDao).createMethod(newMethodCaptor.capture());
-    assertEquals(entityType, newMethodCaptor.getValue().entityType());
+    assertEquals(recordType, newMethodCaptor.getValue().recordType());
     assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
@@ -131,7 +131,7 @@ class TestRunSetsApiController {
     assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().getRunSetId());
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
     assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
-    assertEquals(entityId, newRunCaptor.getValue().entityId());
+    assertEquals(recordId, newRunCaptor.getValue().recordId());
     // Assert that the submission timestamp is more recent than 60 seconds ago
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),

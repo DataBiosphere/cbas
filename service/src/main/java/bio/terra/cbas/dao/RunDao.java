@@ -25,7 +25,7 @@ public class RunDao {
   public int createRun(Run run) {
     return jdbcTemplate.update(
         "insert into run (id, engine_id, run_set_id, entity_id, submission_timestamp, status)"
-            + " values (:id, :engineId, :runSetId, :entityId, :submissionTimestamp, :status)",
+            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status)",
         new BeanPropertySqlParameterSource(run));
   }
 
