@@ -98,8 +98,8 @@ class TestInputGeneratorBuildInputs {
     String paramDefinitionJson =
         """
         {
-          "parameter_name": "literal_foo",
-          "parameter_type": "%s",
+          "input_name": "literal_foo",
+          "input_type": "%s",
           "source": {
             "type": "literal",
             "parameter_value": %s
