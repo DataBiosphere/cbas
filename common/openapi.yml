@@ -126,13 +126,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowInputDefinition'
-          description: Declarative input definition for combination with WDS entities
+          description: Declarative input definition for combination with WDS records.
         wds_entities:
           $ref: '#/components/schemas/WdsEntitySet'
         workflow_output_definitions:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
+          description: Declarative output definition for writing back to WDS.
 
     WdsEntitySet:
       type: object
