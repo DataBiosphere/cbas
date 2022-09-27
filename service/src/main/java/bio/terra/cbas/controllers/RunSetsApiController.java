@@ -84,19 +84,19 @@ public class RunSetsApiController implements RunSetsApi {
     RunSet runSet = new RunSet(runSetId, method);
     runSetDao.createRunSet(runSet);
 
-    // Fetch the entity from WDS:
+    // Fetch the record from WDS:
     RecordResponse recordResponse;
     try {
       String recordType = request.getWdsRecords().getRecordType();
       String recordId = request.getWdsRecords().getRecordIds().get(0);
       recordResponse = wdsService.getRecord(recordType, recordId);
     } catch (ApiException e) {
-      log.warn("Entity lookup failed. ApiException", e);
+      log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
     }
 
-    // Build the inputs set from workflow parameter definitions and the fetched entity:
+    // Build the inputs set from workflow parameter definitions and the fetched record:
     Map<String, Object> params =
         InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), recordResponse);
 
@@ -136,7 +136,7 @@ public class RunSetsApiController implements RunSetsApi {
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
       RunSetRequest request) {
     if (request.getWdsRecords().getRecordIds().size() != 1) {
-      log.warn("Bad user request: current support is exactly one entity per request");
+      log.warn("Bad user request: current support is exactly one record per request");
       return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 

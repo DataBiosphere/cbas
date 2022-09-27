@@ -24,7 +24,7 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowParamDefinition> inputDefinitions, RecordResponse entity) {
+      List<WorkflowParamDefinition> inputDefinitions, RecordResponse record) {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowParamDefinition param : inputDefinitions) {
       String parameterName = param.getParameterName();
@@ -34,7 +34,7 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
-        parameterValue = entity.getAttributes().get(attributeName);
+        parameterValue = record.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);
     }
