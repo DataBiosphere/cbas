@@ -30,8 +30,8 @@ public class SmartRunsPoller {
   }
 
   /**
-   * Updates a list of runs by: - Checking with the engine whether any non-terminal statuses have
-   * changed - If so, updating the database
+   * Updates a list of runs by checking with the engine whether any non-terminal statuses have
+   * changed and if so, updating the database.
    *
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
