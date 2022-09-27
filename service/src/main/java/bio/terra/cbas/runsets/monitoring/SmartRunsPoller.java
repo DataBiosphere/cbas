@@ -29,6 +29,13 @@ public class SmartRunsPoller {
     this.runDao = runDao;
   }
 
+  /**
+   * Updates a list of runs by:
+   *  - Checking with the engine whether any non-terminal statuses have changed
+   *  - If so, updating the database
+   * @param runs The list of input runs to check for updates
+   * @return A new list containing up-to-date run information for all runs in the input
+   */
   public List<Run> updateRuns(List<Run> runs) {
 
     // For metrics:
@@ -67,11 +74,14 @@ public class SmartRunsPoller {
         var currentState = engineStateEntry.getKey().toString();
         if (!r.status().equals(currentState)) {
           logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
-          logger.debug("METRIC: INCREMENT runs transitioned to final status");
           var changes = runDao.updateRunStatus(r, currentState);
           if (changes == 1) {
+            logger.debug("METRIC: INCREMENT runs transitioned to final status successfully");
             updatedRuns.remove(r);
             updatedRuns.add(r.withStatus(currentState));
+          } else {
+            logger.debug("METRIC: INCREMENT runs transitioned to final status unsuccessfully");
+            logger.warn("Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.", r.id(), r.status(), currentState);
           }
         }
       }
