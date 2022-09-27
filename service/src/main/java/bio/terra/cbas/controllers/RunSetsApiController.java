@@ -71,7 +71,7 @@ public class RunSetsApiController implements RunSetsApi {
           new Method(
               methodId,
               request.getWorkflowUrl(),
-              objectMapper.writeValueAsString(request.getWorkflowParamDefinitions()),
+              objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
               request.getWdsEntities().getEntityType());
       methodDao.createMethod(method);
     } catch (JsonProcessingException e) {
@@ -98,7 +98,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Build the inputs set from workflow parameter definitions and the fetched entity:
     Map<String, Object> params =
-        InputGenerator.buildInputs(request.getWorkflowParamDefinitions(), entityResponse);
+        InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), entityResponse);
 
     // Submit the workflow and get its ID:
     RunId workflowResponse;

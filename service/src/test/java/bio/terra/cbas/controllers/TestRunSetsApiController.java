@@ -82,19 +82,19 @@ class TestRunSetsApiController {
         """
         {
           "workflow_url" : "%s",
-          "workflow_param_definitions" : [ {
-            "parameter_name" : "myworkflow.mycall.inputname1",
-            "parameter_type" : "String",
+          "workflow_input_definitions" : [ {
+            "input_name" : "myworkflow.mycall.inputname1",
+            "input_type" : "String",
             "source" : {
               "type" : "literal",
               "parameter_value" : "literal value"
             }
           }, {
-            "parameter_name" : "myworkflow.mycall.inputname2",
-            "parameter_type" : "Int",
+            "input_name" : "myworkflow.mycall.inputname2",
+            "input_type" : "Int",
             "source" : {
-              "type" : "entity_lookup",
-              "entity_attribute" : "MY_ENTITY_ATTRIBUTE"
+              "type" : "record_lookup",
+              "record_attribute" : "MY_ENTITY_ATTRIBUTE"
             }
           } ],
           "wds_entities" : {

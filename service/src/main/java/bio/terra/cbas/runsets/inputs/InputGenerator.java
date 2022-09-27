@@ -1,9 +1,9 @@
 package bio.terra.cbas.runsets.inputs;
 
 import bio.terra.cbas.model.ParameterDefinition;
-import bio.terra.cbas.model.ParameterDefinitionEntityLookup;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
-import bio.terra.cbas.model.WorkflowParamDefinition;
+import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
+import bio.terra.cbas.model.WorkflowInputDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -24,16 +24,16 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowParamDefinition> inputDefinitions, EntityResponse entity) {
+      List<WorkflowInputDefinition> inputDefinitions, EntityResponse entity) {
     Map<String, Object> params = new HashMap<>();
-    for (WorkflowParamDefinition param : inputDefinitions) {
-      String parameterName = param.getParameterName();
+    for (WorkflowInputDefinition param : inputDefinitions) {
+      String parameterName = param.getInputName();
       Object parameterValue;
       if (param.getSource().getType() == ParameterDefinition.TypeEnum.LITERAL) {
         parameterValue = ((ParameterDefinitionLiteralValue) param.getSource()).getParameterValue();
       } else {
         String attributeName =
-            ((ParameterDefinitionEntityLookup) param.getSource()).getEntityAttribute();
+            ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
         parameterValue = entity.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);
