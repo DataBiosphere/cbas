@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -38,7 +39,7 @@ public class RunDao {
     return jdbcTemplate.query(sql, new RunMapper());
   }
 
-  public int updateRunStatus(Run run, String newStatus) {
+  public int updateRunStatus(Run run, CbasRunStatus newStatus) {
     String sql = "UPDATE run SET status = :status WHERE id = :id";
     return jdbcTemplate.update(
         sql, new MapSqlParameterSource(Map.of("id", run.id(), "status", newStatus)));
@@ -61,7 +62,7 @@ public class RunDao {
           runSet,
           rs.getString("entity_id"),
           rs.getObject("submission_timestamp", OffsetDateTime.class),
-          rs.getString("status"));
+          CbasRunStatus.fromValue(rs.getString("status")));
     }
   }
 }

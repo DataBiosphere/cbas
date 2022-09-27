@@ -1,5 +1,7 @@
 package bio.terra.cbas.runsets.monitoring;
 
+import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
+import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -9,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -47,7 +48,7 @@ public class TestSmartRunsPoller {
           runSet,
           runningRunEntityId,
           runningRunSubmittedtime,
-          RunState.RUNNING.toString());
+          RUNNING);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -56,7 +57,7 @@ public class TestSmartRunsPoller {
           runSet,
           completedRunEntityId,
           completedRunSubmittedtime,
-          RunState.COMPLETE.toString());
+          COMPLETE);
 
   @Test
   void pollRunningRuns() throws ApiException {
@@ -74,10 +75,9 @@ public class TestSmartRunsPoller {
 
     assertEquals(2, actual.size());
     assertEquals(
-        RunState.RUNNING.toString(),
-        actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
+        RUNNING, actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
     assertEquals(
-        RunState.COMPLETE.toString(),
+        COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
   }
 
@@ -90,23 +90,22 @@ public class TestSmartRunsPoller {
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
 
-    when(runsDao.updateRunStatus(eq(runToUpdate), eq(RunState.COMPLETE.toString()))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate), eq(COMPLETE))).thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
 
     verify(cromwellService).runStatus(eq(runningRunEngineId));
-    verify(runsDao).updateRunStatus(eq(runToUpdate), eq(RunState.COMPLETE.toString()));
+    verify(runsDao).updateRunStatus(eq(runToUpdate), eq(COMPLETE));
 
     // Make sure the already-completed workflow isn't re-updated:
-    verify(runsDao, never())
-        .updateRunStatus(eq(runAlreadyCompleted), eq(RunState.COMPLETE.toString()));
+    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
 
     assertEquals(2, actual.size());
     assertEquals(
-        RunState.COMPLETE.toString(),
+        COMPLETE,
         actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
     assertEquals(
-        RunState.COMPLETE.toString(),
+        COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
   }
 }

@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
+import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -9,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLogResponse;
-import bio.terra.cbas.model.RunState;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -63,7 +65,7 @@ class TestRunsApiController {
           returnedRunSet,
           returnedEntityId,
           returnedSubmittedtime,
-          RunState.RUNNING.toString());
+          RUNNING);
 
   private static final Run updatedRun =
       new Run(
@@ -72,7 +74,7 @@ class TestRunsApiController {
           returnedRunSet,
           returnedEntityId,
           returnedSubmittedtime,
-          RunState.COMPLETE.toString());
+          COMPLETE);
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {
@@ -90,6 +92,7 @@ class TestRunsApiController {
 
     assertEquals(1, parsedResponse.getRuns().size());
     assertEquals(returnedRunId.toString(), parsedResponse.getRuns().get(0).getRunId());
-    assertEquals(RunState.COMPLETE, parsedResponse.getRuns().get(0).getState());
+    assertEquals(
+        CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());
   }
 }

@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
+
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -9,8 +11,8 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -37,7 +39,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
-  private static final RunState UnknownRunState = RunState.UNKNOWN;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -115,20 +116,33 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Store the run:
     UUID runId = UUID.randomUUID();
-    runDao.createRun(
-        new Run(
-            runId,
-            workflowResponse.getRunId(),
-            runSet,
-            request.getWdsEntities().getEntityIds().get(0),
-            OffsetDateTime.now(),
-            UnknownRunState.toString()));
+    String dataTableRowId = request.getWdsEntities().getEntityIds().get(0);
+    int created =
+        runDao.createRun(
+            new Run(
+                runId,
+                workflowResponse.getRunId(),
+                runSet,
+                dataTableRowId,
+                OffsetDateTime.now(),
+                UNKNOWN));
+
+    if (created != 1) {
+      log.error(
+          "New workflow for record {} submitted to engine as {} but CBAS database INSERT returned '{} rows created'",
+          dataTableRowId,
+          workflowResponse.getRunId(),
+          created);
+    }
 
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(runSetId.toString())
-            .addRunsItem(new RunStateResponse().runId(runId.toString()).state(UnknownRunState))
+            .addRunsItem(
+                new RunStateResponse()
+                    .runId(runId.toString())
+                    .state(CbasRunStatus.toCbasApiState(UNKNOWN)))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
   }

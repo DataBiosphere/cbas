@@ -4,7 +4,7 @@ import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
-import bio.terra.cbas.model.RunState;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.time.OffsetDateTime;
@@ -38,9 +38,7 @@ public class RunsApiController implements RunsApi {
         .runId(run.id().toString())
         .workflowUrl(run.runSet().method().methodUrl())
         .name(null)
-        .state(
-            RunState.fromValue(
-                run.status())) // works because cbas Run statuses are a match for WES run statuses
+        .state(CbasRunStatus.toCbasApiState(run.status()))
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()));
   }
