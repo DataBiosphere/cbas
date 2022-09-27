@@ -20,28 +20,28 @@ class TestInputGeneratorBuildInputs {
   void stringLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(literalFooParameter("String", "\"hello world\"")), emptyEntity());
+            List.of(literalFooParameter("String", "\"hello world\"")), emptyRecord());
     assertEquals(Map.of("literal_foo", "hello world"), actual);
   }
 
   @Test
   void intLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1), actual);
   }
 
   @Test
   void booleanLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyRecord());
     assertEquals(Map.of("literal_foo", false), actual);
   }
 
   @Test
   void floatLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyEntity());
+        InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1.1), actual);
   }
 
@@ -49,7 +49,7 @@ class TestInputGeneratorBuildInputs {
   void stringEntityLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("String")), fooRatingEntity("\"exquisite\""));
+            List.of(fooRatingRecordLookupParameter("String")), fooRatingRecord("\"exquisite\""));
     assertEquals(Map.of("lookup_foo", "exquisite"), actual);
   }
 
@@ -57,7 +57,7 @@ class TestInputGeneratorBuildInputs {
   void numberEntityLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Int")), fooRatingEntity("1000"));
+            List.of(fooRatingRecordLookupParameter("Int")), fooRatingRecord("1000"));
     assertEquals(Map.of("lookup_foo", 1000), actual);
   }
 
@@ -65,7 +65,7 @@ class TestInputGeneratorBuildInputs {
   void booleanEntityLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Boolean")), fooRatingEntity("true"));
+            List.of(fooRatingRecordLookupParameter("Boolean")), fooRatingRecord("true"));
     assertEquals(Map.of("lookup_foo", true), actual);
   }
 
@@ -73,7 +73,7 @@ class TestInputGeneratorBuildInputs {
   void floatEntityLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(fooRatingEntityLookupParameter("Float")), fooRatingEntity("1000.0001"));
+            List.of(fooRatingRecordLookupParameter("Float")), fooRatingRecord("1000.0001"));
     assertEquals(Map.of("lookup_foo", 1000.0001), actual);
   }
 
@@ -82,9 +82,9 @@ class TestInputGeneratorBuildInputs {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
-                fooRatingEntityLookupParameter("String"),
+                fooRatingRecordLookupParameter("String"),
                 literalFooParameter("String", "\"hello world\"")),
-            fooRatingEntity("\"exquisite\""));
+            fooRatingRecord("\"exquisite\""));
     assertEquals(
         Map.of(
             "literal_foo", "hello world",
@@ -112,16 +112,16 @@ class TestInputGeneratorBuildInputs {
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
-  private static WorkflowInputDefinition fooRatingEntityLookupParameter(String parameterType)
+  private static WorkflowInputDefinition fooRatingRecordLookupParameter(String parameterType)
       throws JsonProcessingException {
     String paramDefinitionJson =
         """
         {
-          "parameter_name": "lookup_foo",
-          "parameter_type": "%s",
+          "input_name": "lookup_foo",
+          "input_type": "%s",
           "source": {
-            "type": "entity_lookup",
-            "entity_attribute": "foo-rating"
+            "type": "record_lookup",
+            "record_attribute": "foo-rating"
           }
         }"""
             .formatted(parameterType)
@@ -133,7 +133,7 @@ class TestInputGeneratorBuildInputs {
 
   // Stock Entity Responses:
 
-  private static EntityResponse emptyEntity() throws JsonProcessingException {
+  private static EntityResponse emptyRecord() throws JsonProcessingException {
     return objectMapper.readValue(
         """
         {
@@ -150,7 +150,7 @@ class TestInputGeneratorBuildInputs {
         EntityResponse.class);
   }
 
-  private static EntityResponse fooRatingEntity(String rawAttributeJson)
+  private static EntityResponse fooRatingRecord(String rawAttributeJson)
       throws JsonProcessingException {
     return objectMapper.readValue(
         """
