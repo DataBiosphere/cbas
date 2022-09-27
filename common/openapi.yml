@@ -122,10 +122,10 @@ components:
           type: string
           description: URL to the workflow script to run
           example: 'https://www.example.com/example.wdl'
-        workflow_param_definitions:
+        workflow_input_definitions:
           type: array
           items:
-            $ref: '#/components/schemas/WorkflowParamDefinition'
+            $ref: '#/components/schemas/WorkflowInputDefinition'
           description: Declarative input definition for combination with WDS entities
         wds_entities:
           $ref: '#/components/schemas/WdsEntitySet'
@@ -148,13 +148,13 @@ components:
             - F0011111-1111-1111-1111-111111111111
       description: The set of WDS entities to use when constructing the inputs.
 
-    WorkflowParamDefinition:
+    WorkflowInputDefinition:
       type: object
       properties:
-        parameter_name:
+        input_name:
           type: string
           example: workflow_input_foo_rating
-        parameter_type:
+        input_type:
           $ref: '#/components/schemas/ParameterValueType'
         source:
           $ref: '#/components/schemas/ParameterDefinition'
@@ -167,11 +167,11 @@ components:
           example: workflow_output_foo_rating
         output_type:
           $ref: '#/components/schemas/ParameterValueType'
-        entity_attribute:
+        record_attribute:
           type: string
-          description: The attribute name on the entity to use.
+          description: The attribute name on the record to use.
           required: true
-          example: entity_field_foo_rating
+          example: record_field_foo_rating
 
     ParameterValueType:
       title: ParameterValueType
@@ -198,16 +198,16 @@ components:
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
-          enum: [ literal, entity_lookup ]
-          example: entity_lookup
+          enum: [ literal, record_lookup ]
+          example: record_lookup
       oneOf:
-        - $ref: '#/components/schemas/ParameterDefinitionEntityLookup'
+        - $ref: '#/components/schemas/ParameterDefinitionRecordLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
       discriminator:
         propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
-          entity_lookup: 'ParameterDefinitionEntityLookup'
+          record_lookup: 'ParameterDefinitionRecordLookup'
 
     ParameterDefinitionLiteralValue:
       type: object
@@ -215,19 +215,19 @@ components:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
         parameter_value:
-          description: The literal value to use. Can be any type, but must match the declared parameter_type.
+          description: The literal value to use. Can be any type, but must match the declared input_type or output_type.
           required: True
           example: hello world
-    ParameterDefinitionEntityLookup:
+    ParameterDefinitionRecordLookup:
       type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
-        entity_attribute:
+        record_attribute:
           type: string
-          description: The attribute name on the entity to use.
+          description: The attribute name on the record to use.
           required: true
-          example: entity_field_foo_rating
+          example: record_field_foo_rating
     RunSetStateResponse:
       type: object
       required: [run_set_id]
