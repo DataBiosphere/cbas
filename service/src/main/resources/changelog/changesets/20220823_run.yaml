@@ -25,7 +25,7 @@ databaseChangeLog:
                     foreignKeyName: fk_run_run_set
                     references: run_set(id)
               - column:
-                  name: entity_id
+                  name: record_id
                   type: varchar(255)
                   constraints:
                     nullable: true
