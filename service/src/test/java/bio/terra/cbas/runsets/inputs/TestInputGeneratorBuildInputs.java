@@ -2,7 +2,7 @@ package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.model.WorkflowParamDefinition;
+import bio.terra.cbas.model.WorkflowInputDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,7 +93,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   // Stock Parameter definitions:
-  private static WorkflowParamDefinition literalFooParameter(
+  private static WorkflowInputDefinition literalFooParameter(
       String parameterType, String rawLiteralJson) throws JsonProcessingException {
     String paramDefinitionJson =
         """
@@ -109,10 +109,10 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim();
 
-    return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
-  private static WorkflowParamDefinition fooRatingEntityLookupParameter(String parameterType)
+  private static WorkflowInputDefinition fooRatingEntityLookupParameter(String parameterType)
       throws JsonProcessingException {
     String paramDefinitionJson =
         """
@@ -128,7 +128,7 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim();
 
-    return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
   // Stock Entity Responses:
