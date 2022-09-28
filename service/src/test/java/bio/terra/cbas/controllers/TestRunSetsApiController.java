@@ -69,6 +69,13 @@ class TestRunSetsApiController {
     RecordAttributes recordAttributes = new RecordAttributes();
     recordAttributes.put(recordAttribute, recordAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
+    final String outputDefinitionAsString =
+        """
+        [ {
+          "output_name" : "myWorkflow.myCall.outputName1",
+          "output_type" : "String",
+          "record_attribute" : "foo_rating"
+        } ]""";
 
     // Set up API responses:
     when(wdsService.getRecord(recordType, recordId))
@@ -97,13 +104,14 @@ class TestRunSetsApiController {
               "record_attribute" : "MY_RECORD_ATTRIBUTE"
             }
           } ],
+          "workflow_output_definitions" : %s,
           "wds_records" : {
             "record_type" : "%s",
             "record_ids" : [ "%s" ]
           }
         }
         """
-            .formatted(workflowUrl, recordType, recordId);
+            .formatted(workflowUrl, outputDefinitionAsString, recordType, recordId);
 
     MvcResult result =
         mockMvc
@@ -121,6 +129,7 @@ class TestRunSetsApiController {
     verify(methodDao).createMethod(newMethodCaptor.capture());
     assertEquals(recordType, newMethodCaptor.getValue().recordType());
     assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
+    assertEquals(outputDefinitionAsString, newMethodCaptor.getValue().outputDefinition());
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());

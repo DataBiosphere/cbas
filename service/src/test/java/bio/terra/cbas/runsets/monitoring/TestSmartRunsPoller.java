@@ -39,7 +39,8 @@ public class TestSmartRunsPoller {
   private static final RunSet runSet =
       new RunSet(
           UUID.randomUUID(),
-          new Method(UUID.randomUUID(), "methodurl", "inputdefinition", "entitytype"));
+          new Method(
+              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"));
 
   final Run runToUpdate =
       new Run(

@@ -73,6 +73,7 @@ public class RunSetsApiController implements RunSetsApi {
               methodId,
               request.getWorkflowUrl(),
               objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
+              objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
               request.getWdsRecords().getRecordType());
       methodDao.createMethod(method);
     } catch (JsonProcessingException e) {
