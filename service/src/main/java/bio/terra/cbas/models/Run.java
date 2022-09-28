@@ -9,9 +9,13 @@ public record Run(
     RunSet runSet,
     String recordId,
     OffsetDateTime submissionTimestamp,
-    String status) {
+    CbasRunStatus status) {
 
   public UUID getRunSetId() {
     return runSet.id();
+  }
+
+  public Run withStatus(CbasRunStatus newStatus) {
+    return new Run(id, engineId, runSet, entityId, submissionTimestamp, newStatus);
   }
 }

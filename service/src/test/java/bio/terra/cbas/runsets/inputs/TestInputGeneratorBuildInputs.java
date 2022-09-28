@@ -2,7 +2,7 @@ package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.model.WorkflowParamDefinition;
+import bio.terra.cbas.model.WorkflowInputDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,13 +93,13 @@ class TestInputGeneratorBuildInputs {
   }
 
   // Stock Parameter definitions:
-  private static WorkflowParamDefinition literalFooParameter(
+  private static WorkflowInputDefinition literalFooParameter(
       String parameterType, String rawLiteralJson) throws JsonProcessingException {
     String paramDefinitionJson =
         """
         {
-          "parameter_name": "literal_foo",
-          "parameter_type": "%s",
+          "input_name": "literal_foo",
+          "input_type": "%s",
           "source": {
             "type": "literal",
             "parameter_value": %s
@@ -109,16 +109,16 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim();
 
-    return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
-  private static WorkflowParamDefinition fooRatingRecordLookupParameter(String parameterType)
+  private static WorkflowInputDefinition fooRatingRecordLookupParameter(String parameterType)
       throws JsonProcessingException {
     String paramDefinitionJson =
         """
         {
-          "parameter_name": "lookup_foo",
-          "parameter_type": "%s",
+          "input_name": "lookup_foo",
+          "input_type": "%s",
           "source": {
             "type": "record_lookup",
             "record_attribute": "foo-rating"
@@ -128,7 +128,7 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim();
 
-    return objectMapper.readValue(paramDefinitionJson, WorkflowParamDefinition.class);
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
   // Stock Record Responses:

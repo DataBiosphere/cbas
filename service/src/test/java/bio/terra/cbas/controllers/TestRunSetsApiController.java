@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +17,6 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetStateResponse;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -82,16 +82,16 @@ class TestRunSetsApiController {
         """
         {
           "workflow_url" : "%s",
-          "workflow_param_definitions" : [ {
-            "parameter_name" : "myworkflow.mycall.inputname1",
-            "parameter_type" : "String",
+          "workflow_input_definitions" : [ {
+            "input_name" : "myworkflow.mycall.inputname1",
+            "input_type" : "String",
             "source" : {
               "type" : "literal",
               "parameter_value" : "literal value"
             }
           }, {
-            "parameter_name" : "myworkflow.mycall.inputname2",
-            "parameter_type" : "Int",
+            "input_name" : "myworkflow.mycall.inputname2",
+            "input_type" : "Int",
             "source" : {
               "type" : "record_lookup",
               "record_attribute" : "MY_RECORD_ATTRIBUTE"
@@ -128,10 +128,12 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao).createRun(newRunCaptor.capture());
+    when(runDao.createRun(any())).thenReturn(1);
     assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().getRunSetId());
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
-    assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
+    assertEquals(UNKNOWN, newRunCaptor.getValue().status());
     assertEquals(recordId, newRunCaptor.getValue().recordId());
+    
     // Assert that the submission timestamp is more recent than 60 seconds ago
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),

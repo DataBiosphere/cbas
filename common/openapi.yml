@@ -122,13 +122,18 @@ components:
           type: string
           description: URL to the workflow script to run
           example: 'https://www.example.com/example.wdl'
-        workflow_param_definitions:
+        workflow_input_definitions:
           type: array
           items:
-            $ref: '#/components/schemas/WorkflowParamDefinition'
-          description: Declarative input definition for combination with WDS records
+            $ref: '#/components/schemas/WorkflowInputDefinition'
+          description: Declarative input definition for combination with WDS records.
         wds_records:
           $ref: '#/components/schemas/WdsRecordSet'
+        workflow_output_definitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowOutputDefinition'
+          description: Declarative output definition for writing back to WDS.
 
     WdsRecordSet:
       type: object
@@ -144,16 +149,30 @@ components:
             - F0011111-1111-1111-1111-111111111111
       description: The set of WDS records to use when constructing the inputs.
 
-    WorkflowParamDefinition:
+    WorkflowInputDefinition:
       type: object
       properties:
-        parameter_name:
+        input_name:
           type: string
           example: workflow_input_foo_rating
-        parameter_type:
+        input_type:
           $ref: '#/components/schemas/ParameterValueType'
         source:
           $ref: '#/components/schemas/ParameterDefinition'
+
+    WorkflowOutputDefinition:
+      type: object
+      properties:
+        output_name:
+          type: string
+          example: workflow_output_foo_rating
+        output_type:
+          $ref: '#/components/schemas/ParameterValueType'
+        record_attribute:
+          type: string
+          description: The attribute name on the record to use.
+          required: true
+          example: record_field_foo_rating
 
     ParameterValueType:
       title: ParameterValueType
@@ -197,7 +216,7 @@ components:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
         parameter_value:
-          description: The literal value to use. Can be any type, but must match the declared parameter_type.
+          description: The literal value to use. Can be any type, but must match the declared input_type or output_type.
           required: True
           example: hello world
     ParameterDefinitionRecordLookup:
