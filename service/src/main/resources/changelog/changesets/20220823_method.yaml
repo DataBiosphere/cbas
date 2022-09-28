@@ -26,7 +26,7 @@ databaseChangeLog:
                 name: output_definition
                 type: text
                 constraints:
-                  nullable: true
+                  nullable: false
             - column:
                 name: entity_type
                 type: text
