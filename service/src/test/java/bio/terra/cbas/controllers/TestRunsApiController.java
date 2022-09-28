@@ -56,7 +56,8 @@ class TestRunsApiController {
   private static final RunSet returnedRunSet =
       new RunSet(
           UUID.randomUUID(),
-          new Method(UUID.randomUUID(), "methodurl", "inputdefinition", "entitytype"));
+          new Method(
+              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"));
 
   private static final Run returnedRun =
       new Run(
