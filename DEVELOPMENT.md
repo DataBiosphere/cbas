@@ -50,9 +50,22 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 
 #### Workspace Data Service (WDS)
 
-TODO: Instructions on how to run the docker container
+Start a WDS container with the following command:
 
-Initialize an instance with e.g. UUID `00000000-0000-0000-0000-000000000000`:
+```
+docker run \
+  --name "WDS_6786552" \
+  -e WDS_DB_HOST='host.docker.internal' \
+  -e WDS_DB_USER='mspector' \
+  -p 8001:8080 us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:6786552
+```
+
+A few notes:
+- The `--name` flag is optional, but recommended for easier container management.
+- At the time of this writing, `us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service` does not have an image with the `latest` tag. Take care to specify the intended tag!
+
+
+With the container running, initialize an instance with e.g. UUID `00000000-0000-0000-0000-000000000000`:
 ```
 curl -X 'POST' \
   'http://localhost:8001/00000000-0000-0000-0000-000000000000/v0.2/' \
@@ -60,7 +73,7 @@ curl -X 'POST' \
   -d ''
 ```
 
-Add a record `FOO1` of type `FOO` to instance `00000000-0000-0000-0000-000000000000`:
+Then add a record `FOO1` of type `FOO` to instance `00000000-0000-0000-0000-000000000000`:
 ```
 curl -X 'PUT' \
   'http://localhost:8001/00000000-0000-0000-0000-000000000000/records/v0.2/FOO/FOO1' \
