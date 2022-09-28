@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,7 +17,6 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetStateResponse;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -25,8 +25,8 @@ import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import org.databiosphere.workspacedata.model.EntityAttributes;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,12 +62,12 @@ class TestRunSetsApiController {
   void chainCallsTogether() throws Exception {
 
     final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
-    final String entityType = "MY_ENTITY_TYPE";
-    final String entityId = "MY_ENTITY_ID";
-    final String entityAttribute = "MY_ENTITY_ATTRIBUTE";
-    final int entityAttributeValue = 100;
-    EntityAttributes entityAttributes = new EntityAttributes();
-    entityAttributes.put(entityAttribute, entityAttributeValue);
+    final String recordType = "MY_RECORD_TYPE";
+    final String recordId = "MY_RECORD_ID";
+    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+    final int recordAttributeValue = 100;
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(recordAttribute, recordAttributeValue);
     final String cromwellWorkflowId = UUID.randomUUID().toString();
     final String outputDefinitionAsString =
         """
@@ -78,9 +78,9 @@ class TestRunSetsApiController {
         } ]""";
 
     // Set up API responses:
-    when(wdsService.getEntity(entityType, entityId))
+    when(wdsService.getRecord(recordType, recordId))
         .thenReturn(
-            new EntityResponse().type(entityType).id(entityId).attributes(entityAttributes));
+            new RecordResponse().type(recordType).id(recordId).attributes(recordAttributes));
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId));
@@ -101,17 +101,17 @@ class TestRunSetsApiController {
             "input_type" : "Int",
             "source" : {
               "type" : "record_lookup",
-              "record_attribute" : "MY_ENTITY_ATTRIBUTE"
+              "record_attribute" : "MY_RECORD_ATTRIBUTE"
             }
           } ],
           "workflow_output_definitions" : %s,
-          "wds_entities" : {
-            "entity_type" : "%s",
-            "entity_ids" : [ "%s" ]
+          "wds_records" : {
+            "record_type" : "%s",
+            "record_ids" : [ "%s" ]
           }
         }
         """
-            .formatted(workflowUrl, outputDefinitionAsString, entityType, entityId);
+            .formatted(workflowUrl, outputDefinitionAsString, recordType, recordId);
 
     MvcResult result =
         mockMvc
@@ -127,7 +127,7 @@ class TestRunSetsApiController {
     // Verify database storage:
     ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
     verify(methodDao).createMethod(newMethodCaptor.capture());
-    assertEquals(entityType, newMethodCaptor.getValue().entityType());
+    assertEquals(recordType, newMethodCaptor.getValue().recordType());
     assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
     assertEquals(outputDefinitionAsString, newMethodCaptor.getValue().outputDefinition());
 
@@ -137,10 +137,12 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao).createRun(newRunCaptor.capture());
+    when(runDao.createRun(any())).thenReturn(1);
     assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().getRunSetId());
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
-    assertEquals(RunState.UNKNOWN.toString(), newRunCaptor.getValue().status());
-    assertEquals(entityId, newRunCaptor.getValue().entityId());
+    assertEquals(UNKNOWN, newRunCaptor.getValue().status());
+    assertEquals(recordId, newRunCaptor.getValue().recordId());
+
     // Assert that the submission timestamp is more recent than 60 seconds ago
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),

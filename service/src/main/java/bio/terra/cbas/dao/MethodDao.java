@@ -16,8 +16,8 @@ public class MethodDao {
 
   public int createMethod(Method method) {
     return jdbcTemplate.update(
-        "insert into method (id, method_url, input_definition, output_definition, entity_type)"
-            + " values (:id, :methodUrl, :inputDefinition, :outputDefinition, :entityType)",
+        "insert into method (id, method_url, input_definition, output_definition, record_type)"
+            + " values (:id, :methodUrl, :inputDefinition, :outputDefinition, :recordType)",
         new BeanPropertySqlParameterSource(method));
   }
 }

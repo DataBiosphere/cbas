@@ -2,7 +2,7 @@ package bio.terra.cbas.dependencies.wds;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
 import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,13 +16,13 @@ public class WdsService {
     this.wdsServerConfiguration = wdsServerConfiguration;
   }
 
-  public EntityResponse getEntity(String entityType, String entityId) throws ApiException {
+  public RecordResponse getRecord(String recordType, String recordId) throws ApiException {
     return wdsClient
-        .entitiesApi()
-        .getEntity(
+        .recordsApi()
+        .getRecord(
             wdsServerConfiguration.instanceId(),
             wdsServerConfiguration.apiV(),
-            entityType,
-            entityId);
+            recordType,
+            recordId);
   }
 }

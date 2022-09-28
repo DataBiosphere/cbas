@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordResponse;
 
 public class InputGenerator {
 
@@ -24,7 +24,7 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowInputDefinition> inputDefinitions, EntityResponse entity) {
+      List<WorkflowInputDefinition> inputDefinitions, RecordResponse record) {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
@@ -34,7 +34,7 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
-        parameterValue = entity.getAttributes().get(attributeName);
+        parameterValue = record.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);
     }

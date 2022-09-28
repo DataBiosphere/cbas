@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
+
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -9,8 +11,8 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -23,7 +25,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.EntityResponse;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,7 +39,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
-  private static final RunState UnknownRunState = RunState.UNKNOWN;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -73,7 +74,7 @@ public class RunSetsApiController implements RunSetsApi {
               request.getWorkflowUrl(),
               objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
               objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
-              request.getWdsEntities().getEntityType());
+              request.getWdsRecords().getRecordType());
       methodDao.createMethod(method);
     } catch (JsonProcessingException e) {
       log.warn("Failed to record method to database", e);
@@ -85,21 +86,21 @@ public class RunSetsApiController implements RunSetsApi {
     RunSet runSet = new RunSet(runSetId, method);
     runSetDao.createRunSet(runSet);
 
-    // Fetch the entity from WDS:
-    EntityResponse entityResponse;
+    // Fetch the record from WDS:
+    RecordResponse recordResponse;
     try {
-      String entityType = request.getWdsEntities().getEntityType();
-      String entityId = request.getWdsEntities().getEntityIds().get(0);
-      entityResponse = wdsService.getEntity(entityType, entityId);
+      String recordType = request.getWdsRecords().getRecordType();
+      String recordId = request.getWdsRecords().getRecordIds().get(0);
+      recordResponse = wdsService.getRecord(recordType, recordId);
     } catch (ApiException e) {
-      log.warn("Entity lookup failed. ApiException", e);
+      log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
     }
 
-    // Build the inputs set from workflow parameter definitions and the fetched entity:
+    // Build the inputs set from workflow parameter definitions and the fetched record:
     Map<String, Object> params =
-        InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), entityResponse);
+        InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), recordResponse);
 
     // Submit the workflow and get its ID:
     RunId workflowResponse;
@@ -116,28 +117,42 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Store the run:
     UUID runId = UUID.randomUUID();
-    runDao.createRun(
-        new Run(
-            runId,
-            workflowResponse.getRunId(),
-            runSet,
-            request.getWdsEntities().getEntityIds().get(0),
-            OffsetDateTime.now(),
-            UnknownRunState.toString()));
+
+    String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
+    int created =
+        runDao.createRun(
+            new Run(
+                runId,
+                workflowResponse.getRunId(),
+                runSet,
+                dataTableRowId,
+                OffsetDateTime.now(),
+                UNKNOWN));
+
+    if (created != 1) {
+      log.error(
+          "New workflow for record {} submitted to engine as {} but CBAS database INSERT returned '{} rows created'",
+          dataTableRowId,
+          workflowResponse.getRunId(),
+          created);
+    }
 
     // Return the result:
     return new ResponseEntity<>(
         new RunSetStateResponse()
             .runSetId(runSetId.toString())
-            .addRunsItem(new RunStateResponse().runId(runId.toString()).state(UnknownRunState))
+            .addRunsItem(
+                new RunStateResponse()
+                    .runId(runId.toString())
+                    .state(CbasRunStatus.toCbasApiState(UNKNOWN)))
             .state(RunSetState.RUNNING),
         HttpStatus.OK);
   }
 
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
       RunSetRequest request) {
-    if (request.getWdsEntities().getEntityIds().size() != 1) {
-      log.warn("Bad user request: current support is exactly one entity per request");
+    if (request.getWdsRecords().getRecordIds().size() != 1) {
+      log.warn("Bad user request: current support is exactly one record per request");
       return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 

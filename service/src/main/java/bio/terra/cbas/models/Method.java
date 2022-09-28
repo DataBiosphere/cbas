@@ -7,4 +7,4 @@ public record Method(
     String methodUrl,
     String inputDefinition,
     String outputDefinition,
-    String entityType) {}
+    String recordType) {}
