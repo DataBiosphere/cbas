@@ -133,7 +133,7 @@ class TestRunSetsApiController {
     assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
     assertEquals(UNKNOWN, newRunCaptor.getValue().status());
     assertEquals(recordId, newRunCaptor.getValue().recordId());
-    
+
     // Assert that the submission timestamp is more recent than 60 seconds ago
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),

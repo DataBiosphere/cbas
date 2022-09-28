@@ -116,7 +116,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Store the run:
     UUID runId = UUID.randomUUID();
-    
+
     String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
     int created =
         runDao.createRun(
