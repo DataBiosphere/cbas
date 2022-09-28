@@ -35,7 +35,7 @@ paths:
   /api/batch/v1/run_sets:
     post:
       tags: [ run_sets ]
-      summary: Combine an inputs definition with WDS entities to run a series of workflows
+      summary: Combine an inputs definition with WDS records to run a series of workflows
       operationId: postRunSet
       requestBody:
         $ref: '#/components/requestBodies/PostRunSetRequest'
@@ -127,27 +127,27 @@ components:
           items:
             $ref: '#/components/schemas/WorkflowInputDefinition'
           description: Declarative input definition for combination with WDS records.
-        wds_entities:
-          $ref: '#/components/schemas/WdsEntitySet'
+        wds_records:
+          $ref: '#/components/schemas/WdsRecordSet'
         workflow_output_definitions:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
           description: Declarative output definition for writing back to WDS.
 
-    WdsEntitySet:
+    WdsRecordSet:
       type: object
       properties:
-        entity_type:
+        record_type:
           type: string
           example: FOO
-        entity_ids:
+        record_ids:
           type: array
           items:
             type: string
           example:
             - F0011111-1111-1111-1111-111111111111
-      description: The set of WDS entities to use when constructing the inputs.
+      description: The set of WDS records to use when constructing the inputs.
 
     WorkflowInputDefinition:
       type: object

@@ -1,7 +1,7 @@
 package bio.terra.cbas.dependencies.wds;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
-import org.databiosphere.workspacedata.api.EntitiesApi;
+import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ public class WdsClient {
     return new ApiClient().setBasePath(wdsServerConfiguration.baseUri());
   }
 
-  EntitiesApi entitiesApi() {
-    return new EntitiesApi(getApiClient());
+  RecordsApi recordsApi() {
+    return new RecordsApi(getApiClient());
   }
 }

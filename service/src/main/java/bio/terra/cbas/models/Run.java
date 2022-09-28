@@ -7,7 +7,7 @@ public record Run(
     UUID id,
     String engineId,
     RunSet runSet,
-    String entityId,
+    String recordId,
     OffsetDateTime submissionTimestamp,
     CbasRunStatus status) {
 
@@ -16,6 +16,6 @@ public record Run(
   }
 
   public Run withStatus(CbasRunStatus newStatus) {
-    return new Run(id, engineId, runSet, entityId, submissionTimestamp, newStatus);
+    return new Run(id, engineId, runSet, recordId, submissionTimestamp, newStatus);
   }
 }

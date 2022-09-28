@@ -27,8 +27,8 @@ public class RunDao {
 
   public int createRun(Run run) {
     return jdbcTemplate.update(
-        "insert into run (id, engine_id, run_set_id, entity_id, submission_timestamp, status)"
-            + " values (:id, :engineId, :runSetId, :entityId, :submissionTimestamp, :status)",
+        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status)"
+            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status)",
         new BeanPropertySqlParameterSource(run));
   }
 
@@ -52,7 +52,7 @@ public class RunDao {
               rs.getObject("method_id", UUID.class),
               rs.getString("method_url"),
               rs.getString("input_definition"),
-              rs.getString("entity_type"));
+              rs.getString("record_type"));
 
       RunSet runSet = new RunSet(rs.getObject("run_set_id", UUID.class), method);
 
@@ -60,7 +60,7 @@ public class RunDao {
           rs.getObject("id", UUID.class),
           rs.getString("engine_id"),
           runSet,
-          rs.getString("entity_id"),
+          rs.getString("record_id"),
           rs.getObject("submission_timestamp", OffsetDateTime.class),
           CbasRunStatus.fromValue(rs.getString("status")));
     }
