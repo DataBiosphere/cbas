@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -29,7 +28,7 @@ public class RunDao {
     return jdbcTemplate.update(
         "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status)"
             + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status)",
-        new BeanPropertySqlParameterSource(run));
+        new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
   public List<Run> getRuns() {
@@ -42,7 +41,7 @@ public class RunDao {
   public int updateRunStatus(Run run, CbasRunStatus newStatus) {
     String sql = "UPDATE run SET status = :status WHERE id = :id";
     return jdbcTemplate.update(
-        sql, new MapSqlParameterSource(Map.of("id", run.id(), "status", newStatus)));
+        sql, new MapSqlParameterSource(Map.of("id", run.id(), "status", newStatus.toString())));
   }
 
   private static class RunMapper implements RowMapper<Run> {
