@@ -44,6 +44,13 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 - Convenient app setup:
   Install [the convenient app](https://postgresapp.com/), and create a database called `bio.terra.batchanalysis`.
 
+#### Initialize your database:
+```sh
+psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
+```
+***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`
+
+
 ### Dependencies
 
 *this section is a work-in-progress*
@@ -94,13 +101,6 @@ SET search_path TO "00000000-0000-0000-0000-000000000000";
 ```
 
 Then, run the Postgres command `\dt` to show the existing tables.
-
-
-#### Initialize your database:
-```sh
-psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
-```
-***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`
 
 ## Running
 
