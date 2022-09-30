@@ -65,7 +65,7 @@ public class SmartRunsPoller {
                         logger.debug(
                             "METRIC: INCREMENT runs polled for status update successfully");
                         return result;
-                      } catch (ApiException e) {
+                      } catch (ApiException | IllegalArgumentException e) {
                         logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
                         logger.debug(
                             "METRIC: INCREMENT runs polled for status update unsuccessfully");
