@@ -219,6 +219,11 @@ components:
           description: The literal value to use. Can be any type, but must match the declared input_type or output_type.
           required: True
           example: hello world
+        record_attribute:
+          type: string
+          description: The attribute name on the record to use.
+          required: true
+          example: record_field_foo_rating
     ParameterDefinitionRecordLookup:
       type: object
       allOf:

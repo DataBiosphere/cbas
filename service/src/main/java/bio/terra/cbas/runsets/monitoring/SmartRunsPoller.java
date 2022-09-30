@@ -3,6 +3,7 @@ package bio.terra.cbas.runsets.monitoring;
 import static java.util.stream.Collectors.groupingBy;
 
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
@@ -22,11 +23,14 @@ public class SmartRunsPoller {
   private final CromwellService cromwellService;
   private final RunDao runDao;
 
+  private final WdsService wdsService;
+
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunsPoller.class);
 
-  public SmartRunsPoller(CromwellService cromwellService, RunDao runDao) {
+  public SmartRunsPoller(CromwellService cromwellService, RunDao runDao, WdsService wdsService) {
     this.cromwellService = cromwellService;
     this.runDao = runDao;
+    this.wdsService = wdsService;
   }
 
   /**
@@ -75,6 +79,11 @@ public class SmartRunsPoller {
       for (Run r : engineStateEntry.getValue()) {
         var currentState = engineStateEntry.getKey();
         if (r.status() != currentState) {
+          if (r.status() == CbasRunStatus.COMPLETE) {
+            System.out.println(cromwellService.getOutputs(r.id().toString()));
+          } else {
+            System.out.println("IDK");
+          }
           logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
           var changes = runDao.updateRunStatus(r, currentState);
           if (changes == 1) {
