@@ -89,6 +89,15 @@ public class SmartRunsPoller {
                 r.status(),
                 currentState);
           }
+        } else {
+          // if run status hasn't changed, only update last polled timestamp
+          var changes = runDao.updateLastPolledTimestamp(r.id());
+          if (changes != 1) {
+            logger.warn(
+                "Something went wrong while updating last_polled_timestamp for Run {} which is in status {}.",
+                r.id(),
+                r.status());
+          }
         }
       }
     }
