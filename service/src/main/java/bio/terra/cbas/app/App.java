@@ -1,5 +1,6 @@
 package bio.terra.cbas.app;
 
+import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.common.logging.LoggingInitializer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -23,7 +24,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       // Scan for tracing-related components & configs
       "bio.terra.common.tracing",
       // Scan all service-specific packages beneath the current package
-      "bio.terra.cbas"
+      "bio.terra.cbas",
+      // Metrics exporting components & configs
+      "bio.terra.common.prometheus"
     })
 @ConfigurationPropertiesScan("bio.terra.cbas")
 @EnableRetry
@@ -31,5 +34,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 public class App {
   public static void main(String[] args) {
     new SpringApplicationBuilder(App.class).initializers(new LoggingInitializer()).run(args);
+    MetricsUtil.registerAllViews();
   }
 }
