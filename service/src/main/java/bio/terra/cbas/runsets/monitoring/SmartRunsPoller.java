@@ -94,9 +94,10 @@ public class SmartRunsPoller {
           var changes = runDao.updateLastPolledTimestamp(r.id());
           if (changes != 1) {
             logger.warn(
-                "Something went wrong while updating last_polled_timestamp for Run {} which is in status {}.",
+                "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
                 r.id(),
-                r.status());
+                r.status(),
+                changes);
           }
         }
       }

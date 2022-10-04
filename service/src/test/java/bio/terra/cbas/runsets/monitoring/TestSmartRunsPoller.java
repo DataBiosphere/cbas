@@ -79,8 +79,9 @@ public class TestSmartRunsPoller {
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
 
     verify(cromwellService).runStatus(eq(runningRunEngineId));
-    verify(cromwellService, never()).runStatus(eq(completedRunEngineId));
     verify(runsDao).updateLastPolledTimestamp(eq(runToUpdate.id()));
+    verify(cromwellService, never()).runStatus(eq(completedRunEngineId));
+    verify(runsDao, never()).updateLastPolledTimestamp(eq(runAlreadyCompleted.id()));
 
     assertEquals(2, actual.size());
     assertEquals(
