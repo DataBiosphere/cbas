@@ -100,8 +100,7 @@ public class SmartRunsPoller {
                     new TypeReference<>() {});
             Object outputs = cromwellService.getOutputs(rWithCurrentStatus.engineId());
             RecordAttributes outputParamDef =
-                OutputGenerator.buildOutputs(
-                    outputDefinitionList, outputs);
+                OutputGenerator.buildOutputs(outputDefinitionList, outputs);
             RecordRequest request = new RecordRequest().attributes(outputParamDef);
             wdsService.updateRecord(request, r.runSet().method().recordType(), r.recordId());
           }
