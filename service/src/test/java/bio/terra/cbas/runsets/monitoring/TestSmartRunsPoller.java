@@ -26,15 +26,16 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = SmartRunsPoller.class)
 public class TestSmartRunsPoller {
 
+  private static final OffsetDateTime runSubmittedTime = OffsetDateTime.now();
   private static final UUID runningRunId = UUID.randomUUID();
   private static final String runningRunEngineId = UUID.randomUUID().toString();
   private static final String runningRunEntityId = UUID.randomUUID().toString();
-  private static final OffsetDateTime runningRunSubmittedtime = OffsetDateTime.now();
+  private static final OffsetDateTime runningRunStatusUpdateTime = OffsetDateTime.now();
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
-  private static final OffsetDateTime completedRunSubmittedtime = OffsetDateTime.now();
+  private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
 
   private static final RunSet runSet =
       new RunSet(
@@ -48,8 +49,10 @@ public class TestSmartRunsPoller {
           runningRunEngineId,
           runSet,
           runningRunEntityId,
-          runningRunSubmittedtime,
-          RUNNING);
+          runSubmittedTime,
+          RUNNING,
+          runningRunStatusUpdateTime,
+          runningRunStatusUpdateTime);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -57,8 +60,10 @@ public class TestSmartRunsPoller {
           completedRunEngineId,
           runSet,
           completedRunEntityId,
-          completedRunSubmittedtime,
-          COMPLETE);
+          runSubmittedTime,
+          COMPLETE,
+          completedRunStatusUpdateTime,
+          completedRunStatusUpdateTime);
 
   @Test
   void pollRunningRuns() throws ApiException {
@@ -69,10 +74,14 @@ public class TestSmartRunsPoller {
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.RUNNING));
 
+    when(runsDao.updateLastPolledTimestamp(eq(runToUpdate.id()))).thenReturn(1);
+
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
 
     verify(cromwellService).runStatus(eq(runningRunEngineId));
+    verify(runsDao).updateLastPolledTimestamp(eq(runToUpdate.id()));
     verify(cromwellService, never()).runStatus(eq(completedRunEngineId));
+    verify(runsDao, never()).updateLastPolledTimestamp(eq(runAlreadyCompleted.id()));
 
     assertEquals(2, actual.size());
     assertEquals(

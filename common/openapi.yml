@@ -261,6 +261,9 @@ components:
         submission_date:
           type: string
           format: date-time
+        last_modified_timestamp:
+          type: string
+          format: date-time
     RunLogResponse:
       type: object
       properties:

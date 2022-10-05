@@ -127,7 +127,9 @@ public class RunSetsApiController implements RunSetsApi {
                 runSet,
                 dataTableRowId,
                 OffsetDateTime.now(),
-                UNKNOWN));
+                UNKNOWN,
+                OffsetDateTime.now(),
+                OffsetDateTime.now()));
 
     if (created != 1) {
       log.error(
