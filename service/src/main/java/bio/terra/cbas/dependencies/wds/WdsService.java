@@ -27,15 +27,11 @@ public class WdsService {
             recordId);
   }
 
-  public RecordResponse updateRecord(RecordRequest request, String recordType, String recordId)
+  public RecordResponse updateRecord(RecordRequest request, String type, String id)
       throws ApiException {
     return wdsClient
         .recordsApi()
-        .updateRecord(
-            request,
-            wdsServerConfiguration.instanceId(),
-            wdsServerConfiguration.apiV(),
-            recordType,
-            recordId);
+        .createOrReplaceRecord(
+            request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
   }
 }

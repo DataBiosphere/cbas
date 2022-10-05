@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.wes;
 
-import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
@@ -14,12 +13,8 @@ public class CromwellService {
 
   private final CromwellClient cromwellClient;
 
-  private final CromwellServerConfiguration cromwellConfig;
-
-  public CromwellService(
-      CromwellClient cromwellClient, CromwellServerConfiguration cromwellConfig) {
+  public CromwellService(CromwellClient cromwellClient) {
     this.cromwellClient = cromwellClient;
-    this.cromwellConfig = cromwellConfig;
   }
 
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
@@ -36,7 +31,6 @@ public class CromwellService {
   }
 
   public Object getOutputs(String id) throws ApiException {
-
     return cromwellClient.wesAPI().getRunLog(id).getOutputs();
   }
 }

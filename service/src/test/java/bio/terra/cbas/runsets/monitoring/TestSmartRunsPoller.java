@@ -10,16 +10,26 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
-import cromwell.client.ApiException;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import com.google.gson.Gson;
+import cromwell.client.model.RunLog;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.State;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -36,11 +46,29 @@ public class TestSmartRunsPoller {
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunSubmittedtime = OffsetDateTime.now();
 
+  public ObjectMapper objectMapper =
+      new ObjectMapper()
+          .registerModule(new ParameterNamesModule())
+          .registerModule(new Jdk8Module())
+          .registerModule(new JavaTimeModule())
+          .setDateFormat(new StdDateFormat())
+          .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
+
+  static String outputDefinition =
+      """
+        [
+          {
+            "output_name": "wf_hello.hello.salutation",
+            "output_type": "String",
+            "record_attribute": "foo_name"
+          }
+        ]
+      """;
   private static final RunSet runSet =
       new RunSet(
           UUID.randomUUID(),
           new Method(
-              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"));
+              UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
 
   final Run runToUpdate =
       new Run(
@@ -61,10 +89,12 @@ public class TestSmartRunsPoller {
           COMPLETE);
 
   @Test
-  void pollRunningRuns() throws ApiException {
+  void pollRunningRuns() throws Exception {
     CromwellService cromwellService = mock(CromwellService.class);
     RunDao runsDao = mock(RunDao.class);
-    SmartRunsPoller smartRunsPoller = new SmartRunsPoller(cromwellService, runsDao);
+    WdsService wdsService = mock(WdsService.class);
+    SmartRunsPoller smartRunsPoller =
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
 
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.RUNNING));
@@ -83,13 +113,57 @@ public class TestSmartRunsPoller {
   }
 
   @Test
-  void updateNewlyCompletedRuns() throws ApiException {
+  void updateNewlyCompletedRuns() throws Exception {
     CromwellService cromwellService = mock(CromwellService.class);
     RunDao runsDao = mock(RunDao.class);
-    SmartRunsPoller smartRunsPoller = new SmartRunsPoller(cromwellService, runsDao);
+    WdsService wdsService = mock(WdsService.class);
+    SmartRunsPoller smartRunsPoller =
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
 
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
+
+    String runLogValue =
+        """
+        {
+            "outputs": {
+              "wf_hello.hello.salutation": "Hello batch!"
+            },
+            "request": {
+              "tags": {},
+              "workflow_engine_parameters": {},
+              "workflow_params": {
+                "wf_hello.hello.addressee": "batch"
+              },
+              "workflow_type": "None supplied",
+              "workflow_type_version": "None supplied"
+            },
+            "run_id": "c38181fd-e4df-4fa2-b2ba-a71090b6d97c",
+            "run_log": {
+              "end_time": "2022-10-04T15:54:49.142Z",
+              "name": "wf_hello",
+              "start_time": "2022-10-04T15:54:32.280Z"
+            },
+            "state": "COMPLETE",
+            "task_logs": [
+              {
+                "end_time": "2022-10-04T15:54:47.411Z",
+                "exit_code": 0,
+                "name": "wf_hello.hello",
+                "start_time": "2022-10-04T15:54:33.837Z",
+                "stderr": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stderr",
+                "stdout": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stdout"
+              }
+            ]
+          }
+        """;
+
+    RecordAttributes mockAttributes = new RecordAttributes();
+    mockAttributes.put("foo_name", "Hello batch!");
+    RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+    Gson object = new Gson();
+    RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
+    when(cromwellService.getOutputs(eq(runningRunEngineId))).thenReturn(parseRunLog.getOutputs());
 
     when(runsDao.updateRunStatus(eq(runToUpdate), eq(COMPLETE))).thenReturn(1);
 
@@ -97,6 +171,11 @@ public class TestSmartRunsPoller {
 
     verify(cromwellService).runStatus(eq(runningRunEngineId));
     verify(runsDao).updateRunStatus(eq(runToUpdate), eq(COMPLETE));
+    verify(wdsService)
+        .updateRecord(
+            eq(mockRequest),
+            eq(runToUpdate.runSet().method().recordType()),
+            eq(runToUpdate.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
