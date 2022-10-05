@@ -15,12 +15,6 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.gson.Gson;
 import cromwell.client.model.RunLog;
 import cromwell.client.model.RunStatus;
@@ -45,14 +39,6 @@ public class TestSmartRunsPoller {
   private static final String completedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunSubmittedtime = OffsetDateTime.now();
-
-  public ObjectMapper objectMapper =
-      new ObjectMapper()
-          .registerModule(new ParameterNamesModule())
-          .registerModule(new Jdk8Module())
-          .registerModule(new JavaTimeModule())
-          .setDateFormat(new StdDateFormat())
-          .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
 
   static String outputDefinition =
       """
@@ -94,7 +80,7 @@ public class TestSmartRunsPoller {
     RunDao runsDao = mock(RunDao.class);
     WdsService wdsService = mock(WdsService.class);
     SmartRunsPoller smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, null);
 
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.RUNNING));
@@ -118,7 +104,7 @@ public class TestSmartRunsPoller {
     RunDao runsDao = mock(RunDao.class);
     WdsService wdsService = mock(WdsService.class);
     SmartRunsPoller smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, null);
 
     when(cromwellService.runStatus(eq(runningRunEngineId)))
         .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
@@ -161,6 +147,7 @@ public class TestSmartRunsPoller {
     RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects
     Gson object = new Gson();
     RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
     when(cromwellService.getOutputs(eq(runningRunEngineId))).thenReturn(parseRunLog.getOutputs());
