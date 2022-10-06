@@ -38,6 +38,8 @@ cbas:
     uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
     password: ${DATABASE_USER_PASSWORD:cbas_password}
     username: ${DATABASE_USER:cbas_user}
+  cbas-api:
+    runSetsMaximumRecordIds: 100
 
 workflow-engines:
   cromwell:

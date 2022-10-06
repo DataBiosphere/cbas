@@ -3,6 +3,7 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -39,6 +40,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
+  private final CbasApiConfiguration cbasApiConfiguration;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -46,19 +48,21 @@ public class RunSetsApiController implements RunSetsApi {
       ObjectMapper objectMapper,
       MethodDao methodDao,
       RunDao runDao,
-      RunSetDao runSetDao) {
+      RunSetDao runSetDao,
+      CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
+    this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-
-    Optional<ResponseEntity<RunSetStateResponse>> errorResponse = checkInvalidRequest(request);
+    Optional<ResponseEntity<RunSetStateResponse>> errorResponse =
+        checkInvalidRequest(request, this.cbasApiConfiguration.runSetsMaximumRecordIds());
     if (errorResponse.isPresent()) {
       return errorResponse.get();
     }
@@ -152,9 +156,12 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
-      RunSetRequest request) {
-    if (request.getWdsRecords().getRecordIds().size() != 1) {
-      log.warn("Bad user request: current support is exactly one record per request");
+      RunSetRequest request, int runSetsMaximumRecordIds) {
+    int recordIdsSize = request.getWdsRecords().getRecordIds().size();
+    if (recordIdsSize > runSetsMaximumRecordIds) {
+      log.warn(
+          "Bad user request: %s record IDs submitted exceeds the maximum value of %s"
+              .formatted(recordIdsSize, runSetsMaximumRecordIds));
       return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
