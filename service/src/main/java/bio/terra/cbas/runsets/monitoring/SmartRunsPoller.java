@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +46,15 @@ public class SmartRunsPoller {
     this.objectMapper = objectMapper;
   }
 
+  public RecordResponse updateOutputAttributes(Run run) throws Exception {
+    List<WorkflowOutputDefinition> outputDefinitionList =
+        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+    Object outputs = cromwellService.getOutputs(run.engineId());
+    RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
+    RecordRequest request = new RecordRequest().attributes(outputParamDef);
+    return wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
+  }
+
   /**
    * Updates a list of runs by checking with the engine whether any non-terminal statuses have
    * changed and if so, updating the database.
@@ -52,7 +62,7 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public List<Run> updateRuns(List<Run> runs) throws Exception {
+  public List<Run> updateRuns(List<Run> runs) {
 
     // For metrics:
     OffsetDateTime startTime = OffsetDateTime.now();
@@ -89,34 +99,32 @@ public class SmartRunsPoller {
 
     for (Map.Entry<CbasRunStatus, List<Run>> engineStateEntry : engineStatuses.entrySet()) {
       for (Run r : engineStateEntry.getValue()) {
-        var currentState = engineStateEntry.getKey();
-        if (r.status() != currentState) {
-          Run rWithCurrentStatus = r.withStatus(currentState);
-          if (rWithCurrentStatus.status() == CbasRunStatus.COMPLETE) {
-            // Turn string to an object
-            List<WorkflowOutputDefinition> outputDefinitionList =
-                objectMapper.readValue(
-                    rWithCurrentStatus.runSet().method().outputDefinition(),
-                    new TypeReference<>() {});
-            Object outputs = cromwellService.getOutputs(rWithCurrentStatus.engineId());
-            RecordAttributes outputParamDef =
-                OutputGenerator.buildOutputs(outputDefinitionList, outputs);
-            RecordRequest request = new RecordRequest().attributes(outputParamDef);
-            wdsService.updateRecord(request, r.runSet().method().recordType(), r.recordId());
+        var updatedRunState = engineStateEntry.getKey();
+        if (r.status() != updatedRunState) {
+          if (updatedRunState == CbasRunStatus.COMPLETE) {
+            try {
+              updateOutputAttributes(r);
+            } catch (Exception e) {
+              // log error and mark Run as Failed
+              // TODO: When epic is WM-1433 being worked on, add error message in database stating
+              //  updating output attributes failed.
+              logger.error("Error while updating output attributed for run {}.", r.id(), e);
+              updatedRunState = CbasRunStatus.SYSTEM_ERROR;
+            }
           }
           logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
-          var changes = runDao.updateRunStatus(r, currentState);
+          var changes = runDao.updateRunStatus(r, updatedRunState);
           if (changes == 1) {
             logger.debug("METRIC: INCREMENT runs transitioned to final status successfully");
             updatedRuns.remove(r);
-            updatedRuns.add(rWithCurrentStatus);
+            updatedRuns.add(r.withStatus(updatedRunState));
           } else {
             logger.debug("METRIC: INCREMENT runs transitioned to final status unsuccessfully");
             logger.warn(
                 "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
                 r.id(),
                 r.status(),
-                currentState);
+                updatedRunState);
           }
         }
       }

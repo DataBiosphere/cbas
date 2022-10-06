@@ -6,17 +6,21 @@ import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 
 public class OutputGenerator {
-  public static RecordAttributes buildOutputs(
-      List<WorkflowOutputDefinition> outputDefinitions, Object cromwellJsonObject) {
-    RecordAttributes outputParams = new RecordAttributes();
-    for (WorkflowOutputDefinition outputParam : outputDefinitions) {
-      String parameterName = outputParam.getOutputName();
-      Object outputValue;
-      outputValue = ((Map<String, Object>) cromwellJsonObject).get(parameterName);
-      String attributeName = outputParam.getRecordAttribute();
 
-      outputParams.put(attributeName, outputValue);
+  public static RecordAttributes buildOutputs(
+      List<WorkflowOutputDefinition> outputDefinitions, Object cromwellOutputs) throws Exception {
+    RecordAttributes outputRecordAttributes = new RecordAttributes();
+    for (WorkflowOutputDefinition outputDefinition : outputDefinitions) {
+      String outputName = outputDefinition.getOutputName();
+
+      if (!((Map<String, Object>) cromwellOutputs).containsKey(outputName)) {
+        throw new Exception(String.format("Output %s not found in workflow outputs.", outputName));
+      }
+
+      Object outputValue = ((Map<String, Object>) cromwellOutputs).get(outputName);
+      String attributeName = outputDefinition.getRecordAttribute();
+      outputRecordAttributes.put(attributeName, outputValue);
     }
-    return outputParams;
+    return outputRecordAttributes;
   }
 }

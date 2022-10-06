@@ -45,15 +45,8 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<RunLogResponse> getRuns() {
-
     List<Run> queryResults = runDao.getRuns();
-    List<Run> updatedRunResults;
-    try {
-      updatedRunResults = smartPoller.updateRuns(queryResults);
-    } catch (Exception e) {
-      updatedRunResults = queryResults;
-      log.error("Failed to update runs", e);
-    }
+    List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
     List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();
     return new ResponseEntity<>(new RunLogResponse().runs(responseList), HttpStatus.OK);
   }
