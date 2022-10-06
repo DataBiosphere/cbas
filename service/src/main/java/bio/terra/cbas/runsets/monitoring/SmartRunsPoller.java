@@ -106,8 +106,8 @@ public class SmartRunsPoller {
               updateOutputAttributes(r);
             } catch (Exception e) {
               // log error and mark Run as Failed
-              // TODO: When epic is WM-1433 being worked on, add error message in database stating
-              //  updating output attributes failed.
+              // TODO: When epic WM-1433 is being worked on, add error message in database stating
+              //  updating output attributes failed for this particular Run.
               logger.error("Error while updating output attributed for run {}.", r.id(), e);
               updatedRunState = CbasRunStatus.SYSTEM_ERROR;
             }
