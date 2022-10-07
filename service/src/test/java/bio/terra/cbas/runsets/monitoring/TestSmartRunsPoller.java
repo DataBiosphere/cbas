@@ -38,10 +38,13 @@ import org.springframework.test.context.ContextConfiguration;
 public class TestSmartRunsPoller {
 
   private static final OffsetDateTime runSubmittedTime = OffsetDateTime.now();
-  private static final UUID runningRunId = UUID.randomUUID();
-  private static final String runningRunEngineId = UUID.randomUUID().toString();
-  private static final String runningRunEntityId = UUID.randomUUID().toString();
+  private static final UUID runningRunId1 = UUID.randomUUID();
+  private static final String runningRunEngineId1 = UUID.randomUUID().toString();
+  private static final String runningRunEntityId1 = UUID.randomUUID().toString();
   private static final OffsetDateTime runningRunStatusUpdateTime = OffsetDateTime.now();
+  private static final UUID runningRunId2 = UUID.randomUUID();
+  private static final String runningRunEngineId2 = UUID.randomUUID().toString();
+  private static final String runningRunEntityId2 = UUID.randomUUID().toString();
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
@@ -72,12 +75,23 @@ public class TestSmartRunsPoller {
           new Method(
               UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
 
-  final Run runToUpdate =
+  final Run runToUpdate1 =
       new Run(
-          runningRunId,
-          runningRunEngineId,
+          runningRunId1,
+          runningRunEngineId1,
           runSet,
-          runningRunEntityId,
+          runningRunEntityId1,
+          runSubmittedTime,
+          RUNNING,
+          runningRunStatusUpdateTime,
+          runningRunStatusUpdateTime);
+
+  final Run runToUpdate2 =
+      new Run(
+          runningRunId2,
+          runningRunEngineId2,
+          runSet,
+          runningRunEntityId2,
           runSubmittedTime,
           RUNNING,
           runningRunStatusUpdateTime,
@@ -102,21 +116,22 @@ public class TestSmartRunsPoller {
     SmartRunsPoller smartRunsPoller =
         new SmartRunsPoller(cromwellService, runsDao, wdsService, null);
 
-    when(cromwellService.runStatus(eq(runningRunEngineId)))
-        .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.RUNNING));
+    when(cromwellService.runStatus(eq(runningRunEngineId1)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.RUNNING));
 
-    when(runsDao.updateLastPolledTimestamp(eq(runToUpdate.id()))).thenReturn(1);
+    when(runsDao.updateLastPolledTimestamp(eq(runToUpdate1.id()))).thenReturn(1);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
 
-    verify(cromwellService).runStatus(eq(runningRunEngineId));
-    verify(runsDao).updateLastPolledTimestamp(eq(runToUpdate.id()));
+    verify(cromwellService).runStatus(eq(runningRunEngineId1));
+    verify(runsDao).updateLastPolledTimestamp(eq(runToUpdate1.id()));
     verify(cromwellService, never()).runStatus(eq(completedRunEngineId));
     verify(runsDao, never()).updateLastPolledTimestamp(eq(runAlreadyCompleted.id()));
 
     assertEquals(2, actual.size());
     assertEquals(
-        RUNNING, actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
+        RUNNING,
+        actual.stream().filter(r -> r.id().equals(runningRunId1)).toList().get(0).status());
     assertEquals(
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
@@ -130,8 +145,8 @@ public class TestSmartRunsPoller {
     SmartRunsPoller smartRunsPoller =
         new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
 
-    when(cromwellService.runStatus(eq(runningRunEngineId)))
-        .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
+    when(cromwellService.runStatus(eq(runningRunEngineId1)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.COMPLETE));
 
     String runLogValue =
         """
@@ -174,19 +189,19 @@ public class TestSmartRunsPoller {
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
     RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
-    when(cromwellService.getOutputs(eq(runningRunEngineId))).thenReturn(parseRunLog.getOutputs());
+    when(cromwellService.getOutputs(eq(runningRunEngineId1))).thenReturn(parseRunLog.getOutputs());
 
-    when(runsDao.updateRunStatus(eq(runToUpdate), eq(COMPLETE))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(COMPLETE))).thenReturn(1);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
 
-    verify(cromwellService).runStatus(eq(runningRunEngineId));
-    verify(runsDao).updateRunStatus(eq(runToUpdate), eq(COMPLETE));
+    verify(cromwellService).runStatus(eq(runningRunEngineId1));
+    verify(runsDao).updateRunStatus(eq(runToUpdate1), eq(COMPLETE));
     verify(wdsService)
         .updateRecord(
             eq(mockRequest),
-            eq(runToUpdate.runSet().method().recordType()),
-            eq(runToUpdate.recordId()));
+            eq(runToUpdate1.runSet().method().recordType()),
+            eq(runToUpdate1.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
@@ -194,7 +209,7 @@ public class TestSmartRunsPoller {
     assertEquals(2, actual.size());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
+        actual.stream().filter(r -> r.id().equals(runningRunId1)).toList().get(0).status());
     assertEquals(
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
@@ -208,8 +223,11 @@ public class TestSmartRunsPoller {
     SmartRunsPoller smartRunsPoller =
         new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
 
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+
     // output name is purposely misspelled so that attaching output fails
-    String rawOutputs =
+    String misspelledRawOutputs =
         """
         {
             "outputs": {
@@ -217,38 +235,64 @@ public class TestSmartRunsPoller {
             }
           }
         """;
-    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
-    Gson object = new Gson();
+
+    Object misspelledCromwellOutputs =
+        object.fromJson(misspelledRawOutputs, RunLog.class).getOutputs();
+
+    String rawOutputs =
+        """
+        {
+            "outputs": {
+              "wf_hello.hello.salutation": "Hello batch!"
+            }
+          }
+        """;
     Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
 
     RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
 
-    when(cromwellService.getOutputs(eq(runningRunEngineId))).thenReturn(cromwellOutputs);
-    when(cromwellService.runStatus(eq(runningRunEngineId)))
-        .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
-    when(runsDao.updateRunStatus(eq(runToUpdate), eq(SYSTEM_ERROR))).thenReturn(1);
+    when(cromwellService.getOutputs(eq(runningRunEngineId1))).thenReturn(misspelledCromwellOutputs);
+    when(cromwellService.getOutputs(eq(runningRunEngineId2))).thenReturn(cromwellOutputs);
+    when(cromwellService.runStatus(eq(runningRunEngineId1)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.COMPLETE));
+    when(cromwellService.runStatus(eq(runningRunEngineId2)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId2).state(State.COMPLETE));
+    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(SYSTEM_ERROR))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate2), eq(COMPLETE))).thenReturn(1);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
+    var actual =
+        smartRunsPoller.updateRuns(List.of(runToUpdate1, runToUpdate2, runAlreadyCompleted));
 
     // verify that Run is marked as Failed as attaching outputs failed
-    verify(cromwellService).runStatus(eq(runningRunEngineId));
-    verify(runsDao).updateRunStatus(eq(runToUpdate), eq(SYSTEM_ERROR));
-
+    verify(cromwellService).runStatus(eq(runningRunEngineId1));
+    verify(runsDao).updateRunStatus(eq(runToUpdate1), eq(SYSTEM_ERROR));
     verify(wdsService, never())
         .updateRecord(
             eq(mockRequest),
-            eq(runToUpdate.runSet().method().recordType()),
-            eq(runToUpdate.recordId()));
+            eq(runToUpdate1.runSet().method().recordType()),
+            eq(runToUpdate1.recordId()));
+
+    // verify that second Run whose status could be updated has been updated
+    verify(cromwellService).runStatus(eq(runningRunEngineId2));
+    verify(runsDao).updateRunStatus(eq(runToUpdate2), eq(COMPLETE));
+    verify(wdsService)
+        .updateRecord(
+            eq(mockRequest),
+            eq(runToUpdate2.runSet().method().recordType()),
+            eq(runToUpdate2.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
 
-    assertEquals(2, actual.size());
+    assertEquals(3, actual.size());
     assertEquals(
         SYSTEM_ERROR,
-        actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
+        actual.stream().filter(r -> r.id().equals(runningRunId1)).toList().get(0).status());
+    assertEquals(
+        COMPLETE,
+        actual.stream().filter(r -> r.id().equals(runningRunId2)).toList().get(0).status());
     assertEquals(
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
