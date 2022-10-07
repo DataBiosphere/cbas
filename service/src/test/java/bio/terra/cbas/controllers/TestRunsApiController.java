@@ -51,7 +51,9 @@ class TestRunsApiController {
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
   private static final String returnedEntityId = UUID.randomUUID().toString();
-  private static final OffsetDateTime returnedSubmittedtime = OffsetDateTime.now();
+  private static final OffsetDateTime returnedSubmittedTime = OffsetDateTime.now();
+  private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
+  private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
 
   private static final RunSet returnedRunSet =
       new RunSet(
@@ -65,8 +67,10 @@ class TestRunsApiController {
           returnedRunEngineId.toString(),
           returnedRunSet,
           returnedEntityId,
-          returnedSubmittedtime,
-          RUNNING);
+          returnedSubmittedTime,
+          RUNNING,
+          runningStatusUpdateTime,
+          runningStatusUpdateTime);
 
   private static final Run updatedRun =
       new Run(
@@ -74,8 +78,10 @@ class TestRunsApiController {
           returnedRunEngineId.toString(),
           returnedRunSet,
           returnedEntityId,
-          returnedSubmittedtime,
-          COMPLETE);
+          returnedSubmittedTime,
+          COMPLETE,
+          completeStatusUpdateTime,
+          completeStatusUpdateTime);
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {

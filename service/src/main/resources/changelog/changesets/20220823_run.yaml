@@ -39,3 +39,13 @@ databaseChangeLog:
                   type: varchar(20)
                   constraints:
                     nullable: false
+              - column:
+                  name: last_modified_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_polled_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false

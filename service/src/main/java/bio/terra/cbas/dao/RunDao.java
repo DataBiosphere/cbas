@@ -26,8 +26,8 @@ public class RunDao {
 
   public int createRun(Run run) {
     return jdbcTemplate.update(
-        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status)"
-            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status)",
+        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp)"
+            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp)",
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
@@ -39,9 +39,29 @@ public class RunDao {
   }
 
   public int updateRunStatus(Run run, CbasRunStatus newStatus) {
-    String sql = "UPDATE run SET status = :status WHERE id = :id";
+    OffsetDateTime currentTimestamp = OffsetDateTime.now();
+    String sql =
+        "UPDATE run SET status = :status, last_modified_timestamp =:lastModifiedTimestamp, last_polled_timestamp = :lastPolledTimestamp  WHERE id = :id";
     return jdbcTemplate.update(
-        sql, new MapSqlParameterSource(Map.of("id", run.id(), "status", newStatus.toString())));
+        sql,
+        new MapSqlParameterSource(
+            Map.of(
+                "id",
+                run.id(),
+                "status",
+                newStatus.toString(),
+                "lastModifiedTimestamp",
+                currentTimestamp,
+                "lastPolledTimestamp",
+                currentTimestamp)));
+  }
+
+  public int updateLastPolledTimestamp(UUID runID) {
+    String sql = "UPDATE run SET last_polled_timestamp = :lastPolledTimestamp  WHERE id = :id";
+    return jdbcTemplate.update(
+        sql,
+        new MapSqlParameterSource(
+            Map.of("id", runID, "lastPolledTimestamp", OffsetDateTime.now())));
   }
 
   private static class RunMapper implements RowMapper<Run> {
@@ -62,7 +82,9 @@ public class RunDao {
           runSet,
           rs.getString("record_id"),
           rs.getObject("submission_timestamp", OffsetDateTime.class),
-          CbasRunStatus.fromValue(rs.getString("status")));
+          CbasRunStatus.fromValue(rs.getString("status")),
+          rs.getObject("last_modified_timestamp", OffsetDateTime.class),
+          rs.getObject("last_polled_timestamp", OffsetDateTime.class));
     }
   }
 }
