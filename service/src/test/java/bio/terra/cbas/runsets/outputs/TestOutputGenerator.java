@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.common.exceptions.WorkflowOutputNotFound;
+import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -153,7 +153,7 @@ class TestOutputGenerator {
     }
 
     assertNotNull(exception);
-    assertTrue(exception instanceof WorkflowOutputNotFound);
+    assertTrue(exception instanceof WorkflowOutputNotFoundException);
     assertEquals(exception.getMessage(), "Output myWorkflow.naem not found in workflow outputs.");
   }
 }
