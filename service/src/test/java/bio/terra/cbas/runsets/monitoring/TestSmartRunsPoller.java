@@ -2,6 +2,7 @@ package bio.terra.cbas.runsets.monitoring;
 
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -184,6 +185,60 @@ public class TestSmartRunsPoller {
     assertEquals(2, actual.size());
     assertEquals(
         COMPLETE,
+        actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
+    assertEquals(
+        COMPLETE,
+        actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
+  }
+
+  @Test
+  void updatingOutputFails() throws Exception {
+    CromwellService cromwellService = mock(CromwellService.class);
+    RunDao runsDao = mock(RunDao.class);
+    WdsService wdsService = mock(WdsService.class);
+    SmartRunsPoller smartRunsPoller =
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+
+    // output name is purposely misspelled so that attaching output fails
+    String rawOutputs =
+        """
+        {
+            "outputs": {
+              "wf_hello.hello.salutationz": "Hello batch!"
+            }
+          }
+        """;
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+    Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
+
+    RecordAttributes mockAttributes = new RecordAttributes();
+    mockAttributes.put("foo_name", "Hello batch!");
+    RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+
+    when(cromwellService.getOutputs(eq(runningRunEngineId))).thenReturn(cromwellOutputs);
+    when(cromwellService.runStatus(eq(runningRunEngineId)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId).state(State.COMPLETE));
+    when(runsDao.updateRunStatus(eq(runToUpdate), eq(SYSTEM_ERROR))).thenReturn(1);
+
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate, runAlreadyCompleted));
+
+    // verify that Run is marked as Failed as attaching outputs failed
+    verify(cromwellService).runStatus(eq(runningRunEngineId));
+    verify(runsDao).updateRunStatus(eq(runToUpdate), eq(SYSTEM_ERROR));
+
+    verify(wdsService, never())
+        .updateRecord(
+            eq(mockRequest),
+            eq(runToUpdate.runSet().method().recordType()),
+            eq(runToUpdate.recordId()));
+
+    // Make sure the already-completed workflow isn't re-updated:
+    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
+
+    assertEquals(2, actual.size());
+    assertEquals(
+        SYSTEM_ERROR,
         actual.stream().filter(r -> r.id().equals(runningRunId)).toList().get(0).status());
     assertEquals(
         COMPLETE,
