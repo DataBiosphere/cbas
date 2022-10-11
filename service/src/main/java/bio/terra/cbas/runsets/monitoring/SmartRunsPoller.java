@@ -1,5 +1,8 @@
 package bio.terra.cbas.runsets.monitoring;
 
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
+import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
+import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 import static java.util.stream.Collectors.groupingBy;
 
 import bio.terra.cbas.dao.RunDao;
@@ -12,8 +15,6 @@ import bio.terra.cbas.runsets.outputs.OutputGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
-import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,88 +66,100 @@ public class SmartRunsPoller {
   public List<Run> updateRuns(List<Run> runs) {
 
     // For metrics:
-    OffsetDateTime startTime = OffsetDateTime.now();
+    long startTimeNs = System.nanoTime();
+    boolean successBoolean = false;
 
-    // Filter only updatable runs:
-    List<Run> updatableRuns = runs.stream().filter(r -> r.status().nonTerminal()).toList();
+    try {
+      // Filter only updatable runs:
+      List<Run> updatableRuns = runs.stream().filter(r -> r.status().nonTerminal()).toList();
 
-    // This has the nice outcome of counting even if the size is 0, which means this metric
-    // is created and stays current even if nothing is being updated:
-    logger.debug("METRIC: COUNT runs needing status update: {}", updatableRuns.size());
+      increaseEventCounter("status update required", updatableRuns.size());
 
-    // Group by current (engine) status:
-    Map<CbasRunStatus, List<Run>> engineStatuses =
-        updatableRuns.stream()
-            .collect(
-                groupingBy(
-                    r -> {
-                      try {
-                        var result =
-                            CbasRunStatus.fromValue(
-                                cromwellService.runStatus(r.engineId()).getState());
-                        logger.debug(
-                            "METRIC: INCREMENT runs polled for status update successfully");
-                        return result;
-                      } catch (ApiException | IllegalArgumentException e) {
-                        logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
-                        logger.debug(
-                            "METRIC: INCREMENT runs polled for status update unsuccessfully");
-                        return r.status();
-                      }
-                    }));
+      // Group by current (engine) status:
+      Map<CbasRunStatus, List<Run>> engineStatuses =
+          updatableRuns.stream()
+              .collect(
+                  groupingBy(
+                      r -> {
+                        long getStatusStartNanos = System.nanoTime();
+                        boolean getStatusSuccess = false;
+                        try {
+                          var result =
+                              CbasRunStatus.fromValue(
+                                  cromwellService.runStatus(r.engineId()).getState());
+                          getStatusSuccess = true;
+                          return result;
+                        } catch (ApiException | IllegalArgumentException e) {
+                          logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
+                          return r.status();
+                        } finally {
+                          recordOutboundApiRequestCompletion(
+                              "wes/runStatus", getStatusStartNanos, getStatusSuccess);
+                        }
+                      }));
 
-    Set<Run> updatedRuns = new HashSet<>(runs);
+      Set<Run> updatedRuns = new HashSet<>(runs);
 
-    for (Map.Entry<CbasRunStatus, List<Run>> engineStateEntry : engineStatuses.entrySet()) {
-      for (Run r : engineStateEntry.getValue()) {
-        var updatedRunState = engineStateEntry.getKey();
-        if (r.status() != updatedRunState) {
-          if (updatedRunState == CbasRunStatus.COMPLETE) {
-            try {
-              updateOutputAttributes(r);
-            } catch (Exception e) {
-              // log error and mark Run as Failed
-              // TODO: When epic WM-1433 is being worked on, add error message in database stating
-              //  updating output attributes failed for this particular Run.
-              logger.error(
-                  "Error while updating attributes for record {} from run {}.",
-                  r.recordId(),
-                  r.id(),
-                  e);
-              updatedRunState = CbasRunStatus.SYSTEM_ERROR;
-            }
-          }
-          logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
-          var changes = runDao.updateRunStatus(r, updatedRunState);
-          if (changes == 1) {
-            logger.debug("METRIC: INCREMENT runs transitioned to final status successfully");
-            updatedRuns.remove(r);
-            updatedRuns.add(r.withStatus(updatedRunState));
-          } else {
-            logger.debug("METRIC: INCREMENT runs transitioned to final status unsuccessfully");
-            logger.warn(
-                "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-                r.id(),
-                r.status(),
-                updatedRunState);
-          }
-        } else {
-          // if run status hasn't changed, only update last polled timestamp
-          var changes = runDao.updateLastPolledTimestamp(r.id());
-          if (changes != 1) {
-            logger.warn(
-                "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-                r.id(),
-                r.status(),
-                changes);
-          }
+      for (Map.Entry<CbasRunStatus, List<Run>> engineStateEntry : engineStatuses.entrySet()) {
+        for (Run r : engineStateEntry.getValue()) {
+          updateDatabaseRunStatus(updatedRuns, engineStateEntry, r);
         }
       }
+      successBoolean = true;
+      return List.copyOf(updatedRuns);
+    } finally {
+      recordMethodCompletion(startTimeNs, successBoolean);
     }
+  }
 
-    var result = List.copyOf(updatedRuns);
-    var pollAndUpdateMillis = ChronoUnit.MILLIS.between(startTime, OffsetDateTime.now());
-    logger.debug("METRIC: TIMER smart status poll: {}", pollAndUpdateMillis);
-    return result;
+  private void updateDatabaseRunStatus(
+      Set<Run> updatedRuns, Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run r) {
+    long updateDatabaseRunStatusStartNanos = System.nanoTime();
+    boolean updateDatabaseRunStatusSuccess = false;
+
+    try {
+      var updatedRunState = engineStateEntry.getKey();
+      if (r.status() != updatedRunState) {
+        if (updatedRunState == CbasRunStatus.COMPLETE) {
+          try {
+            updateOutputAttributes(r);
+          } catch (Exception e) {
+            // log error and mark Run as Failed
+            // TODO: When epic WM-1433 is being worked on, add error message in database stating
+            //  updating output attributes failed for this particular Run.
+            logger.error(
+                "Error while updating attributes for record {} from run {}.",
+                r.recordId(),
+                r.id(),
+                e);
+            updatedRunState = CbasRunStatus.SYSTEM_ERROR;
+          }
+        }
+        logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
+        var changes = runDao.updateRunStatus(r, updatedRunState);
+        if (changes == 1) {
+          updatedRuns.remove(r);
+          updatedRuns.add(r.withStatus(updatedRunState));
+        } else {
+          logger.warn(
+              "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
+              r.id(),
+              r.status(),
+              updatedRunState);
+        }
+      } else {
+        // if run status hasn't changed, only update last polled timestamp
+        var changes = runDao.updateLastPolledTimestamp(r.id());
+        if (changes != 1) {
+          logger.warn(
+              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
+              r.id(),
+              r.status(),
+              changes);
+        }
+      }
+    } finally {
+      recordMethodCompletion(updateDatabaseRunStatusStartNanos, updateDatabaseRunStatusSuccess);
+    }
   }
 }
