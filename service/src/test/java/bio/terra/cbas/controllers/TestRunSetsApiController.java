@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -42,6 +43,32 @@ import org.springframework.test.web.servlet.MvcResult;
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
+  private String requestTemplate =
+      """
+        {
+          "workflow_url" : "%s",
+          "workflow_input_definitions" : [ {
+            "input_name" : "myworkflow.mycall.inputname1",
+            "input_type" : "String",
+            "source" : {
+              "type" : "literal",
+              "parameter_value" : "literal value"
+            }
+          }, {
+            "input_name" : "myworkflow.mycall.inputname2",
+            "input_type" : "Int",
+            "source" : {
+              "type" : "record_lookup",
+              "record_attribute" : "MY_RECORD_ATTRIBUTE"
+            }
+          } ],
+          "workflow_output_definitions" : %s,
+          "wds_records" : {
+            "record_type" : "%s",
+            "record_ids" : %s
+          }
+        }
+        """;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -50,6 +77,7 @@ class TestRunSetsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
+  @MockBean private CbasApiConfiguration cbasApiConfiguration;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -85,33 +113,11 @@ class TestRunSetsApiController {
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId));
 
+    when(cbasApiConfiguration.getRunSetsMaximumRecordIds()).thenReturn(2);
+
     String request =
-        """
-        {
-          "workflow_url" : "%s",
-          "workflow_input_definitions" : [ {
-            "input_name" : "myworkflow.mycall.inputname1",
-            "input_type" : "String",
-            "source" : {
-              "type" : "literal",
-              "parameter_value" : "literal value"
-            }
-          }, {
-            "input_name" : "myworkflow.mycall.inputname2",
-            "input_type" : "Int",
-            "source" : {
-              "type" : "record_lookup",
-              "record_attribute" : "MY_RECORD_ATTRIBUTE"
-            }
-          } ],
-          "workflow_output_definitions" : %s,
-          "wds_records" : {
-            "record_type" : "%s",
-            "record_ids" : [ "%s" ]
-          }
-        }
-        """
-            .formatted(workflowUrl, outputDefinitionAsString, recordType, recordId);
+        requestTemplate.formatted(
+            workflowUrl, outputDefinitionAsString, recordType, "[ \"%s\" ]".formatted(recordId));
 
     MvcResult result =
         mockMvc
@@ -147,5 +153,36 @@ class TestRunSetsApiController {
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),
         greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
+  void tooManyRecordIds() throws Exception {
+
+    final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
+    final String recordType = "MY_RECORD_TYPE";
+    final String recordIds = "[ \"RECORD1\", \"RECORD2\", \"RECORD3\" ]";
+    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+    final int recordAttributeValue = 100;
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(recordAttribute, recordAttributeValue);
+    final String outputDefinitionAsString =
+        """
+        [ {
+          "output_name" : "myWorkflow.myCall.outputName1",
+          "output_type" : "String",
+          "record_attribute" : "foo_rating"
+        } ]""";
+
+    // Set up API responses:
+    when(cbasApiConfiguration.getRunSetsMaximumRecordIds()).thenReturn(2);
+
+    String request =
+        requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
   }
 }

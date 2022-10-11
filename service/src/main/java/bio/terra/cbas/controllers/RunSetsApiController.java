@@ -62,7 +62,7 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     Optional<ResponseEntity<RunSetStateResponse>> errorResponse =
-        checkInvalidRequest(request, this.cbasApiConfiguration.runSetsMaximumRecordIds());
+        checkInvalidRequest(request, this.cbasApiConfiguration.getRunSetsMaximumRecordIds());
     if (errorResponse.isPresent()) {
       return errorResponse.get();
     }

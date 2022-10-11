@@ -39,6 +39,7 @@ cbas:
     password: ${DATABASE_USER_PASSWORD:cbas_password}
     username: ${DATABASE_USER:cbas_user}
   cbas-api:
+    # for POST/run_sets, the number of record IDs must be less than or equal to this value.
     runSetsMaximumRecordIds: 100
 
 workflow-engines:
