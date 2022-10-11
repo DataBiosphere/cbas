@@ -4,6 +4,8 @@ import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+// This PR will be a draft.
+
 @ConfigurationProperties(prefix = "wds")
 public record WdsServerConfiguration(
     String baseUri, String healthcheckEndpoint, String instanceId, String apiV) {
