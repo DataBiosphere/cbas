@@ -29,4 +29,8 @@ public class CromwellService {
   public RunStatus runStatus(String runId) throws ApiException {
     return cromwellClient.wesAPI().getRunStatus(runId);
   }
+
+  public Object getOutputs(String id) throws ApiException {
+    return cromwellClient.wesAPI().getRunLog(id).getOutputs();
+  }
 }
