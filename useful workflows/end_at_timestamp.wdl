@@ -2,6 +2,9 @@ version 1.0
 
 workflow end_at_timestamp {
   input {
+
+    # Timestamp in "seconds since epoch". You can find the current value this will be compared
+    # against by running 'date +%s'
     Int final_timestamp
 
     String input1
