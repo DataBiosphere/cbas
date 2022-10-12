@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       // Metrics exporting components & configs
       "bio.terra.common.prometheus"
     })
-@ConfigurationPropertiesScan("bio.terra.cbas")
+@ConfigurationPropertiesScan("bio.terra.cbas.config")
 @EnableRetry
 @EnableTransactionManagement
 public class App {

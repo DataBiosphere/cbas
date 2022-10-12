@@ -35,11 +35,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
-@ContextConfiguration(classes = RunSetsApiController.class)
+@TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=2")
+@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
@@ -77,7 +79,6 @@ class TestRunSetsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
-  @MockBean private CbasApiConfiguration cbasApiConfiguration;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -112,8 +113,6 @@ class TestRunSetsApiController {
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId));
-
-    when(cbasApiConfiguration.getRunSetsMaximumRecordIds()).thenReturn(2);
 
     String request =
         requestTemplate.formatted(
@@ -172,9 +171,6 @@ class TestRunSetsApiController {
           "output_type" : "String",
           "record_attribute" : "foo_rating"
         } ]""";
-
-    // Set up API responses:
-    when(cbasApiConfiguration.getRunSetsMaximumRecordIds()).thenReturn(2);
 
     String request =
         requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);

@@ -1,14 +1,14 @@
 package bio.terra.cbas.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
+import org.springframework.context.annotation.Configuration;
 
-@ConstructorBinding
+@Configuration
 @ConfigurationProperties(prefix = "cbas.cbas-api")
 public class CbasApiConfiguration {
-  int runSetsMaximumRecordIds;
+  private int runSetsMaximumRecordIds;
 
-  public CbasApiConfiguration(int runSetsMaximumRecordIds) {
+  public void setRunSetsMaximumRecordIds(int runSetsMaximumRecordIds) {
     this.runSetsMaximumRecordIds = runSetsMaximumRecordIds;
   }
 
