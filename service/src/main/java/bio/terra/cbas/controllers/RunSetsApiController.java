@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -92,10 +93,11 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Fetch the record from WDS:
     RecordResponse recordResponse;
+    List<String> recordIds;
     try {
       String recordType = request.getWdsRecords().getRecordType();
-      String recordId = request.getWdsRecords().getRecordIds().get(0);
-      recordResponse = wdsService.getRecord(recordType, recordId);
+      recordIds = request.getWdsRecords().getRecordIds();
+      recordResponse = wdsService.getRecord(recordType, recordIds.get(0));
     } catch (ApiException e) {
       log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
@@ -122,6 +124,8 @@ public class RunSetsApiController implements RunSetsApi {
     // Store the run:
     UUID runId = UUID.randomUUID();
 
+    // is there a reason that this expression is here again? why not put it in a variable?
+    // e.g. String dataTableRowId = recordIds.get(0);
     String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
     int created =
         runDao.createRun(
