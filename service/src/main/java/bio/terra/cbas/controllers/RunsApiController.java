@@ -42,7 +42,7 @@ public class RunsApiController implements RunsApi {
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()))
         .lastModifiedTimestamp(convertToDate(run.lastModifiedTimestamp()))
-        .errorMessages(null);
+        .errorMessages(run.errorMessages());
   }
 
   @Override
