@@ -26,8 +26,8 @@ public class RunDao {
 
   public int createRun(Run run) {
     return jdbcTemplate.update(
-        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp)"
-            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp)",
+        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp, error_messages)"
+            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
@@ -64,6 +64,12 @@ public class RunDao {
             Map.of("id", runID, "lastPolledTimestamp", OffsetDateTime.now())));
   }
 
+  //  public int updateErrorMessages(UUID runId, String error) {
+  //    String sql = "UPDATE run SET error_messages = :errorMessages WHERE id = :id";
+  //    return jdbcTemplate.update(
+  //        sql, new MapSqlParameterSource(Map.of("id", runId, "errorMessages", error)));
+  //  }
+
   private static class RunMapper implements RowMapper<Run> {
     public Run mapRow(ResultSet rs, int rowNum) throws SQLException {
       Method method =
@@ -84,7 +90,8 @@ public class RunDao {
           rs.getObject("submission_timestamp", OffsetDateTime.class),
           CbasRunStatus.fromValue(rs.getString("status")),
           rs.getObject("last_modified_timestamp", OffsetDateTime.class),
-          rs.getObject("last_polled_timestamp", OffsetDateTime.class));
+          rs.getObject("last_polled_timestamp", OffsetDateTime.class),
+          rs.getString("error_messages"));
     }
   }
 }

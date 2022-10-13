@@ -41,7 +41,8 @@ public class RunsApiController implements RunsApi {
         .state(CbasRunStatus.toCbasApiState(run.status()))
         .workflowParams(run.runSet().method().inputDefinition())
         .submissionDate(convertToDate(run.submissionTimestamp()))
-        .lastModifiedTimestamp(convertToDate(run.lastModifiedTimestamp()));
+        .lastModifiedTimestamp(convertToDate(run.lastModifiedTimestamp()))
+        .errorMessages(null);
   }
 
   @Override

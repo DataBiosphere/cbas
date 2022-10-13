@@ -11,7 +11,8 @@ public record Run(
     OffsetDateTime submissionTimestamp,
     CbasRunStatus status,
     OffsetDateTime lastModifiedTimestamp,
-    OffsetDateTime lastPolledTimestamp) {
+    OffsetDateTime lastPolledTimestamp,
+    String errorMessages) {
 
   public UUID getRunSetId() {
     return runSet.id();
@@ -26,6 +27,7 @@ public record Run(
         submissionTimestamp,
         newStatus,
         lastModifiedTimestamp,
-        lastPolledTimestamp);
+        lastPolledTimestamp,
+        errorMessages);
   }
 }
