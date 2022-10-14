@@ -108,11 +108,12 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Submit the workflow and get its ID:
     RunId workflowResponse;
-    String errorMessage;
+
     try {
       workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
+      String errorMessage;
       errorMessage = e.getMessage();
       runDao.createRun(
           new Run(
