@@ -26,8 +26,8 @@ public class RunDao {
 
   public int createRun(Run run) {
     return jdbcTemplate.update(
-        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp)"
-            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp)",
+        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp, error_messages)"
+            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
@@ -84,7 +84,8 @@ public class RunDao {
           rs.getObject("submission_timestamp", OffsetDateTime.class),
           CbasRunStatus.fromValue(rs.getString("status")),
           rs.getObject("last_modified_timestamp", OffsetDateTime.class),
-          rs.getObject("last_polled_timestamp", OffsetDateTime.class));
+          rs.getObject("last_polled_timestamp", OffsetDateTime.class),
+          rs.getString("error_messages"));
     }
   }
 }

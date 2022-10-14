@@ -195,7 +195,8 @@ public class RunSetsApiController implements RunSetsApi {
                 OffsetDateTime.now(),
                 runState,
                 OffsetDateTime.now(),
-                OffsetDateTime.now()));
+                OffsetDateTime.now(),
+                errors));
 
     if (created != 1) {
       additionalErrorMsg =
