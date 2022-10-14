@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
@@ -97,6 +98,7 @@ public class RunSetsApiController implements RunSetsApi {
     try {
       String recordType = request.getWdsRecords().getRecordType();
       recordIds = request.getWdsRecords().getRecordIds();
+      recordRecordsInRequest(recordIds.size());
       recordResponse = wdsService.getRecord(recordType, recordIds.get(0));
     } catch (ApiException e) {
       log.warn("Record lookup failed. ApiException", e);
@@ -124,8 +126,6 @@ public class RunSetsApiController implements RunSetsApi {
     // Store the run:
     UUID runId = UUID.randomUUID();
 
-    // is there a reason that this expression is here again? why not put it in a variable?
-    // e.g. String dataTableRowId = recordIds.get(0);
     String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
     int created =
         runDao.createRun(

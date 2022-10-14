@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -155,6 +156,82 @@ class TestRunSetsApiController {
   }
 
   @Test
+  void maximumRecordIds() throws Exception {
+
+    final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
+    final String recordType = "MY_RECORD_TYPE";
+    final String recordId1 = "MY_RECORD_ID_1";
+    final String recordId2 = "MY_RECORD_ID_2";
+    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+    final int recordAttributeValue = 100;
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(recordAttribute, recordAttributeValue);
+    final String cromwellWorkflowId = UUID.randomUUID().toString();
+    final String outputDefinitionAsString =
+        """
+        [ {
+          "output_name" : "myWorkflow.myCall.outputName1",
+          "output_type" : "String",
+          "record_attribute" : "foo_rating"
+        } ]""";
+
+    // Set up API responses:
+    when(wdsService.getRecord(recordType, recordId1))
+        .thenReturn(
+            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes));
+    when(wdsService.getRecord(recordType, recordId2))
+        .thenReturn(
+            new RecordResponse().type(recordType).id(recordId2).attributes(recordAttributes));
+
+    when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
+        .thenReturn(new RunId().runId(cromwellWorkflowId));
+
+    String request =
+        requestTemplate.formatted(
+            workflowUrl,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    // Verify database storage:
+    ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
+    verify(methodDao).createMethod(newMethodCaptor.capture());
+    assertEquals(recordType, newMethodCaptor.getValue().recordType());
+    assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
+    assertEquals(outputDefinitionAsString, newMethodCaptor.getValue().outputDefinition());
+
+    ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(runSetDao).createRunSet(newRunSetCaptor.capture());
+    assertEquals(newMethodCaptor.getValue().id(), newRunSetCaptor.getValue().getMethodId());
+
+    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
+    verify(runDao).createRun(newRunCaptor.capture());
+    when(runDao.createRun(any())).thenReturn(1);
+    assertEquals(newRunSetCaptor.getValue().id(), newRunCaptor.getValue().getRunSetId());
+    assertEquals(cromwellWorkflowId, newRunCaptor.getValue().engineId());
+    assertEquals(UNKNOWN, newRunCaptor.getValue().status());
+
+    // should only return the first recordId
+    assertEquals(recordId1, newRunCaptor.getValue().recordId());
+
+    // Assert that the submission timestamp is more recent than 60 seconds ago
+    assertThat(
+        newRunCaptor.getValue().submissionTimestamp(),
+        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
   void tooManyRecordIds() throws Exception {
 
     final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
@@ -175,10 +252,11 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);
 
-    MvcResult result =
-        mockMvc
-            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().is4xxClientError())
-            .andReturn();
+    mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().is4xxClientError());
+
+    verifyNoInteractions(wdsService);
+    verifyNoInteractions(cromwellService);
   }
 }

@@ -27,6 +27,8 @@ public final class MetricsUtil {
 
   public static final String OUTBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/outbound";
   public static final String INBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/inbound";
+  public static final String RECORDS_PER_REQUEST_METRICS =
+      INBOUND_REQUEST_METRICS + "/records-per-request";
   public static final String METHOD_METRICS = METRICS_PREFIX + "method";
   public static final String EVENT_METRICS = METRICS_PREFIX + "event";
 
@@ -41,9 +43,7 @@ public final class MetricsUtil {
 
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(
-          INBOUND_REQUEST_METRICS + "/records-per-request",
-          "Number of record IDs per request",
-          "records-per-request");
+          RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
 
   public static final TagKey TAGKEY_NAME = TagKey.create("name");
   public static final TagKey TAGKEY_STATUS = TagKey.create("status");
@@ -199,11 +199,11 @@ public final class MetricsUtil {
               Aggregation.Count.create(),
               List.of(TAGKEY_NAME)),
           View.create(
-              View.Name.create(INBOUND_REQUEST_METRICS),
+              View.Name.create(RECORDS_PER_REQUEST_METRICS),
               "Stats related to inbound requests",
               M_RECORDS_PER_REQUEST,
               recordsPerRequestDistribution,
-              List.of(TAGKEY_NAME))
+              List.of())
         };
 
     // Create the view manager
