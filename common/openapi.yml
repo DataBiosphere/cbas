@@ -243,7 +243,9 @@ components:
             $ref: '#/components/schemas/RunStateResponse'
         state:
           $ref: '#/components/schemas/RunSetState'
-
+        errors:
+          type:
+            string
     RunLog:
       type: object
       properties:
@@ -281,6 +283,9 @@ components:
           example: 00000000-0000-0000-0000-000000000000
         state:
           $ref: '#/components/schemas/RunState'
+        errors:
+          type:
+            string
     ErrorReport:
       type: object
       required: [ message, status_code, causes]
