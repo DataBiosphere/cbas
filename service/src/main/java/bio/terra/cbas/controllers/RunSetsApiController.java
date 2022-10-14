@@ -1,6 +1,7 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
+import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
@@ -110,12 +111,31 @@ public class RunSetsApiController implements RunSetsApi {
     Map<String, Object> params =
         InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), recordResponse);
 
+    UUID runId = UUID.randomUUID();
+    String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
+
     // Submit the workflow and get its ID:
     RunId workflowResponse;
+
     try {
       workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
+      String errorMessage;
+      errorMessage = e.getMessage();
+      runDao.createRun(
+          new Run(
+              runId,
+              null,
+              runSet,
+              dataTableRowId,
+              OffsetDateTime.now(),
+              SYSTEM_ERROR,
+              OffsetDateTime.now(),
+              OffsetDateTime.now(),
+              errorMessage));
+      // TODO: After WM-1448 completes, add nicer-looking return response that returns
+      //  the error to the user immediately
       return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
     } catch (JsonProcessingException e) {
       // Should be super rare that jackson cannot convert an object to Json...
@@ -124,9 +144,6 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Store the run:
-    UUID runId = UUID.randomUUID();
-
-    String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
     int created =
         runDao.createRun(
             new Run(
@@ -137,7 +154,8 @@ public class RunSetsApiController implements RunSetsApi {
                 OffsetDateTime.now(),
                 UNKNOWN,
                 OffsetDateTime.now(),
-                OffsetDateTime.now()));
+                OffsetDateTime.now(),
+                null));
 
     if (created != 1) {
       log.error(
