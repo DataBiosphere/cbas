@@ -5,8 +5,9 @@ task foo {
     description: "Target workflow 1 for support in Q4 2022"
   }
   input {
-    File    input_file_1
-    File?   input_file_2
+    # TODO: Make these FILE inputs, not strings.
+    String    input_file_1
+    String?   input_file_2
     String  input_string_1
     String  input_string_2
     String? input_string_3
@@ -34,7 +35,10 @@ task foo {
   command {
     date '+%s' > digest.txt
     echo 'Input Digest:' >> digest.txt
-    md5sum ~{input_file_1} ~{input_file_2} >> digest.txt
+
+    # TODO: Remove 'echo' to use md5sum to generate digests:
+    echo 'TODO md5sum ~{input_file_1} ~{input_file_2}' >> digest.txt
+
     echo 'Input strings:' >> digest.txt
     echo 'string_1: ~{input_string_1}' >> digest.txt
     echo 'string_2: ~{input_string_2}' >> digest.txt
