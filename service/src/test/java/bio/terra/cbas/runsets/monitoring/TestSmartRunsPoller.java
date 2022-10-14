@@ -50,6 +50,7 @@ public class TestSmartRunsPoller {
   private static final String completedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
+  private static final String errorMessages = null;
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -84,7 +85,8 @@ public class TestSmartRunsPoller {
           runSubmittedTime,
           RUNNING,
           runningRunStatusUpdateTime,
-          runningRunStatusUpdateTime);
+          runningRunStatusUpdateTime,
+          errorMessages);
 
   final Run runToUpdate2 =
       new Run(
@@ -95,7 +97,8 @@ public class TestSmartRunsPoller {
           runSubmittedTime,
           RUNNING,
           runningRunStatusUpdateTime,
-          runningRunStatusUpdateTime);
+          runningRunStatusUpdateTime,
+          errorMessages);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -106,7 +109,8 @@ public class TestSmartRunsPoller {
           runSubmittedTime,
           COMPLETE,
           completedRunStatusUpdateTime,
-          completedRunStatusUpdateTime);
+          completedRunStatusUpdateTime,
+          errorMessages);
 
   @Test
   void pollRunningRuns() throws Exception {

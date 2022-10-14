@@ -264,6 +264,9 @@ components:
         last_modified_timestamp:
           type: string
           format: date-time
+        error_messages:
+          type: string
+          required: false
     RunLogResponse:
       type: object
       properties:

@@ -129,7 +129,8 @@ public class RunSetsApiController implements RunSetsApi {
                 OffsetDateTime.now(),
                 UNKNOWN,
                 OffsetDateTime.now(),
-                OffsetDateTime.now()));
+                OffsetDateTime.now(),
+                null));
 
     if (created != 1) {
       log.error(

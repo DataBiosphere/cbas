@@ -49,3 +49,9 @@ databaseChangeLog:
                   type: timestamp
                   constraints:
                     nullable: false
+              - column:
+                  name: error_messages
+                  type: varchar(1000)
+                  constraints:
+                    nullable: true
+
