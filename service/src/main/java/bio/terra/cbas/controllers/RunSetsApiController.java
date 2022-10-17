@@ -28,7 +28,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,7 +77,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Fetch WDS Records and keep track of errors while retrieving records
     String recordType = request.getWdsRecords().getRecordType();
-    HashSet<String> recordIds = new HashSet<>(request.getWdsRecords().getRecordIds());
+    List<String> recordIds = request.getWdsRecords().getRecordIds();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
@@ -93,8 +92,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     if (recordIdsWithError.size() > 0) {
-      String errorMsg =
-          "Error while fetching WDS Records for Record ID(s): " + recordIdsWithError;
+      String errorMsg = "Error while fetching WDS Records for Record ID(s): " + recordIdsWithError;
       log.warn(errorMsg);
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
@@ -150,10 +148,11 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
-  private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
+  public static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
       RunSetRequest request) {
     String errorMsg = "";
 
+    // TODO: Saloni - once Michael's PR merges update this error msg
     if (request.getWdsRecords().getRecordIds().size() > 2) {
       errorMsg = "Current support is exactly one record per request. ";
     }
@@ -162,7 +161,8 @@ public class RunSetsApiController implements RunSetsApi {
     List<String> duplicateRecordIds =
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();
     if (duplicateRecordIds.size() > 0) {
-      errorMsg += String.format("Duplicate Record ID(s) %s present in request", duplicateRecordIds);
+      errorMsg +=
+          String.format("Duplicate Record ID(s) %s present in request.", duplicateRecordIds);
     }
 
     if (!errorMsg.isEmpty()) {
@@ -170,8 +170,7 @@ public class RunSetsApiController implements RunSetsApi {
       log.warn(finalErrorMsg);
       return Optional.of(
           new ResponseEntity<>(
-              new RunSetStateResponse().errors(finalErrorMsg),
-              HttpStatus.BAD_REQUEST));
+              new RunSetStateResponse().errors(finalErrorMsg), HttpStatus.BAD_REQUEST));
     }
 
     return Optional.empty();
