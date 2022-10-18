@@ -180,19 +180,26 @@ class TestRunSetsApiController {
 }
 
 class UnitTestRunSetsApiController {
+  private CbasApiConfiguration config = new CbasApiConfiguration();
+  private RunSetRequest request = new RunSetRequest();
+
   @Test
-  void testRequestValidity() {
-    CbasApiConfiguration config = new CbasApiConfiguration();
-    RunSetRequest request = new RunSetRequest();
-
+  void testRequestValidityFewerThanMax() {
     config.setRunSetsMaximumRecordIds(2);
-
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1")));
     assertTrue(RunSetsApiController.requestIsValid(request, config));
+  }
 
+  @Test
+  void testRequestValidityEqualToMax() {
+    config.setRunSetsMaximumRecordIds(2);
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2")));
     assertTrue(RunSetsApiController.requestIsValid(request, config));
+  }
 
+  @Test
+  void testRequestValidityGreaterThanMax() {
+    config.setRunSetsMaximumRecordIds(2);
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2", "r3")));
     assertFalse(RunSetsApiController.requestIsValid(request, config));
   }
