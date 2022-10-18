@@ -25,7 +25,6 @@ import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -63,10 +62,8 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    Optional<ResponseEntity<RunSetStateResponse>> errorResponse =
-        checkInvalidRequest(request, this.cbasApiConfiguration.getRunSetsMaximumRecordIds());
-    if (errorResponse.isPresent()) {
-      return errorResponse.get();
+    if (!requestIsValid(request, this.cbasApiConfiguration)) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     // Store the method
@@ -159,16 +156,15 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
-  private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
-      RunSetRequest request, int runSetsMaximumRecordIds) {
+  public static boolean requestIsValid(RunSetRequest request, CbasApiConfiguration config) {
     int recordIdsSize = request.getWdsRecords().getRecordIds().size();
-    if (recordIdsSize > runSetsMaximumRecordIds) {
+    int recordIdsMax = config.getRunSetsMaximumRecordIds();
+    if (recordIdsSize > recordIdsMax) {
       log.warn(
           "Bad user request: %s record IDs submitted exceeds the maximum value of %s"
-              .formatted(recordIdsSize, runSetsMaximumRecordIds));
-      return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+              .formatted(recordIdsSize, recordIdsMax));
+      return false;
     }
-
-    return Optional.empty();
+    return true;
   }
 }
