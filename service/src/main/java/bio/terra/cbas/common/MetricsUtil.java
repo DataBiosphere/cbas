@@ -26,16 +26,24 @@ public final class MetricsUtil {
   public static final String METRICS_PREFIX = "terra/cbas/";
 
   public static final String OUTBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/outbound";
+  public static final String INBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/inbound";
+  public static final String RECORDS_PER_REQUEST_METRICS =
+      INBOUND_REQUEST_METRICS + "/records-per-request";
   public static final String METHOD_METRICS = METRICS_PREFIX + "method";
   public static final String EVENT_METRICS = METRICS_PREFIX + "event";
+
   public static final Measure.MeasureDouble M_METHOD_DURATION_MS =
       Measure.MeasureDouble.create(METHOD_METRICS, "Duration of method runs", "ms");
 
   public static final Measure.MeasureDouble M_OUTBOUND_REQUEST_DURATION_MS =
       Measure.MeasureDouble.create(OUTBOUND_REQUEST_METRICS, "Duration of outbound requests", "ms");
 
-  public static final Measure.MeasureLong M_EVENT_COUNT_MS =
+  public static final Measure.MeasureLong M_EVENT_COUNT =
       Measure.MeasureLong.create(EVENT_METRICS, "Counter for various events", "occurrences");
+
+  public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
+      Measure.MeasureLong.create(
+          RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
 
   public static final TagKey TAGKEY_NAME = TagKey.create("name");
   public static final TagKey TAGKEY_STATUS = TagKey.create("status");
@@ -114,8 +122,12 @@ public final class MetricsUtil {
     increaseEventCounter(eventName, 1L);
   }
 
+  public static void recordRecordsInRequest(long numRecordIds) {
+    recordTaggedStat(Map.of(), M_RECORDS_PER_REQUEST, numRecordIds);
+  }
+
   public static void increaseEventCounter(String eventName, long count) {
-    recordTaggedStat(Map.of(TAGKEY_NAME, eventName), M_EVENT_COUNT_MS, count);
+    recordTaggedStat(Map.of(TAGKEY_NAME, eventName), M_EVENT_COUNT, count);
   }
 
   public static double sinceInMilliseconds(long startTimeNs) {
@@ -161,6 +173,10 @@ public final class MetricsUtil {
                     25000.0,
                     50000.0)));
 
+    Aggregation recordsPerRequestDistribution =
+        Aggregation.Distribution.create(
+            BucketBoundaries.create(Arrays.asList(0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 100.0)));
+
     // Define the views
     View[] views =
         new View[] {
@@ -179,9 +195,15 @@ public final class MetricsUtil {
           View.create(
               View.Name.create(EVENT_METRICS),
               "Counter for internal system events",
-              M_EVENT_COUNT_MS,
+              M_EVENT_COUNT,
               Aggregation.Count.create(),
-              List.of(TAGKEY_NAME))
+              List.of(TAGKEY_NAME)),
+          View.create(
+              View.Name.create(RECORDS_PER_REQUEST_METRICS),
+              "Stats related to inbound requests",
+              M_RECORDS_PER_REQUEST,
+              recordsPerRequestDistribution,
+              List.of())
         };
 
     // Create the view manager

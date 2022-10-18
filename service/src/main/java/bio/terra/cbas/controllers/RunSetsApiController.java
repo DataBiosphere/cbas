@@ -1,11 +1,13 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -48,6 +50,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
+  private final CbasApiConfiguration cbasApiConfiguration;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -55,13 +58,15 @@ public class RunSetsApiController implements RunSetsApi {
       ObjectMapper objectMapper,
       MethodDao methodDao,
       RunDao runDao,
-      RunSetDao runSetDao) {
+      RunSetDao runSetDao,
+      CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
+    this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
   @Override
@@ -69,15 +74,16 @@ public class RunSetsApiController implements RunSetsApi {
     Gson gson = new Gson();
 
     // request validation
-    Optional<ResponseEntity<RunSetStateResponse>> invalidRequestResponse =
-        checkInvalidRequest(request);
-    if (invalidRequestResponse.isPresent()) {
-      return invalidRequestResponse.get();
+    Optional<ResponseEntity<RunSetStateResponse>> validateRequestResponse =
+        validateRequest(request, this.cbasApiConfiguration.getRunSetsMaximumRecordIds());
+    if (validateRequestResponse.isPresent()) {
+      return validateRequestResponse.get();
     }
 
     // Fetch WDS Records and keep track of errors while retrieving records
     String recordType = request.getWdsRecords().getRecordType();
     List<String> recordIds = request.getWdsRecords().getRecordIds();
+    recordRecordsInRequest(recordIds.size());
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
@@ -148,13 +154,14 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
-  public static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
-      RunSetRequest request) {
+  public static Optional<ResponseEntity<RunSetStateResponse>> validateRequest(
+      RunSetRequest request, int maxRecordIds) {
     String errorMsg = "";
-
-    // TODO: Saloni - once Michael's PR merges update this error msg
-    if (request.getWdsRecords().getRecordIds().size() > 2) {
-      errorMsg = "Current support is exactly one record per request. ";
+    int recordIdsSize = request.getWdsRecords().getRecordIds().size();
+    if (recordIdsSize > maxRecordIds) {
+      errorMsg =
+          "%s Record IDs submitted exceeds the maximum value of %s. "
+              .formatted(recordIdsSize, maxRecordIds);
     }
 
     List<String> recordIds = request.getWdsRecords().getRecordIds();
