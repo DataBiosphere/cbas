@@ -133,7 +133,7 @@ public class RunSetsApiController implements RunSetsApi {
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(request, runSet, recordResponses);
 
-    // figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
+    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
     // Run Set as Failed
     RunSetState runSetState;
     List<RunStateResponse> runsInErrorState =
@@ -157,6 +157,8 @@ public class RunSetsApiController implements RunSetsApi {
   public static Optional<ResponseEntity<RunSetStateResponse>> validateRequest(
       RunSetRequest request, int maxRecordIds) {
     String errorMsg = "";
+
+    // check number of Record IDs in request is within allowed limit
     int recordIdsSize = request.getWdsRecords().getRecordIds().size();
     if (recordIdsSize > maxRecordIds) {
       errorMsg =
@@ -164,6 +166,7 @@ public class RunSetsApiController implements RunSetsApi {
               .formatted(recordIdsSize, maxRecordIds);
     }
 
+    // check that there are no duplicated Record IDs present in the request
     List<String> recordIds = request.getWdsRecords().getRecordIds();
     List<String> duplicateRecordIds =
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();

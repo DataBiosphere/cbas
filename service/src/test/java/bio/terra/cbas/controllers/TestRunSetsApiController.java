@@ -212,7 +212,7 @@ class TestRunSetsApiController {
         containsString(
             "Cromwell submission failed for Record ID MY_RECORD_ID_2. ApiException: Message: ApiException thrown on purpose for testing purposes"));
 
-    // Assert that the submission timestamp os last Run in set is more recent than 60 seconds ago
+    // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),
         greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
