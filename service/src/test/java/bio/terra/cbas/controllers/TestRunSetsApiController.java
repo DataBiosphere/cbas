@@ -4,19 +4,25 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetStateResponse;
+import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -24,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -34,59 +41,29 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
-@ContextConfiguration(classes = RunSetsApiController.class)
+@TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=2")
+@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
+  private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
+  private final String recordType = "MY_RECORD_TYPE";
+  private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+  private final String outputDefinitionAsString =
+      """
+      [ {
+        "output_name" : "myWorkflow.myCall.outputName1",
+        "output_type" : "String",
+        "record_attribute" : "foo_rating"
+      } ]""";
 
-  // These mock beans are supplied to the RunSetApiController at construction time (and get used
-  // later):
-  @MockBean private CromwellService cromwellService;
-  @MockBean private WdsService wdsService;
-  @MockBean private MethodDao methodDao;
-  @MockBean private RunSetDao runSetDao;
-  @MockBean private RunDao runDao;
-
-  // This mockMVC is what we use to test API requests and responses:
-  @Autowired private MockMvc mockMvc;
-
-  // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
-  // tests:
-  @Autowired private ObjectMapper objectMapper;
-
-  @Test
-  void chainCallsTogether() throws Exception {
-
-    final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
-    final String recordType = "MY_RECORD_TYPE";
-    final String recordId = "MY_RECORD_ID";
-    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
-    final int recordAttributeValue = 100;
-    RecordAttributes recordAttributes = new RecordAttributes();
-    recordAttributes.put(recordAttribute, recordAttributeValue);
-    final String cromwellWorkflowId = UUID.randomUUID().toString();
-    final String outputDefinitionAsString =
-        """
-        [ {
-          "output_name" : "myWorkflow.myCall.outputName1",
-          "output_type" : "String",
-          "record_attribute" : "foo_rating"
-        } ]""";
-
-    // Set up API responses:
-    when(wdsService.getRecord(recordType, recordId))
-        .thenReturn(
-            new RecordResponse().type(recordType).id(recordId).attributes(recordAttributes));
-
-    when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
-        .thenReturn(new RunId().runId(cromwellWorkflowId));
-
-    String request =
-        """
+  private String requestTemplate =
+      """
         {
           "workflow_url" : "%s",
           "workflow_input_definitions" : [ {
@@ -107,11 +84,45 @@ class TestRunSetsApiController {
           "workflow_output_definitions" : %s,
           "wds_records" : {
             "record_type" : "%s",
-            "record_ids" : [ "%s" ]
+            "record_ids" : %s
           }
         }
-        """
-            .formatted(workflowUrl, outputDefinitionAsString, recordType, recordId);
+        """;
+
+  // These mock beans are supplied to the RunSetApiController at construction time (and get used
+  // later):
+  @MockBean private CromwellService cromwellService;
+  @MockBean private WdsService wdsService;
+  @MockBean private MethodDao methodDao;
+  @MockBean private RunSetDao runSetDao;
+  @MockBean private RunDao runDao;
+
+  // This mockMVC is what we use to test API requests and responses:
+  @Autowired private MockMvc mockMvc;
+
+  // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
+  // tests:
+  @Autowired private ObjectMapper objectMapper;
+
+  @Test
+  void chainCallsTogether() throws Exception {
+    final String recordId = "MY_RECORD_ID";
+    final int recordAttributeValue = 100;
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(recordAttribute, recordAttributeValue);
+    final String cromwellWorkflowId = UUID.randomUUID().toString();
+
+    // Set up API responses:
+    when(wdsService.getRecord(recordType, recordId))
+        .thenReturn(
+            new RecordResponse().type(recordType).id(recordId).attributes(recordAttributes));
+
+    when(cromwellService.submitWorkflow(eq(workflowUrl), any()))
+        .thenReturn(new RunId().runId(cromwellWorkflowId));
+
+    String request =
+        requestTemplate.formatted(
+            workflowUrl, outputDefinitionAsString, recordType, "[ \"%s\" ]".formatted(recordId));
 
     MvcResult result =
         mockMvc
@@ -147,5 +158,49 @@ class TestRunSetsApiController {
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),
         greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
+  void tooManyRecordIds() throws Exception {
+    final String recordIds = "[ \"RECORD1\", \"RECORD2\", \"RECORD3\" ]";
+    final int recordAttributeValue = 100;
+    RecordAttributes recordAttributes = new RecordAttributes();
+    recordAttributes.put(recordAttribute, recordAttributeValue);
+
+    String request =
+        requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);
+
+    mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().is4xxClientError());
+
+    verifyNoInteractions(wdsService);
+    verifyNoInteractions(cromwellService);
+  }
+}
+
+class UnitTestRunSetsApiController {
+  private CbasApiConfiguration config = new CbasApiConfiguration();
+  private RunSetRequest request = new RunSetRequest();
+
+  @Test
+  void testRequestValidityFewerThanMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1")));
+    assertTrue(RunSetsApiController.requestIsValid(request, config));
+  }
+
+  @Test
+  void testRequestValidityEqualToMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2")));
+    assertTrue(RunSetsApiController.requestIsValid(request, config));
+  }
+
+  @Test
+  void testRequestValidityGreaterThanMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2", "r3")));
+    assertFalse(RunSetsApiController.requestIsValid(request, config));
   }
 }

@@ -1,9 +1,11 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -22,8 +24,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -40,6 +42,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
+  private final CbasApiConfiguration cbasApiConfiguration;
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -47,21 +50,21 @@ public class RunSetsApiController implements RunSetsApi {
       ObjectMapper objectMapper,
       MethodDao methodDao,
       RunDao runDao,
-      RunSetDao runSetDao) {
+      RunSetDao runSetDao,
+      CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
+    this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-
-    Optional<ResponseEntity<RunSetStateResponse>> errorResponse = checkInvalidRequest(request);
-    if (errorResponse.isPresent()) {
-      return errorResponse.get();
+    if (!requestIsValid(request, this.cbasApiConfiguration)) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     // Store the method
@@ -89,10 +92,12 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Fetch the record from WDS:
     RecordResponse recordResponse;
+    List<String> recordIds;
     try {
       String recordType = request.getWdsRecords().getRecordType();
-      String recordId = request.getWdsRecords().getRecordIds().get(0);
-      recordResponse = wdsService.getRecord(recordType, recordId);
+      recordIds = request.getWdsRecords().getRecordIds();
+      recordRecordsInRequest(recordIds.size());
+      recordResponse = wdsService.getRecord(recordType, recordIds.get(0));
     } catch (ApiException e) {
       log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
@@ -169,13 +174,15 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
-  private static Optional<ResponseEntity<RunSetStateResponse>> checkInvalidRequest(
-      RunSetRequest request) {
-    if (request.getWdsRecords().getRecordIds().size() != 1) {
-      log.warn("Bad user request: current support is exactly one record per request");
-      return Optional.of(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+  public static boolean requestIsValid(RunSetRequest request, CbasApiConfiguration config) {
+    int recordIdsSize = request.getWdsRecords().getRecordIds().size();
+    int recordIdsMax = config.getRunSetsMaximumRecordIds();
+    if (recordIdsSize > recordIdsMax) {
+      log.warn(
+          "Bad user request: %s record IDs submitted exceeds the maximum value of %s"
+              .formatted(recordIdsSize, recordIdsMax));
+      return false;
     }
-
-    return Optional.empty();
+    return true;
   }
 }
