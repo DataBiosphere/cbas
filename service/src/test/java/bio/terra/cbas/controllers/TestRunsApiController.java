@@ -54,6 +54,7 @@ class TestRunsApiController {
   private static final OffsetDateTime returnedSubmittedTime = OffsetDateTime.now();
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
+  private static final String errorMessages = null;
 
   private static final RunSet returnedRunSet =
       new RunSet(
@@ -70,7 +71,8 @@ class TestRunsApiController {
           returnedSubmittedTime,
           RUNNING,
           runningStatusUpdateTime,
-          runningStatusUpdateTime);
+          runningStatusUpdateTime,
+          errorMessages);
 
   private static final Run updatedRun =
       new Run(
@@ -81,7 +83,8 @@ class TestRunsApiController {
           returnedSubmittedTime,
           COMPLETE,
           completeStatusUpdateTime,
-          completeStatusUpdateTime);
+          completeStatusUpdateTime,
+          errorMessages);
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {
