@@ -183,8 +183,9 @@ class UnitTestRunSetsApiController {
   @Test
   void testRequestValidity() {
     CbasApiConfiguration config = new CbasApiConfiguration();
-    config.setRunSetsMaximumRecordIds(2);
     RunSetRequest request = new RunSetRequest();
+
+    config.setRunSetsMaximumRecordIds(2);
 
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1")));
     assertTrue(RunSetsApiController.requestIsValid(request, config));
