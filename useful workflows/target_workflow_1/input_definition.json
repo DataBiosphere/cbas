@@ -1,0 +1,74 @@
+[
+  {
+    "input_name": "target_workflow_1.foo.input_file_1",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_file_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_file_2",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_file_2"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_1",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_2",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_2"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_3",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_3"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_4",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_4"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_5",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_5"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_6",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_6"
+    }
+  },
+  {
+    "input_name": "target_workflow_1.foo.input_string_7",
+    "input_type": "String",
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_1_input_string_7"
+    }
+  }
+]
