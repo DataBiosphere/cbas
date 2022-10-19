@@ -56,6 +56,11 @@ public class SmartRunsPoller {
     return wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
   }
 
+  public static void addToUpdatedRunSet(Run r, Set<Run> setOfRuns, Run updatedRun) {
+    setOfRuns.remove(r);
+    setOfRuns.add(updatedRun);
+  }
+
   /**
    * Updates a list of runs by checking with the engine whether any non-terminal statuses have
    * changed and if so, updating the database.
@@ -134,12 +139,27 @@ public class SmartRunsPoller {
                 e);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
+        } else if (updatedRunState.isFailure()) {
+          try {
+            String message = cromwellService.getRunErrors(r);
+            System.out.println(message);
+            Run failedRunWithError = r.withErrorMessage(message);
+            // System.out.print(failedRunWithError);
+            addToUpdatedRunSet(r, updatedRuns, failedRunWithError);
+            //            updatedRuns.remove(r);
+            //            updatedRuns.add(failedRunWithError);
+            System.out.println(updatedRuns);
+
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         }
         logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
         var changes = runDao.updateRunStatus(r, updatedRunState);
         if (changes == 1) {
-          updatedRuns.remove(r);
-          updatedRuns.add(r.withStatus(updatedRunState));
+          addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));
+          //          updatedRuns.remove(r);
+          //          updatedRuns.add(r.withStatus(updatedRunState));
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
