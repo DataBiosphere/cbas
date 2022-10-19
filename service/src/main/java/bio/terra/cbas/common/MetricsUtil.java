@@ -26,6 +26,8 @@ public final class MetricsUtil {
   public static final String METRICS_PREFIX = "terra/cbas/";
 
   public static final String OUTBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/outbound";
+  public static final String RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS =
+      OUTBOUND_REQUEST_METRICS + "/runs-submitted-successfully-per-run-set";
   public static final String INBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/inbound";
   public static final String RECORDS_PER_REQUEST_METRICS =
       INBOUND_REQUEST_METRICS + "/records-per-request";
@@ -44,6 +46,12 @@ public final class MetricsUtil {
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(
           RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
+
+  public static final Measure.MeasureLong M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET =
+      Measure.MeasureLong.create(
+          RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS,
+          "Number of Runs submitted successfully per Run Set",
+          "runs-submitted-successfully-per-run-set");
 
   public static final TagKey TAGKEY_NAME = TagKey.create("name");
   public static final TagKey TAGKEY_STATUS = TagKey.create("status");
@@ -134,6 +142,10 @@ public final class MetricsUtil {
     return ((double) (System.nanoTime() - startTimeNs)) / 1e6;
   }
 
+  public static void recordRunsSubmittedPerRunSet(long runsSubmitted) {
+    recordTaggedStat(Map.of(), M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET, runsSubmitted);
+  }
+
   /**
    * Traverses the call stack to find the calling method, and generate a suitable value for the
    * TAGKEY_NAME tag.
@@ -202,6 +214,12 @@ public final class MetricsUtil {
               View.Name.create(RECORDS_PER_REQUEST_METRICS),
               "Stats related to inbound requests",
               M_RECORDS_PER_REQUEST,
+              recordsPerRequestDistribution,
+              List.of()),
+          View.create(
+              View.Name.create(RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS),
+              "Stats related to outbound requests",
+              M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET,
               recordsPerRequestDistribution,
               List.of())
         };

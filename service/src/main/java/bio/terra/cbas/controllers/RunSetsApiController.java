@@ -1,6 +1,7 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
+import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
@@ -16,6 +17,7 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
+import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -260,6 +262,10 @@ public class RunSetsApiController implements RunSetsApi {
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
       }
     }
+
+    long successfulRuns =
+        runStateResponseList.stream().filter(r -> r.getState() == RunState.UNKNOWN).count();
+    recordRunsSubmittedPerRunSet(successfulRuns);
 
     return runStateResponseList;
   }
