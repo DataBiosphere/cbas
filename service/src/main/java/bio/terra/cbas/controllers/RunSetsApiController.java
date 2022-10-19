@@ -91,9 +91,15 @@ public class RunSetsApiController implements RunSetsApi {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId));
       } catch (ApiException e) {
-        ErrorResponse error = gson.fromJson(e.getResponseBody(), ErrorResponse.class);
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, error.getMessage());
+        ErrorResponse error = gson.fromJson(e.getResponseBody(), ErrorResponse.class);
+        String errorMsg;
+        if (error == null) {
+          errorMsg = e.getMessage();
+        } else {
+          errorMsg = error.getMessage();
+        }
+        recordIdsWithError.put(recordId, errorMsg);
       }
     }
 

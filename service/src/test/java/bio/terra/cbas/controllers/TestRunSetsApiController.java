@@ -31,7 +31,6 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cromwell.client.ApiException;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -120,7 +119,6 @@ class TestRunSetsApiController {
     final String recordId1 = "MY_RECORD_ID_1";
     final String recordId2 = "MY_RECORD_ID_2";
     final String recordId3 = "MY_RECORD_ID_3";
-    final String recordAttribute = "MY_RECORD_ATTRIBUTE";
     final int recordAttributeValue1 = 100;
     final int recordAttributeValue2 = 200;
     final int recordAttributeValue3 = 300;
@@ -162,7 +160,9 @@ class TestRunSetsApiController {
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1)))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2)))
-        .thenThrow(new ApiException("ApiException thrown on purpose for testing purposes."));
+        .thenThrow(
+            new cromwell.client.ApiException(
+                "ApiException thrown on purpose for testing purposes."));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
@@ -234,6 +234,46 @@ class TestRunSetsApiController {
 
     verifyNoInteractions(wdsService);
     verifyNoInteractions(cromwellService);
+  }
+
+  @Test
+  void wdsRecordIdNotFoundTest() throws Exception {
+    final String recordId1 = "MY_RECORD_ID_1";
+    final String recordId2 = "MY_RECORD_ID_2";
+    final int recordAttributeValue1 = 100;
+    final int recordAttributeValue2 = 200;
+    RecordAttributes recordAttributes1 = new RecordAttributes();
+    recordAttributes1.put(recordAttribute, recordAttributeValue1);
+    RecordAttributes recordAttributes2 = new RecordAttributes();
+    recordAttributes2.put(recordAttribute, recordAttributeValue2);
+
+    String request =
+        requestTemplate.formatted(
+            workflowUrl,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));
+
+    // Set up API responses
+    when(wdsService.getRecord(recordType, recordId1))
+        .thenReturn(
+            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
+    when(wdsService.getRecord(recordType, recordId2))
+        .thenThrow(
+            new org.databiosphere.workspacedata.client.ApiException(
+                400, "ApiException thrown for testing purposes."));
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    verifyNoInteractions(cromwellService);
+    assertThat(
+        result.getResponse().getContentAsString(),
+        containsString(
+            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
   }
 
   @Test
