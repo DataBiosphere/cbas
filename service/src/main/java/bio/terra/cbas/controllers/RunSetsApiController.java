@@ -53,6 +53,10 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final Gson gson = new Gson();
+
+  private record WdsRecordResponseDetails(
+      ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
 
   public RunSetsApiController(
       CromwellService cromwellService,
@@ -73,8 +77,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    Gson gson = new Gson();
-
     // request validation
     Optional<ResponseEntity<RunSetStateResponse>> validateRequestResponse =
         validateRequest(request, this.cbasApiConfiguration.getRunSetsMaximumRecordIds());
@@ -83,30 +85,11 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Fetch WDS Records and keep track of errors while retrieving records
-    String recordType = request.getWdsRecords().getRecordType();
-    List<String> recordIds = request.getWdsRecords().getRecordIds();
-    recordRecordsInRequest(recordIds.size());
-
-    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
-    HashMap<String, String> recordIdsWithError = new HashMap<>();
-    for (String recordId : recordIds) {
-      try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId));
-      } catch (ApiException e) {
-        log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        ErrorResponse error = gson.fromJson(e.getResponseBody(), ErrorResponse.class);
-        String errorMsg;
-        if (error == null) {
-          errorMsg = e.getMessage();
-        } else {
-          errorMsg = error.getMessage();
-        }
-        recordIdsWithError.put(recordId, errorMsg);
-      }
-    }
-
-    if (recordIdsWithError.size() > 0) {
-      String errorMsg = "Error while fetching WDS Records for Record ID(s): " + recordIdsWithError;
+    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
+    if (wdsRecordResponses.recordIdsWithError.size() > 0) {
+      String errorMsg =
+          "Error while fetching WDS Records for Record ID(s): "
+              + wdsRecordResponses.recordIdsWithError;
       log.warn(errorMsg);
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
@@ -139,17 +122,17 @@ public class RunSetsApiController implements RunSetsApi {
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
-        buildInputsAndSubmitRun(request, runSet, recordResponses);
+        buildInputsAndSubmitRun(request, runSet, wdsRecordResponses.recordResponseList);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
     // Run Set as Failed
     RunSetState runSetState;
     List<RunStateResponse> runsInErrorState =
         runStateResponseList.stream()
-            .filter(run -> CbasRunStatus.fromValue(run.getState()).equals(SYSTEM_ERROR))
+            .filter(run -> CbasRunStatus.fromValue(run.getState()).inErrorState())
             .toList();
 
-    if (runsInErrorState.size() == recordIds.size()) {
+    if (runsInErrorState.size() == request.getWdsRecords().getRecordIds().size()) {
       runSetState = ERROR;
     } else runSetState = RUNNING;
 
@@ -192,6 +175,38 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     return Optional.empty();
+  }
+
+  private String getErrorMessage(ApiException exception) {
+    try {
+      ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
+      if (error != null) {
+        return error.getMessage();
+      } else {
+        return exception.getMessage();
+      }
+    } catch (Exception e) {
+      return exception.getMessage();
+    }
+  }
+
+  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
+    String recordType = request.getWdsRecords().getRecordType();
+    List<String> recordIds = request.getWdsRecords().getRecordIds();
+    recordRecordsInRequest(recordIds.size());
+
+    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
+    HashMap<String, String> recordIdsWithError = new HashMap<>();
+    for (String recordId : recordIds) {
+      try {
+        recordResponses.add(wdsService.getRecord(recordType, recordId));
+      } catch (ApiException e) {
+        log.warn("Record lookup for Record ID {} failed.", recordId, e);
+        recordIdsWithError.put(recordId, getErrorMessage(e));
+      }
+    }
+
+    return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }
 
   private RunStateResponse storeRun(
