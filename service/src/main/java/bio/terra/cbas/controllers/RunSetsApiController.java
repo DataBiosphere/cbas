@@ -5,6 +5,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -98,6 +99,7 @@ public class RunSetsApiController implements RunSetsApi {
       recordIds = request.getWdsRecords().getRecordIds();
       recordRecordsInRequest(recordIds.size());
       recordResponse = wdsService.getRecord(recordType, recordIds.get(0));
+
     } catch (ApiException e) {
       log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:
@@ -105,16 +107,17 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Build the inputs set from workflow parameter definitions and the fetched record:
-    Map<String, Object> params =
-        InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), recordResponse);
 
     UUID runId = UUID.randomUUID();
     String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
 
     // Submit the workflow and get its ID:
-    RunId workflowResponse;
+    RunId workflowResponse = null;
 
     try {
+      Map<String, Object> params =
+          InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), recordResponse);
+
       workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
     } catch (cromwell.client.ApiException e) {
       log.warn("Cromwell submission failed. ApiException", e);
@@ -138,6 +141,20 @@ public class RunSetsApiController implements RunSetsApi {
       // Should be super rare that jackson cannot convert an object to Json...
       log.warn("Failed to convert inputs object to JSON", e);
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    } catch (WorkflowAttributesNotFoundException e) {
+      log.warn("Defined attribute not found in WDS record", e);
+      String errorMessage = e.getMessage();
+      runDao.createRun(
+          new Run(
+              runId,
+              null,
+              runSet,
+              dataTableRowId,
+              OffsetDateTime.now(),
+              SYSTEM_ERROR,
+              OffsetDateTime.now(),
+              OffsetDateTime.now(),
+              errorMessage));
     }
 
     // Store the run:

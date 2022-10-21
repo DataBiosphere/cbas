@@ -1,23 +1,44 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 class TestInputGeneratorBuildInputs {
 
   static ObjectMapper objectMapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+  private String requestTemplate =
+      """
+        {
+          "workflow_url" : "www.example.com/wdls/helloworld.wdl",
+          "workflow_input_definitions" : %s,
+          "workflow_output_definitions" : [],
+          "wds_records" : {
+            "record_type" : "MY_RECORD_TYPE",
+            "record_ids" : "MY_RECORD_ID"
+          }
+        }
+        """;
+
+  @MockBean private WdsService wdsService;
+
   @Test
-  void stringLiteral() throws JsonProcessingException {
+  void stringLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalFooParameter("String", "\"hello world\"")), emptyRecord());
@@ -25,28 +46,28 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void intLiteral() throws JsonProcessingException {
+  void intLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1), actual);
   }
 
   @Test
-  void booleanLiteral() throws JsonProcessingException {
+  void booleanLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyRecord());
     assertEquals(Map.of("literal_foo", false), actual);
   }
 
   @Test
-  void floatLiteral() throws JsonProcessingException {
+  void floatLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1.1), actual);
   }
 
   @Test
-  void stringRecordLookup() throws JsonProcessingException {
+  void stringRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("String")), fooRatingRecord("\"exquisite\""));
@@ -54,7 +75,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void numberRecordLookup() throws JsonProcessingException {
+  void numberRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Int")), fooRatingRecord("1000"));
@@ -62,7 +83,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void booleanRecordLookup() throws JsonProcessingException {
+  void booleanRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Boolean")), fooRatingRecord("true"));
@@ -70,7 +91,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void floatRecordLookup() throws JsonProcessingException {
+  void floatRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Float")), fooRatingRecord("1000.0001"));
@@ -78,7 +99,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void mixedLiteralAndLookup() throws JsonProcessingException {
+  void mixedLiteralAndLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
@@ -168,5 +189,44 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim(),
         RecordResponse.class);
+  }
+
+  @Test
+  void attributeNotFound() throws Exception {
+    String rawInputDefinition =
+        """
+                [
+                {
+            "input_name" : "myworkflow.mycall.inputname2",
+            "input_type" : "Int",
+            "source" : {
+              "type" : "record_lookup",
+              "record_attribute" : "MY_RECORD_ATTRIBUTE"
+            }
+          }
+          ]
+        """
+            .stripIndent()
+            .trim();
+
+    List<WorkflowInputDefinition> inputDefinitions =
+        objectMapper.readValue(rawInputDefinition, new TypeReference<>() {});
+
+    Exception exception = null;
+
+    RecordResponse record = wdsService.getRecord("MY_RECORD_TYPE", "MY_RECORD_ID");
+
+    try {
+      RecordResponse request =
+          objectMapper.readValue(
+              requestTemplate.formatted(rawInputDefinition), RecordResponse.class);
+      InputGenerator.buildInputs(inputDefinitions, record);
+    } catch (Exception e) {
+      exception = e;
+    }
+
+    assertNotNull(exception);
+    assertTrue(exception instanceof WorkflowAttributesNotFoundException);
+    assertEquals(exception.getMessage(), "Attribute MY_ATTRIBUTE_RECORD not found in WDS lookup.");
   }
 }

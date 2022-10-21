@@ -1,5 +1,6 @@
 package bio.terra.cbas.runsets.inputs;
 
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
@@ -24,10 +25,17 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowInputDefinition> inputDefinitions, RecordResponse record) {
+      List<WorkflowInputDefinition> inputDefinitions, RecordResponse record)
+      throws WorkflowAttributesNotFoundException {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
+
+      if (!((Map<String, Object>) record.getAttributes()).containsKey(parameterName)) {
+        throw new WorkflowAttributesNotFoundException(
+            String.format("Attribute %s not found in WDS record.", parameterName));
+      }
+
       Object parameterValue;
       if (param.getSource().getType() == ParameterDefinition.TypeEnum.LITERAL) {
         parameterValue = ((ParameterDefinitionLiteralValue) param.getSource()).getParameterValue();
