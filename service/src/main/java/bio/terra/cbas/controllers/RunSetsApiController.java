@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -78,10 +77,12 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     // request validation
-    Optional<ResponseEntity<RunSetStateResponse>> validateRequestResponse =
-        validateRequest(request, this.cbasApiConfiguration.getRunSetsMaximumRecordIds());
-    if (validateRequestResponse.isPresent()) {
-      return validateRequestResponse.get();
+    List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);
+    if (!requestErrors.isEmpty()) {
+      String errorMsg = "Bad user request. Error(s): " + requestErrors;
+      log.warn(errorMsg);
+      return new ResponseEntity<>(
+          new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
     // Fetch WDS Records and keep track of errors while retrieving records
@@ -145,16 +146,16 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
-  public static Optional<ResponseEntity<RunSetStateResponse>> validateRequest(
-      RunSetRequest request, int maxRecordIds) {
-    String errorMsg = "";
+  public static List<String> validateRequest(RunSetRequest request, CbasApiConfiguration config) {
+    List<String> errorList = new ArrayList<>();
 
     // check number of Record IDs in request is within allowed limit
     int recordIdsSize = request.getWdsRecords().getRecordIds().size();
-    if (recordIdsSize > maxRecordIds) {
-      errorMsg =
-          "%s Record IDs submitted exceeds the maximum value of %s. "
-              .formatted(recordIdsSize, maxRecordIds);
+    int recordIdsMax = config.getRunSetsMaximumRecordIds();
+    if (recordIdsSize > recordIdsMax) {
+      errorList.add(
+          "%s record IDs submitted exceeds the maximum value of %s."
+              .formatted(recordIdsSize, recordIdsMax));
     }
 
     // check that there are no duplicated Record IDs present in the request
@@ -162,19 +163,10 @@ public class RunSetsApiController implements RunSetsApi {
     List<String> duplicateRecordIds =
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();
     if (duplicateRecordIds.size() > 0) {
-      errorMsg +=
-          String.format("Duplicate Record ID(s) %s present in request.", duplicateRecordIds);
+      errorList.add("Duplicate Record ID(s) %s present in request.".formatted(duplicateRecordIds));
     }
 
-    if (!errorMsg.isEmpty()) {
-      String finalErrorMsg = "Bad user request. Error(s): " + errorMsg;
-      log.warn(finalErrorMsg);
-      return Optional.of(
-          new ResponseEntity<>(
-              new RunSetStateResponse().errors(finalErrorMsg), HttpStatus.BAD_REQUEST));
-    }
-
-    return Optional.empty();
+    return errorList;
   }
 
   private String getErrorMessage(ApiException exception) {

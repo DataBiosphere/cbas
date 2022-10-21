@@ -1,14 +1,14 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.controllers.RunSetsApiController.validateRequest;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -37,7 +37,6 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -46,9 +45,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
@@ -275,40 +272,36 @@ class TestRunSetsApiController {
         containsString(
             "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
   }
+}
+
+class UnitTestRunSetsApiController {
+  private CbasApiConfiguration config = new CbasApiConfiguration();
+  private RunSetRequest request = new RunSetRequest();
 
   @Test
-  void checkInvalidRequestTest() {
-    // in this test we are only testing WDS Record IDs criteria and hence ignoring other parts of
-    // request
-    List<String> recordIds = Arrays.asList("FOO1", "FOO2", "FOO3", "FOO2");
-    WdsRecordSet wdsRecordSet = new WdsRecordSet();
-    wdsRecordSet.setRecordType("FOO");
-    wdsRecordSet.setRecordIds(recordIds);
-    RunSetRequest invalidRequest = new RunSetRequest();
-    invalidRequest.setWdsRecords(wdsRecordSet);
-    String expectedErrorMsg =
-        "Bad user request. Error(s): 4 Record IDs submitted exceeds the maximum value of 2. Duplicate Record ID(s) [FOO2] present in request.";
-
-    Optional<ResponseEntity<RunSetStateResponse>> validationResponse =
-        validateRequest(invalidRequest, 2);
-    assertNotNull(validationResponse);
-    assertEquals(HttpStatus.BAD_REQUEST, validationResponse.get().getStatusCode());
-    assertEquals(expectedErrorMsg, validationResponse.get().getBody().getErrors());
+  void testRequestValidityFewerThanMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1")));
+    assertTrue(RunSetsApiController.validateRequest(request, config).isEmpty());
   }
 
   @Test
-  void checkValidRequestTest() {
-    // in this test we are only testing WDS Record IDs criteria and hence ignoring other parts of
-    // request
-    List<String> recordIds = Arrays.asList("FOO1", "FOO2");
-    WdsRecordSet wdsRecordSet = new WdsRecordSet();
-    wdsRecordSet.setRecordType("FOO");
-    wdsRecordSet.setRecordIds(recordIds);
-    RunSetRequest invalidRequest = new RunSetRequest();
-    invalidRequest.setWdsRecords(wdsRecordSet);
+  void testRequestValidityEqualToMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2")));
+    assertTrue(RunSetsApiController.validateRequest(request, config).isEmpty());
+  }
 
-    Optional<ResponseEntity<RunSetStateResponse>> validationResponse =
-        validateRequest(invalidRequest, 2);
-    assertEquals(Optional.empty(), validationResponse);
+  @Test
+  void testRequestValidityGreaterThanMax() {
+    config.setRunSetsMaximumRecordIds(2);
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2", "r3", "r2")));
+    List<String> expected =
+        Arrays.asList(
+            "4 record IDs submitted exceeds the maximum value of 2.",
+            "Duplicate Record ID(s) [r2] present in request.");
+    List<String> actual = RunSetsApiController.validateRequest(request, config);
+    assertFalse(actual.isEmpty());
+    assertEquals(expected, actual);
   }
 }
