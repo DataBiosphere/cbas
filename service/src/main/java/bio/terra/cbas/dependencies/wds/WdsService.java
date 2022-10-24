@@ -37,25 +37,4 @@ public class WdsService {
         .createOrReplaceRecord(
             request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
   }
-
-  public boolean checkIfAttributeExists(RunSetRequest request) throws ApiException {
-
-    boolean exists = true;
-    List<AttributeSchema> wdsAttributes =
-        wdsClient
-            .schemaApi()
-            .describeRecordType(
-                wdsServerConfiguration.instanceId(),
-                wdsServerConfiguration.apiV(),
-                request.getWdsRecords().getRecordType())
-            .getAttributes();
-
-    //    for (WorkflowInputDefinition singleInputAttribute : request.getWorkflowInputDefinitions())
-    // {
-    //      if (wdsAttributes.contains(singleInputAttribute)) {
-    //        exists = false;
-    //      }
-    //    }
-    return exists;
   }
-}
