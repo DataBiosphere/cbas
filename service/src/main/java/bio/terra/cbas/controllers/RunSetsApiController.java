@@ -112,7 +112,7 @@ public class RunSetsApiController implements RunSetsApi {
     String dataTableRowId = request.getWdsRecords().getRecordIds().get(0);
 
     // Submit the workflow and get its ID:
-    RunId workflowResponse = null;
+    RunId workflowResponse;
 
     try {
       Map<String, Object> params =
@@ -155,6 +155,7 @@ public class RunSetsApiController implements RunSetsApi {
               OffsetDateTime.now(),
               OffsetDateTime.now(),
               errorMessage));
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     // Store the run:
