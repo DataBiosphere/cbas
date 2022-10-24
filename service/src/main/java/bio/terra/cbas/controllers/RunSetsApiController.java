@@ -52,7 +52,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
-  private final Gson gson = new Gson();
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -170,6 +169,7 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private String getErrorMessage(ApiException exception) {
+    Gson gson = new Gson();
     try {
       ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
       if (error != null) {
