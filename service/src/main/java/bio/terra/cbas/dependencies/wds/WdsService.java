@@ -1,10 +1,7 @@
 package bio.terra.cbas.dependencies.wds;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.cbas.model.RunSetRequest;
-import java.util.List;
 import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.AttributeSchema;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.stereotype.Component;
@@ -37,4 +34,4 @@ public class WdsService {
         .createOrReplaceRecord(
             request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
   }
-  }
+}

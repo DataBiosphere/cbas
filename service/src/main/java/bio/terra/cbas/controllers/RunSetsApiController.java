@@ -99,7 +99,6 @@ public class RunSetsApiController implements RunSetsApi {
       recordIds = request.getWdsRecords().getRecordIds();
       recordRecordsInRequest(recordIds.size());
       recordResponse = wdsService.getRecord(recordType, recordIds.get(0));
-
     } catch (ApiException e) {
       log.warn("Record lookup failed. ApiException", e);
       // In lieu of doing something smarter, forward on the error code from WDS:

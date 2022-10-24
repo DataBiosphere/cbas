@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.wds;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
 import org.databiosphere.workspacedata.api.RecordsApi;
-import org.databiosphere.workspacedata.api.SchemaApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.stereotype.Component;
 
