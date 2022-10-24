@@ -14,6 +14,9 @@ import cromwell.client.model.RunId;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -61,8 +64,9 @@ public class CromwellService {
     //    excludeKeys.add("actualWorkflowLanguage");
     //    excludeKeys.add("labels");
     //
-    //    List<String> includeKeys = Arrays.asList("submission", "failures", "status", "inputs");
+    List<String> includeKeys = Arrays.asList("submission", "failures", "status");
     //
+
     //    String[] keys = {"inputs", "submission", "executionStatus", "status"};
 
     //    includeKeys.add("inputs");
@@ -73,12 +77,19 @@ public class CromwellService {
     //    includeKeys.add("outputs");
     //    includeKeys.add("failures");
 
-    WorkflowMetadataResponse response = new WorkflowMetadataResponse();
-    String res = response.getFailures().getFailure();
+    //    WorkflowMetadataResponse response = new WorkflowMetadataResponse();
+    //    String res = response.getFailures().getFailure();
 
-    // String meta = cromwellApi.metadata("v1", run.engineId(), List.of(keys), null,
-    // null).toString();
+    WorkflowMetadataResponse meta =
+        cromwellApi.metadata(
+            "v1",
+            run.engineId(),
+            Collections.singletonList("failures"),
+            null,
+            null);
 
-    return res;
+    String failures = meta.getFailures().getFailure();
+
+    return failures;
   }
 }

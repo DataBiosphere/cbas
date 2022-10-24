@@ -22,8 +22,7 @@ public enum CbasRunStatus {
   private static final Set<CbasRunStatus> TERMINAL_STATES =
       EnumSet.of(CANCELED, COMPLETE, EXECUTOR_ERROR, SYSTEM_ERROR);
 
-  private static final Set<CbasRunStatus> FAILURE_STATES =
-      EnumSet.of(CANCELED, EXECUTOR_ERROR, SYSTEM_ERROR);
+  private static final Set<CbasRunStatus> FAILURE_STATES = EnumSet.of(EXECUTOR_ERROR, SYSTEM_ERROR);
 
   private final String value;
 
