@@ -22,6 +22,8 @@ public enum CbasRunStatus {
   private static final Set<CbasRunStatus> TERMINAL_STATES =
       EnumSet.of(CANCELED, COMPLETE, EXECUTOR_ERROR, SYSTEM_ERROR);
 
+  private static final Set<CbasRunStatus> ERROR_STATES = EnumSet.of(EXECUTOR_ERROR, SYSTEM_ERROR);
+
   private final String value;
 
   CbasRunStatus(String value) {
@@ -40,6 +42,10 @@ public enum CbasRunStatus {
 
   public boolean nonTerminal() {
     return !isTerminal();
+  }
+
+  public boolean inErrorState() {
+    return ERROR_STATES.contains(this);
   }
 
   @JsonCreator
