@@ -22,8 +22,4 @@ public class WdsClient {
   RecordsApi recordsApi() {
     return new RecordsApi(getApiClient());
   }
-
-  SchemaApi schemaApi() {
-    return new SchemaApi(getApiClient());
-  }
 }
