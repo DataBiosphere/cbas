@@ -26,7 +26,7 @@ class TestOutputGenerator {
         [
           {
             "output_name":"myWorkflow.out",
-            "output_type":"%s",
+            "output_type": { "type": "primitive", "primitive_type": "%s" },
             "record_attribute":"%s"
           }
         ]
@@ -96,12 +96,12 @@ class TestOutputGenerator {
         [
           {
             "output_name":"myWorkflow.name",
-            "output_type":"String",
+            "output_type": { "type": "primitive", "primitive_type": "String" },
             "record_attribute":"foo_name"
           },
           {
             "output_name":"myWorkflow.rating",
-            "output_type":"Float",
+            "output_type": { "type": "primitive", "primitive_type": "Float" },
             "record_attribute":"foo_rating"
           }
         ]
@@ -130,7 +130,7 @@ class TestOutputGenerator {
         [
           {
             "output_name":"myWorkflow.naem",
-            "output_type":"String",
+            "output_type": { "type": "primitive", "primitive_type": "String" },
             "record_attribute":"foo_name"
           }
         ]

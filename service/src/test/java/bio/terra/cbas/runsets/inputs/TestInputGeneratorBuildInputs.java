@@ -20,28 +20,31 @@ class TestInputGeneratorBuildInputs {
   void stringLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
-            List.of(literalFooParameter("String", "\"hello world\"")), emptyRecord());
+            List.of(literalPrimitiveFooParameter("String", "\"hello world\"")), emptyRecord());
     assertEquals(Map.of("literal_foo", "hello world"), actual);
   }
 
   @Test
   void intLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Int", "1")), emptyRecord());
+        InputGenerator.buildInputs(
+            List.of(literalPrimitiveFooParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1), actual);
   }
 
   @Test
   void booleanLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Boolean", "false")), emptyRecord());
+        InputGenerator.buildInputs(
+            List.of(literalPrimitiveFooParameter("Boolean", "false")), emptyRecord());
     assertEquals(Map.of("literal_foo", false), actual);
   }
 
   @Test
   void floatLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
-        InputGenerator.buildInputs(List.of(literalFooParameter("Float", "1.1")), emptyRecord());
+        InputGenerator.buildInputs(
+            List.of(literalPrimitiveFooParameter("Float", "1.1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1.1), actual);
   }
 
@@ -83,7 +86,7 @@ class TestInputGeneratorBuildInputs {
         InputGenerator.buildInputs(
             List.of(
                 fooRatingRecordLookupParameter("String"),
-                literalFooParameter("String", "\"hello world\"")),
+                literalPrimitiveFooParameter("String", "\"hello world\"")),
             fooRatingRecord("\"exquisite\""));
     assertEquals(
         Map.of(
@@ -93,13 +96,13 @@ class TestInputGeneratorBuildInputs {
   }
 
   // Stock Parameter definitions:
-  private static WorkflowInputDefinition literalFooParameter(
+  private static WorkflowInputDefinition literalPrimitiveFooParameter(
       String parameterType, String rawLiteralJson) throws JsonProcessingException {
     String paramDefinitionJson =
         """
         {
           "input_name": "literal_foo",
-          "input_type": "%s",
+          "input_type": { "type": "primitive", "primitive_type": "%s" },
           "source": {
             "type": "literal",
             "parameter_value": %s
@@ -118,7 +121,7 @@ class TestInputGeneratorBuildInputs {
         """
         {
           "input_name": "lookup_foo",
-          "input_type": "%s",
+          "input_type": { "type": "primitive", "primitive_type": "%s" },
           "source": {
             "type": "record_lookup",
             "record_attribute": "foo-rating"
