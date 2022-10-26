@@ -274,7 +274,7 @@ public class RunSetsApiController implements RunSetsApi {
         String errorMsg = "Attribute was not found in WDS record";
         log.warn(errorMsg, e);
         runStateResponseList.add(
-            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR,  e.getMessage()));
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }
     }
 
