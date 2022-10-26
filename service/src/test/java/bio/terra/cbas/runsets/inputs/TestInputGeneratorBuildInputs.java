@@ -223,6 +223,6 @@ class TestInputGeneratorBuildInputs {
 
     assertNotNull(exception);
     assertTrue(exception instanceof WorkflowAttributesNotFoundException);
-    assertEquals(exception.getMessage(), "Attribute not found in WDS record.");
+    assertEquals("Attribute not found in WDS record.", exception.getMessage());
   }
 }

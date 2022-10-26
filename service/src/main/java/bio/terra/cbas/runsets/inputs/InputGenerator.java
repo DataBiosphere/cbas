@@ -25,7 +25,7 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowInputDefinition> inputDefinitions, RecordResponse record)
+      List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
       throws WorkflowAttributesNotFoundException {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
@@ -37,11 +37,11 @@ public class InputGenerator {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
 
-        if (!((Map<String, Object>) record.getAttributes()).containsKey(attributeName)) {
+        if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
           throw new WorkflowAttributesNotFoundException("Attribute not found in WDS record.");
         }
 
-        parameterValue = record.getAttributes().get(attributeName);
+        parameterValue = recordResponse.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);
     }
