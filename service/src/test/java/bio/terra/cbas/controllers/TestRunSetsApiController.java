@@ -64,7 +64,10 @@ class TestRunSetsApiController {
       """
       [ {
         "output_name" : "myWorkflow.myCall.outputName1",
-        "output_type" : "String",
+        "output_type" : {
+          "type" : "primitive",
+          "primitive_type" : "String"
+        },
         "record_attribute" : "foo_rating"
       } ]""";
 
@@ -74,14 +77,14 @@ class TestRunSetsApiController {
           "workflow_url" : "%s",
           "workflow_input_definitions" : [ {
             "input_name" : "myworkflow.mycall.inputname1",
-            "input_type" : "String",
+            "input_type" : { "type": "primitive", "primitive_type": "String" },
             "source" : {
               "type" : "literal",
               "parameter_value" : "literal value"
             }
           }, {
             "input_name" : "myworkflow.mycall.inputname2",
-            "input_type" : "Int",
+            "input_type" : { "type": "primitive", "primitive_type": "Int" },
             "source" : {
               "type" : "record_lookup",
               "record_attribute" : "MY_RECORD_ATTRIBUTE"
