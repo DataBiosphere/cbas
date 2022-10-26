@@ -181,10 +181,10 @@ class TestInputGeneratorBuildInputs {
             [
               {
                 "input_name": "lookup_foo",
-                "input_type": "String",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
                 "source": {
                   "type": "record_lookup",
-                  "record_attribute": "foo-rating"
+                  "record_attribute": "foo_rating"
                 }
               }
             ]
