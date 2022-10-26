@@ -30,17 +30,17 @@ public class InputGenerator {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
-
-      if (!((Map<String, Object>) record.getAttributes()).containsKey(parameterName)) {
-        throw new WorkflowAttributesNotFoundException("Attribute not found in WDS record.");
-      }
-
       Object parameterValue;
       if (param.getSource().getType() == ParameterDefinition.TypeEnum.LITERAL) {
         parameterValue = ((ParameterDefinitionLiteralValue) param.getSource()).getParameterValue();
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
+
+        if (!((Map<String, Object>) record.getAttributes()).containsKey(attributeName)) {
+          throw new WorkflowAttributesNotFoundException("Attribute not found in WDS record.");
+        }
+
         parameterValue = record.getAttributes().get(attributeName);
       }
       params.put(parameterName, parameterValue);

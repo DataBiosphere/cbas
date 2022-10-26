@@ -125,8 +125,8 @@ public class RunSetsApiController implements RunSetsApi {
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(request, runSet, wdsRecordResponses.recordResponseList);
 
-    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
-    // Run Set as Failed
+    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
+    // the Run Set as Failed
     RunSetState runSetState;
     List<RunStateResponse> runsInErrorState =
         runStateResponseList.stream()
@@ -171,49 +171,8 @@ public class RunSetsApiController implements RunSetsApi {
 
   private String getErrorMessage(ApiException exception) {
     Gson gson = new Gson();
+
     try {
-      Map<String, Object> params =
-          InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), recordResponse);
-
-      workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), params);
-    } catch (cromwell.client.ApiException e) {
-      log.warn("Cromwell submission failed. ApiException", e);
-      String errorMessage;
-      errorMessage = e.getMessage();
-      runDao.createRun(
-          new Run(
-              runId,
-              null,
-              runSet,
-              dataTableRowId,
-              OffsetDateTime.now(),
-              SYSTEM_ERROR,
-              OffsetDateTime.now(),
-              OffsetDateTime.now(),
-              errorMessage));
-      // TODO: After WM-1448 completes, add nicer-looking return response that returns
-      //  the error to the user immediately
-      return new ResponseEntity<>(HttpStatus.valueOf(e.getCode()));
-    } catch (JsonProcessingException e) {
-      // Should be super rare that jackson cannot convert an object to Json...
-      log.warn("Failed to convert inputs object to JSON", e);
-      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    } catch (WorkflowAttributesNotFoundException e) {
-      log.warn("Defined attribute not found in WDS record", e);
-      String errorMessage = e.getMessage();
-      runDao.createRun(
-          new Run(
-              runId,
-              null,
-              runSet,
-              dataTableRowId,
-              OffsetDateTime.now(),
-              SYSTEM_ERROR,
-              OffsetDateTime.now(),
-              OffsetDateTime.now(),
-              errorMessage));
-      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
       ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
       if (error != null) {
         return error.getMessage();
@@ -284,14 +243,15 @@ public class RunSetsApiController implements RunSetsApi {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     for (RecordResponse record : recordResponses) {
-      // Build the inputs set from workflow parameter definitions and the fetched record
-      Map<String, Object> workflowInputs =
-          InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
       // Submit the workflow, get its ID and store the Run to database
       RunId workflowResponse;
       UUID runId = UUID.randomUUID();
       try {
+        // Build the inputs set from workflow parameter definitions and the fetched record
+        Map<String, Object> workflowInputs =
+            InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
+
         workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), workflowInputs);
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
@@ -307,6 +267,11 @@ public class RunSetsApiController implements RunSetsApi {
         String errorMsg =
             String.format(
                 "Failed to convert inputs object to JSON for Record ID %s.", record.getId());
+        log.warn(errorMsg, e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
+      } catch (WorkflowAttributesNotFoundException e) {
+        String errorMsg = "Attribute was not found in WDS record";
         log.warn(errorMsg, e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
