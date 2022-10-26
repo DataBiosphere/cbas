@@ -18,7 +18,7 @@ dependencies {
     implementation "org.broadinstitute.cromwell:cromwell-client_2.13:0.1-2eb5843a8-SNAP"
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
-    implementation 'org.databiosphere:workspacedataservice-client:0.1.49-SNAPSHOT'
+    implementation 'org.databiosphere:workspacedataservice-client:0.1.56-SNAPSHOT'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
