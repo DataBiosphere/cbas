@@ -143,9 +143,6 @@ class TestInputGeneratorBuildInputs {
           "id": "FOO1",
           "type": "FOO",
           "attributes": {
-          },
-          "metadata": {
-            "provenance": "TODO: RECORDMETADATA"
           }
         }"""
             .stripIndent()
@@ -162,9 +159,6 @@ class TestInputGeneratorBuildInputs {
           "type": "FOO",
           "attributes": {
             "foo-rating": %s
-          },
-          "metadata": {
-            "provenance": "TODO: RECORDMETADATA"
           }
         }"""
             .formatted(rawAttributeJson)
