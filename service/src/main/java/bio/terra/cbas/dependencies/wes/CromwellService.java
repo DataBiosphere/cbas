@@ -18,11 +18,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class CromwellService {
-
-  static ObjectMapper objectMapper =
-      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   private final CromwellClient cromwellClient;
   private final CromwellServerConfiguration cromwellConfig;
 
