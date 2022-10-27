@@ -18,7 +18,10 @@ public class OutputGenerator {
       Object outputValue;
 
       if (!((Map<String, Object>) cromwellOutputs).containsKey(outputName)) {
-        if (outputDefinition.getOutputType().getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
+        if (outputDefinition
+            .getOutputType()
+            .getType()
+            .equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
           outputValue = null;
         } else {
           throw new WorkflowOutputNotFoundException(
