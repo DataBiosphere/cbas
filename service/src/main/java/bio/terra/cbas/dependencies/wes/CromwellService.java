@@ -13,10 +13,7 @@ import cromwell.client.api.WorkflowsApi;
 import cromwell.client.model.RunId;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -52,44 +49,15 @@ public class CromwellService {
     return cromwellClient.wesAPI().getRunLog(id).getOutputs();
   }
 
-  public String getRunErrors(Run run) throws ApiException, IOException {
+  public String getRunErrors(Run run) throws ApiException {
     ApiClient client = new ApiClient();
     client.setBasePath(this.cromwellConfig.baseUri());
     WorkflowsApi cromwellApi = new WorkflowsApi(client);
 
-    //    List<String> excludeKeys = new ArrayList<>();
-    //    excludeKeys.add("workflowProcessingEvents");
-    //    excludeKeys.add("actualWorkflowLanguageVersion");
-    //    excludeKeys.add("submittedFiles");
-    //    excludeKeys.add("actualWorkflowLanguage");
-    //    excludeKeys.add("labels");
-    //
-    List<String> includeKeys = Arrays.asList("submission", "failures", "status");
-    //
-
-    //    String[] keys = {"inputs", "submission", "executionStatus", "status"};
-
-    //    includeKeys.add("inputs");
-    //    includeKeys.add("submission");
-    //    includeKeys.add("status");
-    //    includeKeys.add("start");
-    //    includeKeys.add("end");
-    //    includeKeys.add("outputs");
-    //    includeKeys.add("failures");
-
-    //    WorkflowMetadataResponse response = new WorkflowMetadataResponse();
-    //    String res = response.getFailures().getFailure();
-
     WorkflowMetadataResponse meta =
         cromwellApi.metadata(
-            "v1",
-            run.engineId(),
-            Collections.singletonList("failures"),
-            null,
-            null);
+            "v1", run.engineId(), Collections.singletonList("failure"), null, null);
 
-    String failures = meta.getFailures().getFailure();
-
-    return failures;
+    return meta.getFailures().get(0).getCausedBy().get(0).getMessage();
   }
 }

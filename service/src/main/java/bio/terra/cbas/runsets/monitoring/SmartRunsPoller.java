@@ -142,14 +142,8 @@ public class SmartRunsPoller {
         } else if (updatedRunState.isFailure()) {
           try {
             String message = cromwellService.getRunErrors(r);
-            System.out.println(message);
             Run failedRunWithError = r.withErrorMessage(message);
-            // System.out.print(failedRunWithError);
             addToUpdatedRunSet(r, updatedRuns, failedRunWithError);
-            //            updatedRuns.remove(r);
-            //            updatedRuns.add(failedRunWithError);
-            System.out.println(updatedRuns);
-
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -158,8 +152,6 @@ public class SmartRunsPoller {
         var changes = runDao.updateRunStatus(r, updatedRunState);
         if (changes == 1) {
           addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));
-          //          updatedRuns.remove(r);
-          //          updatedRuns.add(r.withStatus(updatedRunState));
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
