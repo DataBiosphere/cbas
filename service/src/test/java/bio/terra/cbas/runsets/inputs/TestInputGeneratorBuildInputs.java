@@ -29,7 +29,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void intLiteral() throws Exception {
+  void intLiteral() throws JsonProcessingException, Exception {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalPrimitiveFooParameter("Int", "1")), emptyRecord());
