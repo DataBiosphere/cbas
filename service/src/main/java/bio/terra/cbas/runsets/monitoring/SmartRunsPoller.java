@@ -148,7 +148,12 @@ public class SmartRunsPoller {
             throw new RuntimeException(e);
           }
         }
-        logger.debug("Updating status of Run {} (engine ID {})", r.id(), r.engineId());
+        logger.debug(
+            "Updating status of Run {} (engine ID {}) from {} to {}",
+            r.id(),
+            r.engineId(),
+            r.status(),
+            updatedRunState);
         var changes = runDao.updateRunStatus(r, updatedRunState);
         if (changes == 1) {
           addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));

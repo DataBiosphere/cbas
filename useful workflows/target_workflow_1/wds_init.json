@@ -1,0 +1,13 @@
+{
+  "attributes": {
+    "target_workflow_1_input_file_1": "string",
+    "target_workflow_1_input_file_2": "string",
+    "target_workflow_1_input_string_1": "string",
+    "target_workflow_1_input_string_2": "string",
+    "target_workflow_1_input_string_3": "string",
+    "target_workflow_1_input_string_4": "string",
+    "target_workflow_1_input_string_5": "string",
+    "target_workflow_1_input_string_6": "string",
+    "target_workflow_1_input_string_7": "string"
+  }
+}
