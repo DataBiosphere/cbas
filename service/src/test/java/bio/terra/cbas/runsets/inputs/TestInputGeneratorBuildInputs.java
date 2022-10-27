@@ -197,9 +197,6 @@ class TestInputGeneratorBuildInputs {
           "type": "FOO",
           "attributes": {
             "MY_RECORD_ATTRIBUTE": "Hello, world"
-          },
-          "metadata": {
-            "provenance": "TODO: RECORDMETADATA"
           }
         }
         """
