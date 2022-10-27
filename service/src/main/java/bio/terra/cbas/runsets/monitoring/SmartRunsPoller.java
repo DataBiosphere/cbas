@@ -144,7 +144,7 @@ public class SmartRunsPoller {
             String message = cromwellService.getRunErrors(r);
             Run failedRunWithError = r.withErrorMessage(message);
             addToUpdatedRunSet(r, updatedRuns, failedRunWithError);
-          } catch (Exception e) {
+          } catch (ApiException e) {
             throw new RuntimeException(e);
           }
         }
