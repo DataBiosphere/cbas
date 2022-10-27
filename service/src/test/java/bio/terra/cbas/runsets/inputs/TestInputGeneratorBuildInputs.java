@@ -1,7 +1,7 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
@@ -207,16 +207,11 @@ class TestInputGeneratorBuildInputs {
     List<WorkflowInputDefinition> inputDefinitions =
         objectMapper.readValue(incorrectAttributeDefinition, new TypeReference<>() {});
 
-    Exception exception = null;
-
-    try {
-      InputGenerator.buildInputs(inputDefinitions, recordResponse);
-    } catch (Exception e) {
-      exception = e;
-    }
-
-    assertNotNull(exception);
-    assertTrue(exception instanceof WorkflowAttributesNotFoundException);
-    assertEquals("Attribute not found in WDS record.", exception.getMessage());
+    WorkflowAttributesNotFoundException thrown =
+        assertThrows(
+            WorkflowAttributesNotFoundException.class,
+            () -> InputGenerator.buildInputs(inputDefinitions, recordResponse),
+            "Expected buildInputs() to throw and error, but didn't.");
+    assertTrue(thrown.getMessage().contains("Attribute not found in WDS record."));
   }
 }
