@@ -139,7 +139,7 @@ public class SmartRunsPoller {
                 e);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
-        } else if (updatedRunState.isFailure()) {
+        } else if (updatedRunState.inErrorState()) {
           try {
             String message = cromwellService.getRunErrors(r);
             Run failedRunWithError = r.withErrorMessage(message);
