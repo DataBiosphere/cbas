@@ -110,6 +110,6 @@ class TestOutputGeneratorPrimitives {
 
     assertNotNull(exception);
     assertTrue(exception instanceof WorkflowOutputNotFoundException);
-    assertEquals(exception.getMessage(), "Output myWorkflow.naem not found in workflow outputs.");
+    assertEquals("Output myWorkflow.naem not found in workflow outputs.", exception.getMessage());
   }
 }
