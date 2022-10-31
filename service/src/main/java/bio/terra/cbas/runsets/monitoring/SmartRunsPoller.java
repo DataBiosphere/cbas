@@ -53,7 +53,8 @@ public class SmartRunsPoller {
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
 
-    logger.info("Updating output attributes for Record ID {} from Run {}", run.recordId(), run.engineId());
+    logger.info(
+        "Updating output attributes for Record ID {} from Run {}", run.recordId(), run.engineId());
 
     return wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
   }
