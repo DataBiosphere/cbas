@@ -301,4 +301,54 @@ public class TestSmartRunsPoller {
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
   }
+
+  @Test
+  void shouldNotCallWDSIfOutputsEmpty() throws Exception {
+    CromwellService cromwellService = mock(CromwellService.class);
+    RunDao runsDao = mock(RunDao.class);
+    WdsService wdsService = mock(WdsService.class);
+    SmartRunsPoller smartRunsPoller =
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+
+    String outputDefinition = "[]";
+    RunSet runSet =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
+    Run runToUpdate1 =
+        new Run(
+            runningRunId1,
+            runningRunEngineId1,
+            runSet,
+            runningRunEntityId1,
+            runSubmittedTime,
+            RUNNING,
+            runningRunStatusUpdateTime,
+            runningRunStatusUpdateTime,
+            errorMessages);
+
+    RecordAttributes mockAttributes = new RecordAttributes();
+    mockAttributes.put("foo_name", "Hello batch!");
+    RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+
+    when(cromwellService.runStatus(eq(runningRunEngineId1)))
+        .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.COMPLETE));
+    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(COMPLETE))).thenReturn(1);
+
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1));
+
+    verify(cromwellService).runStatus(eq(runningRunEngineId1));
+    verify(runsDao).updateRunStatus(eq(runToUpdate1), eq(COMPLETE));
+    verify(wdsService, never())
+        .updateRecord(
+            eq(mockRequest),
+            eq(runToUpdate1.runSet().method().recordType()),
+            eq(runToUpdate1.recordId()));
+
+    assertEquals(1, actual.size());
+    assertEquals(
+        COMPLETE,
+        actual.stream().filter(r -> r.id().equals(runningRunId1)).toList().get(0).status());
+  }
 }

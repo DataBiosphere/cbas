@@ -47,12 +47,14 @@ public class SmartRunsPoller {
     this.objectMapper = objectMapper;
   }
 
-  public RecordResponse updateOutputAttributes(Run run) throws Exception {
-    List<WorkflowOutputDefinition> outputDefinitionList =
-        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+  public RecordResponse updateOutputAttributes(
+      Run run, List<WorkflowOutputDefinition> outputDefinitionList) throws Exception {
     Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
+
+    logger.info("Updating output attributes for Record ID {} from Run {}", run.recordId(), run.engineId());
+
     return wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
   }
 
@@ -122,7 +124,12 @@ public class SmartRunsPoller {
       if (r.status() != updatedRunState) {
         if (updatedRunState == CbasRunStatus.COMPLETE) {
           try {
-            updateOutputAttributes(r);
+            List<WorkflowOutputDefinition> outputDefinitionList =
+                objectMapper.readValue(
+                    r.runSet().method().outputDefinition(), new TypeReference<>() {});
+            if (!outputDefinitionList.isEmpty()) {
+              updateOutputAttributes(r, outputDefinitionList);
+            }
           } catch (Exception e) {
             // log error and mark Run as Failed
             // TODO: When epic WM-1433 is being worked on, add error message in database stating
