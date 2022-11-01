@@ -43,7 +43,7 @@ public class InputGenerator {
       // Convert into an appropriate CbasValue:
       CbasValue cbasValue = CbasValue.parseValue(param.getInputType(), parameterValue);
 
-      params.put(parameterName, cbasValue.asCromwellInput());
+      params.put(parameterName, cbasValue.asSerializableValue());
     }
     return params;
   }

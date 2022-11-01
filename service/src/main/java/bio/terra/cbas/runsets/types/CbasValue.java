@@ -5,7 +5,7 @@ import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 
 public interface CbasValue {
-  Object asCromwellInput();
+  Object asSerializableValue();
 
   static CbasValue parseValue(ParameterTypeDefinition parameterType, Object value)
       throws CoercionException {

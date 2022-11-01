@@ -17,7 +17,7 @@ class TestCoercions {
             new ParameterTypeDefinitionPrimitive().primitiveType(PrimitiveParameterValueType.FILE),
             input);
     assertThat(actual, instanceOf(CbasFile.class));
-    assertEquals(actual.asCromwellInput(), input);
+    assertEquals(actual.asSerializableValue(), input);
   }
 
   @Test

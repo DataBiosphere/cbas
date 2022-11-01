@@ -11,7 +11,7 @@ public class CbasBoolean implements CbasValue {
   }
 
   @Override
-  public Object asCromwellInput() {
+  public Object asSerializableValue() {
     return value;
   }
 
