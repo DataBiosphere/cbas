@@ -19,6 +19,7 @@ import io.opencensus.tags.Tags;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class MetricsUtil {
   private MetricsUtil() {}
@@ -147,7 +148,7 @@ public final class MetricsUtil {
             TAGKEY_STATUS,
             OutcomeStatus.SUCCESS,
             TAGKEY_FILE_SCHEME,
-            scheme,
+            Optional.ofNullable(scheme).orElse("/"),
             TAGKEY_FILE_FROM_TYPE,
             fromType),
         M_FILE_PARSED_COUNT,
