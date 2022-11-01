@@ -7,11 +7,13 @@ import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWit
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.runsets.types.CoercionException;
+import bio.terra.cbas.runsets.types.ValueCoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestInputGeneratorBuildPrimitiveInputs {
@@ -31,7 +33,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   void intLiteral() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(fooRatingLiteralParameter("Int", "1")), emptyRecord());
-    assertEquals(Map.of("literal_foo", 1), actual);
+    assertEquals(Map.of("literal_foo", 1L), actual);
   }
 
   @Test
@@ -51,6 +53,24 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
+  void validFileLiteral() throws JsonProcessingException, CoercionException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(fooRatingLiteralParameter("File", "\"gs://bucket/file.txt\"")), emptyRecord());
+    assertEquals(Map.of("literal_foo", "gs://bucket/file.txt"), actual);
+  }
+
+  @Test
+  void invalidFileLiteral() {
+
+    Assertions.assertThrows(
+        ValueCoercionException.class,
+        () ->
+            InputGenerator.buildInputs(
+                List.of(fooRatingLiteralParameter("File", "\"not a file\"")), emptyRecord()));
+  }
+
+  @Test
   void stringRecordLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
@@ -64,7 +84,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Int")), wdsRecordWithFooRating("1000"));
-    assertEquals(Map.of("lookup_foo", 1000), actual);
+    assertEquals(Map.of("lookup_foo", 1000L), actual);
   }
 
   @Test
