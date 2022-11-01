@@ -15,6 +15,11 @@ public class CbasInt implements CbasValue {
     return value;
   }
 
+  @Override
+  public long countFiles() {
+    return 0L;
+  }
+
   public static CbasInt parse(Object value) throws CoercionException {
     if (value instanceof Integer i) {
       return new CbasInt(i.longValue());

@@ -12,4 +12,9 @@ public class CbasOptionalSome implements CbasOptional {
   public Object asSerializableValue() {
     return value.asSerializableValue();
   }
+
+  @Override
+  public long countFiles() {
+    return value.countFiles();
+  }
 }

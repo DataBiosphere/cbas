@@ -15,6 +15,11 @@ public class CbasFloat implements CbasValue {
     return value;
   }
 
+  @Override
+  public long countFiles() {
+    return 0L;
+  }
+
   public static CbasFloat parse(Object value) throws CoercionException {
     if (value instanceof Float f) {
       return new CbasFloat(f.doubleValue());

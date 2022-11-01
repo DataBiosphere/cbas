@@ -15,6 +15,11 @@ public class CbasString implements CbasValue {
     return value;
   }
 
+  @Override
+  public long countFiles() {
+    return 0L;
+  }
+
   public static CbasString parse(Object value) {
     return new CbasString(value.toString());
   }

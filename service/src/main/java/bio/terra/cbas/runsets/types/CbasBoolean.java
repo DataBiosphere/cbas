@@ -15,6 +15,11 @@ public class CbasBoolean implements CbasValue {
     return value;
   }
 
+  @Override
+  public long countFiles() {
+    return 0L;
+  }
+
   public static CbasBoolean parse(Object value) throws CoercionException {
     if (value instanceof Boolean b) {
       return new CbasBoolean(b);

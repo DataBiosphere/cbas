@@ -21,6 +21,11 @@ public class CbasFile implements CbasValue {
     return value;
   }
 
+  @Override
+  public long countFiles() {
+    return 1L;
+  }
+
   public static CbasFile parse(Object value) throws CoercionException {
     String fromType = value.getClass().getSimpleName();
     String toType = "File";

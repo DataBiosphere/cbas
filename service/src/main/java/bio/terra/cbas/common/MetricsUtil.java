@@ -46,7 +46,8 @@ public final class MetricsUtil {
       Measure.MeasureLong.create(EVENT_METRICS, "Counter for various events", "occurrences");
 
   public static final Measure.MeasureLong M_FILE_PARSED_COUNT =
-      Measure.MeasureLong.create(EVENT_METRICS, "Counter for file parse operations", "occurrences");
+      Measure.MeasureLong.create(
+          FILE_PARSE_METRICS, "Counter for file parse operations", "occurrences");
 
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(

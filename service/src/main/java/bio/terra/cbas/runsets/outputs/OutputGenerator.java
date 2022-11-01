@@ -1,5 +1,7 @@
 package bio.terra.cbas.runsets.outputs;
 
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
+
 import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
@@ -34,6 +36,7 @@ public class OutputGenerator {
       }
 
       var coercedValue = CbasValue.parseValue(outputDefinition.getOutputType(), outputValue);
+      increaseEventCounter("files-updated-in-wds", coercedValue.countFiles());
 
       String attributeName = outputDefinition.getRecordAttribute();
       outputRecordAttributes.put(attributeName, coercedValue.asSerializableValue());
