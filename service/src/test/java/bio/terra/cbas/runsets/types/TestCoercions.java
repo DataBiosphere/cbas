@@ -9,7 +9,7 @@ import bio.terra.cbas.model.PrimitiveParameterValueType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class TestCoercions {
+class TestCoercions {
 
   void testValidStringFileCoercion(String input) throws CoercionException {
     var actual =

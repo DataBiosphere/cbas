@@ -22,19 +22,21 @@ public class CbasFile implements CbasValue {
   }
 
   public static CbasFile parse(Object value) throws CoercionException {
+    String fromType = value.getClass().getSimpleName();
+    String toType = "File";
     if (value instanceof String strValue) {
       try {
         URI uri = new URI(strValue);
-        incrementSuccessfulFileParseCounter(uri.getScheme(), "String");
+        incrementSuccessfulFileParseCounter(uri.getScheme(), fromType);
         return new CbasFile(uri.toString());
       } catch (URISyntaxException e) {
-        incrementUnsuccessfulFileParseCounter("String");
-        throw new ValueCoercionException("String", "File", e.getMessage());
+        incrementUnsuccessfulFileParseCounter(fromType);
+        throw new ValueCoercionException(fromType, toType, e.getMessage());
       }
     } else if (value instanceof CbasFile fileValue) {
       return new CbasFile(fileValue.value);
     } else {
-      throw new TypeCoercionException(value, "String");
+      throw new TypeCoercionException(value, toType);
     }
   }
 }

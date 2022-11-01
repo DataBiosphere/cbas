@@ -5,7 +5,7 @@ public abstract class CoercionException extends Exception {
   private final String toType;
   private final String reason;
 
-  public CoercionException(String fromType, String toType, String reason) {
+  protected CoercionException(String fromType, String toType, String reason) {
     this.fromType = fromType;
     this.toType = toType;
     this.reason = reason;

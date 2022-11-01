@@ -26,7 +26,7 @@ public class InputGenerator {
           .build();
 
   public static Map<String, Object> buildInputs(
-      List<WorkflowInputDefinition> inputDefinitions, RecordResponse record)
+      List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
       throws CoercionException {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
@@ -37,7 +37,7 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
-        parameterValue = record.getAttributes().get(attributeName);
+        parameterValue = recordResponse.getAttributes().get(attributeName);
       }
 
       // Convert into an appropriate CbasValue:
