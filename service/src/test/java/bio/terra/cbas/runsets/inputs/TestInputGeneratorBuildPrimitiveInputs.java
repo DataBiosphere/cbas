@@ -6,6 +6,7 @@ import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +20,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
-  void stringLiteral() throws JsonProcessingException {
+  void stringLiteral() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("String", "\"hello world\"")), emptyRecord());
@@ -27,14 +28,14 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void intLiteral() throws JsonProcessingException {
+  void intLiteral() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(fooRatingLiteralParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1), actual);
   }
 
   @Test
-  void booleanLiteral() throws JsonProcessingException {
+  void booleanLiteral() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("Boolean", "false")), emptyRecord());
@@ -42,7 +43,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void floatLiteral() throws JsonProcessingException {
+  void floatLiteral() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("Float", "1.1")), emptyRecord());
@@ -50,7 +51,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void stringRecordLookup() throws JsonProcessingException {
+  void stringRecordLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("String")),
@@ -59,7 +60,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void numberRecordLookup() throws JsonProcessingException {
+  void numberRecordLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Int")), wdsRecordWithFooRating("1000"));
@@ -67,7 +68,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void booleanRecordLookup() throws JsonProcessingException {
+  void booleanRecordLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Boolean")), wdsRecordWithFooRating("true"));
@@ -75,7 +76,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void floatRecordLookup() throws JsonProcessingException {
+  void floatRecordLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Float")), wdsRecordWithFooRating("1000.0001"));
@@ -83,7 +84,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void mixedLiteralAndLookup() throws JsonProcessingException {
+  void mixedLiteralAndLookup() throws JsonProcessingException, CoercionException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
