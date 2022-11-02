@@ -30,8 +30,9 @@ public final class MetricsUtil {
   public static final String RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS =
       OUTBOUND_REQUEST_METRICS + "/runs-submitted-successfully-per-run-set";
   public static final String INBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/inbound";
+  public static final String RECORDS_PER_REQUEST_UNIT = "records-per-request";
   public static final String RECORDS_PER_REQUEST_METRICS =
-      INBOUND_REQUEST_METRICS + "/records-per-request";
+      INBOUND_REQUEST_METRICS + "/" + RECORDS_PER_REQUEST_UNIT;
   public static final String METHOD_METRICS = METRICS_PREFIX + "method";
   public static final String EVENT_METRICS = METRICS_PREFIX + "event";
   public static final String FILE_PARSE_METRICS = EVENT_METRICS + "/files/parsed";
@@ -50,19 +51,21 @@ public final class MetricsUtil {
 
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(
-          RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of record IDs per request",
+          RECORDS_PER_REQUEST_UNIT);
 
   public static final Measure.MeasureLong M_INPUTS_PER_REQUEST =
       Measure.MeasureLong.create(
           RECORDS_PER_REQUEST_METRICS,
           "Number of defined inputs per request",
-          "records-per-request");
+          RECORDS_PER_REQUEST_UNIT);
 
   public static final Measure.MeasureLong M_OUTPUTS_PER_REQUEST =
       Measure.MeasureLong.create(
           RECORDS_PER_REQUEST_METRICS,
           "Number of defined outputs per request",
-          "records-per-request");
+          RECORDS_PER_REQUEST_UNIT);
 
   public static final Measure.MeasureLong M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET =
       Measure.MeasureLong.create(
