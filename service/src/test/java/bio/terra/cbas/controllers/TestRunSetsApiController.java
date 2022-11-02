@@ -368,7 +368,7 @@ class TestRunSetsApiControllerUnits {
     assertFalse(actualErrorList.isEmpty());
     assertTrue(actualErrorList.contains(expectedOutputError));
     assertTrue(actualErrorList.contains(expectedInputError));
-    assertEquals(actualErrorList.size(), 2);
+    assertEquals(2, actualErrorList.size());
   }
 
   @Test
