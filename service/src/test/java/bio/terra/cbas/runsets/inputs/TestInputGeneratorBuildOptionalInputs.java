@@ -21,7 +21,8 @@ class TestInputGeneratorBuildOptionalInputs {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
-  void optionalStringProvided() throws JsonProcessingException, CoercionException {
+  void optionalStringProvided()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")),
@@ -30,7 +31,8 @@ class TestInputGeneratorBuildOptionalInputs {
   }
 
   @Test
-  void optionalStringNotProvided() throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+  void optionalStringNotProvided()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")), emptyRecord());

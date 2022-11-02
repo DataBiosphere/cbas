@@ -44,8 +44,6 @@ public class InputGenerator {
           throw new WorkflowAttributesNotFoundException(
               attributeName, recordResponse.getId(), parameterName);
         }
-
-        parameterValue = recordResponse.getAttributes().get(attributeName);
       }
 
       // Convert into an appropriate CbasValue:
