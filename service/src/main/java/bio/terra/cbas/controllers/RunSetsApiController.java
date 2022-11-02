@@ -201,10 +201,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // check that the number of outputs does not exceed their maximum allowed values
-    int numWorkflowOutputs =
-        request
-            .getWorkflowOutputDefinitions()
-            .size(); // are these the right objects to be counting?
+    int numWorkflowOutputs = request.getWorkflowOutputDefinitions().size();
     int maxWorkflowOutputs = config.getMaxWorkflowOutputs();
     if (numWorkflowOutputs > maxWorkflowOutputs) {
       errorList.add(
