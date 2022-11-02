@@ -196,7 +196,7 @@ public class RunSetsApiController implements RunSetsApi {
     int maxWorkflowInputs = config.getMaxWorkflowInputs();
     if (numWorkflowInputs > maxWorkflowInputs) {
       errorList.add(
-          "Number of defined inputs (%s) exceeds maximum value %s"
+          "Number of defined inputs (%s) exceeds maximum value (%s)"
               .formatted(numWorkflowInputs, maxWorkflowInputs));
     }
 
@@ -205,7 +205,7 @@ public class RunSetsApiController implements RunSetsApi {
     int maxWorkflowOutputs = config.getMaxWorkflowOutputs();
     if (numWorkflowOutputs > maxWorkflowOutputs) {
       errorList.add(
-          "Number of defined outputs (%s) exceeds maximum value %s"
+          "Number of defined outputs (%s) exceeds maximum value (%s)"
               .formatted(numWorkflowOutputs, maxWorkflowOutputs));
     }
 

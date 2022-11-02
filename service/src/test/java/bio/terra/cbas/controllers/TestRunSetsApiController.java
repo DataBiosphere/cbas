@@ -313,15 +313,16 @@ class TestRunSetsApiControllerUnits {
   void testRequestInputsGreaterThanMax() {
     final CbasApiConfiguration config = new CbasApiConfiguration();
     final RunSetRequest request = new RunSetRequest();
-    config.setMaxWorkflowInputs(1);
-    config.setMaxWorkflowOutputs(5);
-
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
     request.setWorkflowOutputDefinitions(
         List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+
+    config.setMaxWorkflowInputs(1);
+    config.setMaxWorkflowOutputs(5);
+
     List<String> expectedErrorList =
-        Arrays.asList("Number of defined inputs (2) exceeds maximum value 1");
+        Arrays.asList("Number of defined inputs (2) exceeds maximum value (1)");
     List<String> actualErrorList =
         RunSetsApiController.validateRequestInputsAndOutputs(request, config);
     assertFalse(actualErrorList.isEmpty());
