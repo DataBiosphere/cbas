@@ -328,4 +328,63 @@ class TestRunSetsApiControllerUnits {
     assertFalse(actualErrorList.isEmpty());
     assertEquals(expectedErrorList, actualErrorList);
   }
+
+  @Test
+  void testRequestOutputsGreaterThanMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    request.setWorkflowOutputDefinitions(
+        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+
+    config.setMaxWorkflowInputs(5);
+    config.setMaxWorkflowOutputs(1);
+
+    List<String> expectedErrorList =
+        Arrays.asList("Number of defined outputs (2) exceeds maximum value (1)");
+    List<String> actualErrorList =
+        RunSetsApiController.validateRequestInputsAndOutputs(request, config);
+    assertFalse(actualErrorList.isEmpty());
+    assertEquals(expectedErrorList, actualErrorList);
+  }
+
+  @Test
+  void testRequestInputsAndOutputsGreaterThanMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    request.setWorkflowOutputDefinitions(
+        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+
+    config.setMaxWorkflowInputs(1);
+    config.setMaxWorkflowOutputs(1);
+
+    String expectedOutputError = "Number of defined outputs (2) exceeds maximum value (1)";
+    String expectedInputError = "Number of defined inputs (2) exceeds maximum value (1)";
+    List<String> actualErrorList =
+        RunSetsApiController.validateRequestInputsAndOutputs(request, config);
+    assertFalse(actualErrorList.isEmpty());
+    assertTrue(actualErrorList.contains(expectedOutputError));
+    assertTrue(actualErrorList.contains(expectedInputError));
+    assertTrue(actualErrorList.size() == 2);
+  }
+
+  @Test
+  void testRequestInputsAndOutputsEqualToMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    request.setWorkflowOutputDefinitions(
+        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+
+    config.setMaxWorkflowInputs(2);
+    config.setMaxWorkflowOutputs(2);
+
+    List<String> actualErrorList =
+        RunSetsApiController.validateRequestInputsAndOutputs(request, config);
+    assertTrue(actualErrorList.isEmpty());
+  }
 }
