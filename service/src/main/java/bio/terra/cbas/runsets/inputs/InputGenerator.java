@@ -4,6 +4,7 @@ import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
+import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.runsets.types.CbasValue;
 import bio.terra.cbas.runsets.types.CoercionException;
@@ -38,12 +39,16 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
-        parameterValue = recordResponse.getAttributes().get(attributeName);
 
         if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
-          throw new WorkflowAttributesNotFoundException(
-              attributeName, recordResponse.getId(), parameterName);
+          if (param.getInputType().getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
+            parameterValue = null;
+          } else {
+            throw new WorkflowAttributesNotFoundException(
+                attributeName, recordResponse.getId(), parameterName);
+          }
         }
+        parameterValue = recordResponse.getAttributes().get(attributeName);
       }
 
       // Convert into an appropriate CbasValue:

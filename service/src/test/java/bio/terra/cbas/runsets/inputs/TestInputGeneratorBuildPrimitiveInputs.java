@@ -134,7 +134,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void invalidAttribute() throws Exception {
+  void invalidAttribute() throws JsonProcessingException {
     String incorrectAttributeDefinition =
         """
             [
