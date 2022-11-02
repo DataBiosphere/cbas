@@ -1,8 +1,10 @@
 package bio.terra.cbas.runsets.inputs;
 
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
+import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.runsets.types.CbasValue;
 import bio.terra.cbas.runsets.types.CoercionException;
@@ -27,7 +29,7 @@ public class InputGenerator {
 
   public static Map<String, Object> buildInputs(
       List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
-      throws CoercionException {
+      throws CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
@@ -38,6 +40,15 @@ public class InputGenerator {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
         parameterValue = recordResponse.getAttributes().get(attributeName);
+
+        if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
+          if (param.getInputType().getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
+            parameterValue = null;
+          } else {
+            throw new WorkflowAttributesNotFoundException(
+                attributeName, recordResponse.getId(), parameterName);
+          }
+        }
       }
 
       // Convert into an appropriate CbasValue:

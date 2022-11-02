@@ -5,6 +5,7 @@ import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -20,7 +21,8 @@ class TestInputGeneratorBuildOptionalInputs {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
-  void optionalStringProvided() throws JsonProcessingException, CoercionException {
+  void optionalStringProvided()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")),
@@ -29,7 +31,8 @@ class TestInputGeneratorBuildOptionalInputs {
   }
 
   @Test
-  void optionalStringNotProvided() throws JsonProcessingException, CoercionException {
+  void optionalStringNotProvided()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")), emptyRecord());

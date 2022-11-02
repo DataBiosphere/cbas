@@ -8,6 +8,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -125,8 +126,8 @@ public class RunSetsApiController implements RunSetsApi {
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(request, runSet, wdsRecordResponses.recordResponseList);
 
-    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
-    // Run Set as Failed
+    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
+    // the Run Set as Failed
     RunSetState runSetState;
     List<RunStateResponse> runsInErrorState =
         runStateResponseList.stream()
@@ -277,6 +278,11 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn(errorMsg, e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
+      } catch (WorkflowAttributesNotFoundException e) {
+        String errorMsg = "Attribute was not found in WDS record";
+        log.warn(errorMsg, e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }
     }
 
