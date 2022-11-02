@@ -5,6 +5,8 @@ import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.WorkflowInputDefinition;
+import bio.terra.cbas.runsets.types.CbasValue;
+import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -26,7 +28,7 @@ public class InputGenerator {
 
   public static Map<String, Object> buildInputs(
       List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
-      throws WorkflowAttributesNotFoundException {
+      throws CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
@@ -36,6 +38,7 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
+        parameterValue = recordResponse.getAttributes().get(attributeName);
 
         if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
           throw new WorkflowAttributesNotFoundException(
@@ -44,7 +47,11 @@ public class InputGenerator {
 
         parameterValue = recordResponse.getAttributes().get(attributeName);
       }
-      params.put(parameterName, parameterValue);
+
+      // Convert into an appropriate CbasValue:
+      CbasValue cbasValue = CbasValue.parseValue(param.getInputType(), parameterValue);
+
+      params.put(parameterName, cbasValue.asCromwellInput());
     }
     return params;
   }

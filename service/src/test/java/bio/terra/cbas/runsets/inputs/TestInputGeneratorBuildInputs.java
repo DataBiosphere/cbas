@@ -1,13 +1,9 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -21,7 +17,7 @@ class TestInputGeneratorBuildInputs {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
-  void stringLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void stringLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalPrimitiveFooParameter("String", "\"hello world\"")), emptyRecord());
@@ -29,7 +25,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void intLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void intLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalPrimitiveFooParameter("Int", "1")), emptyRecord());
@@ -37,7 +33,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void booleanLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void booleanLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalPrimitiveFooParameter("Boolean", "false")), emptyRecord());
@@ -45,7 +41,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void floatLiteral() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void floatLiteral() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(literalPrimitiveFooParameter("Float", "1.1")), emptyRecord());
@@ -53,7 +49,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void stringRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void stringRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("String")), fooRatingRecord("\"exquisite\""));
@@ -61,7 +57,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void numberRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void numberRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Int")), fooRatingRecord("1000"));
@@ -69,7 +65,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void booleanRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void booleanRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Boolean")), fooRatingRecord("true"));
@@ -77,7 +73,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void floatRecordLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void floatRecordLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Float")), fooRatingRecord("1000.0001"));
@@ -85,7 +81,7 @@ class TestInputGeneratorBuildInputs {
   }
 
   @Test
-  void mixedLiteralAndLookup() throws JsonProcessingException, WorkflowAttributesNotFoundException {
+  void mixedLiteralAndLookup() throws JsonProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
@@ -169,54 +165,5 @@ class TestInputGeneratorBuildInputs {
             .stripIndent()
             .trim(),
         RecordResponse.class);
-  }
-
-  @Test
-  void invalidAttribute() throws Exception {
-    String incorrectAttributeDefinition =
-        """
-            [
-              {
-                "input_name": "lookup_foo",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "foo_rating"
-                }
-              }
-            ]
-          """
-            .stripIndent()
-            .trim();
-
-    RecordResponse recordResponse =
-        objectMapper.readValue(
-            """
-        {
-          "id": "FOO1",
-          "type": "FOO",
-          "attributes": {
-            "MY_RECORD_ATTRIBUTE": "Hello, world"
-          }
-        }
-        """
-                .trim()
-                .stripIndent(),
-            RecordResponse.class);
-
-    List<WorkflowInputDefinition> inputDefinitions =
-        objectMapper.readValue(incorrectAttributeDefinition, new TypeReference<>() {});
-
-    WorkflowAttributesNotFoundException thrown =
-        assertThrows(
-            WorkflowAttributesNotFoundException.class,
-            () -> InputGenerator.buildInputs(inputDefinitions, recordResponse),
-            "Expected buildInputs() to throw and error, but didn't.");
-    assertTrue(
-        thrown
-            .getMessage()
-            .contains(
-                "Attribute %s not found in WDS record %s (to populate workflow input %s)."
-                    .formatted("foo_rating", "FOO1", "lookup_foo")));
   }
 }

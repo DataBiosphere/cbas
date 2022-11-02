@@ -25,6 +25,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -171,7 +172,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   private String getErrorMessage(ApiException exception) {
     Gson gson = new Gson();
-
     try {
       ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
       if (error != null) {
@@ -243,18 +243,26 @@ public class RunSetsApiController implements RunSetsApi {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     for (RecordResponse record : recordResponses) {
-
-      // Submit the workflow, get its ID and store the Run to database
       RunId workflowResponse;
       UUID runId = UUID.randomUUID();
+
       try {
         // Build the inputs set from workflow parameter definitions and the fetched record
         Map<String, Object> workflowInputs =
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
+        // Submit the workflow, get its ID and store the Run to database
         workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), workflowInputs);
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
+      } catch (CoercionException e) {
+        String errorMsg =
+            String.format(
+                "Input generation failed for record %s. Coercion error: %s",
+                record.getId(), e.getMessage());
+        log.warn(errorMsg, e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
       } catch (cromwell.client.ApiException e) {
         String errorMsg =
             String.format(

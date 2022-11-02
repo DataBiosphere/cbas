@@ -71,7 +71,7 @@ class TestRunSetsApiController {
         "record_attribute" : "foo_rating"
       } ]""";
 
-  private String requestTemplate =
+  private final String requestTemplate =
       """
         {
           "workflow_url" : "%s",
@@ -132,13 +132,13 @@ class TestRunSetsApiController {
     final String cromwellWorkflowId3 = UUID.randomUUID().toString();
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
     workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap1.put("myworkflow.mycall.inputname2", 100);
+    workflowInputsMap1.put("myworkflow.mycall.inputname2", 100L);
     HashMap<String, Object> workflowInputsMap2 = new HashMap<>();
     workflowInputsMap2.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap2.put("myworkflow.mycall.inputname2", 200);
+    workflowInputsMap2.put("myworkflow.mycall.inputname2", 200L);
     HashMap<String, Object> workflowInputsMap3 = new HashMap<>();
     workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap3.put("myworkflow.mycall.inputname2", 300);
+    workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
     String request =
         requestTemplate.formatted(
             workflowUrl,
@@ -222,8 +222,6 @@ class TestRunSetsApiController {
   void tooManyRecordIds() throws Exception {
     final String recordIds = "[ \"RECORD1\", \"RECORD2\", \"RECORD3\", \"RECORD4\" ]";
     final int recordAttributeValue = 100;
-    RecordAttributes recordAttributes = new RecordAttributes();
-    recordAttributes.put(recordAttribute, recordAttributeValue);
 
     String request =
         requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);
@@ -244,8 +242,6 @@ class TestRunSetsApiController {
     final int recordAttributeValue2 = 200;
     RecordAttributes recordAttributes1 = new RecordAttributes();
     recordAttributes1.put(recordAttribute, recordAttributeValue1);
-    RecordAttributes recordAttributes2 = new RecordAttributes();
-    recordAttributes2.put(recordAttribute, recordAttributeValue2);
 
     String request =
         requestTemplate.formatted(
@@ -277,14 +273,14 @@ class TestRunSetsApiController {
   }
 }
 
-class UnitTestRunSetsApiController {
-  private CbasApiConfiguration config = new CbasApiConfiguration();
-  private RunSetRequest request = new RunSetRequest();
+class TestRunSetsApiControllerUnits {
+  private final CbasApiConfiguration config = new CbasApiConfiguration();
+  private final RunSetRequest request = new RunSetRequest();
 
   @Test
   void testRequestValidityFewerThanMax() {
     config.setRunSetsMaximumRecordIds(2);
-    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1")));
+    request.setWdsRecords(new WdsRecordSet().recordIds(List.of("r1")));
     assertTrue(RunSetsApiController.validateRequest(request, config).isEmpty());
   }
 
