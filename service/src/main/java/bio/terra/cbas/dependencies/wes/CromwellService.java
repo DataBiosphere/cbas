@@ -4,9 +4,7 @@ import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
-import cromwell.client.api.WorkflowsApi;
 import cromwell.client.model.RunId;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
@@ -43,13 +41,11 @@ public class CromwellService {
   }
 
   public String getRunErrors(Run run) throws ApiException {
-    ApiClient client = new ApiClient();
-    client.setBasePath(this.cromwellConfig.baseUri());
-    WorkflowsApi cromwellApi = new WorkflowsApi(client);
 
     WorkflowMetadataResponse meta =
-        cromwellApi.metadata(
-            "v1", run.engineId(), Collections.singletonList("failure"), null, null);
+        cromwellConfig
+            .workflowsApi()
+            .metadata("v1", run.engineId(), Collections.singletonList("failure"), null, null);
 
     return meta.getFailures().get(0).getCausedBy().get(0).getMessage();
   }
