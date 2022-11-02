@@ -39,6 +39,7 @@ public class InputGenerator {
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
+        parameterValue = recordResponse.getAttributes().get(attributeName);
 
         if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
           if (param.getInputType().getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
@@ -48,7 +49,6 @@ public class InputGenerator {
                 attributeName, recordResponse.getId(), parameterName);
           }
         }
-        parameterValue = recordResponse.getAttributes().get(attributeName);
       }
 
       // Convert into an appropriate CbasValue:
