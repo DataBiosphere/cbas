@@ -27,6 +27,8 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
+import bio.terra.cbas.model.WorkflowInputDefinition;
+import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -274,33 +276,55 @@ class TestRunSetsApiController {
 }
 
 class TestRunSetsApiControllerUnits {
-  private final CbasApiConfiguration config = new CbasApiConfiguration();
-  private final RunSetRequest request = new RunSetRequest();
-
   @Test
   void testRequestValidityFewerThanMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
     config.setRunSetsMaximumRecordIds(2);
     request.setWdsRecords(new WdsRecordSet().recordIds(List.of("r1")));
-    assertTrue(RunSetsApiController.validateRequest(request, config).isEmpty());
+    assertTrue(RunSetsApiController.validateRequestRecordIds(request, config).isEmpty());
   }
 
   @Test
   void testRequestValidityEqualToMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
     config.setRunSetsMaximumRecordIds(2);
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2")));
-    assertTrue(RunSetsApiController.validateRequest(request, config).isEmpty());
+    assertTrue(RunSetsApiController.validateRequestRecordIds(request, config).isEmpty());
   }
 
   @Test
   void testRequestValidityGreaterThanMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
     config.setRunSetsMaximumRecordIds(2);
     request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2", "r3", "r2")));
     List<String> expected =
         Arrays.asList(
             "4 record IDs submitted exceeds the maximum value of 2.",
             "Duplicate Record ID(s) [r2] present in request.");
-    List<String> actual = RunSetsApiController.validateRequest(request, config);
+    List<String> actual = RunSetsApiController.validateRequestRecordIds(request, config);
     assertFalse(actual.isEmpty());
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void testRequestInputsGreaterThanMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
+    config.setMaxWorkflowInputs(1);
+    config.setMaxWorkflowOutputs(5);
+
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    request.setWorkflowOutputDefinitions(
+        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+    List<String> expectedErrorList =
+        Arrays.asList("Number of defined inputs (2) exceeds maximum value 1");
+    List<String> actualErrorList =
+        RunSetsApiController.validateRequestInputsAndOutputs(request, config);
+    assertFalse(actualErrorList.isEmpty());
+    assertEquals(expectedErrorList, actualErrorList);
   }
 }

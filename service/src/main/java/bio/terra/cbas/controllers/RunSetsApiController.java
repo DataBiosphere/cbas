@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
+import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.ERROR;
@@ -77,6 +79,9 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    // request metrics (before validation)
+    captureRequestMetrics(request);
+
     // request validation
     List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);
     if (!requestErrors.isEmpty()) {
@@ -147,7 +152,20 @@ public class RunSetsApiController implements RunSetsApi {
         HttpStatus.OK);
   }
 
+  public static void captureRequestMetrics(RunSetRequest request) {
+    recordInputsInRequest(request.getWorkflowInputDefinitions().size());
+    recordOutputsInRequest(request.getWorkflowOutputDefinitions().size());
+  }
+
   public static List<String> validateRequest(RunSetRequest request, CbasApiConfiguration config) {
+    List<String> errorList = new ArrayList<>();
+    errorList.addAll(validateRequestRecordIds(request, config));
+    errorList.addAll(validateRequestInputsAndOutputs(request, config));
+    return errorList;
+  }
+
+  public static List<String> validateRequestRecordIds(
+      RunSetRequest request, CbasApiConfiguration config) {
     List<String> errorList = new ArrayList<>();
 
     // check number of Record IDs in request is within allowed limit
@@ -165,6 +183,33 @@ public class RunSetsApiController implements RunSetsApi {
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();
     if (duplicateRecordIds.size() > 0) {
       errorList.add("Duplicate Record ID(s) %s present in request.".formatted(duplicateRecordIds));
+    }
+    return errorList;
+  }
+
+  public static List<String> validateRequestInputsAndOutputs(
+      RunSetRequest request, CbasApiConfiguration config) {
+    List<String> errorList = new ArrayList<>();
+
+    // check that the number of outputs does not exceed their maximum allowed values
+    int numWorkflowInputs = request.getWorkflowInputDefinitions().size();
+    int maxWorkflowInputs = config.getMaxWorkflowInputs();
+    if (numWorkflowInputs > maxWorkflowInputs) {
+      errorList.add(
+          "Number of defined inputs (%s) exceeds maximum value %s"
+              .formatted(numWorkflowInputs, maxWorkflowInputs));
+    }
+
+    // check that the number of outputs does not exceed their maximum allowed values
+    int numWorkflowOutputs =
+        request
+            .getWorkflowOutputDefinitions()
+            .size(); // are these the right objects to be counting?
+    int maxWorkflowOutputs = config.getMaxWorkflowOutputs();
+    if (numWorkflowOutputs > maxWorkflowOutputs) {
+      errorList.add(
+          "Number of defined outputs (%s) exceeds maximum value %s"
+              .formatted(numWorkflowOutputs, maxWorkflowOutputs));
     }
 
     return errorList;

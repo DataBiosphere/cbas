@@ -52,6 +52,18 @@ public final class MetricsUtil {
       Measure.MeasureLong.create(
           RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
 
+  public static final Measure.MeasureLong M_INPUTS_PER_REQUEST =
+      Measure.MeasureLong.create(
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of defined inputs per request",
+          "records-per-request");
+
+  public static final Measure.MeasureLong M_OUTPUTS_PER_REQUEST =
+      Measure.MeasureLong.create(
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of defined outputs per request",
+          "records-per-request");
+
   public static final Measure.MeasureLong M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET =
       Measure.MeasureLong.create(
           RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS,
@@ -136,6 +148,14 @@ public final class MetricsUtil {
 
   public static void recordRecordsInRequest(long numRecordIds) {
     recordTaggedStat(Map.of(), M_RECORDS_PER_REQUEST, numRecordIds);
+  }
+
+  public static void recordInputsInRequest(long numDefinedInputs) {
+    recordTaggedStat(Map.of(), M_INPUTS_PER_REQUEST, numDefinedInputs);
+  }
+
+  public static void recordOutputsInRequest(long numDefinedOutputs) {
+    recordTaggedStat(Map.of(), M_OUTPUTS_PER_REQUEST, numDefinedOutputs);
   }
 
   public static void increaseEventCounter(String eventName, long count) {
