@@ -38,7 +38,8 @@ public class InputGenerator {
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();
 
         if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
-          throw new WorkflowAttributesNotFoundException("Attribute not found in WDS record.");
+          throw new WorkflowAttributesNotFoundException(
+              attributeName, recordResponse.getId(), parameterName);
         }
 
         parameterValue = recordResponse.getAttributes().get(attributeName);
