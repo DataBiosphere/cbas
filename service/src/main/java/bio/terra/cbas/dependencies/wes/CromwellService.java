@@ -5,15 +5,19 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
+import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CromwellService {
+
+  private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
   private final CromwellServerConfiguration cromwellConfig;
 
@@ -47,6 +51,36 @@ public class CromwellService {
             .workflowsApi()
             .metadata("v1", run.engineId(), Collections.singletonList("failure"), null, null);
 
-    return meta.getFailures().get(0).getCausedBy().get(0).getMessage();
+    return getErrorMessage(meta.getFailures());
+    //    return meta.getFailures().get(0).getCausedBy().get(0).getMessage();
+    // test for if it isn't failed
+  }
+
+  public static String getErrorMessage(List<FailureMessage> failureMessages) {
+
+    if (failureMessages == null || failureMessages.isEmpty()) {
+      return "";
+    }
+
+    String failureMessage =
+        failureMessages.get(0).getMessage() == null ? "" : failureMessages.get(0).getMessage();
+    String causedByMessage = getErrorMessage(failureMessages.get(0).getCausedBy());
+
+    StringBuilder sb = new StringBuilder();
+
+    if (failureMessage.length() > MAX_ALLOWED_CHARACTERS) {
+      sb.append(failureMessages.get(0).getMessage(), 0, MAX_ALLOWED_CHARACTERS - 3);
+      sb.append("...");
+    } else {
+      sb.append(failureMessage);
+
+      if (!causedByMessage.isEmpty()) {
+        sb.append(" (");
+        sb.append(causedByMessage);
+        sb.append(")");
+      }
+    }
+
+    return sb.toString();
   }
 }

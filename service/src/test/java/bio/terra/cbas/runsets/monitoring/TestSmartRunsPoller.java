@@ -301,4 +301,9 @@ public class TestSmartRunsPoller {
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
   }
+
+  @Test
+  void failWithDatabaseError() throws Exception {
+    CromwellService cromwellService = mock(CromwellService.class);
+  }
 }

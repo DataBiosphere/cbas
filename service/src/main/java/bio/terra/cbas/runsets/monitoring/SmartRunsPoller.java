@@ -144,8 +144,8 @@ public class SmartRunsPoller {
             String message = cromwellService.getRunErrors(r);
             Run failedRunWithError = r.withErrorMessage(message);
             addToUpdatedRunSet(r, updatedRuns, failedRunWithError);
-          } catch (ApiException e) {
-            throw new RuntimeException(e);
+          } catch (Exception e) {
+            logger.error("Error running workflow {} in Cromwell.", r.id(), e);
           }
         }
         logger.debug(
