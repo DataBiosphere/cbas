@@ -24,7 +24,7 @@ public class CbasBoolean implements CbasValue {
     if (value instanceof Boolean b) {
       return new CbasBoolean(b);
     } else {
-      throw new TypeCoercionException(value, "Int");
+      throw new TypeCoercionException(value, "Boolean");
     }
   }
 }

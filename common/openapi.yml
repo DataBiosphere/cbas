@@ -187,11 +187,13 @@ components:
       oneOf:
         - $ref: '#/components/schemas/ParameterTypeDefinitionPrimitive'
         - $ref: '#/components/schemas/ParameterTypeDefinitionOptional'
+        - $ref: '#/components/schemas/ParameterTypeDefinitionArray'
       discriminator:
         propertyName: "type"
         mapping:
           primitive: 'ParameterTypeDefinitionPrimitive'
           optional: 'ParameterTypeDefinitionOptional'
+          array: 'ParameterTypeDefinitionArray'
 
     PrimitiveParameterValueType:
       title: PrimitiveParameterValueType
@@ -220,6 +222,15 @@ components:
       properties:
         # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
         optional_type:
+          $ref: ParameterTypeDefinition
+
+    ParameterTypeDefinitionArray:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterTypeDefinition'
+      properties:
+        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
+        array_type:
           $ref: ParameterTypeDefinition
 
     # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can
