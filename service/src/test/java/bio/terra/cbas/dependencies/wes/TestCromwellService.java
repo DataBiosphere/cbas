@@ -41,8 +41,8 @@ public class TestCromwellService {
   @Test
   void oneFailureOneCausedByShorterThan100() {
 
-    String failureMessage = "aaaaaaa";
-    String causedByMessage = "bbbbbbb";
+    String failureMessage = "Workflow input processing failed";
+    String causedByMessage = "Required workflow input 'wf_hello.hello.addressee' not specified";
 
     List<FailureMessage> input =
         List.of(
@@ -50,7 +50,8 @@ public class TestCromwellService {
                 .message(failureMessage)
                 .causedBy(List.of(new FailureMessage().message(causedByMessage))));
 
-    String expected = "aaaaaaa (bbbbbbb)";
+    String expected =
+        "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified)";
     String actual = CromwellService.getErrorMessage(input);
 
     assertEquals(expected, actual);

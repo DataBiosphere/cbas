@@ -29,6 +29,7 @@ import cromwell.client.model.State;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import cromwell.client.model.WorkflowMetadataResponse;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.junit.jupiter.api.Test;
@@ -303,7 +304,33 @@ public class TestSmartRunsPoller {
   }
 
   @Test
-  void failWithDatabaseError() throws Exception {
+  void databaseUpdatedWithCromwellError() throws Exception {
+
     CromwellService cromwellService = mock(CromwellService.class);
+    RunDao runsDao = mock(RunDao.class);
+    WdsService wdsService = mock(WdsService.class);
+    SmartRunsPoller smartRunsPoller =
+        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+
+    String cromwellError = """
+        "failures": [
+            {
+              "causedBy": [
+                {
+                  "causedBy": [],
+                  "message": "Required workflow input 'wf_hello.hello.addressee' not specified"
+                }
+              ],
+              "message": "Workflow input processing failed"
+            }
+          ]
+          """;
+
+    Gson object = new Gson();
+
+    String cromwellErrorLog = object.fromJson(cromwellError, WorkflowMetadataResponse.class);
+
+    when(cromwellService.getRunErrors(eq(runToUpdate1))).thenReturn(cromwellErrorLog);
+
   }
 }
