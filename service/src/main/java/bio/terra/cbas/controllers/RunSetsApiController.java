@@ -79,7 +79,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    // request metrics (before validation)
     captureRequestMetrics(request);
 
     // request validation
@@ -143,18 +142,28 @@ public class RunSetsApiController implements RunSetsApi {
       runSetState = ERROR;
     } else runSetState = RUNNING;
 
-    // Return the result
-    return new ResponseEntity<>(
+    RunSetStateResponse response =
         new RunSetStateResponse()
             .runSetId(runSetId.toString())
             .runs(runStateResponseList)
-            .state(runSetState),
-        HttpStatus.OK);
+            .state(runSetState);
+
+    captureResponseMetrics(response);
+
+    // Return the result
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   public static void captureRequestMetrics(RunSetRequest request) {
     recordInputsInRequest(request.getWorkflowInputDefinitions().size());
     recordOutputsInRequest(request.getWorkflowOutputDefinitions().size());
+    recordRecordsInRequest(request.getWdsRecords().getRecordIds().size());
+  }
+
+  public static void captureResponseMetrics(RunSetStateResponse response) {
+    long successfulRuns =
+        response.getRuns().stream().filter(r -> r.getState() == RunState.UNKNOWN).count();
+    recordRunsSubmittedPerRunSet(successfulRuns);
   }
 
   public static List<String> validateRequest(RunSetRequest request, CbasApiConfiguration config) {
@@ -228,12 +237,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
     String recordType = request.getWdsRecords().getRecordType();
-    List<String> recordIds = request.getWdsRecords().getRecordIds();
-    recordRecordsInRequest(recordIds.size());
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
-    for (String recordId : recordIds) {
+    for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId));
       } catch (ApiException e) {
@@ -327,10 +334,6 @@ public class RunSetsApiController implements RunSetsApi {
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }
     }
-
-    long successfulRuns =
-        runStateResponseList.stream().filter(r -> r.getState() == RunState.UNKNOWN).count();
-    recordRunsSubmittedPerRunSet(successfulRuns);
 
     return runStateResponseList;
   }
