@@ -68,19 +68,20 @@ public class CromwellService {
 
     StringBuilder sb = new StringBuilder();
 
-    if (failureMessage.length() > MAX_ALLOWED_CHARACTERS) {
-      sb.append(failureMessages.get(0).getMessage(), 0, MAX_ALLOWED_CHARACTERS - 3);
-      sb.append("...");
-    } else {
-      sb.append(failureMessage);
+    sb.append(failureMessage);
 
-      if (!causedByMessage.isEmpty()) {
-        sb.append(" (");
-        sb.append(causedByMessage);
-        sb.append(")");
-      }
+    if (!causedByMessage.isEmpty()) {
+      sb.append(" (");
+      sb.append(causedByMessage);
+      sb.append(")");
     }
 
-    return sb.toString();
+    String result = sb.toString();
+
+    if (result.length() > MAX_ALLOWED_CHARACTERS) {
+      return result.substring(0, MAX_ALLOWED_CHARACTERS - 3) + "...";
+    } else {
+      return result;
+    }
   }
 }

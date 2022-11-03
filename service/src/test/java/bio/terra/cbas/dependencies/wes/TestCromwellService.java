@@ -56,17 +56,61 @@ public class TestCromwellService {
     assertEquals(expected, actual);
   }
 
-  //  @Test
-  //  void combinedCharLengthReturnsCorrectMessage() {
-  //
-  //    List<FailureMessage> input = List.of(new FailureMessage()
-  //        .message(String.valueOf(new char[80]).replace('\0', 'a'))
-  //        .causedBy(List.of(new FailureMessage().message(String.valueOf(new
-  // char[25]).replace('\0', 'b')))));
-  //
-  //    String expectedChars = new String(new char[97]);
-  //    String expected = expectedChars + "...";
-  //  }
+  @Test
+  void oneFailureLongerThan100AndOneCausedBy() {
+
+    String failureMessage =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 110 as
+    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 bs
+
+    List<FailureMessage> input =
+        List.of(
+            new FailureMessage()
+                .message(failureMessage)
+                .causedBy(List.of(new FailureMessage().message(causedByMessage))));
+
+    String expected =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa...";
+    String actual = CromwellService.getErrorMessage(input);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void oneFailureOneCausedByLongerThan100() {
+
+    String failureMessage =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 80 as
+    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 bs
+
+    List<FailureMessage> input =
+        List.of(
+            new FailureMessage()
+                .message(failureMessage)
+                .causedBy(List.of(new FailureMessage().message(causedByMessage))));
+
+    String expected =
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (bbbbbbbbbbbbbbb...";
+    String actual = CromwellService.getErrorMessage(input);
+
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void combinedCharLengthReturnsCorrectMessage() {
+
+    List<FailureMessage> input =
+        List.of(
+            new FailureMessage()
+                .message(String.valueOf(new char[80]).replace('\0', 'a'))
+                .causedBy(
+                    List.of(
+                        new FailureMessage()
+                            .message(String.valueOf(new char[25]).replace('\0', 'b')))));
+
+    String expectedChars = new String(new char[97]);
+    String expected = expectedChars + "...";
+  }
 
   // null
   // empty array
