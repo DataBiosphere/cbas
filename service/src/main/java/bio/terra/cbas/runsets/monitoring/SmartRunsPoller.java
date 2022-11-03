@@ -5,6 +5,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 import static java.util.stream.Collectors.groupingBy;
 
+import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -12,6 +13,7 @@ import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.outputs.OutputGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -21,7 +23,6 @@ import java.util.Map;
 import java.util.Set;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
-import org.databiosphere.workspacedata.model.RecordResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -47,16 +48,27 @@ public class SmartRunsPoller {
     this.objectMapper = objectMapper;
   }
 
-  public RecordResponse updateOutputAttributes(
-      Run run, List<WorkflowOutputDefinition> outputDefinitionList) throws Exception {
+  public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
+    List<WorkflowOutputDefinition> outputDefinitionList =
+        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+
+    return !outputDefinitionList.isEmpty();
+  }
+
+  public void updateOutputAttributes(Run run)
+      throws WorkflowOutputNotFoundException, ApiException, JsonProcessingException,
+          org.databiosphere.workspacedata.client.ApiException {
+    List<WorkflowOutputDefinition> outputDefinitionList =
+        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+
     Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
 
-    logger.info(
+    logger.debug(
         "Updating output attributes for Record ID {} from Run {}", run.recordId(), run.engineId());
 
-    return wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
+    wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
   }
 
   /**
@@ -125,11 +137,10 @@ public class SmartRunsPoller {
       if (r.status() != updatedRunState) {
         if (updatedRunState == CbasRunStatus.COMPLETE) {
           try {
-            List<WorkflowOutputDefinition> outputDefinitionList =
-                objectMapper.readValue(
-                    r.runSet().method().outputDefinition(), new TypeReference<>() {});
-            if (!outputDefinitionList.isEmpty()) {
-              updateOutputAttributes(r, outputDefinitionList);
+            // we only write back output attributes to WDS if output definition is not empty. This
+            // is to avoid sending empty PATCH requests to WDS
+            if (hasOutputDefinition(r)) {
+              updateOutputAttributes(r);
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
