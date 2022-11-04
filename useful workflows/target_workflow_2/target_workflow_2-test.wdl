@@ -10,7 +10,7 @@ workflow assemble_refbased {
 
     input {
         Array[File]+ file_array
-        File         file_array[0]
+        File         required_file
         String       first_file_name = basename(file_array[0], '.txt')
 
         String       optional_string = "foo"
@@ -23,60 +23,60 @@ workflow assemble_refbased {
 
 
     output {
-        File        result_file_1                                = file_array[0]
-        File        result_file_2                                = file_array[0]
-        Int         result_int_1                                 = optional_int
-        Int         result_int_2                                 = optional_int
-        Int         result_int_3                                 = optional_int
-        Float       result_float_1                               = optional_float
-        Int         result_int_4                             = call_consensus.dist_to_ref_snps
-        Int         result_int_5                           = call_consensus.dist_to_ref_indels
+        File                        result_file_1           = file_array[0]
+        File                        result_file_2           = file_array[0]
+        Int                         result_int_1            = optional_int
+        Int                         result_int_2            = optional_int
+        Int                         result_int_3            = optional_int
+        Float                       result_float_1          = optional_float
+        Int                         result_int_4            = optional_int
+        Int                         result_int_5            = optional_int
         
-        Array[Int]                result_int_array      = [optional_int]
-        Array[Float]              result_float_array    = [optional_float]
-        Array[Map[String,String]] ivar_trim_stats                = ivar_stats
-        Array[Array[String]]      ivar_trim_stats_tsv            = ivar_stats_row
+        Array[Int]                  result_int_array_1      = [optional_int]
+        Array[Float]                result_float_array      = [optional_float]
+        Array[Map[String,String]]   array_of_maps_of_str    = [{required_file: optional_string}]
+        Array[Array[String]]        array_of_arrays_of_str  = [[optional_string]]
         
-        Int         replicate_concordant_sites                   = run_discordance.concordant_sites
-        Int         replicate_discordant_snps                    = run_discordance.discordant_snps
-        Int         replicate_discordant_indels                  = run_discordance.discordant_indels
-        Int         num_read_groups                              = run_discordance.num_read_groups
-        Int         num_libraries                                = run_discordance.num_libraries
-        File        replicate_discordant_vcf                     = run_discordance.discordant_sites_vcf
+        Int                         result_int_6            = optional_int
+        Int                         result_int_7            = optional_int
+        Int                         result_int_8            = optional_int
+        Int                         result_int_9            = optional_int
+        Int                         result_int_10           = optional_int
+        File                        result_file_3           = required_file
         
-        Array[File] align_to_ref_per_input_aligned_flagstat      = align_to_ref.aligned_bam_flagstat
-        Array[Int]  align_to_ref_per_input_reads_provided        = align_to_ref.reads_provided
-        Array[Int]  align_to_ref_per_input_reads_aligned         = align_to_ref.reads_aligned
-        Array[File] align_to_ref_per_input_fastqc                = align_to_ref.aligned_only_reads_fastqc
+        Array[File]                 result_file_array_1     = [required_file]
+        Array[Int]                  result_int_array_2      = [optional_int]
+        Array[Int]                  result_int_array_2      = [optional_int]
+        Array[File]                 result_file_array_2     = [required_file]
         
-        File        align_to_ref_merged_aligned_trimmed_only_bam = aligned_trimmed_bam
-        File        align_to_ref_merged_coverage_plot            = plot_ref_coverage.coverage_plot
-        File        align_to_ref_merged_coverage_tsv             = plot_ref_coverage.coverage_tsv
-        Int         align_to_ref_merged_reads_aligned            = plot_ref_coverage.reads_aligned
-        Int         align_to_ref_merged_read_pairs_aligned       = plot_ref_coverage.read_pairs_aligned
-        Float       align_to_ref_merged_bases_aligned            = plot_ref_coverage.bases_aligned
-        File        align_to_ref_isnvs_vcf                       = isnvs_ref.report_vcf
+        File                        result_file_4           = required_file
+        File                        result_file_5           = required_file
+        File                        result_file_6           = required_file
+        Int                         result_int_11           = optional_int
+        Int                         result_int_12           = optional_int
+        Float                       result_float_2          = optional_float
+        File                        result_file_7           = required_file
         
-        File        picard_metrics_wgs                           = alignment_metrics.wgs_metrics
-        File        picard_metrics_alignment                     = alignment_metrics.alignment_metrics
-        File        picard_metrics_insert_size                   = alignment_metrics.insert_size_metrics
-        File        samtools_ampliconstats                       = alignment_metrics.amplicon_stats
-        File        samtools_ampliconstats_parsed                = alignment_metrics.amplicon_stats_parsed
+        File                        result_file_8           = required_file
+        File                        result_file_9           = required_file
+        File                        result_file_10          = required_file
+        File                        result_file_11          = required_file
+        File                        result_file_12          = required_file
 
-        Array[File] align_to_self_merged_aligned_and_unaligned_bam = align_to_self.aligned_bam
+        Array[File]                 result_file_array_3     = [required_file]
 
-        File        align_to_self_merged_aligned_only_bam        = aligned_self_bam
-        File        align_to_self_merged_coverage_plot           = plot_self_coverage.coverage_plot
-        File        align_to_self_merged_coverage_tsv            = plot_self_coverage.coverage_tsv
-        Int         align_to_self_merged_reads_aligned           = plot_self_coverage.reads_aligned
-        Int         align_to_self_merged_read_pairs_aligned      = plot_self_coverage.read_pairs_aligned
-        Float       align_to_self_merged_bases_aligned           = plot_self_coverage.bases_aligned
-        Float       align_to_self_merged_mean_coverage           = plot_self_coverage.mean_coverage
-        File        align_to_self_isnvs_vcf                      = isnvs_self.report_vcf
+        File                        result_file_13          = required_file
+        File                        result_file_14          = required_file
+        File                        result_file_15          = required_file
+        Int                         result_int_13           = optional_int
+        Int                         result_int_14           = optional_int
+        Float                       result_float_3          = optional_float
+        Float                       result_float_4          = optional_float
+        File                        result_file_16          = required_file
         
-        String      align_to_ref_viral_core_version              = align_to_ref.viralngs_version[0]
-        String      ivar_version                                 = ivar_trim.ivar_version[0]
-        String      viral_assemble_version                       = call_consensus.viralngs_version
+        String                      result_string_1         = optional_string
+        String                      result_string_2         = optional_string
+        String                      result_string_3         = optional_string
     }
 
 }
