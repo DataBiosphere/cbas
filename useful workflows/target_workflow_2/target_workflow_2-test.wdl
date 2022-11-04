@@ -9,32 +9,31 @@ workflow assemble_refbased {
     parameter_meta {}
 
     input {
-        Array[File]+ reads_unmapped_bams
-        File         reference_fasta
-        String       sample_name = basename(reads_unmapped_bams[0], '.bam')
+        Array[File]+ file_array
+        File         file_array[0]
+        String       first_file_name = basename(file_array[0], '.txt')
 
-        String       aligner="minimap2"
-        File?        novocraft_license
-        Int          min_coverage=3
-        Float        major_cutoff=0.75
-        Boolean      skip_mark_dupes=false
-        File?        trim_coords_bed
+        String       optional_string = "foo"
+        File?        optional_file_1
+        Int          optional_int = 3
+        Float        optional_float = 0.75
+        Boolean      optional_bool = false
+        File?        optional_file_2
     }
 
 
     output {
-        File        assembly_fasta                               = call_consensus.refined_assembly_fasta
-        File        align_to_ref_variants_vcf_gz                 = call_consensus.sites_vcf_gz
-        Int         assembly_length                              = call_consensus.assembly_length
-        Int         assembly_length_unambiguous                  = call_consensus.assembly_length_unambiguous
-        Int         reference_genome_length                      = plot_ref_coverage.assembly_length
-        Float       assembly_mean_coverage                       = plot_ref_coverage.mean_coverage
+        File        result_file_1                                = file_array[0]
+        File        result_file_2                                = file_array[0]
+        Int         result_int_1                                 = optional_int
+        Int         result_int_2                                 = optional_int
+        Int         result_int_3                                 = optional_int
+        Float       result_float_1                               = optional_float
+        Int         result_int_4                             = call_consensus.dist_to_ref_snps
+        Int         result_int_5                           = call_consensus.dist_to_ref_indels
         
-        Int         dist_to_ref_snps                             = call_consensus.dist_to_ref_snps
-        Int         dist_to_ref_indels                           = call_consensus.dist_to_ref_indels
-        
-        Array[Int]                primer_trimmed_read_count      = ivar_trim.primer_trimmed_read_count
-        Array[Float]              primer_trimmed_read_percent    = ivar_trim.primer_trimmed_read_percent
+        Array[Int]                result_int_array      = [optional_int]
+        Array[Float]              result_float_array    = [optional_float]
         Array[Map[String,String]] ivar_trim_stats                = ivar_stats
         Array[Array[String]]      ivar_trim_stats_tsv            = ivar_stats_row
         
