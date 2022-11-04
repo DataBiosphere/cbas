@@ -11,8 +11,13 @@ public class CbasInt implements CbasValue {
   }
 
   @Override
-  public Object asCromwellInput() {
+  public Object asSerializableValue() {
     return value;
+  }
+
+  @Override
+  public long countFiles() {
+    return 0L;
   }
 
   public static CbasInt parse(Object value) throws CoercionException {

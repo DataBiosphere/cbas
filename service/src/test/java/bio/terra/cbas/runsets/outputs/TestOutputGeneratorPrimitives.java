@@ -7,12 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.runsets.types.ValueCoercionException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorPrimitives {
@@ -38,7 +40,7 @@ class TestOutputGeneratorPrimitives {
     Map<String, Object> cromwellOutputs = new HashMap<>();
     cromwellOutputs.put("myWorkflow.out", 123);
     RecordAttributes expected = new RecordAttributes();
-    expected.put("foo_id", 123);
+    expected.put("foo_id", 123L);
 
     RecordAttributes actual =
         OutputGenerator.buildOutputs(
@@ -72,6 +74,34 @@ class TestOutputGeneratorPrimitives {
             List.of(primitiveOutputDefinition("myWorkflow.out", "Float", "foo_rating")),
             cromwellOutputs);
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void validFileOutput() throws Exception {
+    Map<String, Object> cromwellOutputs = new HashMap<>();
+    cromwellOutputs.put("myWorkflow.out", "gs://bucket/file-out");
+
+    List<WorkflowOutputDefinition> outputDefinitions =
+        List.of(primitiveOutputDefinition("myWorkflow.out", "File", "foo_rating"));
+
+    RecordAttributes expected = new RecordAttributes();
+    expected.put("foo_rating", "gs://bucket/file-out");
+
+    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void invalidFileOutput() throws Exception {
+    Map<String, Object> cromwellOutputs = new HashMap<>();
+    cromwellOutputs.put("myWorkflow.out", "not a file");
+
+    List<WorkflowOutputDefinition> outputDefinitions =
+        List.of(primitiveOutputDefinition("myWorkflow.out", "File", "foo_rating"));
+
+    Assertions.assertThrows(
+        ValueCoercionException.class,
+        () -> OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs));
   }
 
   @Test

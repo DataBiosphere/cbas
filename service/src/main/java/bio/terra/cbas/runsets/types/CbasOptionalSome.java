@@ -9,7 +9,12 @@ public class CbasOptionalSome implements CbasOptional {
   }
 
   @Override
-  public Object asCromwellInput() {
-    return value.asCromwellInput();
+  public Object asSerializableValue() {
+    return value.asSerializableValue();
+  }
+
+  @Override
+  public long countFiles() {
+    return value.countFiles();
   }
 }

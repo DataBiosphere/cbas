@@ -5,7 +5,14 @@ import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 
 public interface CbasValue {
-  Object asCromwellInput();
+  Object asSerializableValue();
+
+  /**
+   * Count how many Files are in this value.
+   *
+   * @return count of files
+   */
+  long countFiles();
 
   static CbasValue parseValue(ParameterTypeDefinition parameterType, Object value)
       throws CoercionException {
