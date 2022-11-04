@@ -5,6 +5,7 @@ import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWit
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.runsets.types.ValueCoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +16,8 @@ import org.junit.jupiter.api.Test;
 class TestInputGeneratorBuildFileInputs {
 
   @Test
-  void zeroElementArray() throws JsonProcessingException, CoercionException {
+  void zeroElementArray()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -26,7 +28,8 @@ class TestInputGeneratorBuildFileInputs {
   }
 
   @Test
-  void oneElementArray() throws JsonProcessingException, CoercionException {
+  void oneElementArray()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -37,7 +40,8 @@ class TestInputGeneratorBuildFileInputs {
   }
 
   @Test
-  void twoElementArray() throws JsonProcessingException, CoercionException {
+  void twoElementArray()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -58,7 +62,8 @@ class TestInputGeneratorBuildFileInputs {
   }
 
   @Test
-  void twoElementNonEmptyArray() throws JsonProcessingException, CoercionException {
+  void twoElementNonEmptyArray()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(true, "String")),
