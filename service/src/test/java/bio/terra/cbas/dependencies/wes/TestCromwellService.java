@@ -61,8 +61,8 @@ public class TestCromwellService {
   void oneFailureLongerThan100AndOneCausedBy() {
 
     String failureMessage =
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 110 as
-    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 bs
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 110 a's
+    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 b's
 
     List<FailureMessage> input =
         List.of(
@@ -81,8 +81,8 @@ public class TestCromwellService {
   void oneFailureOneCausedByLongerThan100() {
 
     String failureMessage =
-        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 80 as
-    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 bs
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 80 a's
+    String causedByMessage = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"; // 40 b's
 
     List<FailureMessage> input =
         List.of(
@@ -112,8 +112,4 @@ public class TestCromwellService {
     String expectedChars = new String(new char[97]);
     String expected = expectedChars + "...";
   }
-
-  // null
-  // empty array
-  // more than 100 characters
 }
