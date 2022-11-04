@@ -8,6 +8,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -24,6 +25,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -124,8 +126,8 @@ public class RunSetsApiController implements RunSetsApi {
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(request, runSet, wdsRecordResponses.recordResponseList);
 
-    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark the
-    // Run Set as Failed
+    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
+    // the Run Set as Failed
     RunSetState runSetState;
     List<RunStateResponse> runsInErrorState =
         runStateResponseList.stream()
@@ -241,17 +243,26 @@ public class RunSetsApiController implements RunSetsApi {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     for (RecordResponse record : recordResponses) {
-      // Build the inputs set from workflow parameter definitions and the fetched record
-      Map<String, Object> workflowInputs =
-          InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
-
-      // Submit the workflow, get its ID and store the Run to database
       RunId workflowResponse;
       UUID runId = UUID.randomUUID();
+
       try {
+        // Build the inputs set from workflow parameter definitions and the fetched record
+        Map<String, Object> workflowInputs =
+            InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
+
+        // Submit the workflow, get its ID and store the Run to database
         workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), workflowInputs);
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
+      } catch (CoercionException e) {
+        String errorMsg =
+            String.format(
+                "Input generation failed for record %s. Coercion error: %s",
+                record.getId(), e.getMessage());
+        log.warn(errorMsg, e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
       } catch (cromwell.client.ApiException e) {
         String errorMsg =
             String.format(
@@ -267,6 +278,11 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn(errorMsg, e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
+      } catch (WorkflowAttributesNotFoundException e) {
+        String errorMsg = "Attribute was not found in WDS record";
+        log.warn(errorMsg, e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }
     }
 

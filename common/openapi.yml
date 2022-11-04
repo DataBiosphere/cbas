@@ -202,6 +202,7 @@ components:
         - Int
         - Boolean
         - Float
+        - File
       type: string
 
     ParameterTypeDefinitionPrimitive:
