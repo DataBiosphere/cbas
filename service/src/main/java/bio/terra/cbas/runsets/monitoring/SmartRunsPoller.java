@@ -141,9 +141,12 @@ public class SmartRunsPoller {
           }
         } else if (updatedRunState.inErrorState()) {
           try {
+            // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(r);
-            Run failedRunWithError = r.withErrorMessage(message);
-            addToUpdatedRunSet(r, updatedRuns, failedRunWithError);
+            var updatedRun = runDao.updateErrorMessage(r, message);
+            if (updatedRun == 1) {
+              addToUpdatedRunSet(r, updatedRuns, r.withErrorMessage(message));
+            }
           } catch (Exception e) {
             logger.error("Error running workflow {} in Cromwell.", r.id(), e);
           }

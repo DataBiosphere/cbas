@@ -13,7 +13,6 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -24,14 +23,14 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.gson.Gson;
+import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunLog;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.State;
+import cromwell.client.model.WorkflowMetadataResponse;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import cromwell.client.model.WorkflowMetadataResponse;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.junit.jupiter.api.Test;
@@ -51,6 +50,7 @@ public class TestSmartRunsPoller {
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
+  private static final String completeFailedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessagesNull = null;
@@ -126,8 +126,7 @@ public class TestSmartRunsPoller {
           SYSTEM_ERROR,
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
-          errorMessagesNull
-      );
+          errorMessagesNull);
   final Run runInFailedStateWithError =
       new Run(
           completedRunId,
@@ -138,9 +137,7 @@ public class TestSmartRunsPoller {
           SYSTEM_ERROR,
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
-          errorMessagesNotNull
-      );
-
+          errorMessagesNotNull);
 
   @Test
   void pollRunningRuns() throws Exception {
@@ -229,8 +226,12 @@ public class TestSmartRunsPoller {
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
 
-    verify(cromwellService).runStatus(eq(runningRunEngineId1)); // (verify that the workflow is in a failed state)
-    verify(runsDao).updateRunStatus(eq(runToUpdate1), eq(COMPLETE)); // (verify that error messages are recieved from Cromwell)
+    verify(cromwellService)
+        .runStatus(eq(runningRunEngineId1)); // (verify that the workflow is in a failed state)
+    verify(runsDao)
+        .updateRunStatus(
+            eq(runToUpdate1),
+            eq(COMPLETE)); // (verify that error messages are recieved from Cromwell)
     verify(wdsService)
         .updateRecord(
             eq(mockRequest),
@@ -337,12 +338,13 @@ public class TestSmartRunsPoller {
 
     CromwellService cromwellService = mock(CromwellService.class);
     RunDao runsDao = mock(RunDao.class);
-    Run runs = mock(Run.class);
     WdsService wdsService = mock(WdsService.class);
     SmartRunsPoller smartRunsPoller =
         new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
 
-    String cromwellError = """
+    String cromwellError =
+        """
+        {
         "failures": [
             {
               "causedBy": [
@@ -354,35 +356,30 @@ public class TestSmartRunsPoller {
               "message": "Workflow input processing failed"
             }
           ]
+          }
           """;
 
-    Gson object = new Gson();
-
-    String cromwellErrorMessage = CromwellService.getErrorMessage(object.fromJson(cromwellError, WorkflowMetadataResponse.class).getFailures());
+    List<FailureMessage> listOfFails =
+        objectMapper.readValue(cromwellError, WorkflowMetadataResponse.class).getFailures();
+    String cromwellErrorMessage = CromwellService.getErrorMessage(listOfFails);
 
     when(cromwellService.runStatus(eq(completedRunEngineId)))
-        .thenReturn(new RunStatus().runId(completedRunId.toString()).state(State.SYSTEM_ERROR)); //CHECK
-    when(cromwellService.runStatus(eq(completedRunEngineId)))
-        .thenReturn(new RunStatus().runId(completedRunId.toString()).state(State.EXECUTOR_ERROR));
-
-//    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(SYSTEM_ERROR))).thenReturn(1);
-//    when(runsDao.updateRunStatus(eq(runToUpdate2), eq(COMPLETE))).thenReturn(1);
+        .thenReturn(new RunStatus().runId(completedRunId.toString()).state(State.SYSTEM_ERROR));
 
     when(cromwellService.getRunErrors(eq(runInFailedState))).thenReturn(cromwellErrorMessage);
-    when(runs.withErrorMessage(eq(cromwellErrorMessage))).thenReturn(runInFailedStateWithError);
+    when(runsDao.updateErrorMessage(eq(runInFailedState), eq(cromwellErrorMessage))).thenReturn(1);
 
-    //Set<Run> updatedRuns, Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run r
-    //var actual =
-    //        smartRunsPoller.updateRuns(List.of(runToUpdate1, runToUpdate2, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runInFailedState));
 
-    var actual =
-        smartRunsPoller.updateRuns(List.of(runInFailedState, runInFailedStateWithError));
+    //    verify(cromwellService)
+    //        .runStatus(eq(completedRunEngineId)); // (verify that the workflow is in a failed
+    // state)
+    verify(runsDao).updateErrorMessage(eq(runInFailedState), eq(cromwellErrorMessage));
+    verify(cromwellService)
+        .getRunErrors(
+            eq(runInFailedStateWithError)); // (verify that error messages are received from
+    // Cromwell)
 
-    verify(cromwellService).runStatus(eq(completedRunEngineId));     // (verify that the workflow is in a failed state)
-    verify(cromwellService).getRunErrors(eq(runInFailedState));     // (verify that error messages are received from Cromwell)
-    verify(runs).withErrorMessage(eq(cromwellErrorMessage));
-    verify(completedRunEngineId)
-
-    // (verify that the run is updated with the new error message)
-
-}}
+    assertEquals(List.of(runInFailedStateWithError), actual);
+  }
+}

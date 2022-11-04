@@ -64,6 +64,13 @@ public class RunDao {
             Map.of("id", runID, "lastPolledTimestamp", OffsetDateTime.now())));
   }
 
+  public int updateErrorMessage(Run run, String updatedErrorMessage) {
+    String sql = "UPDATE run SET error_messages = :errorMessage WHERE id = :id";
+    return jdbcTemplate.update(
+        sql,
+        new MapSqlParameterSource(Map.of("id", run.id(), "errorMessage", updatedErrorMessage)));
+  }
+
   private static class RunMapper implements RowMapper<Run> {
     public Run mapRow(ResultSet rs, int rowNum) throws SQLException {
       Method method =

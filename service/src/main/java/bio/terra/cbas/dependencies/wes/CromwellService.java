@@ -52,8 +52,6 @@ public class CromwellService {
             .metadata("v1", run.engineId(), Collections.singletonList("failure"), null, null);
 
     return getErrorMessage(meta.getFailures());
-    //    return meta.getFailures().get(0).getCausedBy().get(0).getMessage();
-    // test for if it isn't failed
   }
 
   public static String getErrorMessage(List<FailureMessage> failureMessages) {
