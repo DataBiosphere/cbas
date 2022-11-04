@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -63,11 +64,10 @@ public class TestSmartRunsPoller {
           .setDateFormat(new StdDateFormat())
           .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
 
-  private CromwellService cromwellService = mock(CromwellService.class);
-  private RunDao runsDao = mock(RunDao.class);
-  private WdsService wdsService = mock(WdsService.class);
-  private SmartRunsPoller smartRunsPoller =
-      new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+  private CromwellService cromwellService;
+  private RunDao runsDao;
+  private WdsService wdsService;
+  private SmartRunsPoller smartRunsPoller;
 
   static String outputDefinition =
       """
@@ -120,6 +120,14 @@ public class TestSmartRunsPoller {
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
           errorMessages);
+
+  @BeforeEach
+  public void init() {
+    cromwellService = mock(CromwellService.class);
+    runsDao = mock(RunDao.class);
+    wdsService = mock(WdsService.class);
+    smartRunsPoller = new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+  }
 
   @Test
   void pollRunningRuns() throws Exception {
