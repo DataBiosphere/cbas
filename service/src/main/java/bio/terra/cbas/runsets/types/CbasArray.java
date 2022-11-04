@@ -24,7 +24,7 @@ public class CbasArray implements CbasOptional {
 
   public static CbasArray parseValue(
       ParameterTypeDefinition innerType, Object values, boolean nonEmpty) throws CoercionException {
-    if (values instanceof List valueList) {
+    if (values instanceof List<?> valueList) {
       List<CbasValue> coercedValues = new ArrayList<>();
       for (Object value : valueList) {
         coercedValues.add(CbasValue.parseValue(innerType, value));
