@@ -34,7 +34,7 @@ public interface CbasValue {
       }
     } else if (parameterType instanceof ParameterTypeDefinitionArray arrayDefinition) {
       var innerType = arrayDefinition.getArrayType();
-      return CbasArray.parseValue(innerType, value);
+      return CbasArray.parseValue(innerType, value, arrayDefinition.isNonEmpty());
     } else {
       throw new TypeCoercionException(value, parameterType.toString());
     }

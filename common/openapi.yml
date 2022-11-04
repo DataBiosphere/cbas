@@ -220,7 +220,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/ParameterTypeDefinition'
       properties:
-        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
         optional_type:
           $ref: ParameterTypeDefinition
 
@@ -229,7 +228,9 @@ components:
       allOf:
         - $ref: '#/components/schemas/ParameterTypeDefinition'
       properties:
-        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
+        non_empty:
+          type: boolean
+          default: false
         array_type:
           $ref: ParameterTypeDefinition
 

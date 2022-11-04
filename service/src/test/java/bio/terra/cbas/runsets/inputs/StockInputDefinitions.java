@@ -70,18 +70,18 @@ public final class StockInputDefinitions {
   }
 
   public static WorkflowInputDefinition inputDefinitionWithArrayFooRatingParameter(
-      String arrayInnerType) throws JsonProcessingException {
+      Boolean nonEmpty, String arrayInnerType) throws JsonProcessingException {
     String paramDefinitionJson =
         """
         {
           "input_name": "lookup_foo",
-          "input_type": { "type": "array", "array_type": { "type": "primitive", "primitive_type": "%s" }},
+          "input_type": { "type": "array", "non_empty": %s, "array_type": { "type": "primitive", "primitive_type": "%s" }},
           "source": {
             "type": "record_lookup",
             "record_attribute": "foo-rating"
           }
         }"""
-            .formatted(arrayInnerType)
+            .formatted(nonEmpty, arrayInnerType)
             .stripIndent()
             .trim();
 

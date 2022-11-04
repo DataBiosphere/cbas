@@ -22,13 +22,20 @@ public class CbasArray implements CbasOptional {
     return values.stream().map(CbasValue::countFiles).reduce(0L, Long::sum);
   }
 
-  public static CbasArray parseValue(ParameterTypeDefinition innerType, Object values)
-      throws CoercionException {
+  public static CbasArray parseValue(
+      ParameterTypeDefinition innerType, Object values, boolean nonEmpty) throws CoercionException {
     if (values instanceof List valueList) {
       List<CbasValue> coercedValues = new ArrayList<>();
       for (Object value : valueList) {
         coercedValues.add(CbasValue.parseValue(innerType, value));
       }
+      if (nonEmpty && coercedValues.isEmpty()) {
+        throw new ValueCoercionException(
+            values,
+            "Array[%s]".formatted(innerType),
+            "Non-empty array must have at least one value.");
+      }
+
       return new CbasArray(coercedValues);
     } else {
       throw new TypeCoercionException(values, "Array[%s]".formatted(innerType));
