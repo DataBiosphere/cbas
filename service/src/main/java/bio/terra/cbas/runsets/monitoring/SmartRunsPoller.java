@@ -58,10 +58,9 @@ public class SmartRunsPoller {
 
   public void updateOutputAttributes(Run run)
       throws WorkflowOutputNotFoundException, ApiException, JsonProcessingException,
-      org.databiosphere.workspacedata.client.ApiException, CoercionException {
+          org.databiosphere.workspacedata.client.ApiException, CoercionException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
-
     Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
