@@ -19,7 +19,7 @@ public class CbasArray implements CbasOptional {
 
   @Override
   public long countFiles() {
-    return values.stream().map(CbasValue::countFiles).reduce(0L, Long::sum);
+    return values.stream().mapToLong(CbasValue::countFiles).sum();
   }
 
   public static CbasArray parseValue(
