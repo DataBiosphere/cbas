@@ -26,15 +26,16 @@ class TestOutputGeneratorArrays {
   @Test
   void stringArrayOutputs() throws Exception {
 
-    // No output from Cromwell for 'not_out':
     Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out_array", List.of(1, 11, 21, 1211, 111221, 312211, 13112221));
+    cromwellOutputs.put(
+        "myWorkflow.look_and_say", List.of(1, 11, 21, 1211, 111221, 312211, 13112221));
+    cromwellOutputs.put("myWorkflow.out_empty_array", List.of());
 
     RecordAttributes actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
     RecordAttributes expected = new RecordAttributes();
-    expected.put("look_and_say", List.of(1, 11, 21, 1211, 111221, 312211, 13112221));
+    expected.put("look_and_say", List.of(1L, 11L, 21L, 1211L, 111221L, 312211L, 13112221L));
     expected.put("sir_not_appearing_in_this_record", List.of());
 
     assertEquals(expected, actual);
