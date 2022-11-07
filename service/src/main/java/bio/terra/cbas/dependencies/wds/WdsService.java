@@ -31,7 +31,7 @@ public class WdsService {
       throws ApiException {
     return wdsClient
         .recordsApi()
-        .createOrReplaceRecord(
+        .updateRecord(
             request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
   }
 }

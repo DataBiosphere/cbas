@@ -4,6 +4,8 @@ import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -17,6 +19,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -31,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -59,6 +63,11 @@ public class TestSmartRunsPoller {
           .registerModule(new JavaTimeModule())
           .setDateFormat(new StdDateFormat())
           .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
+
+  private CromwellService cromwellService;
+  private RunDao runsDao;
+  private WdsService wdsService;
+  private SmartRunsPoller smartRunsPoller;
 
   static String outputDefinition =
       """
@@ -112,14 +121,16 @@ public class TestSmartRunsPoller {
           completedRunStatusUpdateTime,
           errorMessages);
 
+  @BeforeEach
+  public void init() {
+    cromwellService = mock(CromwellService.class);
+    runsDao = mock(RunDao.class);
+    wdsService = mock(WdsService.class);
+    smartRunsPoller = new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+  }
+
   @Test
   void pollRunningRuns() throws Exception {
-    CromwellService cromwellService = mock(CromwellService.class);
-    RunDao runsDao = mock(RunDao.class);
-    WdsService wdsService = mock(WdsService.class);
-    SmartRunsPoller smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runsDao, wdsService, null);
-
     when(cromwellService.runStatus(eq(runningRunEngineId1)))
         .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.RUNNING));
 
@@ -143,12 +154,6 @@ public class TestSmartRunsPoller {
 
   @Test
   void updateNewlyCompletedRuns() throws Exception {
-    CromwellService cromwellService = mock(CromwellService.class);
-    RunDao runsDao = mock(RunDao.class);
-    WdsService wdsService = mock(WdsService.class);
-    SmartRunsPoller smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
-
     when(cromwellService.runStatus(eq(runningRunEngineId1)))
         .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.COMPLETE));
 
@@ -221,12 +226,6 @@ public class TestSmartRunsPoller {
 
   @Test
   void updatingOutputFails() throws Exception {
-    CromwellService cromwellService = mock(CromwellService.class);
-    RunDao runsDao = mock(RunDao.class);
-    WdsService wdsService = mock(WdsService.class);
-    SmartRunsPoller smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
-
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
 
@@ -300,5 +299,33 @@ public class TestSmartRunsPoller {
     assertEquals(
         COMPLETE,
         actual.stream().filter(r -> r.id().equals(completedRunId)).toList().get(0).status());
+  }
+
+  @Test
+  void hasOutputDefinitionReturnsTrue() throws JsonProcessingException {
+    assertTrue(smartRunsPoller.hasOutputDefinition(runToUpdate1));
+  }
+
+  @Test
+  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
+    String outputDefinition = "[]";
+    RunSet runSet =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
+    Run run =
+        new Run(
+            runningRunId1,
+            runningRunEngineId1,
+            runSet,
+            runningRunEntityId1,
+            runSubmittedTime,
+            RUNNING,
+            runningRunStatusUpdateTime,
+            runningRunStatusUpdateTime,
+            errorMessages);
+
+    assertFalse(smartRunsPoller.hasOutputDefinition(run));
   }
 }
