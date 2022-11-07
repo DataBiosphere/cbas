@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class TestInputGeneratorBuildFileInputs {
+class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void zeroElementArray()
