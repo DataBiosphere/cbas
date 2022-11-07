@@ -1,5 +1,0 @@
-{
-    "assemble_refbased.file_array": ["./input-file-1.txt", "input-file-2.txt"],
-    "assemble_refbased.required_file": "./input-file-3.txt",
-    "assemble_refbased.optional_file_1": "./input-optional-file.txt"
-}
