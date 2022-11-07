@@ -1,6 +1,8 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithArrayFooRatingParameter;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithArrayLiteral;
+import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -16,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class TestInputGeneratorBuildArrayInputs {
 
   @Test
-  void zeroElementArray()
+  void zeroElementArrayLookup()
       throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
@@ -28,7 +30,18 @@ class TestInputGeneratorBuildArrayInputs {
   }
 
   @Test
-  void oneElementArray()
+  void zeroElementArrayLiteral()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithArrayLiteral(false, "String", "[]")), emptyRecord());
+
+    Map<String, Object> expected = Map.of("lookup_foo", List.of());
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void oneElementArrayLookup()
       throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
@@ -40,7 +53,19 @@ class TestInputGeneratorBuildArrayInputs {
   }
 
   @Test
-  void twoElementArray()
+  void oneElementArrayLiteral()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithArrayLiteral(false, "String", "[ \"exquisite\" ]")),
+            emptyRecord());
+
+    Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite"));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void twoElementArrayLookup()
       throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
@@ -52,7 +77,21 @@ class TestInputGeneratorBuildArrayInputs {
   }
 
   @Test
-  void zeroElementNonEmptyArray() {
+  void twoElementArrayLiteral()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(
+                inputDefinitionWithArrayLiteral(
+                    false, "String", "[ \"exquisite\", \"wonderful\" ]")),
+            emptyRecord());
+
+    Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite", "wonderful"));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void zeroElementNonEmptyArrayLookup() {
     assertThrows(
         ValueCoercionException.class,
         () ->
@@ -62,12 +101,35 @@ class TestInputGeneratorBuildArrayInputs {
   }
 
   @Test
-  void twoElementNonEmptyArray()
+  void zeroElementNonEmptyArrayLiteral() {
+    assertThrows(
+        ValueCoercionException.class,
+        () ->
+            InputGenerator.buildInputs(
+                List.of(inputDefinitionWithArrayLiteral(true, "String", "[]")), emptyRecord()));
+  }
+
+  @Test
+  void twoElementNonEmptyArrayLookup()
       throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(true, "String")),
             wdsRecordWithFooRating("[ \"exquisite\", \"wonderful\" ]"));
+
+    Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite", "wonderful"));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void twoElementNonEmptyArrayLiteral()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(
+                inputDefinitionWithArrayLiteral(
+                    true, "String", "[ \"exquisite\", \"wonderful\" ]")),
+            emptyRecord());
 
     Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite", "wonderful"));
     assertEquals(expected, actual);
