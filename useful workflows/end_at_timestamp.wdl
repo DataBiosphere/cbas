@@ -74,6 +74,9 @@ task sleep_until_timestamp {
     fi
 
   >>>
+  runtime {
+    docker: "ubuntu:latest"
+  }
   output {
   }
 }
