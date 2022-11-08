@@ -288,6 +288,9 @@ components:
       properties:
         run_id:
           type: string
+        engine_id:
+          type: string
+          description: Identifier of the run in the execution engine
         workflow_url:
           type: string
           description: URL to the workflow script to run
