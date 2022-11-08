@@ -383,21 +383,15 @@ public class TestSmartRunsPoller {
 
     when(cromwellService.runStatus(eq(runningRunEngineId3)))
         .thenReturn(new RunStatus().runId(runningRunEngineId3).state(State.EXECUTOR_ERROR));
-    when(runsDao.updateRunStatus(eq(runToUpdate3), eq(EXECUTOR_ERROR))).thenReturn(1);
-    //    when(cromwellService.runStatus(eq(completeFailedRunEngineId)))
-    //        .thenReturn(new
-    // RunStatus().runId(completeFailedRunEngineId).state(State.EXECUTOR_ERROR));
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
-
     when(cromwellService.getRunErrors(eq(runToUpdate3))).thenReturn(cromwellErrorMessage);
-
     when(runsDao.updateErrorMessage(eq(runToUpdate3.id()), eq(cromwellErrorMessage))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate3), eq(EXECUTOR_ERROR))).thenReturn(1);
+
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
 
     verify(cromwellService)
         .runStatus(eq(runningRunEngineId3)); // (verify that the workflow is in a failed state)
-
     verify(runsDao).updateRunStatus(eq(runToUpdate3), eq(EXECUTOR_ERROR));
-
     verify(runsDao)
         .updateErrorMessage(
             eq(runToUpdate3.id()),

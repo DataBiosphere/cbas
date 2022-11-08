@@ -154,7 +154,9 @@ public class SmartRunsPoller {
             var updatedRun = runDao.updateErrorMessage(r.id(), message);
             if (updatedRun == 1) {
               System.out.println("\nWE MADE IT INTO THE IF *** " + updatedRun);
-              addToUpdatedRunSet(r, updatedRuns, r.withErrorMessage(message));
+              updatedRuns.remove(r);
+              updatedRuns.add(r.withErrorMessage(message));
+              // addToUpdatedRunSet(r, updatedRuns, r.withErrorMessage(message));
               System.out.println("\n" + r);
             }
           } catch (Exception e) {
@@ -169,7 +171,9 @@ public class SmartRunsPoller {
             updatedRunState);
         var changes = runDao.updateRunStatus(r, updatedRunState);
         if (changes == 1) {
-          addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));
+          updatedRuns.remove(r);
+          updatedRuns.add(r.withStatus(updatedRunState));
+          // addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
