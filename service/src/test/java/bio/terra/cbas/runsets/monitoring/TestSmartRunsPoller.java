@@ -6,7 +6,6 @@ import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -60,11 +59,9 @@ public class TestSmartRunsPoller {
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
-  private static final String completeFailedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessagesNull = null;
-  private static final String errorMessagesNotNull = "Failed message";
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -130,30 +127,6 @@ public class TestSmartRunsPoller {
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
           errorMessagesNull);
-
-  final Run runInFailedState =
-      new Run(
-          completedRunId,
-          completeFailedRunEngineId,
-          runSet,
-          completedRunEntityId,
-          runSubmittedTime,
-          EXECUTOR_ERROR,
-          completedRunStatusUpdateTime,
-          completedRunStatusUpdateTime,
-          errorMessagesNull);
-  final Run runInFailedStateWithError =
-      new Run(
-          completedRunId,
-          completeFailedRunEngineId,
-          runSet,
-          completedRunEntityId,
-          runSubmittedTime,
-          EXECUTOR_ERROR,
-          completedRunStatusUpdateTime,
-          completedRunStatusUpdateTime,
-          errorMessagesNotNull);
-
   final Run runToUpdate3 =
       new Run(
           runningRunId3,
@@ -245,7 +218,7 @@ public class TestSmartRunsPoller {
     RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
     when(cromwellService.getOutputs(eq(runningRunEngineId1))).thenReturn(parseRunLog.getOutputs());
 
-    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(COMPLETE))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate1.id()), eq(COMPLETE))).thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
 
@@ -253,7 +226,7 @@ public class TestSmartRunsPoller {
         .runStatus(eq(runningRunEngineId1)); // (verify that the workflow is in a failed state)
     verify(runsDao)
         .updateRunStatus(
-            eq(runToUpdate1),
+            eq(runToUpdate1.id()),
             eq(COMPLETE)); // (verify that error messages are recieved from Cromwell)
     verify(wdsService)
         .updateRecord(
@@ -262,7 +235,7 @@ public class TestSmartRunsPoller {
             eq(runToUpdate1.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
-    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
+    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.id()), eq(COMPLETE));
 
     assertEquals(2, actual.size());
     assertEquals(
@@ -311,15 +284,15 @@ public class TestSmartRunsPoller {
         .thenReturn(new RunStatus().runId(runningRunEngineId1).state(State.COMPLETE));
     when(cromwellService.runStatus(eq(runningRunEngineId2)))
         .thenReturn(new RunStatus().runId(runningRunEngineId2).state(State.COMPLETE));
-    when(runsDao.updateRunStatus(eq(runToUpdate1), eq(SYSTEM_ERROR))).thenReturn(1);
-    when(runsDao.updateRunStatus(eq(runToUpdate2), eq(COMPLETE))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate1.id()), eq(SYSTEM_ERROR))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate2.id()), eq(COMPLETE))).thenReturn(1);
 
     var actual =
         smartRunsPoller.updateRuns(List.of(runToUpdate1, runToUpdate2, runAlreadyCompleted));
 
     // verify that Run is marked as Failed as attaching outputs failed
     verify(cromwellService).runStatus(eq(runningRunEngineId1));
-    verify(runsDao).updateRunStatus(eq(runToUpdate1), eq(SYSTEM_ERROR));
+    verify(runsDao).updateRunStatus(eq(runToUpdate1.id()), eq(SYSTEM_ERROR));
     verify(wdsService, never())
         .updateRecord(
             eq(mockRequest),
@@ -328,7 +301,7 @@ public class TestSmartRunsPoller {
 
     // verify that second Run whose status could be updated has been updated
     verify(cromwellService).runStatus(eq(runningRunEngineId2));
-    verify(runsDao).updateRunStatus(eq(runToUpdate2), eq(COMPLETE));
+    verify(runsDao).updateRunStatus(eq(runToUpdate2.id()), eq(COMPLETE));
     verify(wdsService)
         .updateRecord(
             eq(mockRequest),
@@ -336,7 +309,7 @@ public class TestSmartRunsPoller {
             eq(runToUpdate2.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
-    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted), eq(COMPLETE));
+    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.id()), eq(COMPLETE));
 
     assertEquals(3, actual.size());
     assertEquals(
@@ -378,13 +351,13 @@ public class TestSmartRunsPoller {
         .thenReturn(new RunStatus().runId(runningRunEngineId3).state(State.EXECUTOR_ERROR));
     when(cromwellService.getRunErrors(eq(runToUpdate3))).thenReturn(cromwellErrorMessage);
     when(runsDao.updateErrorMessage(eq(runToUpdate3.id()), eq(cromwellErrorMessage))).thenReturn(1);
-    when(runsDao.updateRunStatus(eq(runToUpdate3), eq(EXECUTOR_ERROR))).thenReturn(1);
+    when(runsDao.updateRunStatus(eq(runToUpdate3.id()), eq(EXECUTOR_ERROR))).thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
 
     verify(cromwellService)
         .runStatus(eq(runningRunEngineId3)); // (verify that the workflow is in a failed state)
-    verify(runsDao).updateRunStatus(eq(runToUpdate3), eq(EXECUTOR_ERROR));
+    verify(runsDao).updateRunStatus(eq(runToUpdate3.id()), eq(EXECUTOR_ERROR));
     verify(runsDao)
         .updateErrorMessage(
             eq(runToUpdate3.id()),
@@ -395,36 +368,37 @@ public class TestSmartRunsPoller {
         actual.stream().filter(r -> r.id().equals(runningRunId3)).toList().get(0).status());
 
     assertEquals(
-        "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified",
+        "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified)",
         actual.stream().filter(r -> r.id().equals(runningRunId3)).toList().get(0).errorMessages());
   }
-  
+
   @Test
   void hasOutputDefinitionReturnsTrue() throws JsonProcessingException {
     assertTrue(smartRunsPoller.hasOutputDefinition(runToUpdate1));
   }
 
-  @Test
-  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
-    String outputDefinition = "[]";
-    RunSet runSet =
-        new RunSet(
-            UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
-    Run run =
-        new Run(
-            runningRunId1,
-            runningRunEngineId1,
-            runSet,
-            runningRunEntityId1,
-            runSubmittedTime,
-            RUNNING,
-            runningRunStatusUpdateTime,
-            runningRunStatusUpdateTime,
-            errorMessages);
-
-    assertFalse(smartRunsPoller.hasOutputDefinition(run));
-
-  }
+  //  @Test
+  //  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
+  //    String outputDefinition = "[]";
+  //    RunSet runSet =
+  //        new RunSet(
+  //            UUID.randomUUID(),
+  //            new Method(
+  //                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition,
+  // "entitytype"));
+  //    Run run =
+  //        new Run(
+  //            runningRunId1,
+  //            runningRunEngineId1,
+  //            runSet,
+  //            runningRunEntityId1,
+  //            runSubmittedTime,
+  //            RUNNING,
+  //            runningRunStatusUpdateTime,
+  //            runningRunStatusUpdateTime,
+  //            errorMessages);
+  //
+  //    assertFalse(smartRunsPoller.hasOutputDefinition(run));
+  //
+  //  }
 }

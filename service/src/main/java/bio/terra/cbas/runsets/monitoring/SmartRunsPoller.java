@@ -71,11 +71,6 @@ public class SmartRunsPoller {
     wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
   }
 
-  public static void addToUpdatedRunSet(Run r, Set<Run> setOfRuns, Run updatedRun) {
-    setOfRuns.remove(r);
-    setOfRuns.add(updatedRun);
-  }
-
   /**
    * Updates a list of runs by checking with the engine whether any non-terminal statuses have
    * changed and if so, updating the database.
@@ -109,7 +104,6 @@ public class SmartRunsPoller {
                               CbasRunStatus.fromValue(
                                   cromwellService.runStatus(r.engineId()).getState());
                           getStatusSuccess = true;
-                          System.out.println("********RESULT: " + result + "\n");
                           return result;
                         } catch (ApiException | IllegalArgumentException e) {
                           logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
@@ -123,11 +117,9 @@ public class SmartRunsPoller {
       Set<Run> updatedRuns = new HashSet<>(runs);
 
       for (Map.Entry<CbasRunStatus, List<Run>> engineStateEntry : engineStatuses.entrySet()) {
-        System.out.println("***********ENGINESTATUSES" + engineStatuses.entrySet() + "\n\n");
-        System.out.println("***********" + engineStateEntry + "\n\n");
-        System.out.println("***********" + engineStateEntry.getValue());
         for (Run r : engineStateEntry.getValue()) {
-          updateDatabaseRunStatus(updatedRuns, engineStateEntry, r);
+          updatedRuns.remove(r);
+          updatedRuns.add(updateDatabaseRunStatus(engineStateEntry, r));
         }
       }
       successBoolean = true;
@@ -137,23 +129,21 @@ public class SmartRunsPoller {
     }
   }
 
-  private void updateDatabaseRunStatus(
-      Set<Run> updatedRuns, Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run r) {
+  private Run updateDatabaseRunStatus(Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run r) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
     boolean updateDatabaseRunStatusSuccess = false;
 
-    // System.out.print(engineStateEntry);
+    Run updatableRun = r;
 
     try {
       var updatedRunState = engineStateEntry.getKey();
-      // System.out.println(updatedRunState);
-      if (r.status() != updatedRunState) {
+      if (updatableRun.status() != updatedRunState) {
         if (updatedRunState == CbasRunStatus.COMPLETE) {
           try {
             // we only write back output attributes to WDS if output definition is not empty. This
             // is to avoid sending empty PATCH requests to WDS
-            if (hasOutputDefinition(r)) {
-              updateOutputAttributes(r);
+            if (hasOutputDefinition(updatableRun)) {
+              updateOutputAttributes(updatableRun);
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
@@ -161,58 +151,53 @@ public class SmartRunsPoller {
             //  updating output attributes failed for this particular Run.
             logger.error(
                 "Error while updating attributes for record {} from run {}.",
-                r.recordId(),
-                r.id(),
+                updatableRun.recordId(),
+                updatableRun.id(),
                 e);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
         } else if (updatedRunState.inErrorState()) {
           try {
             // Retrieve error from Cromwell
-            String message = cromwellService.getRunErrors(r);
-            var updatedRun = runDao.updateErrorMessage(r.id(), message);
+            String message = cromwellService.getRunErrors(updatableRun);
+            var updatedRun = runDao.updateErrorMessage(updatableRun.id(), message);
             if (updatedRun == 1) {
-              System.out.println("\nWE MADE IT INTO THE IF *** " + updatedRun);
-              updatedRuns.remove(r);
-              updatedRuns.add(r.withErrorMessage(message));
-              // addToUpdatedRunSet(r, updatedRuns, r.withErrorMessage(message));
-              System.out.println("\n" + r);
+              updatableRun = updatableRun.withErrorMessage(message);
             }
           } catch (Exception e) {
-            logger.error("Error running workflow {} in Cromwell.", r.id(), e);
+            logger.error("Error running workflow {} in Cromwell.", updatableRun.id(), e);
           }
         }
         logger.debug(
             "Updating status of Run {} (engine ID {}) from {} to {}",
-            r.id(),
-            r.engineId(),
-            r.status(),
+            updatableRun.id(),
+            updatableRun.engineId(),
+            updatableRun.status(),
             updatedRunState);
-        var changes = runDao.updateRunStatus(r, updatedRunState);
+        var changes = runDao.updateRunStatus(updatableRun.id(), updatedRunState);
         if (changes == 1) {
-          updatedRuns.remove(r);
-          updatedRuns.add(r.withStatus(updatedRunState));
-          // addToUpdatedRunSet(r, updatedRuns, r.withStatus(updatedRunState));
+          updatableRun = updatableRun.withStatus(updatedRunState);
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-              r.id(),
-              r.status(),
+              updatableRun.id(),
+              updatableRun.status(),
               updatedRunState);
         }
       } else {
         // if run status hasn't changed, only update last polled timestamp
-        var changes = runDao.updateLastPolledTimestamp(r.id());
+        var changes = runDao.updateLastPolledTimestamp(updatableRun.id());
         if (changes != 1) {
           logger.warn(
               "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              r.id(),
-              r.status(),
+              updatableRun.id(),
+              updatableRun.status(),
               changes);
         }
       }
     } finally {
       recordMethodCompletion(updateDatabaseRunStatusStartNanos, updateDatabaseRunStatusSuccess);
     }
+    return updatableRun;
   }
 }

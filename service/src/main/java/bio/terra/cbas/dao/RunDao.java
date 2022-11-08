@@ -38,7 +38,7 @@ public class RunDao {
     return jdbcTemplate.query(sql, new RunMapper());
   }
 
-  public int updateRunStatus(Run run, CbasRunStatus newStatus) {
+  public int updateRunStatus(UUID runId, CbasRunStatus newStatus) {
     OffsetDateTime currentTimestamp = OffsetDateTime.now();
     String sql =
         "UPDATE run SET status = :status, last_modified_timestamp =:lastModifiedTimestamp, last_polled_timestamp = :lastPolledTimestamp  WHERE id = :id";
@@ -47,7 +47,7 @@ public class RunDao {
         new MapSqlParameterSource(
             Map.of(
                 "id",
-                run.id(),
+                runId,
                 "status",
                 newStatus.toString(),
                 "lastModifiedTimestamp",
