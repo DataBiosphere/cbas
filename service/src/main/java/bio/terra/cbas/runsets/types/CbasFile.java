@@ -36,7 +36,7 @@ public class CbasFile implements CbasValue {
         return new CbasFile(uri.toString());
       } catch (URISyntaxException e) {
         incrementUnsuccessfulFileParseCounter(fromType);
-        throw new ValueCoercionException(fromType, toType, e.getMessage());
+        throw new ValueCoercionException(value, toType, e.getMessage());
       }
     } else if (value instanceof CbasFile fileValue) {
       return new CbasFile(fileValue.value);

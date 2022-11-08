@@ -68,4 +68,43 @@ public final class StockInputDefinitions {
 
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
+
+  public static WorkflowInputDefinition inputDefinitionWithArrayFooRatingParameter(
+      Boolean nonEmpty, String arrayInnerType) throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": { "type": "array", "non_empty": %s, "array_type": { "type": "primitive", "primitive_type": "%s" }},
+          "source": {
+            "type": "record_lookup",
+            "record_attribute": "foo-rating"
+          }
+        }"""
+            .formatted(nonEmpty, arrayInnerType)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  public static WorkflowInputDefinition inputDefinitionWithArrayLiteral(
+      Boolean nonEmpty, String arrayInnerType, String rawLiteralJson)
+      throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": { "type": "array", "non_empty": %s, "array_type": { "type": "primitive", "primitive_type": "%s" }},
+          "source": {
+            "type": "literal",
+            "parameter_value": %s
+          }
+        }"""
+            .formatted(nonEmpty, arrayInnerType, rawLiteralJson)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
 }

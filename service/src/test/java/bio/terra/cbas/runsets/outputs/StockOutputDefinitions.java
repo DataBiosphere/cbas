@@ -45,4 +45,21 @@ public final class StockOutputDefinitions {
 
     return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
   }
+
+  public static WorkflowOutputDefinition arrayOutputDefinition(
+      String outputName, String innerOutputType, String recordAttributeName) throws Exception {
+    String rawOutputDefinition =
+        """
+        {
+          "output_name":"%s",
+          "output_type": { "type": "array", "array_type": { "type": "primitive", "primitive_type": "%s" }},
+          "record_attribute":"%s"
+        }
+        """
+            .formatted(outputName, innerOutputType, recordAttributeName)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
+  }
 }

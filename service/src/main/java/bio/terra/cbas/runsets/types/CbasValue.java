@@ -1,6 +1,7 @@
 package bio.terra.cbas.runsets.types;
 
 import bio.terra.cbas.model.ParameterTypeDefinition;
+import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 
@@ -31,6 +32,9 @@ public interface CbasValue {
         var innerType = optionalDefinition.getOptionalType();
         return new CbasOptionalSome(parseValue(innerType, value));
       }
+    } else if (parameterType instanceof ParameterTypeDefinitionArray arrayDefinition) {
+      var innerType = arrayDefinition.getArrayType();
+      return CbasArray.parseValue(innerType, value, arrayDefinition.isNonEmpty());
     } else {
       throw new TypeCoercionException(value, parameterType.toString());
     }
