@@ -19,6 +19,7 @@ import io.opencensus.tags.Tags;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public final class MetricsUtil {
   private MetricsUtil() {}
@@ -29,10 +30,12 @@ public final class MetricsUtil {
   public static final String RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET_METRICS =
       OUTBOUND_REQUEST_METRICS + "/runs-submitted-successfully-per-run-set";
   public static final String INBOUND_REQUEST_METRICS = METRICS_PREFIX + "request/inbound";
+  public static final String RECORDS_PER_REQUEST_UNIT = "records-per-request";
   public static final String RECORDS_PER_REQUEST_METRICS =
-      INBOUND_REQUEST_METRICS + "/records-per-request";
+      INBOUND_REQUEST_METRICS + "/" + RECORDS_PER_REQUEST_UNIT;
   public static final String METHOD_METRICS = METRICS_PREFIX + "method";
   public static final String EVENT_METRICS = METRICS_PREFIX + "event";
+  public static final String FILE_PARSE_METRICS = EVENT_METRICS + "/files/parsed";
 
   public static final Measure.MeasureDouble M_METHOD_DURATION_MS =
       Measure.MeasureDouble.create(METHOD_METRICS, "Duration of method runs", "ms");
@@ -43,9 +46,27 @@ public final class MetricsUtil {
   public static final Measure.MeasureLong M_EVENT_COUNT =
       Measure.MeasureLong.create(EVENT_METRICS, "Counter for various events", "occurrences");
 
+  public static final Measure.MeasureLong M_FILE_PARSED_COUNT =
+      Measure.MeasureLong.create(
+          FILE_PARSE_METRICS, "Counter for file parse operations", "occurrences");
+
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(
-          RECORDS_PER_REQUEST_METRICS, "Number of record IDs per request", "records-per-request");
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of record IDs per request",
+          RECORDS_PER_REQUEST_UNIT);
+
+  public static final Measure.MeasureLong M_INPUTS_PER_REQUEST =
+      Measure.MeasureLong.create(
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of defined inputs per request",
+          RECORDS_PER_REQUEST_UNIT);
+
+  public static final Measure.MeasureLong M_OUTPUTS_PER_REQUEST =
+      Measure.MeasureLong.create(
+          RECORDS_PER_REQUEST_METRICS,
+          "Number of defined outputs per request",
+          RECORDS_PER_REQUEST_UNIT);
 
   public static final Measure.MeasureLong M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET =
       Measure.MeasureLong.create(
@@ -55,6 +76,9 @@ public final class MetricsUtil {
 
   public static final TagKey TAGKEY_NAME = TagKey.create("name");
   public static final TagKey TAGKEY_STATUS = TagKey.create("status");
+
+  public static final TagKey TAGKEY_FILE_SCHEME = TagKey.create("scheme");
+  public static final TagKey TAGKEY_FILE_FROM_TYPE = TagKey.create("from-type");
 
   public enum OutcomeStatus {
     SUCCESS("SUCCESS"),
@@ -126,16 +150,46 @@ public final class MetricsUtil {
         sinceInMilliseconds(startTimeNs));
   }
 
-  public static void incrementEventCounter(String eventName) {
-    increaseEventCounter(eventName, 1L);
-  }
-
   public static void recordRecordsInRequest(long numRecordIds) {
     recordTaggedStat(Map.of(), M_RECORDS_PER_REQUEST, numRecordIds);
   }
 
+  public static void recordInputsInRequest(long numDefinedInputs) {
+    recordTaggedStat(Map.of(), M_INPUTS_PER_REQUEST, numDefinedInputs);
+  }
+
+  public static void recordOutputsInRequest(long numDefinedOutputs) {
+    recordTaggedStat(Map.of(), M_OUTPUTS_PER_REQUEST, numDefinedOutputs);
+  }
+
   public static void increaseEventCounter(String eventName, long count) {
     recordTaggedStat(Map.of(TAGKEY_NAME, eventName), M_EVENT_COUNT, count);
+  }
+
+  public static void incrementSuccessfulFileParseCounter(String scheme, String fromType) {
+    recordTaggedStat(
+        Map.of(
+            TAGKEY_STATUS,
+            OutcomeStatus.SUCCESS,
+            TAGKEY_FILE_SCHEME,
+            Optional.ofNullable(scheme).orElse("/"),
+            TAGKEY_FILE_FROM_TYPE,
+            fromType),
+        M_FILE_PARSED_COUNT,
+        1L);
+  }
+
+  public static void incrementUnsuccessfulFileParseCounter(Object badValue) {
+    recordTaggedStat(
+        Map.of(
+            TAGKEY_STATUS,
+            OutcomeStatus.FAILURE,
+            TAGKEY_FILE_SCHEME,
+            "N/A",
+            TAGKEY_FILE_FROM_TYPE,
+            badValue.getClass().getSimpleName()),
+        M_FILE_PARSED_COUNT,
+        1L);
   }
 
   public static double sinceInMilliseconds(long startTimeNs) {
@@ -210,6 +264,12 @@ public final class MetricsUtil {
               M_EVENT_COUNT,
               Aggregation.Count.create(),
               List.of(TAGKEY_NAME)),
+          View.create(
+              View.Name.create(FILE_PARSE_METRICS),
+              "Counter for file parse operations",
+              M_FILE_PARSED_COUNT,
+              Aggregation.Count.create(),
+              List.of(TAGKEY_STATUS, TAGKEY_FILE_SCHEME)),
           View.create(
               View.Name.create(RECORDS_PER_REQUEST_METRICS),
               "Stats related to inbound requests",
