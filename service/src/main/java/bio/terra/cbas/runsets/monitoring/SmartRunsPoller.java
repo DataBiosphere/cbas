@@ -77,6 +77,7 @@ public class SmartRunsPoller {
     try {
       // Filter only updatable runs:
       List<Run> updatableRuns = runs.stream().filter(r -> r.status().nonTerminal()).toList();
+      // System.out.println(updatableRuns);
 
       increaseEventCounter("status update required", updatableRuns.size());
 
@@ -93,6 +94,7 @@ public class SmartRunsPoller {
                               CbasRunStatus.fromValue(
                                   cromwellService.runStatus(r.engineId()).getState());
                           getStatusSuccess = true;
+                          System.out.println("********RESULT: " + result + "\n");
                           return result;
                         } catch (ApiException | IllegalArgumentException e) {
                           logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
@@ -106,6 +108,9 @@ public class SmartRunsPoller {
       Set<Run> updatedRuns = new HashSet<>(runs);
 
       for (Map.Entry<CbasRunStatus, List<Run>> engineStateEntry : engineStatuses.entrySet()) {
+        System.out.println("***********ENGINESTATUSES" + engineStatuses.entrySet() + "\n\n");
+        System.out.println("***********" + engineStateEntry + "\n\n");
+        System.out.println("***********" + engineStateEntry.getValue());
         for (Run r : engineStateEntry.getValue()) {
           updateDatabaseRunStatus(updatedRuns, engineStateEntry, r);
         }
@@ -122,8 +127,11 @@ public class SmartRunsPoller {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
     boolean updateDatabaseRunStatusSuccess = false;
 
+    // System.out.print(engineStateEntry);
+
     try {
       var updatedRunState = engineStateEntry.getKey();
+      // System.out.println(updatedRunState);
       if (r.status() != updatedRunState) {
         if (updatedRunState == CbasRunStatus.COMPLETE) {
           try {
@@ -143,9 +151,11 @@ public class SmartRunsPoller {
           try {
             // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(r);
-            var updatedRun = runDao.updateErrorMessage(r, message);
+            var updatedRun = runDao.updateErrorMessage(r.id(), message);
             if (updatedRun == 1) {
+              System.out.println("\nWE MADE IT INTO THE IF *** " + updatedRun);
               addToUpdatedRunSet(r, updatedRuns, r.withErrorMessage(message));
+              System.out.println("\n" + r);
             }
           } catch (Exception e) {
             logger.error("Error running workflow {} in Cromwell.", r.id(), e);
