@@ -1,6 +1,6 @@
 version 1.0
 
-task align_reads_mock {
+task mock_task_A {
   meta {
     description: "A mock task"
   }
@@ -8,16 +8,12 @@ task align_reads_mock {
   input {
     File     input_file_1
     File     input_file_2
-
     File?    input_file_optional
-
     String   input_string_default_1 = "this is a default string"
     String?  input_string_optional
     Boolean? input_bool_default = false
-
     Int?     input_int_optional
     String   input_string_default_2 = "my-docker-image.123"
-
     String   input_string_default_3 = "this is a second default string"
   }
 
@@ -25,17 +21,28 @@ task align_reads_mock {
   Int variable_int = 5
 
   command {
-    echo "align_reads_mock"
+    date '+%s' > mock_task_A_digest.txt
+    echo 'Inputs:' >> mock_task_A_digest.txt
+    
+    echo 'input_file_1: ~{input_file_1}' >> mock_task_A_digest.txt
+    echo 'input_file_2: ~{input_file_2}' >> mock_task_A_digest.txt
+    echo 'input_file_optional: ~{input_file_optional}' >> mock_task_A_digest.txt
+    echo 'input_string_default_1: ~{input_string_default_1}' >> mock_task_A_digest.txt
+    echo 'input_string_optional: ~{input_string_optional}' >> mock_task_A_digest.txt
+    echo 'input_bool_default: ~{input_bool_default}' >> mock_task_A_digest.txt
+    echo 'input_int_optional: ~{input_int_optional}' >> mock_task_A_digest.txt
+    echo 'input_string_default_2: ~{input_string_default_2}' >> mock_task_A_digest.txt
+    echo 'input_string_default_3: ~{input_string_default_3}' >> mock_task_A_digest.txt
   }
 
   output {
-    File   output_file_1   = input_file_1
-    File   output_file_2   = input_file_1
-    File   output_file_3   = input_file_1
-    File   output_file_4   = input_file_1
-    File   output_file_5   = input_file_1
-    File   output_file_6   = input_file_1
-    File   output_file_7   = input_file_1
+    File   output_file_1   = "mock_task_A_digest.txt"
+    File   output_file_2   = "mock_task_A_digest.txt"
+    File   output_file_3   = "mock_task_A_digest.txt"
+    File   output_file_4   = "mock_task_A_digest.txt"
+    File   output_file_5   = "mock_task_A_digest.txt"
+    File   output_file_6   = "mock_task_A_digest.txt"
+    File   output_file_7   = "mock_task_A_digest.txt"
     Int    output_int_1    = variable_int
     Int    output_int_2    = variable_int
     Int    output_int_3    = variable_int
@@ -43,12 +50,12 @@ task align_reads_mock {
     Float  output_float_2  = variable_float
     Int    output_int_4    = variable_int
     Int    output_int_5    = variable_int
-    String output_string_1 = input_string_default_1
-    String output_string_2 = input_string_default_2
+    String output_string_1 = "output string 1"
+    String output_string_2 = "output string 2"
   }
 }
 
-task ivar_trim_mock {
+task mock_task_B {
   meta {
     description: "A mock task"
   }
@@ -68,7 +75,7 @@ task ivar_trim_mock {
   Float variable_float = 0.82
 
   command {
-    echo "ivar_trim_mock"
+    echo "mock_task_B"
   }
 
   output {
@@ -79,7 +86,7 @@ task ivar_trim_mock {
   }
 }
 
-task merge_and_reheader_bams_mock {
+task mock_task_C {
   meta {
     description: "a mock task"
   }
@@ -94,7 +101,7 @@ task merge_and_reheader_bams_mock {
   }
 
   command {
-    echo "merge_and_reheader_bams_mock"
+    echo "mock_task_C"
   }
 
   output {
@@ -103,7 +110,7 @@ task merge_and_reheader_bams_mock {
   }
 }
 
-task lofreq_mock {
+task mock_task_D {
   input {
     File      input_file_1
     File      input_file_2
@@ -113,7 +120,7 @@ task lofreq_mock {
   }
 
   command {
-    echo "lofreq_mock"
+    echo "mock_task_D"
   }
 
   output {
@@ -122,7 +129,7 @@ task lofreq_mock {
   }
 }
 
-task alignment_metrics_mock {
+task mock_task_E {
   meta {}
 
   input {
@@ -139,7 +146,7 @@ task alignment_metrics_mock {
   }
 
   command {
-    echo "alignment_metrics_mock"
+    echo "mock_task_E"
   }
 
   output {
@@ -151,7 +158,7 @@ task alignment_metrics_mock {
   }
 }
 
-task run_discordance_mock {
+task mock_task_F {
   input {
     File   input_file_1
     File   input_file_2
@@ -162,7 +169,7 @@ task run_discordance_mock {
   }
   
   command {
-    echo "run_discordance_mock"
+    echo "mock_task_F"
   }
   
   output {
@@ -176,7 +183,7 @@ task run_discordance_mock {
   }
 }
 
-task plot_coverage_mock {
+task mock_task_G {
   input {
     File    input_file
     String  input_string
@@ -201,7 +208,7 @@ task plot_coverage_mock {
   }
 
   command {
-    echo "plot_coverage_mock"
+    echo "mock_task_G"
   }
 
   output {
@@ -216,7 +223,7 @@ task plot_coverage_mock {
   }
 }
 
-task refine_assembly_with_aligned_reads_mock {
+task mock_task_H {
 
   input {
     File     input_file_1
@@ -232,7 +239,7 @@ task refine_assembly_with_aligned_reads_mock {
   }
 
   command {
-    echo "refine_assembly_with_aligned_reads_mock"
+    echo "mock_task_H"
   }
 
   output {
@@ -246,7 +253,7 @@ task refine_assembly_with_aligned_reads_mock {
   }
 }
 
-workflow assemble_refbased {
+workflow assemble_refbased_mock {
 
     meta {
         description: "A test workflow, simulating inputs and outputs of `assemble_refbased`, to help build out CBAS functionality"
@@ -268,7 +275,7 @@ workflow assemble_refbased {
     }
 
     scatter(file_ in input_file_array) {
-        call align_reads_mock as call_1 {
+        call mock_task_A as call_1 {
             input:
                 input_file_1          = file_,
                 input_file_2          = file_,
@@ -276,26 +283,26 @@ workflow assemble_refbased {
                 input_string_optional = input_string_default,
                 input_int_optional    = input_int_default
         }
-        call ivar_trim_mock as call_2 {
+        call mock_task_B as call_2 {
             input:
                 input_file            = file_,
                 input_file_optional   = file_
         }
     }
 
-    call merge_and_reheader_bams_mock as call_3 {
+    call mock_task_C as call_3 {
         input:
             input_file_array = input_file_array,
             input_string  = "hello world",
     }
 
-    call lofreq_mock as call_4 {
+    call mock_task_D as call_4 {
         input:
             input_file_1 = input_file,
             input_file_2 = input_file
     }
 
-    call alignment_metrics_mock as call_5 {
+    call mock_task_E as call_5 {
         input:
             input_file_1         = input_file,
             input_file_2         = input_file,
@@ -303,7 +310,7 @@ workflow assemble_refbased {
             input_int_optional_1 = 3
     }
 
-    call run_discordance_mock as call_6 {
+    call mock_task_F as call_6 {
         input:
             input_file_1         = input_file,
             input_file_2         = input_file,
@@ -311,13 +318,13 @@ workflow assemble_refbased {
             input_int_default    = input_int_default
     }
 
-    call plot_coverage_mock as call_7 {
+    call mock_task_G as call_7 {
         input:
             input_file   = input_file,
             input_string = "hello world"
     }
 
-    call refine_assembly_with_aligned_reads_mock as call_8 {
+    call mock_task_H as call_8 {
         input:
             input_file_1 = input_file,
             input_file_2 = input_file,
@@ -325,7 +332,7 @@ workflow assemble_refbased {
     }
 
     scatter(reads_unmapped_bam in input_file_array) {
-        call align_reads_mock as call_9 {
+        call mock_task_A as call_9 {
             input:
                 input_file_1          = input_file,
                 input_file_2          = input_file,
@@ -335,19 +342,19 @@ workflow assemble_refbased {
         }
     }
 
-    call merge_and_reheader_bams_mock as call_10 {
+    call mock_task_C as call_10 {
         input:
             input_file_array = input_file_array,
             input_string  = "hello world"
     }
 
-    call lofreq_mock as call_11 {
+    call mock_task_D as call_11 {
         input:
             input_file_1 = input_file,
             input_file_2 = input_file
     }
 
-    call plot_coverage_mock as call_12 {
+    call mock_task_G as call_12 {
         input:
             input_file   = input_file,
             input_string = "hello world"
