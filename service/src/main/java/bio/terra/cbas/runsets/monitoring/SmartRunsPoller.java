@@ -165,7 +165,7 @@ public class SmartRunsPoller {
             logger.error("Error running workflow {} in Cromwell.", updatableRun.id(), e);
           }
         }
-        logger.debug(
+        logger.info(
             "Updating status of Run {} (engine ID {}) from {} to {}",
             updatableRun.id(),
             updatableRun.engineId(),
