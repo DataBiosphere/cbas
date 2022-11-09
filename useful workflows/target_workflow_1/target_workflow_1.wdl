@@ -6,8 +6,8 @@ task foo {
   }
   input {
     # TODO: Make these FILE inputs, not strings.
-    String    input_file_1
-    String?   input_file_2
+    File    input_file_1
+    File?   input_file_2
     String  input_string_1
     String  input_string_2
     String? input_string_3
