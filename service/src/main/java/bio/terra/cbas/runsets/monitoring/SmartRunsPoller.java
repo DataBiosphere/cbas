@@ -52,7 +52,6 @@ public class SmartRunsPoller {
   public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
-
     return !outputDefinitionList.isEmpty();
   }
 
@@ -79,7 +78,6 @@ public class SmartRunsPoller {
    * @return A new list containing up-to-date run information for all runs in the input
    */
   public List<Run> updateRuns(List<Run> runs) {
-
     // For metrics:
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
@@ -87,7 +85,6 @@ public class SmartRunsPoller {
     try {
       // Filter only updatable runs:
       List<Run> updatableRuns = runs.stream().filter(r -> r.status().nonTerminal()).toList();
-      // System.out.println(updatableRuns);
 
       increaseEventCounter("status update required", updatableRuns.size());
 

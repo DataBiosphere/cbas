@@ -6,7 +6,7 @@ import cromwell.client.model.FailureMessage;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class TestCromwellService {
+class TestCromwellService {
 
   @Test
   void oneFailureNoCausedBy() {
@@ -96,21 +96,5 @@ public class TestCromwellService {
     String actual = CromwellService.getErrorMessage(input);
 
     assertEquals(expected, actual);
-  }
-
-  @Test
-  void combinedCharLengthReturnsCorrectMessage() {
-
-    List<FailureMessage> input =
-        List.of(
-            new FailureMessage()
-                .message(String.valueOf(new char[80]).replace('\0', 'a'))
-                .causedBy(
-                    List.of(
-                        new FailureMessage()
-                            .message(String.valueOf(new char[25]).replace('\0', 'b')))));
-
-    String expectedChars = new String(new char[97]);
-    String expected = expectedChars + "...";
   }
 }

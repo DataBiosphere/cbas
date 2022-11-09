@@ -6,6 +6,7 @@ import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -61,7 +62,7 @@ public class TestSmartRunsPoller {
   private static final String completedRunEngineId = UUID.randomUUID().toString();
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
-  private static final String errorMessagesNull = null;
+  private static final String errorMessages = null;
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -102,7 +103,7 @@ public class TestSmartRunsPoller {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessagesNull);
+          errorMessages);
 
   final Run runToUpdate2 =
       new Run(
@@ -114,7 +115,7 @@ public class TestSmartRunsPoller {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessagesNull);
+          errorMessages);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -126,7 +127,7 @@ public class TestSmartRunsPoller {
           COMPLETE,
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
-          errorMessagesNull);
+          errorMessages);
   final Run runToUpdate3 =
       new Run(
           runningRunId3,
@@ -137,7 +138,7 @@ public class TestSmartRunsPoller {
           UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessagesNull);
+          errorMessages);
 
   @BeforeEach
   public void init() {
@@ -227,7 +228,7 @@ public class TestSmartRunsPoller {
     verify(runsDao)
         .updateRunStatus(
             eq(runToUpdate1.id()),
-            eq(COMPLETE)); // (verify that error messages are recieved from Cromwell)
+            eq(COMPLETE)); // (verify that error messages are received from Cromwell)
     verify(wdsService)
         .updateRecord(
             eq(mockRequest),
@@ -356,12 +357,12 @@ public class TestSmartRunsPoller {
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
 
     verify(cromwellService)
-        .runStatus(eq(runningRunEngineId3)); // (verify that the workflow is in a failed state)
+        .runStatus(eq(runningRunEngineId3));
     verify(runsDao).updateRunStatus(eq(runToUpdate3.id()), eq(EXECUTOR_ERROR));
     verify(runsDao)
         .updateErrorMessage(
             eq(runToUpdate3.id()),
-            eq(cromwellErrorMessage)); // (verify that error messages are received from Cromwell)
+            eq(cromwellErrorMessage));
 
     assertEquals(
         EXECUTOR_ERROR,
@@ -377,28 +378,29 @@ public class TestSmartRunsPoller {
     assertTrue(smartRunsPoller.hasOutputDefinition(runToUpdate1));
   }
 
-  //  @Test
-  //  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
-  //    String outputDefinition = "[]";
-  //    RunSet runSet =
-  //        new RunSet(
-  //            UUID.randomUUID(),
-  //            new Method(
-  //                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition,
-  // "entitytype"));
-  //    Run run =
-  //        new Run(
-  //            runningRunId1,
-  //            runningRunEngineId1,
-  //            runSet,
-  //            runningRunEntityId1,
-  //            runSubmittedTime,
-  //            RUNNING,
-  //            runningRunStatusUpdateTime,
-  //            runningRunStatusUpdateTime,
-  //            errorMessages);
-  //
-  //    assertFalse(smartRunsPoller.hasOutputDefinition(run));
-  //
-  //  }
+    @Test
+    void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
+      String outputDefinition = "[]";
+      RunSet runSet =
+          new RunSet(
+              UUID.randomUUID(),
+              new Method(
+                  UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition,
+   "entitytype"));
+
+      Run run =
+          new Run(
+              runningRunId1,
+              runningRunEngineId1,
+              runSet,
+              runningRunEntityId1,
+              runSubmittedTime,
+              RUNNING,
+              runningRunStatusUpdateTime,
+              runningRunStatusUpdateTime,
+              errorMessages);
+
+      assertFalse(smartRunsPoller.hasOutputDefinition(run));
+
+    }
 }
