@@ -1,7 +1,7 @@
 [
   {
     "input_name": "target_workflow_1.foo.input_file_1",
-    "input_type": { "type": "primitive", "primitive_type": "String" },
+    "input_type": { "type": "primitive", "primitive_type": "File" },
     "source": {
       "type": "record_lookup",
       "record_attribute": "target_workflow_1_input_file_1"
@@ -9,7 +9,7 @@
   },
   {
     "input_name": "target_workflow_1.foo.input_file_2",
-    "input_type": { "type": "primitive", "primitive_type": "String" },
+    "input_type": { "type": "primitive", "primitive_type": "File" },
     "source": {
       "type": "record_lookup",
       "record_attribute": "target_workflow_1_input_file_2"
