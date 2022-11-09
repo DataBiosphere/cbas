@@ -25,6 +25,20 @@ public class CbasInt implements CbasValue {
       return new CbasInt(i.longValue());
     } else if (value instanceof Long l) {
       return new CbasInt(l);
+    } else if (value instanceof Float f) {
+      long longValue = Math.round(f);
+      if (f == longValue) {
+        return new CbasInt(longValue);
+      } else {
+        throw new TypeCoercionException(value, "Int");
+      }
+    } else if (value instanceof Double d) {
+      long longValue = Math.round(d);
+      if (d == longValue) {
+        return new CbasInt(longValue);
+      } else {
+        throw new TypeCoercionException(value, "Int");
+      }
     } else {
       throw new TypeCoercionException(value, "Int");
     }
