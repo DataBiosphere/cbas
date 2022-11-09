@@ -356,13 +356,9 @@ public class TestSmartRunsPoller {
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
 
-    verify(cromwellService)
-        .runStatus(eq(runningRunEngineId3));
+    verify(cromwellService).runStatus(eq(runningRunEngineId3));
     verify(runsDao).updateRunStatus(eq(runToUpdate3.id()), eq(EXECUTOR_ERROR));
-    verify(runsDao)
-        .updateErrorMessage(
-            eq(runToUpdate3.id()),
-            eq(cromwellErrorMessage));
+    verify(runsDao).updateErrorMessage(eq(runToUpdate3.id()), eq(cromwellErrorMessage));
 
     assertEquals(
         EXECUTOR_ERROR,
@@ -378,29 +374,27 @@ public class TestSmartRunsPoller {
     assertTrue(smartRunsPoller.hasOutputDefinition(runToUpdate1));
   }
 
-    @Test
-    void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
-      String outputDefinition = "[]";
-      RunSet runSet =
-          new RunSet(
-              UUID.randomUUID(),
-              new Method(
-                  UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition,
-   "entitytype"));
+  @Test
+  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
+    String outputDefinition = "[]";
+    RunSet runSet =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
 
-      Run run =
-          new Run(
-              runningRunId1,
-              runningRunEngineId1,
-              runSet,
-              runningRunEntityId1,
-              runSubmittedTime,
-              RUNNING,
-              runningRunStatusUpdateTime,
-              runningRunStatusUpdateTime,
-              errorMessages);
+    Run run =
+        new Run(
+            runningRunId1,
+            runningRunEngineId1,
+            runSet,
+            runningRunEntityId1,
+            runSubmittedTime,
+            RUNNING,
+            runningRunStatusUpdateTime,
+            runningRunStatusUpdateTime,
+            errorMessages);
 
-      assertFalse(smartRunsPoller.hasOutputDefinition(run));
-
-    }
+    assertFalse(smartRunsPoller.hasOutputDefinition(run));
+  }
 }
