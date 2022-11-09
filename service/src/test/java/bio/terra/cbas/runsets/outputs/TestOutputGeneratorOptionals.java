@@ -6,8 +6,6 @@ import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.optionalOutp
 import static org.junit.jupiter.api.Assertions.*;
 
 import bio.terra.cbas.model.WorkflowOutputDefinition;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
 import java.util.List;
