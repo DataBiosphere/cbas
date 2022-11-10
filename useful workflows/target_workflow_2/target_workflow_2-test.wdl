@@ -17,10 +17,18 @@ task mock_task_A {
     String   input_string_default_3 = "this is a second default string"
   }
 
-  Float variable_float = 0.67
-  Int variable_int = 5
+  Float declared_float = 0.67
+  Int declared_int = 5
 
   command {
+    echo 'output file 1' > output-file-1.txt
+    echo 'output file 2' > output-file-2.txt
+    echo 'output file 3' > output-file-3.txt
+    echo 'output file 4' > output-file-4.txt
+    echo 'output file 5' > output-file-5.txt
+    echo 'output file 6' > output-file-6.txt
+    echo 'output file 7' > output-file-7.txt
+
     date '+%s' > mock_task_A_digest.txt
     echo 'Inputs:' >> mock_task_A_digest.txt
     
@@ -36,22 +44,27 @@ task mock_task_A {
   }
 
   output {
-    File   output_file_1   = "mock_task_A_digest.txt"
-    File   output_file_2   = "mock_task_A_digest.txt"
-    File   output_file_3   = "mock_task_A_digest.txt"
-    File   output_file_4   = "mock_task_A_digest.txt"
-    File   output_file_5   = "mock_task_A_digest.txt"
-    File   output_file_6   = "mock_task_A_digest.txt"
-    File   output_file_7   = "mock_task_A_digest.txt"
-    Int    output_int_1    = variable_int
-    Int    output_int_2    = variable_int
-    Int    output_int_3    = variable_int
-    Float  output_float_1  = variable_float
-    Float  output_float_2  = variable_float
-    Int    output_int_4    = variable_int
-    Int    output_int_5    = variable_int
+    File   output_file_1   = "output-file-1.txt"
+    File   output_file_2   = "output-file-2.txt"
+    File   output_file_3   = "output-file-3.txt"
+    File   output_file_4   = "output-file-4.txt"
+    File   output_file_5   = "output-file-5.txt"
+    File   output_file_6   = "output-file-6.txt"
+    File   output_file_7   = "output-file-7.txt"
+    Int    output_int_1    = declared_int
+    Int    output_int_2    = declared_int
+    Int    output_int_3    = declared_int
+    Float  output_float_1  = declared_float
+    Float  output_float_2  = declared_float
+    Int    output_int_4    = declared_int
+    Int    output_int_5    = declared_int
     String output_string_1 = "output string 1"
     String output_string_2 = "output string 2"
+    File   output_digest   = "mock_task_A_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -72,10 +85,12 @@ task mock_task_B {
     String input_string_default = "ivar trim mock string"
   }
 
-  Float variable_float = 0.82
-  Int variable_int = 99
+  Float declared_float = 0.82
+  Int declared_int = 99
 
   command {
+    echo 'output file' > output-file.txt
+
     date '+%s' > mock_task_B_digest.txt
     echo 'Inputs:' >> mock_task_B_digest.txt
     
@@ -88,10 +103,15 @@ task mock_task_B {
   }
 
   output {
-    File   output_file   = "mock_task_B_digest.txt"
-    Float  output_float  = variable_float
-    Int    output_int    = variable_int
+    File   output_file   = "output-file.txt"
+    Float  output_float  = declared_float
+    Int    output_int    = declared_int
     String output_string = "a man a plan a canal panama"
+    File   output_digest = "mock_task_B_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -109,6 +129,8 @@ task mock_task_C {
   }
 
   command {
+    echo 'output file' > output-file.txt
+
     date '+%s' > mock_task_C_digest.txt
     echo 'Inputs:' >> mock_task_C_digest.txt
     
@@ -119,8 +141,13 @@ task mock_task_C {
   }
 
   output {
-    File   output_file   = "mock_task_C_digest.txt"
-    String output_string = "was it a bar or a bat I saw?"
+    File   output_file     = "output-file.txt"
+    File   output_digest   = "mock_task_C_digest.txt"
+    String output_string   = "was it a bar or a bat I saw?"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -134,6 +161,8 @@ task mock_task_D {
   }
 
   command {
+    echo 'output file' > output-file.txt
+
     date '+%s' > mock_task_D_digest.txt
     echo 'Inputs:' >> mock_task_D_digest.txt
     
@@ -144,8 +173,13 @@ task mock_task_D {
   }
 
   output {
-    File   output_file   = "mock_task_D_digest.txt"
+    File   output_file   = "output-file.txt"
     String output_string = "Mr. Owl ate my metal worm"
+    File   output_digest = "mock_task_D_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -165,6 +199,12 @@ task mock_task_E {
   }
 
   command {
+    echo 'output file 1' > output-file-1.txt
+    echo 'output file 2' > output-file-2.txt
+    echo 'output file 3' > output-file-3.txt
+    echo 'output file 4' > output-file-4.txt
+    echo 'output file 5' > output-file-5.txt
+
     date '+%s' > mock_task_E_digest.txt
     echo 'Inputs:' >> mock_task_E_digest.txt
     
@@ -180,11 +220,16 @@ task mock_task_E {
   }
 
   output {
-    File output_file_1 = "mock_task_E_digest.txt"
-    File output_file_2 = "mock_task_E_digest.txt"
-    File output_file_3 = "mock_task_E_digest.txt"
-    File output_file_4 = "mock_task_E_digest.txt"
-    File output_file_5 = "mock_task_E_digest.txt"
+    File output_file_1 = "output-file-1.txt"
+    File output_file_2 = "output-file-2.txt"
+    File output_file_3 = "output-file-3.txt"
+    File output_file_4 = "output-file-4.txt"
+    File output_file_5 = "output-file-5.txt"
+    File output_digest = "mock_task_E_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -198,6 +243,7 @@ task mock_task_F {
   }
   
   command {
+    echo 'output file' > output-file.txt
     date '+%s' > mock_task_F_digest.txt
     echo 'Inputs:' >> mock_task_F_digest.txt
     
@@ -209,13 +255,18 @@ task mock_task_F {
   }
   
   output {
-    File   output_file   = "mock_task_F_digest.txt"
+    File   output_file   = "output-file.txt"
     Int    output_int_1  = 101
     Int    output_int_2  = 102
     Int    output_int_3  = 103
     Int    output_int_4  = 104
     Int    output_int_5  = 105
     String output_string = "mock test F output string"
+    File   output_digest = "mock_task_F_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -244,6 +295,10 @@ task mock_task_G {
   }
 
   command {
+
+    echo 'output file 1' > output-file-1.txt
+    echo 'output file 2' > output-file-2.txt
+
     date '+%s' > mock_task_G_digest.txt
     echo 'Inputs:' >> mock_task_G_digest.txt
     
@@ -265,14 +320,19 @@ task mock_task_G {
   }
 
   output {
-    File   output_file_1  = "mock_task_G_digest.txt"
-    File   output_file_2  = "mock_task_G_digest.txt"
+    File   output_file_1  = "output-file-1.txt"
+    File   output_file_2  = "output-file-1.txt"
     Int    output_int_1   = 1
     Int    output_int_2   = 2
     Int    output_int_3   = 3
     Float  output_float_1 = 4.0
     Float  output_float_2 = 5.0
     String output_string  = "hello world"
+    File   output_digest  = "mock_task_G_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -292,6 +352,9 @@ task mock_task_H {
   }
 
   command {
+    echo 'output file 1' > output-file-1.txt
+    echo 'output file 2' > output-file-2.txt
+
     date '+%s' > mock_task_H_digest.txt
     echo 'Inputs:' >> mock_task_H_digest.txt
     
@@ -306,13 +369,18 @@ task mock_task_H {
   }
 
   output {
-      File   output_file_1 = "mock_task_H_digest.txt"
-      File   output_file_2 = "mock_task_H_digest.txt"
-      Int    output_int_1  = 202
-      Int    output_int_2  = 302
-      Int    output_int_3  = 402
-      Int    output_int_4  = 502
-      String output_string = "hello world"
+    File   output_file_1 = "output-file-1.txt"
+    File   output_file_2 = "output-file-1.txt"
+    Int    output_int_1  = 202
+    Int    output_int_2  = 302
+    Int    output_int_3  = 402
+    Int    output_int_4  = 502
+    String output_string = "hello world"
+    File   output_digest = "mock_task_H_digest.txt"
+  }
+
+  runtime {
+    docker: "ubuntu:latest"
   }
 }
 
@@ -339,182 +407,208 @@ task delay_completion {
 
   runtime {
     docker: "ubuntu:latest"
-    cpu: 2
-    memory: "3 GB"
-    disks: "local-disk 10 LOCAL"
-    maxRetries: 2
   }
 }
 
 workflow assemble_refbased_mock {
 
-    meta {
-        description: "A test workflow, simulating inputs and outputs of `assemble_refbased`, to help build out CBAS functionality"
-    }
+  meta {
+    description: "A test workflow, simulating inputs and outputs of `assemble_refbased`, to help build out CBAS functionality"
+  }
 
-    parameter_meta {
-      delay_completion_until: 'a UTC timestamp in a format like this: 11/31/2022 14:00:01'
-    }
+  parameter_meta {
+    delay_completion_until: 'a UTC timestamp in a format like this: 11/31/2022 14:00:01'
+  }
 
-    input {
-        Array[File]+ input_file_array
-        File         input_file
-        String       input_string_default = "a default string"
-        String       input_string_optional = "foo"
-        File?        input_file_optional_1
-        Int          input_int_default = 3
-        Float        input_float_default = 0.75
-        Boolean      input_bool_default = false
-        File?        input_file_optional_2
+  input {
+      Array[File]+ input_file_array
+      File         input_file
+      String       input_string_default = "a default string"
+      String       input_string_optional = "foo"
+      File?        input_file_optional_1
+      Int          input_int_default = 3
+      Float        input_float_default = 0.75
+      Boolean      input_bool_default = false
+      File?        input_file_optional_2
 
-        String       delay_completion_until = "11/09/2022 14:45:00"
-    }
+      String       delay_completion_until = "11/09/2022 14:45:00"
+  }
 
-    scatter(file_ in input_file_array) {
-        call mock_task_A as call_1 {
-            input:
-                input_file_1          = file_,
-                input_file_2          = file_,
-                input_file_optional   = file_,
-                input_string_optional = input_string_default,
-                input_int_optional    = input_int_default
-        }
-        call mock_task_B as call_2 {
-            input:
-                input_file            = file_,
-                input_file_optional   = file_
-        }
-    }
+  Int declared_int_1 = 9999
+  Int declared_int_2 = -999
 
-    call mock_task_C as call_3 {
-        input:
-            input_file_array = input_file_array,
-            input_string  = "hello world",
-    }
-
-    call mock_task_D as call_4 {
-        input:
-            input_file_1 = input_file,
-            input_file_2 = input_file
-    }
-
-    call mock_task_E as call_5 {
-        input:
-            input_file_1         = input_file,
-            input_file_2         = input_file,
-            input_file_optional  = input_file,
-            input_int_optional_1 = 3
-    }
-
-    call mock_task_F as call_6 {
-        input:
-            input_file_1         = input_file,
-            input_file_2         = input_file,
-            input_int_default    = input_int_default
-    }
-
-    call mock_task_G as call_7 {
-        input:
-            input_file   = input_file,
-            input_string = "hello world"
-    }
-
-    call mock_task_H as call_8 {
-        input:
-            input_file_1 = input_file,
-            input_file_2 = input_file,
-            input_string = "hello world"
-    }
-
-    scatter(reads_unmapped_bam in input_file_array) {
-      call mock_task_A as call_9 {
-        input:
-          input_file_1          = input_file,
-          input_file_2          = input_file,
-          input_file_optional   = input_file,
-          input_string_optional = input_string_default,
-          input_int_optional    = input_int_default
+  scatter(file_ in input_file_array) {
+      call mock_task_A as call_1 {
+          input:
+              input_file_1          = file_,
+              input_file_2          = file_,
+              input_file_optional   = file_,
+              input_string_optional = input_string_default,
+              input_int_optional    = input_int_default
       }
-    }
+      call mock_task_B as call_2 {
+          input:
+              input_file            = file_,
+              input_file_optional   = file_
+      }
+      
+      Map[String,String] scattered_stringtostring_map = {
+          'foo': call_1.output_file_1,
+          'bar': call_1.output_file_2,
+          'baz': call_1.output_string_1
+      }
+      Array[String] scattered_string_array = [
+        call_2.output_string,
+        "a second thing",
+        "a third thing"
+      ]
+      Array[Int] scattered_int_array = [
+        call_1.output_int_1,
+        call_1.output_int_2,
+        call_1.output_int_3,
+        call_1.output_int_4,
+        call_1.output_int_5
+      ]
+  }
 
-    call mock_task_C as call_10 {
+  call mock_task_C as call_3 {
       input:
           input_file_array = input_file_array,
-          input_string  = "hello world"
-    }
+          input_string  = "hello world",
+  }
 
-    call mock_task_D as call_11 {
+  call mock_task_D as call_4 {
       input:
           input_file_1 = input_file,
           input_file_2 = input_file
-    }
+  }
 
-    call mock_task_G as call_12 {
+  call mock_task_E as call_5 {
       input:
-        input_file   = input_file,
-        input_string = "hello world"
-    }
+          input_file_1         = input_file,
+          input_file_2         = input_file,
+          input_file_optional  = input_file,
+          input_int_optional_1 = 3
+  }
 
-    call delay_completion {
+  call mock_task_F as call_6 {
       input:
-        timestamp = delay_completion_until
+          input_file_1         = input_file,
+          input_file_2         = input_file,
+          input_int_default    = input_int_default
+  }
+
+  call mock_task_G as call_7 {
+      input:
+          input_file   = input_file,
+          input_string = "hello world"
+  }
+
+  call mock_task_H as call_8 {
+      input:
+          input_file_1 = input_file,
+          input_file_2 = input_file,
+          input_string = "hello world"
+  }
+
+  scatter(reads_unmapped_bam in input_file_array) {
+    call mock_task_A as call_9 {
+      input:
+        input_file_1          = input_file,
+        input_file_2          = input_file,
+        input_file_optional   = input_file,
+        input_string_optional = input_string_default,
+        input_int_optional    = input_int_default
     }
+  }
 
-    output {
-        File                        output_file_1           = input_file_array[0]
-        File                        output_file_2           = input_file_array[0]
-        Int                         output_int_1            = input_int_default
-        Int                         output_int_2            = input_int_default
-        Int                         output_int_3            = input_int_default
-        Float                       output_float_1          = input_float_default
-        Int                         output_int_4            = input_int_default
-        Int                         output_int_5            = input_int_default
-        
-        Array[Int]                  output_int_array_1      = [input_int_default]
-        Array[Float]                output_float_array      = [input_float_default]
-        Array[Map[String,String]]   array_of_maps_of_str    = [{input_file: input_string_optional}]
-        Array[Array[String]]        array_of_arrays_of_str  = [[input_string_optional]]
-        
-        Int                         output_int_6            = input_int_default
-        Int                         output_int_7            = input_int_default
-        Int                         output_int_8            = input_int_default
-        Int                         output_int_9            = input_int_default
-        Int                         output_int_10           = input_int_default
-        File                        output_file_3           = input_file
-        
-        Array[File]                 output_file_array_1     = [input_file]
-        Array[Int]                  output_int_array_2      = [input_int_default]
-        Array[Int]                  output_int_array_2      = [input_int_default]
-        Array[File]                 output_file_array_2     = [input_file]
-        
-        File                        output_file_4           = input_file
-        File                        output_file_5           = input_file
-        File                        output_file_6           = input_file
-        Int                         output_int_11           = input_int_default
-        Int                         output_int_12           = input_int_default
-        Float                       output_float_2          = input_float_default
-        File                        output_file_7           = input_file
-        
-        File                        output_file_8           = input_file
-        File                        output_file_9           = input_file
-        File                        output_file_10          = input_file
-        File                        output_file_11          = input_file
-        File                        output_file_12          = input_file
+  call mock_task_C as call_10 {
+    input:
+        input_file_array = input_file_array,
+        input_string  = "hello world"
+  }
 
-        Array[File]                 output_file_array_3     = [input_file]
+  call mock_task_D as call_11 {
+    input:
+        input_file_1 = input_file,
+        input_file_2 = input_file
+  }
 
-        File                        output_file_13          = input_file
-        File                        output_file_14          = input_file
-        File                        output_file_15          = input_file
-        Int                         output_int_13           = input_int_default
-        Int                         output_int_14           = input_int_default
-        Float                       output_float_3          = input_float_default
-        Float                       output_float_4          = input_float_default
-        File                        output_file_16          = input_file
-        
-        String                      output_string_1         = input_string_optional
-        String                      output_string_2         = input_string_optional
-        String                      output_string_3         = input_string_optional
-    }
+  call mock_task_G as call_12 {
+    input:
+      input_file   = input_file,
+      input_string = "hello world"
+  }
+
+  call delay_completion {
+    input:
+      timestamp = delay_completion_until
+  }
+
+  output {
+    File                        output_file_1           = call_1.output_file_1[0]
+    File                        output_file_2           = call_2.output_file[0]
+    Int                         output_int_1            = call_6.output_int_1
+    Int                         output_int_2            = call_6.output_int_2
+    Int                         output_int_3            = call_6.output_int_3
+    Float                       output_float_1          = call_7.output_float_1
+    Int                         output_int_4            = call_6.output_int_4
+    Int                         output_int_5            = call_6.output_int_5
+    
+    Array[Int]                  output_int_array_1      = [
+                                                          call_7.output_int_1, call_7.output_int_2
+                                                        ]
+    Array[Float]                output_float_array      = [call_7.output_float_1]
+    Array[Map[String,String]]   array_of_maps_of_str    = scattered_stringtostring_map
+    Array[Array[String]]        array_of_arrays_of_str  = scattered_string_array
+    
+    Int                         output_int_6            = call_6.output_int_1
+    Int                         output_int_7            = call_6.output_int_2
+    Int                         output_int_8            = call_6.output_int_3
+    Int                         output_int_9            = scattered_int_array[0][0]
+    Int                         output_int_10           = scattered_int_array[0][1]
+    File                        output_file_3           = call_1.output_digest[0]
+    
+    Array[File]                 output_file_array_1     = call_1.output_file_1
+    Array[Int]                  output_int_array_2      = scattered_int_array[0]
+    Array[Int]                  output_int_array_3      = [1, 2, 3, 4, 5, 6]
+    Array[File]                 output_file_array_2     = [
+                                                          call_1.output_digest[0],
+                                                          call_1.output_file_1[0]
+                                                        ]
+    
+    File                        output_file_4           = call_3.output_file
+    File                        output_file_5           = call_4.output_file
+    File                        output_file_6           = call_5.output_file_1
+    Int                         output_int_11           = scattered_int_array[0][2]
+    Int                         output_int_12           = scattered_int_array[0][3]
+    Float                       output_float_2          = 0.123
+    File                        output_file_7           = call_5.output_file_2
+    
+    File                        output_file_8           = call_5.output_file_3
+    File                        output_file_9           = call_5.output_file_4
+    File                        output_file_10          = call_5.output_file_5
+    File                        output_file_11          = call_12.output_file_1
+    File                        output_file_12          = call_12.output_file_2
+
+    Array[File]                 output_file_array_3     = [
+                                                          call_3.output_digest, 
+                                                          call_4.output_digest, 
+                                                          call_4.output_digest
+                                                        ]
+
+    File                        output_file_13          = call_5.output_digest
+    File                        output_file_14          = call_6.output_digest
+    File                        output_file_15          = call_7.output_digest
+    Int                         output_int_13           = declared_int_1
+    Int                         output_int_14           = declared_int_2
+    Float                       output_float_3          = 4.567
+    Float                       output_float_4          = 8.910
+    File                        output_file_16          = call_8.output_digest
+    
+    String                      output_string_1         = "north"
+    String                      output_string_2         = "south"
+    String                      output_string_3         = "east"
+  }
 
 }
