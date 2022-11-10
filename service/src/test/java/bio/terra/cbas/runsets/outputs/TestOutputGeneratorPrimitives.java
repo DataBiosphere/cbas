@@ -1,5 +1,7 @@
 package bio.terra.cbas.runsets.outputs;
 
+import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.multipleCromwellOutputs;
+import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.singleCromwellOutput;
 import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.primitiveOutputDefinition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -7,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.runsets.types.TypeCoercionException;
 import bio.terra.cbas.runsets.types.ValueCoercionException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
+import com.google.gson.Gson;
+import cromwell.client.JSON;
 import java.util.List;
 import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordAttributes;
@@ -18,13 +22,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorPrimitives {
+
+  public TestOutputGeneratorPrimitives() {
+    JSON.setGson(new Gson());
+  }
+
   static ObjectMapper objectMapper =
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
   void stringOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", "Harry Potter");
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"Harry Potter\"");
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
 
@@ -37,8 +45,7 @@ class TestOutputGeneratorPrimitives {
 
   @Test
   void intOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", 123);
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "123");
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_id", 123L);
 
@@ -49,9 +56,20 @@ class TestOutputGeneratorPrimitives {
   }
 
   @Test
+  void invalidIntOutput() throws Exception {
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "123.4");
+
+    Assertions.assertThrows(
+        TypeCoercionException.class,
+        () ->
+            OutputGenerator.buildOutputs(
+                List.of(primitiveOutputDefinition("myWorkflow.out", "Int", "foo_id")),
+                cromwellOutputs));
+  }
+
+  @Test
   void booleanOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", true);
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "true");
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_valid", true);
 
@@ -64,8 +82,7 @@ class TestOutputGeneratorPrimitives {
 
   @Test
   void floatOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", 8.5);
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "8.5");
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_rating", 8.5);
 
@@ -78,8 +95,7 @@ class TestOutputGeneratorPrimitives {
 
   @Test
   void validFileOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", "gs://bucket/file-out");
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"gs://bucket/file-out\"");
 
     List<WorkflowOutputDefinition> outputDefinitions =
         List.of(primitiveOutputDefinition("myWorkflow.out", "File", "foo_rating"));
@@ -93,8 +109,7 @@ class TestOutputGeneratorPrimitives {
 
   @Test
   void invalidFileOutput() throws Exception {
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.out", "not a file");
+    Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"not a file\"");
 
     List<WorkflowOutputDefinition> outputDefinitions =
         List.of(primitiveOutputDefinition("myWorkflow.out", "File", "foo_rating"));
@@ -111,9 +126,10 @@ class TestOutputGeneratorPrimitives {
             primitiveOutputDefinition("myWorkflow.name", "String", "foo_name"),
             primitiveOutputDefinition("myWorkflow.rating", "Float", "foo_rating"));
 
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.name", "Harry Potter");
-    cromwellOutputs.put("myWorkflow.rating", 8.5);
+    Object cromwellOutputs =
+        multipleCromwellOutputs(
+            Map.of("myWorkflow.name", "\"Harry Potter\"", "myWorkflow.rating", "8.5"));
+
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
     expected.put("foo_rating", 8.5);
@@ -127,9 +143,9 @@ class TestOutputGeneratorPrimitives {
     List<WorkflowOutputDefinition> outputDefinitions =
         List.of(primitiveOutputDefinition("myWorkflow.naem", "String", "foo_name"));
 
-    Map<String, Object> cromwellOutputs = new HashMap<>();
-    cromwellOutputs.put("myWorkflow.name", "Harry Potter");
-    cromwellOutputs.put("myWorkflow.rating", 8.5);
+    Object cromwellOutputs =
+        multipleCromwellOutputs(
+            Map.of("myWorkflow.name", "\"Harry Potter\"", "myWorkflow.rating", "8.5"));
 
     Exception exception = null;
     try {
