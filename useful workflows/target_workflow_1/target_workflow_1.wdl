@@ -5,7 +5,6 @@ task foo {
     description: "Target workflow 1 for support in Q4 2022"
   }
   input {
-    # TODO: Make these FILE inputs, not strings.
     File    input_file_1
     File?   input_file_2
     String  input_string_1
