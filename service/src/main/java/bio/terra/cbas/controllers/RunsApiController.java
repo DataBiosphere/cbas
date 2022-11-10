@@ -36,6 +36,7 @@ public class RunsApiController implements RunsApi {
 
     return new RunLog()
         .runId(run.id().toString())
+        .engineId(run.engineId())
         .workflowUrl(run.runSet().method().methodUrl())
         .name(null)
         .state(CbasRunStatus.toCbasApiState(run.status()))

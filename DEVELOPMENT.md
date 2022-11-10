@@ -57,6 +57,11 @@ psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
 
 #### Workspace Data Service (WDS)
 
+Create an empty WDS database in the PostgreSQL server you created above.
+```sql
+CREATE DATABASE wds;
+```
+
 Start a WDS container with the following command:
 
 ```
@@ -123,7 +128,7 @@ Then navigate to the Swagger: `http://localhost:8080/swagger-ui.html`
 
 1. Open the repo normally (File > New > Project From Existing Sources). Select the folder, and then select Gradle as the external model.
 2. In project structure (the folder icon with a little tetromino over it in the upper
-   right corner), make sure the project SDK is set to Java 17. If not, IntelliJ should
+   right corner), make sure the project SDK is set to Java 17 (>= 17.0.3). If not, IntelliJ should
    detect it on your system in the dropdown, otherwise click "Add JDK..." and navigate to
    the folder from the last step.
 3. Set up [google-java-format](https://github.com/google/google-java-format). We use the
