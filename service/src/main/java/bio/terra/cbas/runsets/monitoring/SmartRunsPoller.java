@@ -126,11 +126,10 @@ public class SmartRunsPoller {
     }
   }
 
-  private Run updateDatabaseRunStatus(Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run r) {
+  private Run updateDatabaseRunStatus(
+      Map.Entry<CbasRunStatus, List<Run>> engineStateEntry, Run updatableRun) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
     boolean updateDatabaseRunStatusSuccess = false;
-
-    Run updatableRun = r;
 
     try {
       var updatedRunState = engineStateEntry.getKey();
@@ -157,12 +156,17 @@ public class SmartRunsPoller {
           try {
             // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(updatableRun);
-            var updatedRun = runDao.updateErrorMessage(updatableRun.id(), message);
-            if (updatedRun == 1) {
-              updatableRun = updatableRun.withErrorMessage(message);
+            if (!message.isEmpty()) {
+              var updatedRun = runDao.updateErrorMessage(updatableRun.id(), message);
+              if (updatedRun == 1) {
+                updatableRun = updatableRun.withErrorMessage(message);
+              }
             }
           } catch (Exception e) {
-            logger.error("Error running workflow {} in Cromwell.", updatableRun.id(), e);
+            logger.error(
+                "Error fetching Cromwell-level error from Cromwell for run {}.",
+                updatableRun.id(),
+                e);
           }
         }
         logger.info(

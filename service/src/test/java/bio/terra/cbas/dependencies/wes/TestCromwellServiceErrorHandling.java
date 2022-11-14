@@ -6,7 +6,7 @@ import cromwell.client.model.FailureMessage;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class TestCromwellService {
+class TestCromwellServiceErrorHandling {
 
   @Test
   void oneFailureNoCausedBy() {
