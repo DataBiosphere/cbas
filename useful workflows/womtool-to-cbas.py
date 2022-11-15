@@ -38,14 +38,14 @@ def main():
     
     with open(args.womtool_file) as f:
         womtool_result = json.load(f)
-        cbas_definition = {k: womtool_to_cbas(k, v, args.output_def) for k, v in womtool_result.items()}
+        cbas_definition = [womtool_to_cbas(k, v, args.output_def) for k, v in womtool_result.items()]
 
     with open(args.cbas_file, 'w') as f:
         json.dump(cbas_definition, f, indent=2)
 
 
 PRIMITIVES = ['Int', 'String', 'Float', 'Boolean', 'File']
-ALL_TYPES = PRIMITIVES + ['Array', 'Map']
+ALL_TYPES = PRIMITIVES + ['Array']
 
 
 def parse_default_value(womtool_string):
