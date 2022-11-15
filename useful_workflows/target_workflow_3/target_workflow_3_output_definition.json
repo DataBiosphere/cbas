@@ -1,0 +1,171 @@
+[
+  {
+    "input_name": "target_workflow_3.output_file_8",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_8"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_map_string_int_1",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "String"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_map_string_int_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_4",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_4"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_11",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_11"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_1",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_7",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_7"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_10",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_10"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_array_of_files_1",
+    "input_type": {
+      "type": "array",
+      "array_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      },
+      "non_empty": false
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_array_of_files_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_5",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_5"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_9",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_9"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_int_1",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "Int"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_int_1"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_3",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_3"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_2",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_2"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_12",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_12"
+    }
+  },
+  {
+    "input_name": "target_workflow_3.output_file_6",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "target_workflow_3_output_file_6"
+    }
+  }
+]
