@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: "1"
-      author: chrisl
+      author: kpierre
       changes:
         - createTable:
             tableName: run_set
@@ -19,3 +19,28 @@ databaseChangeLog:
                     nullable: false
                     foreignKeyName: fk_run_set_method
                     references: method(id)
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: submission_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: run_count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_count
+                  type: int
+                  constraints:
+                    nullable: false
