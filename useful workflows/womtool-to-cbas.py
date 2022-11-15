@@ -1,3 +1,11 @@
+'''
+A script for converting the output of womtool's `inputs` command to a CBAS input definitions file.
+
+This script was written (quickly) to accelerate the test and development of CBAS features,
+and should not be considered to be actively maintained. Use at your own risk.
+
+'''
+
 import argparse
 import json
 import re
