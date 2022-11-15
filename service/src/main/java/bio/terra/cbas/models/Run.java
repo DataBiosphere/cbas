@@ -30,4 +30,17 @@ public record Run(
         lastPolledTimestamp,
         errorMessages);
   }
+
+  public Run withErrorMessage(String message) {
+    return new Run(
+        id,
+        engineId,
+        runSet,
+        recordId,
+        submissionTimestamp,
+        status,
+        lastModifiedTimestamp,
+        lastPolledTimestamp,
+        message);
+  }
 }
