@@ -372,6 +372,8 @@ components:
           type: string
         state:
           $ref: '#/components/schemas/RunSetState'
+        record_type:
+          type: string
         submission_timestamp:
           type: string
           format: date-time

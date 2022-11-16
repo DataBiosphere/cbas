@@ -84,19 +84,23 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<RunSetListResponse> getRunSets() {
     RunSetDetailsResponse runSetDetails1 = new RunSetDetailsResponse();
     runSetDetails1.setRunSetId(UUID.randomUUID().toString());
+    runSetDetails1.setRecordType("FOO");
     runSetDetails1.setRunsCount(5);
     runSetDetails1.setErrorCount(0);
     runSetDetails1.setState(RUNNING);
     runSetDetails1.setLastModifiedTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
-    runSetDetails1.setSubmissionTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+    runSetDetails1.setSubmissionTimestamp(
+        DateUtils.convertToDate(OffsetDateTime.now().minusHours(3)));
 
     RunSetDetailsResponse runSetDetails2 = new RunSetDetailsResponse();
     runSetDetails2.setRunSetId(UUID.randomUUID().toString());
+    runSetDetails2.setRecordType("BAR");
     runSetDetails2.setRunsCount(10);
     runSetDetails2.setErrorCount(3);
     runSetDetails2.setState(ERROR);
     runSetDetails2.setLastModifiedTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
-    runSetDetails2.setSubmissionTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+    runSetDetails2.setSubmissionTimestamp(
+        DateUtils.convertToDate(OffsetDateTime.now().minusHours(1)));
 
     List<RunSetDetailsResponse> runSetList = new ArrayList<>();
     runSetList.add(runSetDetails1);
