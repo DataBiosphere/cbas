@@ -10,6 +10,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -17,6 +18,8 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.RunSetDetailsResponse;
+import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
@@ -75,6 +78,34 @@ public class RunSetsApiController implements RunSetsApi {
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
+  }
+
+  @Override
+  public ResponseEntity<RunSetListResponse> getRunSets() {
+    RunSetDetailsResponse runSetDetails1 = new RunSetDetailsResponse();
+    runSetDetails1.setRunSetId(UUID.randomUUID().toString());
+    runSetDetails1.setRunsCount(5);
+    runSetDetails1.setErrorCount(0);
+    runSetDetails1.setState(RUNNING);
+    runSetDetails1.setLastModifiedTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+    runSetDetails1.setSubmissionTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+
+    RunSetDetailsResponse runSetDetails2 = new RunSetDetailsResponse();
+    runSetDetails2.setRunSetId(UUID.randomUUID().toString());
+    runSetDetails2.setRunsCount(10);
+    runSetDetails2.setErrorCount(3);
+    runSetDetails2.setState(ERROR);
+    runSetDetails2.setLastModifiedTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+    runSetDetails2.setSubmissionTimestamp(DateUtils.convertToDate(OffsetDateTime.now()));
+
+    List<RunSetDetailsResponse> runSetList = new ArrayList<>();
+    runSetList.add(runSetDetails1);
+    runSetList.add(runSetDetails2);
+
+    RunSetListResponse response = new RunSetListResponse();
+    response.setRunSets(runSetList);
+
+    return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Override
