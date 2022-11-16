@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: kpierre
+      changes:
+        - addColumn:
+            tableName: run_set
+            columns:
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: submission_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_timestamp
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: run_count
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_count
+                  type: int
+                  constraints:
+                    nullable: false
