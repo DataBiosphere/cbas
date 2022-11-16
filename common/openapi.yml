@@ -320,6 +320,8 @@ components:
           $ref: '#/components/schemas/RunState'
         workflow_params:
           type: string
+        workflow_outputs:
+          type: string
         submission_date:
           type: string
           format: date-time
