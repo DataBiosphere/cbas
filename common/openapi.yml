@@ -25,6 +25,14 @@ paths:
       tags: [ runs ]
       summary: Get list of all runs
       operationId: getRuns
+      parameters:
+        - in: query
+          name: run_set_id
+          schema:
+            type: string
+          description: >
+            When specified, filters runs to only return fields within specified run set.
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/GetRunResponse'

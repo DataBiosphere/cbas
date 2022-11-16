@@ -47,9 +47,9 @@ public class RunsApiController implements RunsApi {
   }
 
   @Override
-  public ResponseEntity<RunLogResponse> getRuns() {
+  public ResponseEntity<RunLogResponse> getRuns(String runSetId) {
 
-    List<Run> queryResults = runDao.getRuns();
+    List<Run> queryResults = runDao.getRuns(runSetId);
     List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
 
     List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();

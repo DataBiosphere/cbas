@@ -89,7 +89,7 @@ class TestRunsApiController {
   @Test
   void smartPollAndUpdateStatus() throws Exception {
 
-    when(runDao.getRuns()).thenReturn(List.of(returnedRun));
+    when(runDao.getRuns(null)).thenReturn(List.of(returnedRun));
 
     when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
 
