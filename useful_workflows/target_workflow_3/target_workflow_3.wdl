@@ -961,5 +961,4 @@ workflow target_workflow_3 {
     File output_file_11                      = mock_task_19.output_file_2
     File output_file_12                      = mock_task_19.output_file_1
   }
-       }
-
+}
