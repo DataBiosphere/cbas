@@ -32,15 +32,16 @@ public class RunsApiController implements RunsApi {
         .name(null)
         .state(CbasRunStatus.toCbasApiState(run.status()))
         .workflowParams(run.runSet().method().inputDefinition())
+        .workflowOutputs(run.runSet().method().outputDefinition())
         .submissionDate(DateUtils.convertToDate(run.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(run.lastModifiedTimestamp()))
         .errorMessages(run.errorMessages());
   }
 
   @Override
-  public ResponseEntity<RunLogResponse> getRuns() {
+  public ResponseEntity<RunLogResponse> getRuns(String runSetId) {
 
-    List<Run> queryResults = runDao.getRuns();
+    List<Run> queryResults = runDao.getRuns(runSetId);
     List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
 
     List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();

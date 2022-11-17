@@ -20,7 +20,11 @@ public class CbasString implements CbasValue {
     return 0L;
   }
 
-  public static CbasString parse(Object value) {
-    return new CbasString(value.toString());
+  public static CbasString parse(Object value) throws TypeCoercionException {
+    if (value instanceof String str) {
+      return new CbasString(str);
+    } else {
+      throw new TypeCoercionException(value, "String");
+    }
   }
 }
