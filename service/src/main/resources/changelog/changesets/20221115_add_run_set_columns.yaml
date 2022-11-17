@@ -9,25 +9,34 @@ databaseChangeLog:
               - column:
                   name: status
                   type: varchar(20)
+                  defaultValue: "UNKNOWN"
                   constraints:
                     nullable: false
               - column:
                   name: submission_timestamp
                   type: timestamp
+                  defaultValueComputed: "CURRENT_TIMESTAMP"
                   constraints:
                     nullable: false
               - column:
                   name: last_modified_timestamp
                   type: timestamp
+                  defaultValueComputed: "CURRENT_TIMESTAMP"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_polled_timestamp
+                  type: timestamp
+                  defaultValueComputed: "CURRENT_TIMESTAMP"
                   constraints:
                     nullable: false
               - column:
                   name: run_count
                   type: int
                   constraints:
-                    nullable: false
+                    nullable: true
               - column:
                   name: error_count
                   type: int
                   constraints:
-                    nullable: false
+                    nullable: true
