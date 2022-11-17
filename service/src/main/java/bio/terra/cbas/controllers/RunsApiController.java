@@ -1,14 +1,13 @@
 package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
-import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,14 +23,6 @@ public class RunsApiController implements RunsApi {
     this.smartPoller = smartPoller;
   }
 
-  private Date convertToDate(OffsetDateTime submissionTimestamp) {
-    if (submissionTimestamp != null) {
-      return new Date(submissionTimestamp.toInstant().toEpochMilli());
-    }
-
-    return null;
-  }
-
   private RunLog runToRunLog(Run run) {
 
     return new RunLog()
@@ -41,8 +32,8 @@ public class RunsApiController implements RunsApi {
         .name(null)
         .state(CbasRunStatus.toCbasApiState(run.status()))
         .workflowParams(run.runSet().method().inputDefinition())
-        .submissionDate(convertToDate(run.submissionTimestamp()))
-        .lastModifiedTimestamp(convertToDate(run.lastModifiedTimestamp()))
+        .submissionDate(DateUtils.convertToDate(run.submissionTimestamp()))
+        .lastModifiedTimestamp(DateUtils.convertToDate(run.lastModifiedTimestamp()))
         .errorMessages(run.errorMessages());
   }
 
