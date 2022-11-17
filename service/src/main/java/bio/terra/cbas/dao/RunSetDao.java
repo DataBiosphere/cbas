@@ -16,7 +16,7 @@ public class RunSetDao {
 
   public int createRunSet(RunSet runSet) {
     return jdbcTemplate.update(
-        "insert into run_set (id, method_id) values (:id, :methodId)",
+        "insert into run_set (id, method_id, status, submission_timestamp, run_count, error_count) values (:id, :methodId, :status, :submissionTimestamp, :runCount, :errorCount)",
         new BeanPropertySqlParameterSource(runSet));
   }
 }
