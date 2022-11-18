@@ -17,6 +17,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -91,7 +92,13 @@ public class TestSmartRunsPoller {
       new RunSet(
           UUID.randomUUID(),
           new Method(
-              UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
+              UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"),
+          CbasRunSetStatus.UNKNOWN,
+          runSubmittedTime,
+          runSubmittedTime,
+          runSubmittedTime,
+          0,
+          0);
 
   final Run runToUpdate1 =
       new Run(
@@ -381,7 +388,13 @@ public class TestSmartRunsPoller {
         new RunSet(
             UUID.randomUUID(),
             new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"));
+                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"),
+            CbasRunSetStatus.UNKNOWN,
+            runSubmittedTime,
+            runSubmittedTime,
+            runSubmittedTime,
+            0,
+            0);
 
     Run run =
         new Run(

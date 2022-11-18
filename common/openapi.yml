@@ -390,7 +390,7 @@ components:
         last_modified_timestamp:
           type: string
           format: date-time
-        runs_count:
+        run_count:
           type: integer
         error_count:
           type: integer
@@ -443,8 +443,11 @@ components:
       title: RunSetState
       example: RUNNING
       enum:
-        - SET_UNKNOWN_STATE
-        - SET_RUNNING
-        - SET_COMPLETE
-        - SET_ERROR
+        - UNKNOWN
+        - QUEUED
+        - RUNNING
+        - COMPLETE
+        - ERROR
+        - CANCELED
+        - CANCELING
       type: string
