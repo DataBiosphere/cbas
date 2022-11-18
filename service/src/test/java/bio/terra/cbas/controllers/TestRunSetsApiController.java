@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,11 +25,14 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.RunSetDetailsResponse;
+import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -272,6 +276,61 @@ class TestRunSetsApiController {
         result.getResponse().getContentAsString(),
         containsString(
             "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
+  }
+
+  @Test
+  void getRunSetsApiTest() throws Exception {
+    RunSet returnedRunSet1 =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            CbasRunSetStatus.ERROR,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1);
+
+    RunSet returnedRunSet2 =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "BAR"),
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            10,
+            0);
+
+    when(runSetDao.getRunSets()).thenReturn(List.of(returnedRunSet1, returnedRunSet2));
+
+    MvcResult result =
+        mockMvc
+            .perform(get(API).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    RunSetListResponse parsedResponse =
+        objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
+
+    assertEquals(2, parsedResponse.getRunSets().size());
+
+    RunSetDetailsResponse runSetDetails1 = parsedResponse.getRunSets().get(0);
+    RunSetDetailsResponse runSetDetails2 = parsedResponse.getRunSets().get(1);
+
+    assertEquals("FOO", runSetDetails1.getRecordType());
+    assertEquals(5, runSetDetails1.getRunCount());
+    assertEquals(1, runSetDetails1.getErrorCount());
+    assertEquals(
+        CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.ERROR), runSetDetails1.getState());
+
+    assertEquals("BAR", runSetDetails2.getRecordType());
+    assertEquals(10, runSetDetails2.getRunCount());
+    assertEquals(0, runSetDetails2.getErrorCount());
+    assertEquals(
+        CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.RUNNING), runSetDetails2.getState());
   }
 }
 
