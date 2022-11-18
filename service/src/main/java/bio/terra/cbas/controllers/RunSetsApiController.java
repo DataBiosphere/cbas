@@ -82,9 +82,6 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
-
-    System.out.println("####### RUN SET: %s".formatted(runSet));
-
     return new RunSetDetailsResponse()
         .runSetId(runSet.id().toString())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
