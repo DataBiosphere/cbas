@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
@@ -88,7 +89,16 @@ public class RunDao {
               rs.getString("output_definition"),
               rs.getString("record_type"));
 
-      RunSet runSet = new RunSet(rs.getObject("run_set_id", UUID.class), method);
+      RunSet runSet =
+          new RunSet(
+              rs.getObject("run_set_id", UUID.class),
+              method,
+              CbasRunSetStatus.fromValue(rs.getString("status")),
+              rs.getObject("submission_timestamp", OffsetDateTime.class),
+              rs.getObject("last_modified_timestamp", OffsetDateTime.class),
+              rs.getObject("last_polled_timestamp", OffsetDateTime.class),
+              rs.getInt("run_count"),
+              rs.getInt("error_count"));
 
       return new Run(
           rs.getObject("id", UUID.class),
