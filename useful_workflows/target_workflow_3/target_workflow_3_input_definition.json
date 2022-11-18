@@ -390,8 +390,7 @@
             "primitive_type": "File"
           }
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -447,8 +446,7 @@
           "type": "primitive",
           "primitive_type": "String"
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -538,8 +536,7 @@
             "primitive_type": "File"
           }
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -707,8 +704,7 @@
           "type": "primitive",
           "primitive_type": "String"
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -935,8 +931,7 @@
           "type": "primitive",
           "primitive_type": "String"
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -1054,8 +1049,7 @@
             "primitive_type": "File"
           }
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
@@ -1223,8 +1217,7 @@
           "type": "primitive",
           "primitive_type": "String"
         }
-      },
-      "non_empty": false
+      }
     },
     "source": {
       "type": "record_lookup",
