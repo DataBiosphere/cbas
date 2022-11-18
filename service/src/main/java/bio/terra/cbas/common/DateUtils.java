@@ -5,6 +5,8 @@ import java.util.Date;
 
 public final class DateUtils {
 
+  private DateUtils() {}
+
   public static Date convertToDate(OffsetDateTime submissionTimestamp) {
     if (submissionTimestamp != null) {
       return new Date(submissionTimestamp.toInstant().toEpochMilli());
