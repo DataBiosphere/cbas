@@ -1,8 +1,22 @@
 '''
-A script for converting the output of womtool's `inputs` command to a CBAS input definitions file.
-
+A script for converting the output of womtool's `inputs` command to a CBAS input definition. 
 This script was written (quickly) to accelerate the test and development of CBAS features,
 and should not be considered to be actively maintained. Use at your own risk.
+
+Given a WDL file, produce the JSON input to this script with the following command:
+
+`java -jar womtool.jar inputs my-workflow.wdl`
+
+See https://cromwell.readthedocs.io/en/stable/WOMtool/ for instructions on building `womtool.jar`.
+
+An example JSON generated from womtool's `inputs` command:
+{
+  "workflow_name.call_1.input_string_required": "String",
+  "workflow_name.call_2.input_string_with_default": "String (optional, default = \"hello world\")",
+  "workflow_name.call_3.input_int_optional": "Int? (optional)"
+}
+
+Run `python womtool-to-cbas.py --help` for more argument details.
 
 '''
 
@@ -13,19 +27,14 @@ import re
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument(
         "womtool_file",
         type=str,
         help="Path to a JSON file generated from womtool's `inputs` command",
     )
     parser.add_argument(
-        "cbas_file",
-        type=str,
-        help="The name of a file to write the resulting CBAS input or output definitions",
-    )
-    parser.add_argument(
-        "--output_def",
+        "--output-def",
         action="store_true",
         help="If present, the results will be formatted as output definitions",
     )
@@ -40,8 +49,7 @@ def main():
         womtool_result = json.load(f)
         cbas_definition = [womtool_to_cbas(k, v, args.output_def) for k, v in womtool_result.items()]
 
-    with open(args.cbas_file, 'w') as f:
-        json.dump(cbas_definition, f, indent=2)
+    print(json.dumps(cbas_definition, indent=2))
 
 
 PRIMITIVES = ['Int', 'String', 'Float', 'Boolean', 'File']
