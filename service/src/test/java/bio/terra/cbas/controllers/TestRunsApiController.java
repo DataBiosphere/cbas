@@ -51,6 +51,7 @@ class TestRunsApiController {
   @Autowired private ObjectMapper objectMapper;
 
   private static final UUID returnedRunId = UUID.randomUUID();
+  private static final UUID runSetId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
   private static final String returnedEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime returnedSubmittedTime = OffsetDateTime.now();
@@ -60,7 +61,7 @@ class TestRunsApiController {
 
   private static final RunSet returnedRunSet =
       new RunSet(
-          UUID.randomUUID(),
+          runSetId,
           new Method(
               UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"),
           CbasRunSetStatus.UNKNOWN,
@@ -101,7 +102,11 @@ class TestRunsApiController {
 
     when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
 
-    MvcResult result = mockMvc.perform(get(API)).andExpect(status().isOk()).andReturn();
+    MvcResult result =
+        mockMvc
+            .perform(get(API).param("run_set_id", runSetId.toString()))
+            .andExpect(status().isOk())
+            .andReturn();
 
     verify(smartRunsPoller).updateRuns(List.of(returnedRun));
 
@@ -115,7 +120,6 @@ class TestRunsApiController {
     assertEquals(returnedRunId.toString(), runLog.getRunId());
     assertEquals("methodurl", runLog.getWorkflowUrl());
     assertEquals("inputdefinition", runLog.getWorkflowParams());
-    assertEquals("outputDefinition", runLog.getWorkflowOutputs());
     assertEquals(
         CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());
   }
