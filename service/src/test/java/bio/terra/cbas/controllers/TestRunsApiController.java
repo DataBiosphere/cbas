@@ -107,7 +107,8 @@ class TestRunsApiController {
     assertEquals(returnedRunId.toString(), runLog.getRunId());
     assertEquals("methodurl", runLog.getWorkflowUrl());
     assertEquals("inputdefinition", runLog.getWorkflowParams());
-    assertEquals("outputDefinition", runLog.getWorkflowOutputs());    assertEquals(
+    assertEquals("outputDefinition", runLog.getWorkflowOutputs());
+    assertEquals(
         CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());
   }
 }
