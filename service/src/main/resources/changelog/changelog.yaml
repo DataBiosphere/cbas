@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
      file: changesets/20221115_add_run_set_columns.yaml
      relativeToChangelogFile: true
+  - include:
+      file: changesets/20221122_store_timezone_in_timestamps.yaml
+      relativeToChangelogFile: true

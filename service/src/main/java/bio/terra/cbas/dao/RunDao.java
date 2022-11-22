@@ -89,7 +89,7 @@ public class RunDao {
               rs.getString(Method.METHOD_URL_COL),
               rs.getString(Method.INPUT_DEFINITION_COL),
               rs.getString(Method.OUTPUT_DEFINITION_COL),
-              rs.getString(Method.OUTPUT_DEFINITION_COL));
+              rs.getString(Method.RECORD_TYPE_COL));
 
       RunSet runSet =
           new RunSet(
