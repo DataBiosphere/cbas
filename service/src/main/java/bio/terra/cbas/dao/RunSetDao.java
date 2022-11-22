@@ -35,7 +35,7 @@ public class RunSetDao {
       UUID runSetId, CbasRunSetStatus newStatus, Integer runCount, Integer errorCount) {
     OffsetDateTime currentTimestamp = OffsetDateTime.now();
     String sql =
-        "UPDATE run_set SET status = :status, last_modified_timestamp =:last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp, run_count = :run_count, error_count = :error_count  WHERE id = :id";
+        "UPDATE run_set SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp, run_count = :run_count, error_count = :error_count WHERE id = :id";
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(
