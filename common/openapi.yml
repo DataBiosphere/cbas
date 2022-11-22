@@ -56,6 +56,17 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+    get:
+      tags: [ run_sets ]
+      summary: Get list of all run sets
+      operationId: getRunSets
+      responses:
+        '200':
+          $ref: '#/components/responses/GetRunSetListResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /api/batch/v1/methods:
     get:
       summary: Lists known methods
@@ -97,6 +108,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunLogResponse'
+    GetRunSetListResponse:
+      description: Details about run sets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunSetListResponse'
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
@@ -351,6 +368,32 @@ components:
         errors:
           type:
             string
+    RunSetListResponse:
+      type: object
+      properties:
+        run_sets:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunSetDetailsResponse'
+    RunSetDetailsResponse:
+      type: object
+      properties:
+        run_set_id:
+          type: string
+        state:
+          $ref: '#/components/schemas/RunSetState'
+        record_type:
+          type: string
+        submission_timestamp:
+          type: string
+          format: date-time
+        last_modified_timestamp:
+          type: string
+          format: date-time
+        run_count:
+          type: integer
+        error_count:
+          type: integer
     ErrorReport:
       type: object
       required: [ message, status_code, causes]
@@ -400,8 +443,11 @@ components:
       title: RunSetState
       example: RUNNING
       enum:
-        - SET_UNKNOWN_STATE
-        - SET_RUNNING
-        - SET_COMPLETE
-        - SET_ERROR
+        - UNKNOWN
+        - QUEUED
+        - RUNNING
+        - COMPLETE
+        - ERROR
+        - CANCELED
+        - CANCELING
       type: string

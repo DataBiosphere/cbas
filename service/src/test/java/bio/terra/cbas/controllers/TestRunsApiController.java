@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
@@ -61,7 +62,13 @@ class TestRunsApiController {
       new RunSet(
           UUID.randomUUID(),
           new Method(
-              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"));
+              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"),
+          CbasRunSetStatus.UNKNOWN,
+          returnedSubmittedTime,
+          returnedSubmittedTime,
+          returnedSubmittedTime,
+          0,
+          0);
 
   private static final Run returnedRun =
       new Run(

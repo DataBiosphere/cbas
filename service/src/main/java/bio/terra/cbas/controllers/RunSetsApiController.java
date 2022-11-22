@@ -10,6 +10,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -17,11 +18,14 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.RunSetDetailsResponse;
+import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
@@ -77,6 +81,27 @@ public class RunSetsApiController implements RunSetsApi {
     this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
+  private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
+    return new RunSetDetailsResponse()
+        .runSetId(runSet.id().toString())
+        .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
+        .recordType(runSet.method().recordType())
+        .submissionTimestamp(DateUtils.convertToDate(runSet.submissionTimestamp()))
+        .lastModifiedTimestamp(DateUtils.convertToDate(runSet.lastModifiedTimestamp()))
+        .runCount(runSet.runCount())
+        .errorCount(runSet.errorCount());
+  }
+
+  @Override
+  public ResponseEntity<RunSetListResponse> getRunSets() {
+    List<RunSet> runSets = runSetDao.getRunSets();
+    List<RunSetDetailsResponse> runSetDetails =
+        runSets.stream().map(this::convertToRunSetDetails).toList();
+    RunSetListResponse response = new RunSetListResponse().runSets(runSetDetails);
+
+    return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     captureRequestMetrics(request);
@@ -123,7 +148,16 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Create a new run_set
     UUID runSetId = UUID.randomUUID();
-    RunSet runSet = new RunSet(runSetId, method);
+    RunSet runSet =
+        new RunSet(
+            runSetId,
+            method,
+            CbasRunSetStatus.UNKNOWN,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            0,
+            0);
     runSetDao.createRunSet(runSet);
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
@@ -141,6 +175,12 @@ public class RunSetsApiController implements RunSetsApi {
     if (runsInErrorState.size() == request.getWdsRecords().getRecordIds().size()) {
       runSetState = ERROR;
     } else runSetState = RUNNING;
+
+    runSetDao.updateStateAndRunDetails(
+        runSetId,
+        CbasRunSetStatus.fromValue(runSetState),
+        runStateResponseList.size(),
+        runsInErrorState.size());
 
     RunSetStateResponse response =
         new RunSetStateResponse()
