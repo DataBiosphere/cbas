@@ -77,7 +77,8 @@ public class RunDao {
     String sql = "UPDATE run SET error_messages = :errorMessages WHERE id = :id";
     return jdbcTemplate.update(
         sql,
-        new MapSqlParameterSource(Map.of(Run.ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
+        new MapSqlParameterSource(
+            Map.of(Run.ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
   private static class RunMapper implements RowMapper<Run> {
