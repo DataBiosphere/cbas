@@ -15,20 +15,20 @@ public class RunSetMapper implements RowMapper<RunSet> {
   public RunSet mapRow(ResultSet rs, int rowNum) throws SQLException {
     Method method =
         new Method(
-            rs.getObject(RunSet.METHOD_ID, UUID.class),
-            rs.getString(Method.METHOD_URL),
-            rs.getString(Method.INPUT_DEFINITION),
-            rs.getString(Method.OUTPUT_DEFINITION),
-            rs.getString(Method.RECORD_TYPE));
+            rs.getObject(RunSet.METHOD_ID_COL, UUID.class),
+            rs.getString(Method.METHOD_URL_COL),
+            rs.getString(Method.INPUT_DEFINITION_COL),
+            rs.getString(Method.OUTPUT_DEFINITION_COL),
+            rs.getString(Method.RECORD_TYPE_COL));
 
     return new RunSet(
-        rs.getObject(RunSet.ID, UUID.class),
+        rs.getObject(RunSet.ID_COL, UUID.class),
         method,
-        CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS)),
-        rs.getObject(RunSet.SUBMISSION_TIMESTAMP, OffsetDateTime.class),
-        rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP, OffsetDateTime.class),
-        rs.getObject(RunSet.LAST_POLLED_TIMESTAMP, OffsetDateTime.class),
-        rs.getInt(RunSet.RUN_COUNT),
-        rs.getInt(RunSet.ERROR_COUNT));
+        CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS_COL)),
+        rs.getObject(RunSet.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
+        rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
+        rs.getObject(RunSet.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
+        rs.getInt(RunSet.RUN_COUNT_COL),
+        rs.getInt(RunSet.ERROR_COUNT_COL));
   }
 }

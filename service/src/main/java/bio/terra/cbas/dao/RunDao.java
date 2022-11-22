@@ -55,13 +55,13 @@ public class RunDao {
         sql,
         new MapSqlParameterSource(
             Map.of(
-                Run.ID,
+                Run.ID_COL,
                 runId,
-                Run.STATUS,
+                Run.STATUS_COL,
                 newStatus.toString(),
-                Run.LAST_MODIFIED_TIMESTAMP,
+                Run.LAST_MODIFIED_TIMESTAMP_COL,
                 currentTimestamp,
-                Run.LAST_POLLED_TIMESTAMP,
+                Run.LAST_POLLED_TIMESTAMP_COL,
                 currentTimestamp)));
   }
 
@@ -70,47 +70,47 @@ public class RunDao {
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(
-            Map.of(Run.ID, runID, Run.LAST_POLLED_TIMESTAMP, OffsetDateTime.now())));
+            Map.of(Run.ID_COL, runID, Run.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.now())));
   }
 
   public int updateErrorMessage(UUID runId, String updatedErrorMessage) {
     String sql = "UPDATE run SET error_messages = :errorMessages WHERE id = :id";
     return jdbcTemplate.update(
         sql,
-        new MapSqlParameterSource(Map.of(Run.ID, runId, Run.ERROR_MESSAGES, updatedErrorMessage)));
+        new MapSqlParameterSource(Map.of(Run.ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
   private static class RunMapper implements RowMapper<Run> {
     public Run mapRow(ResultSet rs, int rowNum) throws SQLException {
       Method method =
           new Method(
-              rs.getObject(RunSet.METHOD_ID, UUID.class),
-              rs.getString(Method.METHOD_URL),
-              rs.getString(Method.INPUT_DEFINITION),
-              rs.getString(Method.OUTPUT_DEFINITION),
-              rs.getString(Method.OUTPUT_DEFINITION));
+              rs.getObject(RunSet.METHOD_ID_COL, UUID.class),
+              rs.getString(Method.METHOD_URL_COL),
+              rs.getString(Method.INPUT_DEFINITION_COL),
+              rs.getString(Method.OUTPUT_DEFINITION_COL),
+              rs.getString(Method.OUTPUT_DEFINITION_COL));
 
       RunSet runSet =
           new RunSet(
-              rs.getObject(Run.RUN_SET_ID, UUID.class),
+              rs.getObject(Run.RUN_SET_ID_COL, UUID.class),
               method,
-              CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS)),
-              rs.getObject(RunSet.SUBMISSION_TIMESTAMP, OffsetDateTime.class),
-              rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP, OffsetDateTime.class),
-              rs.getObject(RunSet.LAST_POLLED_TIMESTAMP, OffsetDateTime.class),
-              rs.getInt(RunSet.RUN_COUNT),
-              rs.getInt(RunSet.ERROR_COUNT));
+              CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS_COL)),
+              rs.getObject(RunSet.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
+              rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
+              rs.getObject(RunSet.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
+              rs.getInt(RunSet.RUN_COUNT_COL),
+              rs.getInt(RunSet.ERROR_COUNT_COL));
 
       return new Run(
-          rs.getObject(Run.ID, UUID.class),
-          rs.getString(Run.ENGINE_ID),
+          rs.getObject(Run.ID_COL, UUID.class),
+          rs.getString(Run.ENGINE_ID_COL),
           runSet,
-          rs.getString(Run.RECORD_ID),
-          rs.getObject(Run.SUBMISSION_TIMESTAMP, OffsetDateTime.class),
-          CbasRunStatus.fromValue(rs.getString(Run.STATUS)),
-          rs.getObject(Run.LAST_MODIFIED_TIMESTAMP, OffsetDateTime.class),
-          rs.getObject(Run.LAST_POLLED_TIMESTAMP, OffsetDateTime.class),
-          rs.getString(Run.ERROR_MESSAGES));
+          rs.getString(Run.RECORD_ID_COL),
+          rs.getObject(Run.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
+          CbasRunStatus.fromValue(rs.getString(Run.STATUS_COL)),
+          rs.getObject(Run.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
+          rs.getObject(Run.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
+          rs.getString(Run.ERROR_MESSAGES_COL));
     }
   }
 }
