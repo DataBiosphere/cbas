@@ -7,6 +7,8 @@ public class TypeCoercionException extends CoercionException {
 
   public TypeCoercionException(Object badValue, String toType) {
     super(
-        toType, badValue.getClass().getSimpleName(), "Coercion not supported between these types.");
+        badValue == null ? "null" : badValue.getClass().getSimpleName(),
+        toType,
+        "Coercion not supported between these types.");
   }
 }
