@@ -14,6 +14,17 @@ public record Run(
     OffsetDateTime lastPolledTimestamp,
     String errorMessages) {
 
+  // Corresponding table column names in database
+  public static final String ID = "id";
+  public static final String RUN_SET_ID = "run_set_id";
+  public static final String ENGINE_ID = "engine_id";
+  public static final String RECORD_ID = "record_id";
+  public static final String SUBMISSION_TIMESTAMP = "submission_timestamp";
+  public static final String STATUS = "status";
+  public static final String LAST_MODIFIED_TIMESTAMP = "last_modified_timestamp";
+  public static final String LAST_POLLED_TIMESTAMP = "last_polled_timestamp";
+  public static final String ERROR_MESSAGES = "error_messages";
+
   public UUID getRunSetId() {
     return runSet.id();
   }

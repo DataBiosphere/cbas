@@ -40,17 +40,17 @@ public class RunSetDao {
         sql,
         new MapSqlParameterSource(
             Map.of(
-                "id",
+                RunSet.ID,
                 runSetId,
-                "status",
+                RunSet.STATUS,
                 newStatus.toString(),
-                "lastModifiedTimestamp",
+                RunSet.LAST_MODIFIED_TIMESTAMP,
                 currentTimestamp,
-                "lastPolledTimestamp",
+                RunSet.LAST_POLLED_TIMESTAMP,
                 currentTimestamp,
-                "runCount",
+                RunSet.RUN_COUNT,
                 runCount,
-                "errorCount",
+                RunSet.ERROR_COUNT,
                 errorCount)));
   }
 }

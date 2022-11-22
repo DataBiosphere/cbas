@@ -15,20 +15,20 @@ public class RunSetMapper implements RowMapper<RunSet> {
   public RunSet mapRow(ResultSet rs, int rowNum) throws SQLException {
     Method method =
         new Method(
-            rs.getObject("method_id", UUID.class),
-            rs.getString("method_url"),
-            rs.getString("input_definition"),
-            rs.getString("output_definition"),
-            rs.getString("record_type"));
+            rs.getObject(RunSet.METHOD_ID, UUID.class),
+            rs.getString(Method.METHOD_URL),
+            rs.getString(Method.INPUT_DEFINITION),
+            rs.getString(Method.OUTPUT_DEFINITION),
+            rs.getString(Method.RECORD_TYPE));
 
     return new RunSet(
-        rs.getObject("id", UUID.class),
+        rs.getObject(RunSet.ID, UUID.class),
         method,
-        CbasRunSetStatus.fromValue(rs.getString("status")),
-        rs.getObject("submission_timestamp", OffsetDateTime.class),
-        rs.getObject("last_modified_timestamp", OffsetDateTime.class),
-        rs.getObject("last_polled_timestamp", OffsetDateTime.class),
-        rs.getInt("run_count"),
-        rs.getInt("error_count"));
+        CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS)),
+        rs.getObject(RunSet.SUBMISSION_TIMESTAMP, OffsetDateTime.class),
+        rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP, OffsetDateTime.class),
+        rs.getObject(RunSet.LAST_POLLED_TIMESTAMP, OffsetDateTime.class),
+        rs.getInt(RunSet.RUN_COUNT),
+        rs.getInt(RunSet.ERROR_COUNT));
   }
 }
