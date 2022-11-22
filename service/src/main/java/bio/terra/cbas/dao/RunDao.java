@@ -32,11 +32,19 @@ public class RunDao {
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
-  public List<Run> getRuns() {
+  public List<Run> getRuns(String runSetId) {
+    String whereClause = runSetId == null ? "" : " WHERE run.run_set_id = :runSetId";
+
+    MapSqlParameterSource source =
+        runSetId == null
+            ? new MapSqlParameterSource()
+            : new MapSqlParameterSource("runSetId", UUID.fromString(runSetId));
+
     String sql =
         "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.id"
-            + " INNER JOIN method ON run_set.method_id = method.id";
-    return jdbcTemplate.query(sql, new RunMapper());
+            + " INNER JOIN method ON run_set.method_id = method.id"
+            + whereClause;
+    return jdbcTemplate.query(sql, source, new RunMapper());
   }
 
   public int updateRunStatus(UUID runId, CbasRunStatus newStatus) {

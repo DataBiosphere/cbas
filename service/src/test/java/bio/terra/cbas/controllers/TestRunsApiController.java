@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -96,7 +97,7 @@ class TestRunsApiController {
   @Test
   void smartPollAndUpdateStatus() throws Exception {
 
-    when(runDao.getRuns()).thenReturn(List.of(returnedRun));
+    when(runDao.getRuns(null)).thenReturn(List.of(returnedRun));
 
     when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
 
@@ -108,7 +109,12 @@ class TestRunsApiController {
         objectMapper.readValue(result.getResponse().getContentAsString(), RunLogResponse.class);
 
     assertEquals(1, parsedResponse.getRuns().size());
-    assertEquals(returnedRunId.toString(), parsedResponse.getRuns().get(0).getRunId());
+    RunLog runLog = parsedResponse.getRuns().get(0);
+
+    assertEquals(returnedRunId.toString(), runLog.getRunId());
+    assertEquals("methodurl", runLog.getWorkflowUrl());
+    assertEquals("inputdefinition", runLog.getWorkflowParams());
+    assertEquals("outputDefinition", runLog.getWorkflowOutputs());
     assertEquals(
         CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());
   }
