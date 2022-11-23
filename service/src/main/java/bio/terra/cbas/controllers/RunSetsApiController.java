@@ -36,7 +36,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import cromwell.client.model.RunId;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -153,9 +152,9 @@ public class RunSetsApiController implements RunSetsApi {
             runSetId,
             method,
             CbasRunSetStatus.UNKNOWN,
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
             0,
             0);
     runSetDao.createRunSet(runSet);
@@ -307,10 +306,10 @@ public class RunSetsApiController implements RunSetsApi {
                 externalId,
                 runSet,
                 recordId,
-                OffsetDateTime.now(),
+                DateUtils.currentTimeInUTC(),
                 runState,
-                OffsetDateTime.now(),
-                OffsetDateTime.now(),
+                DateUtils.currentTimeInUTC(),
+                DateUtils.currentTimeInUTC(),
                 errors));
 
     if (created != 1) {
