@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
@@ -33,9 +34,9 @@ public class RunSetDao {
 
   public int updateStateAndRunDetails(
       UUID runSetId, CbasRunSetStatus newStatus, Integer runCount, Integer errorCount) {
-    OffsetDateTime currentTimestamp = OffsetDateTime.now();
+    OffsetDateTime currentTimestamp = DateUtils.currentTimeInUTC();
     String sql =
-        "UPDATE run_set SET status = :status, last_modified_timestamp =:lastModifiedTimestamp, last_polled_timestamp = :lastPolledTimestamp, run_count = :runCount, error_count = :errorCount  WHERE id = :id";
+        "UPDATE run_set SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp, run_count = :run_count, error_count = :error_count WHERE id = :id";
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(

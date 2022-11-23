@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: "store-timezone-in-timestamps"
+      author: sshah
+      changes:
+      - modifyDataType:
+          columnName: submission_timestamp
+          newDataType: timestamp with time zone
+          tableName: run
+      - modifyDataType:
+          columnName: last_modified_timestamp
+          newDataType: timestamp with time zone
+          tableName: run
+      - modifyDataType:
+          columnName: last_polled_timestamp
+          newDataType: timestamp with time zone
+          tableName: run
+      - modifyDataType:
+          columnName: submission_timestamp
+          newDataType: timestamp with time zone
+          tableName: run_set
+      - modifyDataType:
+          columnName: last_modified_timestamp
+          newDataType: timestamp with time zone
+          tableName: run_set
+      - modifyDataType:
+          columnName: last_polled_timestamp
+          newDataType: timestamp with time zone
+          tableName: run_set
