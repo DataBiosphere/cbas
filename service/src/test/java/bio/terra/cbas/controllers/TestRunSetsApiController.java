@@ -19,6 +19,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import au.com.dius.pact.provider.junit5.PactVerificationContext;
+import au.com.dius.pact.provider.junitsupport.Provider;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.RunDao;
@@ -46,7 +51,10 @@ import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -56,6 +64,32 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+@WebMvcTest
+@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
+@Provider("cbas")
+@PactFolder("pacts")
+class TestRunSetsApiControllerPacts {
+  @MockBean private CromwellService cromwellService;
+  @MockBean private WdsService wdsService;
+  @MockBean private MethodDao methodDao;
+  @MockBean private RunSetDao runSetDao;
+  @MockBean private RunDao runDao;
+
+  // This mockMVC is what we use to test API requests and responses:
+  @Autowired private MockMvc mockMvc;
+
+  @TestTemplate
+  @ExtendWith(PactVerificationSpringProvider.class)
+  void pactVerificationTestTemplate(PactVerificationContext context) {
+    context.verifyInteraction();
+  }
+
+  @BeforeEach
+  void before(PactVerificationContext context) {
+    context.setTarget(new MockMvcTestTarget(mockMvc));
+  }
+}
 
 @WebMvcTest
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=3")
