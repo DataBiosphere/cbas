@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junitsupport.Provider;
+import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
@@ -70,11 +71,14 @@ import org.springframework.test.web.servlet.MvcResult;
 @Provider("cbas")
 @PactFolder("pacts")
 class TestRunSetsApiControllerPacts {
+  private static final String API = "/api/batch/v1/run_sets";
+
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private MethodDao methodDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
+  @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -88,6 +92,35 @@ class TestRunSetsApiControllerPacts {
   @BeforeEach
   void before(PactVerificationContext context) {
     context.setTarget(new MockMvcTestTarget(mockMvc));
+  }
+
+  @State("exactly 2 run sets exist")
+  public void runSetsData() throws Exception {
+    RunSet returnedRunSet1 =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            CbasRunSetStatus.ERROR,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1);
+
+    RunSet returnedRunSet2 =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "BAR"),
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            10,
+            0);
+
+    when(runSetDao.getRunSets()).thenReturn(List.of(returnedRunSet1, returnedRunSet2));
   }
 }
 
