@@ -8,12 +8,13 @@
       "providerStates": [
         {
           "name": "exactly 2 run sets exist"
-        },
-        {
-          "name": "at least one run set exists"
         }
       ],
       "request": {
+        "headers": {
+          "Accept": "*/*",
+          "Content-Type": "application/json"
+        },
         "method": "GET",
         "path": "/api/batch/v1/run_sets"
       },
@@ -39,6 +40,7 @@
           }
         ],
         "headers": {
+          "Accept": "*/*",
           "Content-Type": "application/json; charset=utf-8"
         },
         "matchingRules": {
