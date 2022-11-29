@@ -84,7 +84,7 @@ public class RunSetsApiController implements RunSetsApi {
     return new RunSetDetailsResponse()
         .runSetId(runSet.id().toString())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
-        .recordType(runSet.method().recordType())
+        .recordType(runSet.recordType())
         .submissionTimestamp(DateUtils.convertToDate(runSet.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(runSet.lastModifiedTimestamp()))
         .runCount(runSet.runCount())
@@ -127,36 +127,33 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Store new method
     UUID methodId = UUID.randomUUID();
-    Method method;
-    try {
-      method =
-          new Method(
-              methodId,
-              request.getWorkflowUrl(),
-              objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
-              objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
-              request.getWdsRecords().getRecordType());
-      methodDao.createMethod(method);
-    } catch (JsonProcessingException e) {
-      log.warn("Failed to record method to database", e);
-      return new ResponseEntity<>(
-          new RunSetStateResponse()
-              .errors("Failed to record method to database. Error(s): " + e.getMessage()),
-          HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    Method method = methodDao.getMethod(methodId);
 
     // Create a new run_set
     UUID runSetId = UUID.randomUUID();
-    RunSet runSet =
-        new RunSet(
-            runSetId,
-            method,
-            CbasRunSetStatus.UNKNOWN,
-            DateUtils.currentTimeInUTC(),
-            DateUtils.currentTimeInUTC(),
-            DateUtils.currentTimeInUTC(),
-            0,
-            0);
+    RunSet runSet;
+
+    try {
+      runSet =
+          new RunSet(
+              runSetId,
+              method,
+              CbasRunSetStatus.UNKNOWN,
+              DateUtils.currentTimeInUTC(),
+              DateUtils.currentTimeInUTC(),
+              DateUtils.currentTimeInUTC(),
+              0,
+              0,
+              objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
+              objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
+              request.getWdsRecords().getRecordType());
+    } catch (JsonProcessingException e) {
+      log.warn("Failed to record run set to database", e);
+      return new ResponseEntity<>(
+          new RunSetStateResponse()
+              .errors("Failed to record run set to database. Error(s): " + e.getMessage()),
+          HttpStatus.INTERNAL_SERVER_ERROR);
+    }
     runSetDao.createRunSet(runSet);
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
@@ -340,7 +337,8 @@ public class RunSetsApiController implements RunSetsApi {
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
         // Submit the workflow, get its ID and store the Run to database
-        workflowResponse = cromwellService.submitWorkflow(request.getWorkflowUrl(), workflowInputs);
+        workflowResponse =
+            cromwellService.submitWorkflow(runSet.method().methodSourceUrl(), workflowInputs);
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
       } catch (CoercionException e) {

@@ -1,9 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import java.sql.ResultSet;
@@ -28,8 +26,8 @@ public class RunDao {
 
   public int createRun(Run run) {
     return jdbcTemplate.update(
-        "insert into run (id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp, error_messages)"
-            + " values (:id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
+        "insert into run (run_id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp, error_messages)"
+            + " values (:run_id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
@@ -42,8 +40,8 @@ public class RunDao {
             : new MapSqlParameterSource("runSetId", UUID.fromString(runSetId));
 
     String sql =
-        "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.id"
-            + " INNER JOIN method ON run_set.method_id = method.id"
+        "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
+            + " INNER JOIN method ON run_set.method_id = method.method_id"
             + whereClause;
     return jdbcTemplate.query(sql, source, new RunMapper());
   }
@@ -56,7 +54,7 @@ public class RunDao {
         sql,
         new MapSqlParameterSource(
             Map.of(
-                Run.ID_COL,
+                Run.RUN_ID_COL,
                 runId,
                 Run.STATUS_COL,
                 newStatus.toString(),
@@ -72,7 +70,10 @@ public class RunDao {
         sql,
         new MapSqlParameterSource(
             Map.of(
-                Run.ID_COL, runID, Run.LAST_POLLED_TIMESTAMP_COL, DateUtils.currentTimeInUTC())));
+                Run.RUN_ID_COL,
+                runID,
+                Run.LAST_POLLED_TIMESTAMP_COL,
+                DateUtils.currentTimeInUTC())));
   }
 
   public int updateErrorMessage(UUID runId, String updatedErrorMessage) {
@@ -80,7 +81,7 @@ public class RunDao {
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(
-            Map.of(Run.ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
+            Map.of(Run.RUN_ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
   private static class RunMapper implements RowMapper<Run> {
@@ -88,7 +89,7 @@ public class RunDao {
       RunSet runSet = new RunSetMapper().mapRow(rs, rowNum);
 
       return new Run(
-          rs.getObject(Run.ID_COL, UUID.class),
+          rs.getObject(Run.RUN_ID_COL, UUID.class),
           rs.getString(Run.ENGINE_ID_COL),
           runSet,
           rs.getString(Run.RECORD_ID_COL),

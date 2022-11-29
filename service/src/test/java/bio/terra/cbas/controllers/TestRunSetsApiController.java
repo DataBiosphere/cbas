@@ -192,7 +192,7 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(newMethodCaptor.getValue().id(), newRunSetCaptor.getValue().getMethodId());
+    assertEquals(newMethodCaptor.getValue().method_id(), newRunSetCaptor.getValue().getMethodId());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());

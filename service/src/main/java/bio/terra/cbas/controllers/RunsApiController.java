@@ -26,13 +26,13 @@ public class RunsApiController implements RunsApi {
   private RunLog runToRunLog(Run run) {
 
     return new RunLog()
-        .runId(run.id().toString())
+        .runId(run.run_id().toString())
         .engineId(run.engineId())
-        .workflowUrl(run.runSet().method().methodUrl())
+        .workflowUrl(run.runSet().method().methodSourceUrl())
         .name(null)
         .state(CbasRunStatus.toCbasApiState(run.status()))
-        .workflowParams(run.runSet().method().inputDefinition())
-        .workflowOutputs(run.runSet().method().outputDefinition())
+        .workflowParams(run.runSet().inputDefinition())
+        .workflowOutputs(run.runSet().outputDefinition())
         .submissionDate(DateUtils.convertToDate(run.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(run.lastModifiedTimestamp()))
         .errorMessages(run.errorMessages());

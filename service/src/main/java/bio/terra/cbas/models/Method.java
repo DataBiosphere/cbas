@@ -4,10 +4,16 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record Method(
-    UUID id, String name, String description, OffsetDateTime created, OffsetDateTime lastRun, String methodSource, String methodSourceUrl) {
+    UUID method_id,
+    String name,
+    String description,
+    OffsetDateTime created,
+    OffsetDateTime lastRun,
+    String methodSource,
+    String methodSourceUrl) {
 
   // Corresponding table column names in database
-  public static final String ID_COL = "id";
+  public static final String METHOD_ID_COL = "method_id";
   public static final String NAME_COL = "name";
   public static final String DESCRIPTION__COL = "description";
   public static final String CREATED_COL = "created";

@@ -51,7 +51,7 @@ public class SmartRunsPoller {
 
   public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
-        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     return !outputDefinitionList.isEmpty();
   }
 
@@ -59,7 +59,7 @@ public class SmartRunsPoller {
       throws WorkflowOutputNotFoundException, ApiException, JsonProcessingException,
           org.databiosphere.workspacedata.client.ApiException, CoercionException {
     List<WorkflowOutputDefinition> outputDefinitionList =
-        objectMapper.readValue(run.runSet().method().outputDefinition(), new TypeReference<>() {});
+        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
@@ -67,7 +67,7 @@ public class SmartRunsPoller {
     logger.info(
         "Updating output attributes for Record ID {} from Run {}.", run.recordId(), run.engineId());
 
-    wdsService.updateRecord(request, run.runSet().method().recordType(), run.recordId());
+    wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
   }
 
   /**
@@ -103,7 +103,7 @@ public class SmartRunsPoller {
                           getStatusSuccess = true;
                           return result;
                         } catch (ApiException | IllegalArgumentException e) {
-                          logger.warn("Unable to fetch updated status for run {}.", r.id(), e);
+                          logger.warn("Unable to fetch updated status for run {}.", r.run_id(), e);
                           return r.status();
                         } finally {
                           recordOutboundApiRequestCompletion(
@@ -148,7 +148,7 @@ public class SmartRunsPoller {
             logger.error(
                 "Error while updating attributes for record {} from run {}.",
                 updatableRun.recordId(),
-                updatableRun.id(),
+                updatableRun.run_id(),
                 e);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
@@ -157,7 +157,7 @@ public class SmartRunsPoller {
             // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(updatableRun);
             if (!message.isEmpty()) {
-              var updatedRun = runDao.updateErrorMessage(updatableRun.id(), message);
+              var updatedRun = runDao.updateErrorMessage(updatableRun.run_id(), message);
               if (updatedRun == 1) {
                 updatableRun = updatableRun.withErrorMessage(message);
               }
@@ -165,33 +165,33 @@ public class SmartRunsPoller {
           } catch (Exception e) {
             logger.error(
                 "Error fetching Cromwell-level error from Cromwell for run {}.",
-                updatableRun.id(),
+                updatableRun.run_id(),
                 e);
           }
         }
         logger.info(
             "Updating status of Run {} (engine ID {}) from {} to {}",
-            updatableRun.id(),
+            updatableRun.run_id(),
             updatableRun.engineId(),
             updatableRun.status(),
             updatedRunState);
-        var changes = runDao.updateRunStatus(updatableRun.id(), updatedRunState);
+        var changes = runDao.updateRunStatus(updatableRun.run_id(), updatedRunState);
         if (changes == 1) {
           updatableRun = updatableRun.withStatus(updatedRunState);
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-              updatableRun.id(),
+              updatableRun.run_id(),
               updatableRun.status(),
               updatedRunState);
         }
       } else {
         // if run status hasn't changed, only update last polled timestamp
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.id());
+        var changes = runDao.updateLastPolledTimestamp(updatableRun.run_id());
         if (changes != 1) {
           logger.warn(
               "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.id(),
+              updatableRun.run_id(),
               updatableRun.status(),
               changes);
         }

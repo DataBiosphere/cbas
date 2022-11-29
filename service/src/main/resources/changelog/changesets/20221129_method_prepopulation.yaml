@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: method
             columns:
               - column:
-                  name: id
+                  name: method_id
                   value: 00000000-0000-0000-0000-000000000001
               - column:
                   name: name
@@ -31,7 +31,7 @@ databaseChangeLog:
             tableName: method
             columns:
               - column:
-                  name: id
+                  name: method_id
                   value: 00000000-0000-0000-0000-000000000002
               - column:
                   name: name
@@ -55,7 +55,7 @@ databaseChangeLog:
             tableName: method
             columns:
               - column:
-                  name: id
+                  name: method_id
                   value: 00000000-0000-0000-0000-000000000003
               - column:
                   name: name

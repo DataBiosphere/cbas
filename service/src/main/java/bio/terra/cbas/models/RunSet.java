@@ -17,7 +17,7 @@ public record RunSet(
     String recordType) {
 
   // Corresponding table column names in database
-  public static final String ID_COL = "id";
+  public static final String RUN_SET_ID_COL = "run_set_id";
   public static final String STATUS_COL = "status";
   public static final String METHOD_ID_COL = "method_id";
   public static final String SUBMISSION_TIMESTAMP_COL = "submission_timestamp";
@@ -29,9 +29,7 @@ public record RunSet(
   public static final String OUTPUT_DEFINITION_COL = "output_definition";
   public static final String RECORD_TYPE_COL = "record_type";
 
-
-
   public UUID getMethodId() {
-    return method.id();
+    return method.method_id();
   }
 }
