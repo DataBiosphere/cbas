@@ -14,19 +14,14 @@ public class RunSetMapper implements RowMapper<RunSet> {
 
   @Override
   public RunSet mapRow(ResultSet rs, int rowNum) throws SQLException {
-    Method method =
-        new Method(
-            rs.getObject(RunSet.METHOD_ID_COL, UUID.class),
-            rs.getString(Method.NAME_COL),
-            rs.getString(Method.DESCRIPTION__COL),
-            rs.getObject(Method.CREATED_COL, OffsetDateTime.class),
-            rs.getObject(Method.LAST_RUN_COL, OffsetDateTime.class),
-            rs.getString(Method.METHOD_SOURCE_COL),
-            rs.getString(Method.METHOD_SOURCE_URL_COL));
+    Method method = new MethodMapper().mapRow(rs, rowNum);
 
     return new RunSet(
         rs.getObject(Run.RUN_SET_ID_COL, UUID.class),
         method,
+        rs.getString(RunSet.NAME_COL),
+        rs.getString(RunSet.DESCRIPTION_COL),
+        rs.getBoolean(RunSet.IS_TEMPLATE_COL),
         CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS_COL)),
         rs.getObject(RunSet.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
         rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),

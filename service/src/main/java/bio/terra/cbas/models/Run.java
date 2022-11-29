@@ -15,8 +15,8 @@ public record Run(
     String errorMessages) {
 
   // Corresponding table column names in database
-  public static final String RUN_ID_COL = "runId";
-  public static final String RUN_SET_ID_COL = "runSetId";
+  public static final String RUN_ID_COL = "run_id";
+  public static final String RUN_SET_ID_COL = "run_set_id";
   public static final String ENGINE_ID_COL = "engine_id";
   public static final String RECORD_ID_COL = "record_id";
   public static final String SUBMISSION_TIMESTAMP_COL = "submission_timestamp";

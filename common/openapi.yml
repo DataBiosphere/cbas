@@ -159,6 +159,10 @@ components:
     RunSetRequest:
       type: object
       properties:
+        run_set_name:
+          type: string
+        run_set_description:
+          type: string
         method_id:
           type: string
           format: uuid
@@ -432,6 +436,12 @@ components:
         method_id:
           type: string
           format: uuid
+        is_template:
+          type: boolean
+        run_set_name:
+          type: string
+        run_set_description:
+          type: string
         state:
           $ref: '#/components/schemas/RunSetState'
         record_type:

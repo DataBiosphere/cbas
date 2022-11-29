@@ -13,6 +13,15 @@ databaseChangeLog:
                   name: method_id
                   value: 00000000-0000-0000-0000-000000000001
               - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: Target workflow 1, run 1
+              - column:
+                  name: run_set_description
+                  value: "Example run for target workflow 1"
+              - column:
                   name: status
                   value: COMPLETE
               - column:

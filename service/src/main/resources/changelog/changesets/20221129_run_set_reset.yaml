@@ -20,6 +20,22 @@ databaseChangeLog:
                     foreignKeyName: fk_run_set_method
                     references: method(method_id)
               - column:
+                  name: is_template
+                  type: boolean
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: run_set_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: run_set_description
+                  type: varchar(1000)
+                  constraints:
+                    nullable: false
+              - column:
                   name: status
                   type: varchar(20)
                   defaultValue: "UNKNOWN"

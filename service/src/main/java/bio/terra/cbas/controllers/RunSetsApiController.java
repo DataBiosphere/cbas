@@ -83,12 +83,18 @@ public class RunSetsApiController implements RunSetsApi {
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
     return new RunSetDetailsResponse()
         .runSetId(runSet.runSetId())
+        .methodId(runSet.method().method_id())
+        .runSetName(runSet.name())
+        .runSetDescription(runSet.description())
+        .isTemplate(runSet.isTemplate())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
         .recordType(runSet.recordType())
         .submissionTimestamp(DateUtils.convertToDate(runSet.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(runSet.lastModifiedTimestamp()))
         .runCount(runSet.runCount())
-        .errorCount(runSet.errorCount());
+        .errorCount(runSet.errorCount())
+        .inputDefinition(runSet.inputDefinition())
+        .outputDefinition(runSet.outputDefinition());
   }
 
   @Override
@@ -138,6 +144,9 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSet(
               runSetId,
               method,
+              request.getRunSetName(),
+              request.getRunSetDescription(),
+              false,
               CbasRunSetStatus.UNKNOWN,
               DateUtils.currentTimeInUTC(),
               DateUtils.currentTimeInUTC(),

@@ -6,6 +6,9 @@ import java.util.UUID;
 public record RunSet(
     UUID runSetId,
     Method method,
+    String name,
+    String description,
+    Boolean isTemplate,
     CbasRunSetStatus status,
     OffsetDateTime submissionTimestamp,
     OffsetDateTime lastModifiedTimestamp,
@@ -17,9 +20,11 @@ public record RunSet(
     String recordType) {
 
   // Corresponding table column names in database
-  public static final String RUN_SET_ID_COL = "runSetId";
+  public static final String RUN_SET_ID_COL = "run_set_id";
   public static final String STATUS_COL = "status";
-  public static final String METHOD_ID_COL = "method_id";
+  public static final String NAME_COL = "run_set_name";
+  public static final String DESCRIPTION_COL = "run_set_description";
+  public static final String IS_TEMPLATE_COL = "is_template";
   public static final String SUBMISSION_TIMESTAMP_COL = "submission_timestamp";
   public static final String LAST_MODIFIED_TIMESTAMP_COL = "last_modified_timestamp";
   public static final String LAST_POLLED_TIMESTAMP_COL = "last_polled_timestamp";
