@@ -20,6 +20,18 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
+  "/api/batch/v1/methods":
+    get:
+      tags: [ methods ]
+      summary: Get list of methods
+      operationId: getMethods
+      responses:
+        '200':
+          $ref: '#/components/responses/GetMethodsResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   "/api/batch/v1/runs":
     get:
       tags: [ runs ]
@@ -67,24 +79,6 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
-  /api/batch/v1/methods:
-    get:
-      summary: Lists known methods
-      tags: [ batch ]
-      operationId: listMethods
-      responses:
-        '200':
-          description: A JSON array of methods
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
 components:
   requestBodies:
@@ -102,6 +96,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetStateResponse'
+    GetMethodsResponse:
+      description: Details about methods
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MethodListResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -320,6 +320,27 @@ components:
         errors:
           type:
             string
+    MethodDetails:
+      type: object
+      properties:
+        method_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        source:
+          type: string
+          description: origin of this workflow (eg dockstore)
+        source_url:
+          type: string
+          description: URL of the workflow source (eg a dockstore project)
+        created:
+          type: string
+          format: date-time
+        last_run:
+          type: string
+          format: date-time
     RunLog:
       type: object
       properties:
@@ -348,6 +369,13 @@ components:
         error_messages:
           type: string
           required: false
+    MethodListResponse:
+      type: object
+      properties:
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodDetails'
     RunLogResponse:
       type: object
       properties:
