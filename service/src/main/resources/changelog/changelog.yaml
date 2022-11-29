@@ -8,3 +8,6 @@ databaseChangeLog:
   - include:
       file: changesets/20221129_run_reset.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20221129_method_prepopulation.yaml
+      relativeToChangelogFile: true

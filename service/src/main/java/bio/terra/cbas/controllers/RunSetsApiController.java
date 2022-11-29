@@ -92,7 +92,7 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   @Override
-  public ResponseEntity<RunSetListResponse> getRunSets() {
+  public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
     List<RunSet> runSets = runSetDao.getRunSets();
     List<RunSetDetailsResponse> runSetDetails =
         runSets.stream().map(this::convertToRunSetDetails).toList();
