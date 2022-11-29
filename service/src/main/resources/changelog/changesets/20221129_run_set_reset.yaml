@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: run_set
             columns:
               - column:
-                  name: runSetId
+                  name: run_set_id
                   type: uuid
                   constraints:
                     primaryKey: true

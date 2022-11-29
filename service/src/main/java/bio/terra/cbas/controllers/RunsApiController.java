@@ -26,7 +26,7 @@ public class RunsApiController implements RunsApi {
   private RunLog runToRunLog(Run run) {
 
     return new RunLog()
-        .runId(run.run_id().toString())
+        .runId(run.runId())
         .engineId(run.engineId())
         .workflowUrl(run.runSet().method().methodSourceUrl())
         .name(null)

@@ -326,6 +326,7 @@ components:
         run_set_id:
           type:
             string
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
         runs:
           type: array
@@ -339,8 +340,9 @@ components:
     MethodDetails:
       type: object
       properties:
-        id:
+        method_id:
           type: string
+          format: uuid
         name:
           type: string
         description:
@@ -362,6 +364,7 @@ components:
       properties:
         run_id:
           type: string
+          format: uuid
         engine_id:
           type: string
           description: Identifier of the run in the execution engine
@@ -406,6 +409,7 @@ components:
         run_id:
           type:
             string
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
         state:
           $ref: '#/components/schemas/RunState'
@@ -424,6 +428,10 @@ components:
       properties:
         run_set_id:
           type: string
+          format: uuid
+        method_id:
+          type: string
+          format: uuid
         state:
           $ref: '#/components/schemas/RunSetState'
         record_type:
@@ -438,6 +446,10 @@ components:
           type: integer
         error_count:
           type: integer
+        input_definition:
+          type: string
+        output_definition:
+          type: string
     ErrorReport:
       type: object
       required: [ message, status_code, causes]

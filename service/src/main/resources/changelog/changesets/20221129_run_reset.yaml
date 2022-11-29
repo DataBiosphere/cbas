@@ -18,7 +18,7 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: runSetId
+                  name: run_set_id
                   type: uuid
                   constraints:
                     nullable: false

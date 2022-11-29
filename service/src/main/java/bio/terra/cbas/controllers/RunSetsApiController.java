@@ -82,7 +82,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
     return new RunSetDetailsResponse()
-        .runSetId(runSet.runSetId().toString())
+        .runSetId(runSet.runSetId())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
         .recordType(runSet.recordType())
         .submissionTimestamp(DateUtils.convertToDate(runSet.submissionTimestamp()))
@@ -179,10 +179,7 @@ public class RunSetsApiController implements RunSetsApi {
         runsInErrorState.size());
 
     RunSetStateResponse response =
-        new RunSetStateResponse()
-            .runSetId(runSetId.toString())
-            .runs(runStateResponseList)
-            .state(runSetState);
+        new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
 
@@ -318,7 +315,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     return new RunStateResponse()
-        .runId(runId.toString())
+        .runId(runId)
         .state(CbasRunStatus.toCbasApiState(runState))
         .errors(errors + additionalErrorMsg);
   }

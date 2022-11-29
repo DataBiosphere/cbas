@@ -28,7 +28,7 @@ public class MethodsApiController implements MethodsApi {
 
   private MethodDetails methodToMethodDetails(Method method) {
     return new MethodDetails()
-        .id(method.method_id().toString())
+        .methodId(method.method_id())
         .name(method.name())
         .description(method.description())
         .source(method.methodSource())

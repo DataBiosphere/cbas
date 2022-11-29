@@ -103,7 +103,7 @@ public class SmartRunsPoller {
                           getStatusSuccess = true;
                           return result;
                         } catch (ApiException | IllegalArgumentException e) {
-                          logger.warn("Unable to fetch updated status for run {}.", r.run_id(), e);
+                          logger.warn("Unable to fetch updated status for run {}.", r.runId(), e);
                           return r.status();
                         } finally {
                           recordOutboundApiRequestCompletion(
@@ -148,7 +148,7 @@ public class SmartRunsPoller {
             logger.error(
                 "Error while updating attributes for record {} from run {}.",
                 updatableRun.recordId(),
-                updatableRun.run_id(),
+                updatableRun.runId(),
                 e);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
@@ -157,7 +157,7 @@ public class SmartRunsPoller {
             // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(updatableRun);
             if (!message.isEmpty()) {
-              var updatedRun = runDao.updateErrorMessage(updatableRun.run_id(), message);
+              var updatedRun = runDao.updateErrorMessage(updatableRun.runId(), message);
               if (updatedRun == 1) {
                 updatableRun = updatableRun.withErrorMessage(message);
               }
@@ -165,33 +165,33 @@ public class SmartRunsPoller {
           } catch (Exception e) {
             logger.error(
                 "Error fetching Cromwell-level error from Cromwell for run {}.",
-                updatableRun.run_id(),
+                updatableRun.runId(),
                 e);
           }
         }
         logger.info(
             "Updating status of Run {} (engine ID {}) from {} to {}",
-            updatableRun.run_id(),
+            updatableRun.runId(),
             updatableRun.engineId(),
             updatableRun.status(),
             updatedRunState);
-        var changes = runDao.updateRunStatus(updatableRun.run_id(), updatedRunState);
+        var changes = runDao.updateRunStatus(updatableRun.runId(), updatedRunState);
         if (changes == 1) {
           updatableRun = updatableRun.withStatus(updatedRunState);
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-              updatableRun.run_id(),
+              updatableRun.runId(),
               updatableRun.status(),
               updatedRunState);
         }
       } else {
         // if run status hasn't changed, only update last polled timestamp
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.run_id());
+        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
         if (changes != 1) {
           logger.warn(
               "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.run_id(),
+              updatableRun.runId(),
               updatableRun.status(),
               changes);
         }
