@@ -200,16 +200,16 @@ class TestRunSetsApiController {
     List<Run> capturedRuns = newRunCaptor.getAllValues();
     assertEquals(3, capturedRuns.size());
     // check Runs 1 & 3 were successfully submitted
-    assertEquals(newRunSetCaptor.getValue().id(), capturedRuns.get(0).getRunSetId());
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
     assertEquals(cromwellWorkflowId1, capturedRuns.get(0).engineId());
     assertEquals(UNKNOWN, capturedRuns.get(0).status());
     assertEquals(recordId1, capturedRuns.get(0).recordId());
-    assertEquals(newRunSetCaptor.getValue().id(), capturedRuns.get(2).getRunSetId());
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
     assertEquals(cromwellWorkflowId3, capturedRuns.get(2).engineId());
     assertEquals(UNKNOWN, capturedRuns.get(2).status());
     assertEquals(recordId3, capturedRuns.get(2).recordId());
     // check Run 2 is in failed state
-    assertEquals(newRunSetCaptor.getValue().id(), capturedRuns.get(1).getRunSetId());
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
     assertNull(capturedRuns.get(1).engineId());
     assertEquals(SYSTEM_ERROR, capturedRuns.get(1).status());
     assertEquals(recordId2, capturedRuns.get(1).recordId());

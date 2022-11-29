@@ -82,7 +82,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
     return new RunSetDetailsResponse()
-        .runSetId(runSet.id().toString())
+        .runSetId(runSet.runSetId().toString())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
         .recordType(runSet.recordType())
         .submissionTimestamp(DateUtils.convertToDate(runSet.submissionTimestamp()))

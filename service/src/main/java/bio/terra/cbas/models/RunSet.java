@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record RunSet(
-    UUID id,
+    UUID runSetId,
     Method method,
     CbasRunSetStatus status,
     OffsetDateTime submissionTimestamp,
@@ -17,7 +17,7 @@ public record RunSet(
     String recordType) {
 
   // Corresponding table column names in database
-  public static final String RUN_SET_ID_COL = "run_set_id";
+  public static final String RUN_SET_ID_COL = "runSetId";
   public static final String STATUS_COL = "status";
   public static final String METHOD_ID_COL = "method_id";
   public static final String SUBMISSION_TIMESTAMP_COL = "submission_timestamp";

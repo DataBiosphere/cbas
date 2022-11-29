@@ -1,0 +1,113 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: runSetId
+                  value: 10000000-0000-0000-0000-000000000001
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "target_workflow_1.foo.input_file_1",
+                        "input_type": { "type": "primitive", "primitive_type": "File" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_file_2",
+                        "input_type": { "type": "primitive", "primitive_type": "File" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_1",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_2",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_3",
+                        "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "String" } },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_4",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_4"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_5",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_5"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_6",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_6"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_1.foo.input_string_7",
+                        "input_type": { "type": "primitive", "primitive_type": "String" },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_1_input_string_7"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "target_workflow_1.file_output",
+                        "output_type": { "type": "primitive", "primitive_type": "String" },
+                        "record_attribute": "target_workflow_1_file_output"
+                      }
+                    ]
+              - column:
+                  name: record_type
+                  value: FOO

@@ -18,12 +18,12 @@ databaseChangeLog:
                   constraints:
                     nullable: true
               - column:
-                  name: run_set_id
+                  name: runSetId
                   type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_run_run_set
-                    references: run_set(run_set_id)
+                    references: run_set(runSetId)
               - column:
                   name: record_id
                   type: varchar(255)
