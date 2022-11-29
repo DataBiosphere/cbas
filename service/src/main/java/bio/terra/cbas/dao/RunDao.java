@@ -85,24 +85,7 @@ public class RunDao {
 
   private static class RunMapper implements RowMapper<Run> {
     public Run mapRow(ResultSet rs, int rowNum) throws SQLException {
-      Method method =
-          new Method(
-              rs.getObject(RunSet.METHOD_ID_COL, UUID.class),
-              rs.getString(Method.METHOD_URL_COL),
-              rs.getString(Method.INPUT_DEFINITION_COL),
-              rs.getString(Method.OUTPUT_DEFINITION_COL),
-              rs.getString(Method.RECORD_TYPE_COL));
-
-      RunSet runSet =
-          new RunSet(
-              rs.getObject(Run.RUN_SET_ID_COL, UUID.class),
-              method,
-              CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS_COL)),
-              rs.getObject(RunSet.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
-              rs.getObject(RunSet.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
-              rs.getObject(RunSet.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
-              rs.getInt(RunSet.RUN_COUNT_COL),
-              rs.getInt(RunSet.ERROR_COUNT_COL));
+      RunSet runSet = new RunSetMapper().mapRow(rs, rowNum);
 
       return new Run(
           rs.getObject(Run.ID_COL, UUID.class),

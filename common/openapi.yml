@@ -159,17 +159,17 @@ components:
     RunSetRequest:
       type: object
       properties:
-        workflow_url:
+        method_id:
           type: string
-          description: URL to the workflow script to run
-          example: 'https://www.example.com/example.wdl'
+          format: uuid
+          description: ID of the method to run
+        wds_records:
+          $ref: '#/components/schemas/WdsRecordSet'
         workflow_input_definitions:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowInputDefinition'
           description: Declarative input definition for combination with WDS records.
-        wds_records:
-          $ref: '#/components/schemas/WdsRecordSet'
         workflow_output_definitions:
           type: array
           items:

@@ -11,7 +11,10 @@ public record RunSet(
     OffsetDateTime lastModifiedTimestamp,
     OffsetDateTime lastPolledTimestamp,
     Integer runCount,
-    Integer errorCount) {
+    Integer errorCount,
+    String inputDefinition,
+    String outputDefinition,
+    String recordType) {
 
   // Corresponding table column names in database
   public static final String ID_COL = "id";
@@ -22,6 +25,11 @@ public record RunSet(
   public static final String LAST_POLLED_TIMESTAMP_COL = "last_polled_timestamp";
   public static final String RUN_COUNT_COL = "run_count";
   public static final String ERROR_COUNT_COL = "error_count";
+  public static final String INPUT_DEFINITION_COL = "input_definition";
+  public static final String OUTPUT_DEFINITION_COL = "output_definition";
+  public static final String RECORD_TYPE_COL = "record_type";
+
+
 
   public UUID getMethodId() {
     return method.id();
