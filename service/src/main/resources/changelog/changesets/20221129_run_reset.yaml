@@ -23,7 +23,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_run_run_set
-                    references: run_set(runSetId)
+                    references: run_set(run_set_id)
               - column:
                   name: record_id
                   type: varchar(255)
