@@ -1,11 +1,24 @@
 databaseChangeLog:
   - changeSet:
       id: "1"
-      author: kpierre
+      author: chrisl
       changes:
-        - addColumn:
+        - createTable:
             tableName: run_set
             columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: method_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_run_set_method
+                    references: method(id)
               - column:
                   name: status
                   type: varchar(20)
@@ -14,19 +27,19 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: submission_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   defaultValueComputed: "CURRENT_TIMESTAMP"
                   constraints:
                     nullable: false
               - column:
                   name: last_modified_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   defaultValueComputed: "CURRENT_TIMESTAMP"
                   constraints:
                     nullable: false
               - column:
                   name: last_polled_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   defaultValueComputed: "CURRENT_TIMESTAMP"
                   constraints:
                     nullable: false
@@ -38,5 +51,20 @@ databaseChangeLog:
               - column:
                   name: error_count
                   type: int
+                  constraints:
+                    nullable: true
+              - column:
+                  name: input_definition
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: output_definition
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: record_type
+                  type: text
                   constraints:
                     nullable: true

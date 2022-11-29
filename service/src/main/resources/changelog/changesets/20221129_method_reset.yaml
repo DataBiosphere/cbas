@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+        - createTable:
+            tableName: method
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_run
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+              - column:
+                  name: method_source
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_source_url
+                  type: text
+                  constraints:
+                    nullable: false

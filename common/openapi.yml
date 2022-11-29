@@ -323,7 +323,7 @@ components:
     MethodDetails:
       type: object
       properties:
-        method_id:
+        id:
           type: string
         name:
           type: string

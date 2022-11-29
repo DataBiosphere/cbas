@@ -31,7 +31,7 @@ databaseChangeLog:
                     nullable: true
               - column:
                   name: submission_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:
@@ -41,12 +41,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: last_modified_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:
                   name: last_polled_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:

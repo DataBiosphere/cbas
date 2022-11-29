@@ -1,16 +1,10 @@
 databaseChangeLog:
   - include:
-      file: changesets/20220823_method.yaml
+      file: changesets/20221129_method_reset.yaml
       relativeToChangelogFile: true
   - include:
-      file: changesets/20220823_run_set.yaml
+      file: changesets/20221129_run_set_reset.yaml
       relativeToChangelogFile: true
   - include:
-      file: changesets/20220823_run.yaml
-      relativeToChangelogFile: true
-  - include:
-     file: changesets/20221115_add_run_set_columns.yaml
-     relativeToChangelogFile: true
-  - include:
-      file: changesets/20221122_store_timezone_in_timestamps.yaml
+      file: changesets/20221129_run_reset.yaml
       relativeToChangelogFile: true
