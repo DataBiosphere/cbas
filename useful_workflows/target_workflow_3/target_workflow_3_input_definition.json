@@ -450,7 +450,7 @@
     },
     "source": {
       "type": "record_lookup",
-      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings_3"
+      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings3"
     }
   },
   {
@@ -935,7 +935,7 @@
     },
     "source": {
       "type": "record_lookup",
-      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings_2"
+      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings2"
     }
   },
   {
@@ -1221,7 +1221,7 @@
     },
     "source": {
       "type": "record_lookup",
-      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings_1"
+      "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings1"
     }
   },
   {

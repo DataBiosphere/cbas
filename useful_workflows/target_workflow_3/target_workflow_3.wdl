@@ -732,10 +732,10 @@ task mock_task_19 {
 
     File?          optional_input_file_2
     File?          optional_input_file_3
-    Array[String]? optional_input_array_of_strings_1
-    Array[String]? optional_input_array_of_strings_2
+    Array[String]? optional_input_array_of_strings1
+    Array[String]? optional_input_array_of_strings2
     File?          optional_input_file_4
-    Array[String]? optional_input_array_of_strings_3
+    Array[String]? optional_input_array_of_strings3
     String?        optional_input_string_1
     Boolean        input_bool_1 = true
 
@@ -755,10 +755,10 @@ task mock_task_19 {
     echo 'input_array_of_files_1: ~{input_array_of_files_1}' >> mock_task_19_digest.txt
     echo 'optional_input_file_2: ~{optional_input_file_2}' >> mock_task_19_digest.txt
     echo 'optional_input_file_3: ~{optional_input_file_3}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_1: ~{optional_input_array_of_strings_1}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_2: ~{optional_input_array_of_strings_2}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_1: ~{optional_input_array_of_strings1}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_2: ~{optional_input_array_of_strings2}' >> mock_task_19_digest.txt
     echo 'optional_input_file_4: ~{optional_input_file_4}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_3: ~{optional_input_array_of_strings_3}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_3: ~{optional_input_array_of_strings3}' >> mock_task_19_digest.txt
     echo 'optional_input_string_1: ~{optional_input_string_1}' >> mock_task_19_digest.txt
     echo 'input_bool_1: ~{input_bool_1}' >> mock_task_19_digest.txt
     echo 'input_string_1: ~{input_string_1}' >> mock_task_19_digest.txt
