@@ -27,8 +27,8 @@ public class RunSetDao {
 
   public int createRunSet(RunSet runSet) {
     return jdbcTemplate.update(
-        "insert into run_set (run_set_id, method_id, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_description, output_description, record_type)"
-            + " values (:run_set_id, :methodId, :status, :submissionTimestamp, :lastModifiedTimestamp, :lastPolledTimestamp, :runCount, :errorCount, :inputDescription, :outputDescription, :recordType)",
+        "insert into run_set (run_set_id, method_id, run_set_name, run_set_description, is_template, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_definition, output_definition, record_type)"
+            + " values (:runSetId, :methodId, :name, :description, false, :status, :submissionTimestamp, :lastModifiedTimestamp, :lastPolledTimestamp, :runCount, :errorCount, :inputDefinition, :outputDefinition, :recordType)",
         new EnumAwareBeanPropertySqlParameterSource(runSet));
   }
 

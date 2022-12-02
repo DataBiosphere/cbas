@@ -27,7 +27,7 @@ public class RunDao {
   public int createRun(Run run) {
     return jdbcTemplate.update(
         "insert into run (run_id, engine_id, run_set_id, record_id, submission_timestamp, status, last_modified_timestamp, last_polled_timestamp, error_messages)"
-            + " values (:run_id, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
+            + " values (:runId, :engineId, :runSetId, :recordId, :submissionTimestamp, :status, :lastModifiedTimestamp, :lastPolledTimestamp, :errorMessages)",
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
@@ -49,7 +49,7 @@ public class RunDao {
   public int updateRunStatus(UUID runId, CbasRunStatus newStatus) {
     OffsetDateTime currentTimestamp = DateUtils.currentTimeInUTC();
     String sql =
-        "UPDATE run SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp WHERE id = :id";
+        "UPDATE run SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp WHERE run_id = :run_id";
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(

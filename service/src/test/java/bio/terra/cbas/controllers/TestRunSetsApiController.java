@@ -185,7 +185,6 @@ class TestRunSetsApiController {
 
     // Verify database storage
     ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
-    verify(methodDao).createMethod(newMethodCaptor.capture());
     assertEquals(recordType, newMethodCaptor.getValue().recordType());
     assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
     assertEquals(outputDefinitionAsString, newMethodCaptor.getValue().outputDefinition());

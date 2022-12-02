@@ -131,9 +131,8 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    // Store new method
-    UUID methodId = UUID.randomUUID();
-    Method method = methodDao.getMethod(methodId);
+    // Fetch existing method:
+    Method method = methodDao.getMethod(request.getMethodId());
 
     // Create a new run_set
     UUID runSetId = UUID.randomUUID();
@@ -163,6 +162,7 @@ public class RunSetsApiController implements RunSetsApi {
               .errors("Failed to record run set to database. Error(s): " + e.getMessage()),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    System.out.println("New run set: " + runSet);
     runSetDao.createRunSet(runSet);
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
