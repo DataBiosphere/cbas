@@ -90,7 +90,7 @@ task mock_task_3 {
   }
 
   output {
-    File output_file_1 = "output_file_1.txt"
+    File output_file_1 = "input_string_1.txt"
     Int output_int_1 = 101
     Int output_int_2 = 201
     String output_string_1 = "mock task 3"
