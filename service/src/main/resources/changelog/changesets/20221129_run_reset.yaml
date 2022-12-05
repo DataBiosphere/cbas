@@ -7,7 +7,7 @@ databaseChangeLog:
             tableName: run
             columns:
               - column:
-                  name: id
+                  name: run_id
                   type: uuid
                   constraints:
                     primaryKey: true
@@ -23,7 +23,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_run_run_set
-                    references: run_set(id)
+                    references: run_set(run_set_id)
               - column:
                   name: record_id
                   type: varchar(255)
@@ -31,7 +31,7 @@ databaseChangeLog:
                     nullable: true
               - column:
                   name: submission_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:
@@ -41,12 +41,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: last_modified_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:
                   name: last_polled_timestamp
-                  type: timestamp
+                  type: timestamp with time zone
                   constraints:
                     nullable: false
               - column:

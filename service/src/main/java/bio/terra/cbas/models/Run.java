@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record Run(
-    UUID id,
+    UUID runId,
     String engineId,
     RunSet runSet,
     String recordId,
@@ -15,7 +15,7 @@ public record Run(
     String errorMessages) {
 
   // Corresponding table column names in database
-  public static final String ID_COL = "id";
+  public static final String RUN_ID_COL = "run_id";
   public static final String RUN_SET_ID_COL = "run_set_id";
   public static final String ENGINE_ID_COL = "engine_id";
   public static final String RECORD_ID_COL = "record_id";
@@ -26,12 +26,12 @@ public record Run(
   public static final String ERROR_MESSAGES_COL = "error_messages";
 
   public UUID getRunSetId() {
-    return runSet.id();
+    return runSet.runSetId();
   }
 
   public Run withStatus(CbasRunStatus newStatus) {
     return new Run(
-        id,
+        runId,
         engineId,
         runSet,
         recordId,
@@ -44,7 +44,7 @@ public record Run(
 
   public Run withErrorMessage(String message) {
     return new Run(
-        id,
+        runId,
         engineId,
         runSet,
         recordId,

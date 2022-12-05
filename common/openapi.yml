@@ -20,6 +20,18 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
+  "/api/batch/v1/methods":
+    get:
+      tags: [ methods ]
+      summary: Get list of methods
+      operationId: getMethods
+      responses:
+        '200':
+          $ref: '#/components/responses/GetMethodsResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
   "/api/batch/v1/runs":
     get:
       tags: [ runs ]
@@ -58,8 +70,24 @@ paths:
           $ref: '#/components/responses/ServerError'
     get:
       tags: [ run_sets ]
-      summary: Get list of all run sets
+      summary: Get list of all run sets, ordered by date submitted, most recent first
       operationId: getRunSets
+      parameters:
+        - in: query
+          name: method_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description:
+            When specified, only return run sets of the specified method
+        - in: query
+          name: page_size
+          required: false
+          schema:
+            type: integer
+          description:
+            How many items to return at once
       responses:
         '200':
           $ref: '#/components/responses/GetRunSetListResponse'
@@ -67,24 +95,6 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
-  /api/batch/v1/methods:
-    get:
-      summary: Lists known methods
-      tags: [ batch ]
-      operationId: listMethods
-      responses:
-        '200':
-          description: A JSON array of methods
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
-        '404':
-          $ref: '#/components/responses/NotFound'
 
 components:
   requestBodies:
@@ -102,6 +112,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetStateResponse'
+    GetMethodsResponse:
+      description: Details about methods
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/MethodListResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -143,17 +159,21 @@ components:
     RunSetRequest:
       type: object
       properties:
-        workflow_url:
+        run_set_name:
           type: string
-          description: URL to the workflow script to run
-          example: 'https://www.example.com/example.wdl'
+        run_set_description:
+          type: string
+        method_id:
+          type: string
+          format: uuid
+          description: ID of the method to run
+        wds_records:
+          $ref: '#/components/schemas/WdsRecordSet'
         workflow_input_definitions:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowInputDefinition'
           description: Declarative input definition for combination with WDS records.
-        wds_records:
-          $ref: '#/components/schemas/WdsRecordSet'
         workflow_output_definitions:
           type: array
           items:
@@ -310,6 +330,7 @@ components:
         run_set_id:
           type:
             string
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
         runs:
           type: array
@@ -320,14 +341,44 @@ components:
         errors:
           type:
             string
+    MethodDetails:
+      type: object
+      properties:
+        method_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        source:
+          type: string
+          description: origin of this workflow (eg dockstore)
+        source_url:
+          type: string
+          description: URL of the workflow source (eg a dockstore project)
+        created:
+          type: string
+          format: date-time
+        last_run:
+          type: string
+          format: date-time
     RunLog:
       type: object
       properties:
         run_id:
           type: string
+          format: uuid
         engine_id:
           type: string
           description: Identifier of the run in the execution engine
+        run_set_id:
+          type: string
+          format: uuid
+          description: Run set which this run is part of
+        record_id:
+          type: string
+          description: WDS record which this run was based on
         workflow_url:
           type: string
           description: URL to the workflow script to run
@@ -348,6 +399,13 @@ components:
         error_messages:
           type: string
           required: false
+    MethodListResponse:
+      type: object
+      properties:
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodDetails'
     RunLogResponse:
       type: object
       properties:
@@ -362,6 +420,7 @@ components:
         run_id:
           type:
             string
+          format: uuid
           example: 00000000-0000-0000-0000-000000000000
         state:
           $ref: '#/components/schemas/RunState'
@@ -380,6 +439,16 @@ components:
       properties:
         run_set_id:
           type: string
+          format: uuid
+        method_id:
+          type: string
+          format: uuid
+        is_template:
+          type: boolean
+        run_set_name:
+          type: string
+        run_set_description:
+          type: string
         state:
           $ref: '#/components/schemas/RunSetState'
         record_type:
@@ -394,6 +463,10 @@ components:
           type: integer
         error_count:
           type: integer
+        input_definition:
+          type: string
+        output_definition:
+          type: string
     ErrorReport:
       type: object
       required: [ message, status_code, causes]
