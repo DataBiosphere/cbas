@@ -77,7 +77,7 @@ task mock_task_3 {
     date '+%s' > mock_task_3_digest.txt
     echo 'Inputs:' >> mock_task_3_digest.txt
 
-    echo 'input_array_of_files_1: ~{input_array_of_files_1}' >> mock_task_3_digest.txt
+    echo 'input_array_of_files_1: ~{sep= ' ' input_array_of_files_1}' >> mock_task_3_digest.txt
     echo 'input_string_1: ~{input_string_1}' >> mock_task_3_digest.txt
     echo 'input_int_1: ~{input_int_1}' >> mock_task_3_digest.txt
   }
