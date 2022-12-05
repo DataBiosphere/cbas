@@ -162,7 +162,6 @@ public class RunSetsApiController implements RunSetsApi {
               .errors("Failed to record run set to database. Error(s): " + e.getMessage()),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    System.out.println("New run set: " + runSet);
     runSetDao.createRunSet(runSet);
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
