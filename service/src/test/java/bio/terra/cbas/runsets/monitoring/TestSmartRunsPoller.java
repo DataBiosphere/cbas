@@ -8,7 +8,6 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -251,8 +250,7 @@ public class TestSmartRunsPoller {
             runToUpdate1.runId(),
             COMPLETE); // (verify that error messages are received from Cromwell)
     verify(wdsService)
-        .updateRecord(
-            mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
+        .updateRecord(mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(runAlreadyCompleted.runId(), COMPLETE);
@@ -314,15 +312,13 @@ public class TestSmartRunsPoller {
     verify(cromwellService).runStatus(runningRunEngineId1);
     verify(runsDao).updateRunStatus(runToUpdate1.runId(), SYSTEM_ERROR);
     verify(wdsService, never())
-        .updateRecord(
-            mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
+        .updateRecord(mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
 
     // verify that second Run whose status could be updated has been updated
     verify(cromwellService).runStatus(runningRunEngineId2);
     verify(runsDao).updateRunStatus(runToUpdate2.runId(), COMPLETE);
     verify(wdsService)
-        .updateRecord(
-            mockRequest, runToUpdate2.runSet().recordType(), runToUpdate2.recordId());
+        .updateRecord(mockRequest, runToUpdate2.runSet().recordType(), runToUpdate2.recordId());
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(runAlreadyCompleted.runId(), COMPLETE);
@@ -366,8 +362,7 @@ public class TestSmartRunsPoller {
     when(cromwellService.runStatus(runningRunEngineId3))
         .thenReturn(new RunStatus().runId(runningRunEngineId3).state(State.EXECUTOR_ERROR));
     when(cromwellService.getRunErrors(runToUpdate3)).thenReturn(cromwellErrorMessage);
-    when(runsDao.updateErrorMessage(runToUpdate3.runId(), cromwellErrorMessage))
-        .thenReturn(1);
+    when(runsDao.updateErrorMessage(runToUpdate3.runId(), cromwellErrorMessage)).thenReturn(1);
     when(runsDao.updateRunStatus(runToUpdate3.runId(), EXECUTOR_ERROR)).thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
