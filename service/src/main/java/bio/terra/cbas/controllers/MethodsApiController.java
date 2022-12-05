@@ -20,7 +20,6 @@ public class MethodsApiController implements MethodsApi {
 
   @Override
   public ResponseEntity<MethodListResponse> getMethods() {
-    // TODO: Get an answer from the database?
     return ResponseEntity.ok(
         new MethodListResponse()
             .methods(methodDao.getMethods().stream().map(this::methodToMethodDetails).toList()));
