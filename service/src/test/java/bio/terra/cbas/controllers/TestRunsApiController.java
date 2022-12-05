@@ -70,7 +70,7 @@ class TestRunsApiController {
               methodCreatedTime,
               methodLastRunTime,
               "method source",
-              "file:///method/source/url"),
+              "methodurl"),
           "runSetName",
           "runSetDescription",
           false,
@@ -127,7 +127,7 @@ class TestRunsApiController {
 
     assertEquals(returnedRunId, runLog.getRunId());
     assertEquals("methodurl", runLog.getWorkflowUrl());
-    assertEquals("inputdefinition", runLog.getWorkflowParams());
+    assertEquals("inputDefinition", runLog.getWorkflowParams());
     assertEquals("outputDefinition", runLog.getWorkflowOutputs());
     assertEquals(
         CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());

@@ -258,7 +258,7 @@ class TestRunSetsApiController {
 
     String request =
         requestTemplate.formatted(
-            workflowUrl,
+            methodId,
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));

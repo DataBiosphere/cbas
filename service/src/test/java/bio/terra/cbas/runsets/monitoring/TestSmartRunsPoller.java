@@ -397,34 +397,35 @@ public class TestSmartRunsPoller {
   @Test
   void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
     String outputDefinition = "[]";
-    new RunSet(
-        UUID.randomUUID(),
-        new Method(
+    RunSet outputLessRunSet =
+        new RunSet(
             UUID.randomUUID(),
-            "methodName",
-            "methodDescription",
-            methodCreatedTime,
-            methodLastRunTime,
-            "method source",
-            "file:///method/source/url"),
-        "runSetName",
-        "runSetDescription",
-        false,
-        CbasRunSetStatus.UNKNOWN,
-        runSubmittedTime,
-        runSubmittedTime,
-        runSubmittedTime,
-        0,
-        0,
-        "inputDefinition",
-        outputDefinition,
-        "entityType");
+            new Method(
+                UUID.randomUUID(),
+                "methodName",
+                "methodDescription",
+                methodCreatedTime,
+                methodLastRunTime,
+                "method source",
+                "file:///method/source/url"),
+            "runSetName",
+            "runSetDescription",
+            false,
+            CbasRunSetStatus.UNKNOWN,
+            runSubmittedTime,
+            runSubmittedTime,
+            runSubmittedTime,
+            0,
+            0,
+            "inputDefinition",
+            outputDefinition,
+            "entityType");
 
     Run run =
         new Run(
             runningRunId1,
             runningRunEngineId1,
-            runSet,
+            outputLessRunSet,
             runningRunEntityId1,
             runSubmittedTime,
             RUNNING,
