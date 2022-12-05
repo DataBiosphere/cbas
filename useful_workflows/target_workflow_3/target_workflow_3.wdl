@@ -3,6 +3,7 @@ version 1.0
 task mock_task_1 {
   meta {
     description: "derived_cols mock task"
+    volatile: true
   }
 
   input {
@@ -34,6 +35,7 @@ task mock_task_1 {
 task mock_task_2 {
   meta {
     description: "nextstrain_ncov_defaults mock task"
+    volatile: true
   }
    input {
      String input_string_1 = "30435fb9ec8de2f045167fb90adfec12f123e80a"
@@ -65,6 +67,7 @@ task mock_task_2 {
 task mock_task_3 {
   meta {
     description: "zcat mock task"
+    volatile: true
   }
 
   input {
@@ -97,6 +100,7 @@ task mock_task_3 {
 task mock_task_4 {
   meta {
     description: "nextstrain_deduplicate_sequences mock task"
+    volatile: true
   }
 
   input {
@@ -127,6 +131,7 @@ task mock_task_4 {
 task mock_task_5 {
   meta {
     description: "filter_sequences_by_length mock task"
+    volatile: true
   }
 
   input {
@@ -159,6 +164,7 @@ task mock_task_5 {
 task mock_task_6 {
   meta {
     description: "mafft_one_chr_chunked mock task"
+    volatile: true
   }
 
   input {
@@ -199,6 +205,7 @@ task mock_task_6 {
 task mock_task_7 {
   meta {
     description: "tsv_join mock task"
+    volatile: true
   }
 
   input {
@@ -234,6 +241,7 @@ task mock_task_7 {
 task mock_task_8 {
   meta {
     description: "nextstrain_build_subsample mock task"
+    volatile: true
   }
 
   input {
@@ -286,6 +294,7 @@ task mock_task_8 {
 task mock_task_9 {
   meta {
     description: "fasta_to_ids mock task"
+    volatile: true
   }
 
   input {
@@ -311,6 +320,7 @@ task mock_task_9 {
 task mock_task_10 {
   meta {
     description: "snp_sites mock task"
+    volatile: true
   }
 
   input {
@@ -340,6 +350,7 @@ task mock_task_10 {
 task mock_task_11 {
   meta {
     description: "augur_mask_sites mock task"
+    volatile: true
   }
 
   input {
@@ -373,6 +384,7 @@ task mock_task_11 {
 task mock_task_12 {
   meta {
     description: "draft_augur_tree mock task"
+    volatile: true
   }
 
   input {
@@ -417,6 +429,7 @@ task mock_task_12 {
 task mock_task_13 {
   meta {
     description: "refine_augur_tree mock task"
+    volatile: true
   }
 
   input {
@@ -488,6 +501,7 @@ task mock_task_13 {
 task mock_task_14 {
   meta {
     description: "ancestral_traits mock task"
+    volatile: true
   }
 
   input {
@@ -533,6 +547,7 @@ task mock_task_14 {
 task mock_task_15 {
   meta {
     description: "tip_frequencies mock task"
+    volatile: true
   }
 
   input {
@@ -598,6 +613,7 @@ task mock_task_15 {
 task mock_task_16 {
   meta {
     description: "ancestral_tree"
+    volatile: true
   }
 
   input {
@@ -645,6 +661,7 @@ task mock_task_16 {
 task mock_task_17 {
   meta {
     description: "translate_augur_tree mock task"
+    volatile: true
   }
 
   input {
@@ -685,6 +702,7 @@ task mock_task_17 {
 task mock_task_18 {
   meta {
     description: "assign_clades_to_nodes mock task"
+    volatile: true
   }
 
   input {
@@ -722,6 +740,7 @@ task mock_task_18 {
 task mock_task_19 {
   meta {
     description: "export_auspice_json mock task"
+    volatile: true
   }
 
   input {
