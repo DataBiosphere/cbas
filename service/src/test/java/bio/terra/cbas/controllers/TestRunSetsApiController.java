@@ -63,6 +63,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
+  private final UUID methodId = UUID.randomUUID();
   private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
@@ -80,7 +81,7 @@ class TestRunSetsApiController {
   private final String requestTemplate =
       """
         {
-          "workflow_url" : "%s",
+          "method_id" : "%s",
           "workflow_input_definitions" : [ {
             "input_name" : "myworkflow.mycall.inputname1",
             "input_type" : { "type": "primitive", "primitive_type": "String" },
@@ -147,10 +148,21 @@ class TestRunSetsApiController {
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
     String request =
         requestTemplate.formatted(
-            workflowUrl,
+            methodId,
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(methodDao.getMethod(methodId))
+        .thenReturn(
+            new Method(
+                methodId,
+                "methodname",
+                "methoddescription",
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                "test method source",
+                workflowUrl));
 
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
@@ -183,15 +195,11 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
 
-    // Verify database storage
-    ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
-    assertEquals(recordType, newMethodCaptor.getValue().recordType());
-    assertEquals(workflowUrl, newMethodCaptor.getValue().methodUrl());
-    assertEquals(outputDefinitionAsString, newMethodCaptor.getValue().outputDefinition());
-
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(newMethodCaptor.getValue().method_id(), newRunSetCaptor.getValue().getMethodId());
+    assertEquals(methodId, newRunSetCaptor.getValue().getMethodId());
+    assertEquals(recordType, newRunSetCaptor.getValue().recordType());
+    assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());
@@ -283,25 +291,49 @@ class TestRunSetsApiController {
         new RunSet(
             UUID.randomUUID(),
             new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+                UUID.randomUUID(),
+                "methodName",
+                "methodDescription",
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                "method source",
+                "methodurl"),
+            "",
+            "",
+            false,
             CbasRunSetStatus.ERROR,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             5,
-            1);
+            1,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO");
 
     RunSet returnedRunSet2 =
         new RunSet(
             UUID.randomUUID(),
             new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "BAR"),
+                UUID.randomUUID(),
+                "methodName",
+                "methodDescription",
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                "method source",
+                "methodurl"),
+            "",
+            "",
+            false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             10,
-            0);
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "BAR");
 
     when(runSetDao.getRunSets()).thenReturn(List.of(returnedRunSet1, returnedRunSet2));
 
@@ -380,7 +412,7 @@ class TestRunSetsApiControllerUnits {
     config.setMaxWorkflowOutputs(5);
 
     List<String> expectedErrorList =
-        Arrays.asList("Number of defined inputs (2) exceeds maximum value (1)");
+        List.of("Number of defined inputs (2) exceeds maximum value (1)");
     List<String> actualErrorList =
         RunSetsApiController.validateRequestInputsAndOutputs(request, config);
     assertFalse(actualErrorList.isEmpty());
@@ -400,7 +432,7 @@ class TestRunSetsApiControllerUnits {
     config.setMaxWorkflowOutputs(1);
 
     List<String> expectedErrorList =
-        Arrays.asList("Number of defined outputs (2) exceeds maximum value (1)");
+        List.of("Number of defined outputs (2) exceeds maximum value (1)");
     List<String> actualErrorList =
         RunSetsApiController.validateRequestInputsAndOutputs(request, config);
     assertFalse(actualErrorList.isEmpty());

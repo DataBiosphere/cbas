@@ -46,6 +46,8 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = SmartRunsPoller.class)
 public class TestSmartRunsPoller {
 
+  private static final OffsetDateTime methodCreatedTime = OffsetDateTime.now();
+  private static final OffsetDateTime methodLastRunTime = OffsetDateTime.now();
   private static final OffsetDateTime runSubmittedTime = OffsetDateTime.now();
   private static final UUID runningRunId1 = UUID.randomUUID();
   private static final String runningRunEngineId1 = UUID.randomUUID().toString();
@@ -92,13 +94,25 @@ public class TestSmartRunsPoller {
       new RunSet(
           UUID.randomUUID(),
           new Method(
-              UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"),
+              UUID.randomUUID(),
+              "methodName",
+              "methodDescription",
+              methodCreatedTime,
+              methodLastRunTime,
+              "method source",
+              "file:///method/source/url"),
+          "runSetName",
+          "runSetDescription",
+          false,
           CbasRunSetStatus.UNKNOWN,
           runSubmittedTime,
           runSubmittedTime,
           runSubmittedTime,
           0,
-          0);
+          0,
+          "inputDefinition",
+          outputDefinition,
+          "entityType");
 
   final Run runToUpdate1 =
       new Run(
@@ -238,9 +252,7 @@ public class TestSmartRunsPoller {
             eq(COMPLETE)); // (verify that error messages are received from Cromwell)
     verify(wdsService)
         .updateRecord(
-            eq(mockRequest),
-            eq(runToUpdate1.runSet().method().recordType()),
-            eq(runToUpdate1.recordId()));
+            eq(mockRequest), eq(runToUpdate1.runSet().recordType()), eq(runToUpdate1.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE));
@@ -303,18 +315,14 @@ public class TestSmartRunsPoller {
     verify(runsDao).updateRunStatus(eq(runToUpdate1.runId()), eq(SYSTEM_ERROR));
     verify(wdsService, never())
         .updateRecord(
-            eq(mockRequest),
-            eq(runToUpdate1.runSet().method().recordType()),
-            eq(runToUpdate1.recordId()));
+            eq(mockRequest), eq(runToUpdate1.runSet().recordType()), eq(runToUpdate1.recordId()));
 
     // verify that second Run whose status could be updated has been updated
     verify(cromwellService).runStatus(eq(runningRunEngineId2));
     verify(runsDao).updateRunStatus(eq(runToUpdate2.runId()), eq(COMPLETE));
     verify(wdsService)
         .updateRecord(
-            eq(mockRequest),
-            eq(runToUpdate2.runSet().method().recordType()),
-            eq(runToUpdate2.recordId()));
+            eq(mockRequest), eq(runToUpdate2.runSet().recordType()), eq(runToUpdate2.recordId()));
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE));
@@ -389,17 +397,28 @@ public class TestSmartRunsPoller {
   @Test
   void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
     String outputDefinition = "[]";
-    RunSet runSet =
-        new RunSet(
+    new RunSet(
+        UUID.randomUUID(),
+        new Method(
             UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", outputDefinition, "entitytype"),
-            CbasRunSetStatus.UNKNOWN,
-            runSubmittedTime,
-            runSubmittedTime,
-            runSubmittedTime,
-            0,
-            0);
+            "methodName",
+            "methodDescription",
+            methodCreatedTime,
+            methodLastRunTime,
+            "method source",
+            "file:///method/source/url"),
+        "runSetName",
+        "runSetDescription",
+        false,
+        CbasRunSetStatus.UNKNOWN,
+        runSubmittedTime,
+        runSubmittedTime,
+        runSubmittedTime,
+        0,
+        0,
+        "inputDefinition",
+        outputDefinition,
+        "entityType");
 
     Run run =
         new Run(

@@ -53,6 +53,8 @@ class TestRunsApiController {
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
   private static final String returnedEntityId = UUID.randomUUID().toString();
+  private static final OffsetDateTime methodCreatedTime = OffsetDateTime.now();
+  private static final OffsetDateTime methodLastRunTime = OffsetDateTime.now();
   private static final OffsetDateTime returnedSubmittedTime = OffsetDateTime.now();
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
@@ -62,13 +64,25 @@ class TestRunsApiController {
       new RunSet(
           UUID.randomUUID(),
           new Method(
-              UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "entitytype"),
+              UUID.randomUUID(),
+              "methodName",
+              "methodDescription",
+              methodCreatedTime,
+              methodLastRunTime,
+              "method source",
+              "file:///method/source/url"),
+          "runSetName",
+          "runSetDescription",
+          false,
           CbasRunSetStatus.UNKNOWN,
           returnedSubmittedTime,
           returnedSubmittedTime,
           returnedSubmittedTime,
           0,
-          0);
+          0,
+          "inputDefinition",
+          "outputDefinition",
+          "entitytype");
 
   private static final Run returnedRun =
       new Run(
@@ -111,7 +125,7 @@ class TestRunsApiController {
     assertEquals(1, parsedResponse.getRuns().size());
     RunLog runLog = parsedResponse.getRuns().get(0);
 
-    assertEquals(returnedRunId.toString(), runLog.getRunId());
+    assertEquals(returnedRunId, runLog.getRunId());
     assertEquals("methodurl", runLog.getWorkflowUrl());
     assertEquals("inputdefinition", runLog.getWorkflowParams());
     assertEquals("outputDefinition", runLog.getWorkflowOutputs());
