@@ -214,7 +214,7 @@ task mock_task_7 {
     date '+%s' > mock_task_7_digest.txt
     echo 'Inputs:' >> mock_task_7_digest.txt
 
-    echo 'input_array_of_files: ~{input_array_of_files}' >> mock_task_7_digest.txt
+    echo 'input_array_of_files: ~{sep=' ' input_array_of_files}' >> mock_task_7_digest.txt
     echo 'input_string_1: ~{input_string_1}' >> mock_task_7_digest.txt
     echo 'input_string_2: ~{input_string_2}' >> mock_task_7_digest.txt
     echo 'input_string_3: ~{input_string_3}' >> mock_task_7_digest.txt
@@ -270,10 +270,10 @@ task mock_task_8 {
   }
 
   output {
-    File            output_file_1  = "mock_task_7_digest.txt"
-    File            output_file_2 = "mock_task_7_digest.txt"
-    File            output_file_3  = "mock_task_7_digest.txt"
-    File            output_file_4  = "mock_task_7_digest.txt"
+    File            output_file_1  = "mock_task_8_digest.txt"
+    File            output_file_2 = "mock_task_8_digest.txt"
+    File            output_file_3  = "mock_task_8_digest.txt"
+    File            output_file_4  = "mock_task_8_digest.txt"
     Int             output_int_1   = 100
     Map[String,Int] map_string_int_1 = read_map("map_string_int_1")
     String          output_string_1   = "hello"
