@@ -821,10 +821,7 @@ workflow target_workflow_3 {
       File?          optional_input_file_4
   }
 
-  call mock_task_2 {
-    input:
-      input_string_1 = "mock_task_2_digest.txt"
-  }
+  call mock_task_2
 
   call mock_task_3 {
     input:
