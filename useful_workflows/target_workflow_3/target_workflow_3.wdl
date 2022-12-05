@@ -826,7 +826,7 @@ workflow target_workflow_3 {
   call mock_task_3 {
     input:
       input_array_of_files_1 = array_of_files_input_1,
-      input_string_1 = "mock_task_3_output_string"
+      input_string_1 = "$ touch > mock_task_3_output_string"
   }
 
   call mock_task_4 as call_1 {
