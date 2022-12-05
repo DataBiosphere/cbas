@@ -28,6 +28,8 @@ public class RunsApiController implements RunsApi {
     return new RunLog()
         .runId(run.runId())
         .engineId(run.engineId())
+        .runSetId(run.getRunSetId())
+        .recordId(run.recordId())
         .workflowUrl(run.runSet().method().methodSourceUrl())
         .name(null)
         .state(CbasRunStatus.toCbasApiState(run.status()))

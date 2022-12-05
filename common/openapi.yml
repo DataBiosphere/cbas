@@ -372,6 +372,13 @@ components:
         engine_id:
           type: string
           description: Identifier of the run in the execution engine
+        run_set_id:
+          type: string
+          format: uuid
+          description: Run set which this run is part of
+        record_id:
+          type: string
+          description: WDS record which this run was based on
         workflow_url:
           type: string
           description: URL to the workflow script to run
