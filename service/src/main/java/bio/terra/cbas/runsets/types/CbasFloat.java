@@ -25,6 +25,10 @@ public class CbasFloat implements CbasValue {
       return new CbasFloat(f.doubleValue());
     } else if (value instanceof Double d) {
       return new CbasFloat(d);
+    } else if (value instanceof Integer i) {
+      return new CbasFloat(i.doubleValue());
+    } else if (value instanceof Long l) {
+      return new CbasFloat(l.doubleValue());
     } else {
       throw new TypeCoercionException(value, "Double");
     }
