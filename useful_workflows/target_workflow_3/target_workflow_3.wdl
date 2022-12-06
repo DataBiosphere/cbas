@@ -264,6 +264,12 @@ task mock_task_8 {
     String input_string_2 = "30435fb9ec8de2f045167fb90adfec12f123e80a"
   }
 
+  Map[String,Int] map_string_int_1 = {
+                                                      'foo': 1,
+                                                      'bar': 2,
+                                                      'baz': 3
+                                                    }
+
   command {
     date '+%s' > mock_task_8_digest.txt
     echo 'Inputs:' >> mock_task_8_digest.txt
@@ -293,7 +299,7 @@ task mock_task_8 {
     File            output_file_3    = "mock_task_8_digest.txt"
     File            output_file_4    = "mock_task_8_digest.txt"
     Int             output_int_1     = 100
-    Map[String,Int] map_string_int_1 = read_map("map_string_int_1.txt")
+    Map[String,Int] map_string_int_1 = read_map("map_string_int_1")
     String          output_string_1  = "hello"
     Int             output_int_2     = 200
     Int             output_int_3     = 300
