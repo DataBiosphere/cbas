@@ -278,9 +278,9 @@ task mock_task_8 {
     echo 'optional_int_1: ~{optional_int_1}' >> mock_task_8_digest.txt
     echo 'input_string_2: ~{input_string_2}' >> mock_task_8_digest.txt
 
-    echo 'foo: 1' >> map_string_int_1.tsv
 
   }
+
 
   runtime {
     docker: docker
@@ -292,7 +292,7 @@ task mock_task_8 {
     File            output_file_3    = "mock_task_8_digest.txt"
     File            output_file_4    = "mock_task_8_digest.txt"
     Int             output_int_1     = 100
-    Map[String,Int] map_string_int_1 = read_map("map_string_int_1.tsv")
+    Map[String,Int] map_string_int_1 = read_map("{ 'a': 1, 'b': 2 }")
     String          output_string_1  = "hello"
     Int             output_int_2     = 200
     Int             output_int_3     = 300
