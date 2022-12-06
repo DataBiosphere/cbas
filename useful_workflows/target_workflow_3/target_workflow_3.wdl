@@ -284,9 +284,6 @@ task mock_task_8 {
     echo 'optional_int_1: ~{optional_int_1}' >> mock_task_8_digest.txt
     echo 'input_string_2: ~{input_string_2}' >> mock_task_8_digest.txt
 
-    declare -A map_string_array=(["foo"]=1 ["bar"]=2)
-    echo 'map_string_array' >> map_string_int_1.txt
-
   }
 
   runtime {
