@@ -20,7 +20,7 @@ task mock_task_1 {
 
     echo 'input_file_1: ~{input_file_1}' >> mock_task_1_digest.txt
     echo 'optional_input_string_1: ~{optional_input_string_1}' >> mock_task_1_digest.txt
-    echo 'array_of_files_1: ~{array_of_files_1}' >> mock_task_1_digest.txt
+    echo 'array_of_files_1: ~{sep= ' ' array_of_files_1}' >> mock_task_1_digest.txt
   }
 
   runtime{
@@ -130,7 +130,7 @@ task mock_task_4 {
   }
 
   output {
-    File output_file_1 = "mock_task_3_digest.txt"
+    File output_file_1 = "mock_task_4_digest.txt"
   }
 }
 
