@@ -48,6 +48,7 @@ task mock_task_2 {
 
     echo 'input_string_1: ~{input_string_1}' >> mock_task_2_digest.txt
     cp mock_task_2_digest.txt mock_task_2_digest_2.txt
+    cp mock_task_2_digest.txt mock_task_2_digest_4.txt
   }
 
   runtime {
@@ -58,7 +59,7 @@ task mock_task_2 {
     File output_file_1 = "output_file_1.txt"
     File output_file_2 = "mock_task_2_digest_2.txt"
     File output_file_3 = "output_file_3.txt"
-    File output_file_4 = "output_file_4.txt"
+    File output_file_4 = "mock_task_2_digest_4.txt"
     File output_file_5 = "output_file_5.txt"
     File output_file_6 = "output_file_6.txt"
     File output_file_7 = "output_file_7.txt"
