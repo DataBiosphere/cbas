@@ -60,7 +60,7 @@ task mock_task_2 {
   }
 
   output {
-    File output_file_1 = "mmock_task_2_digest.txt"
+    File output_file_1 = "mock_task_2_digest.txt"
     File output_file_2 = "mock_task_2_digest_2.txt"
     File output_file_3 = "mock_task_2_digest_3.txt"
     File output_file_4 = "mock_task_2_digest_4.txt"
