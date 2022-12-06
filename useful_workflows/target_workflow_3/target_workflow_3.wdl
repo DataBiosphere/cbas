@@ -47,6 +47,7 @@ task mock_task_2 {
     echo 'Inputs:' >> mock_task_2_digest.txt
 
     echo 'input_string_1: ~{input_string_1}' >> mock_task_2_digest.txt
+    cp mock_task_2_digest.txt mock_task_2_digest_2.txt
   }
 
   runtime {
@@ -55,7 +56,7 @@ task mock_task_2 {
 
   output {
     File output_file_1 = "output_file_1.txt"
-    File output_file_2 = "output_file_2.txt"
+    File output_file_2 = "mock_task_2_digest_2.txt"
     File output_file_3 = "output_file_3.txt"
     File output_file_4 = "output_file_4.txt"
     File output_file_5 = "output_file_5.txt"
@@ -642,6 +643,7 @@ task mock_task_16 {
     echo 'input_bool_3: ~{input_bool_3}' >> mock_task_16_digest.txt
     echo 'optional_input_file_1: ~{optional_input_file_1}' >> mock_task_16_digest.txt
     echo 'optional_input_file_2: ~{optional_input_file_2}' >> mock_task_16_digest.txt
+    cp mock_task_16_digest.txt mock_task_16_digest_2.txt
   }
 
   runtime {
@@ -649,8 +651,8 @@ task mock_task_16 {
   }
 
   output {
-    File   output_file_1   = "output_file_1.txt"
-    File   output_file_2   = "output_file_2.txt"
+    File   output_file_1   = "mock_task_16_digest.txt"
+    File   output_file_2   = "mock_task_16_digest_2.txt"
     Int    output_int_1    = 1
     Int    output_int_2    = 2
     String output_string_1 = "an output string"
