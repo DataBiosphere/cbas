@@ -290,7 +290,7 @@ task mock_task_8 {
     File            output_file_3    = "mock_task_8_digest.txt"
     File            output_file_4    = "mock_task_8_digest.txt"
     Int             output_int_1     = 100
-    Map[String,Int] map_string_int_1 = read_map(stdout())
+    Map[String,Int] map_string_int_1 = { "a": 1, "b": 2 }
     String          output_string_1  = "hello"
     Int             output_int_2     = 200
     Int             output_int_3     = 300
@@ -974,6 +974,7 @@ workflow target_workflow_3 {
     File output_file_6                       = call_3.output_file_1
     File output_file_7                       = mock_task_11.output_file_1
     Int output_int_1                         = call_3.output_int_1
+    Map[String, Int] output_map_string_int_1 = call_3.map_string_int_1
 
     File output_file_8                       = mock_task_12.output_file_1
     File output_file_9                       = mock_task_13.output_file_1
