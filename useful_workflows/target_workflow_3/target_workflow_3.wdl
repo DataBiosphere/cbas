@@ -974,7 +974,6 @@ workflow target_workflow_3 {
     File output_file_6                       = call_3.output_file_1
     File output_file_7                       = mock_task_11.output_file_1
     Int output_int_1                         = call_3.output_int_1
-    Map[String, Int] output_map_string_int_1 = call_3.map_string_int_1
 
     File output_file_8                       = mock_task_12.output_file_1
     File output_file_9                       = mock_task_13.output_file_1
