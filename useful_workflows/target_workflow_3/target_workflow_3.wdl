@@ -278,6 +278,10 @@ task mock_task_8 {
     echo 'optional_int_1: ~{optional_int_1}' >> mock_task_8_digest.txt
     echo 'input_string_2: ~{input_string_2}' >> mock_task_8_digest.txt
 
+    cp mock_task_8_digest.txt mock_task_8_digest_2.txt
+    cp mock_task_8_digest.txt mock_task_8_digest_3.txt
+    cp mock_task_8_digest.txt mock_task_8_digest_4.txt
+
   }
 
   runtime {
@@ -286,9 +290,9 @@ task mock_task_8 {
 
   output {
     File            output_file_1    = "mock_task_8_digest.txt"
-    File            output_file_2    = "mock_task_8_digest.txt"
-    File            output_file_3    = "mock_task_8_digest.txt"
-    File            output_file_4    = "mock_task_8_digest.txt"
+    File            output_file_2    = "mock_task_8_digest_2.txt"
+    File            output_file_3    = "mock_task_8_digest_3.txt"
+    File            output_file_4    = "mock_task_8_digest_4.txt"
     Int             output_int_1     = 100
     Map[String,Int] map_string_int_1 = { "a": 1, "b": 2 }
     String          output_string_1  = "hello"
@@ -380,11 +384,11 @@ task mock_task_11 {
   }
 
   output {
-    File   output_file_1 = "mock_task_11_digest.txt"
-    Int    output_int_1       = 1
-    Int    output_int_2      = 2
-    String output_string_1         = "hello cpu"
-    String output_string_2    = "hello world"
+    File   output_file_1   = "mock_task_11_digest.txt"
+    Int    output_int_1    = 1
+    Int    output_int_2    = 2
+    String output_string_1 = "hello cpu"
+    String output_string_2 = "hello world"
   }
 }
 
@@ -425,9 +429,9 @@ task mock_task_12 {
   }
 
   output {
-    File output_file_1 = "mock_task_12_digest.txt"
-    Int output_int_1 = 100
-    Int output_int_2 = 200
+    File output_file_1     = "mock_task_12_digest.txt"
+    Int output_int_1       = 100
+    Int output_int_2       = 200
     String output_string_1 = "hellon world"
     String output_string_2 = "augur_version"
   }
@@ -489,6 +493,7 @@ task mock_task_13 {
     echo 'optional_input_int_3: ~{optional_input_int_3}' >> mock_task_13_digest.txt
     echo 'optional_input_string_6: ~{optional_input_string_6}' >> mock_task_13_digest.txt
     echo 'optional_input_file_1: ~{optional_input_file_1}' >> mock_task_13_digest.txt
+    cp mock_task_13_digest.txt mock_task_13_digest_2.txt
   }
 
   runtime {
@@ -497,11 +502,11 @@ task mock_task_13 {
 
   output {
     File   output_file_1   = "mock_task_13_digest.txt"
-    File   output_file_2 = "mock_task_13_digest.txt"
-    Int    output_int_1     = 10
+    File   output_file_2   = "mock_task_13_digest_2.txt"
+    Int    output_int_1    = 10
     Int    output_int_2    = 15
-    String output_string_1       = "output string 1"
-    String output_string_2  = "output string 2"
+    String output_string_1 = "output string 1"
+    String output_string_2 = "output string 2"
   }
 }
 
@@ -531,7 +536,7 @@ task mock_task_14 {
 
     echo 'input_file_1: ~{input_file_1}' >> mock_task_14_digest.txt
     echo 'input_file_2: ~{input_file_2}' >> mock_task_14_digest.txt
-    echo 'input_array_of_strings_1: ~{input_array_of_strings_1}' >> mock_task_14_digest.txt
+    echo 'input_array_of_strings_1: ~{sep=' ' input_array_of_strings_1}' >> mock_task_14_digest.txt
     echo 'input_bool_1: ~{input_bool_1}' >> mock_task_14_digest.txt
     echo 'optional_input_file_1: ~{optional_input_file_1}' >> mock_task_14_digest.txt
     echo 'optional_input_float_1: ~{optional_input_float_1}' >> mock_task_14_digest.txt
@@ -543,10 +548,10 @@ task mock_task_14 {
   }
 
   output {
-    File   output_file_1 = "output_file_1.txt"
+    File   output_file_1    = "mock_task_14_digest.txt"
     Int    output_int_1     = 1
-    Int    output_int_2    = 2
-    String output_string_1       = "output string 1"
+    Int    output_int_2     = 2
+    String output_string_1  = "output string 1"
     String output_string_2  = "output string 2"
   }
 }
@@ -601,7 +606,7 @@ task mock_task_15 {
     echo 'input_bool_1: ~{input_bool_1}' >> mock_task_15_digest.txt
     echo 'input_bool_2: ~{input_bool_2}' >> mock_task_15_digest.txt
     echo 'optional_input_int_2: ~{optional_input_int_2}' >> mock_task_15_digest.txt
-    echo 'input_string_3: ~{input_string_3}' >> mock_task_14_digest.txt
+    echo 'input_string_3: ~{input_string_3}' >> mock_task_15_digest.txt
   }
 
   runtime {
@@ -609,7 +614,7 @@ task mock_task_15 {
   }
 
   output {
-    File   output_file_1    = "output_file_1.txt"
+    File   output_file_1    = "mock_task_15_digest.txt"
     Int    output_int_1     = 1
     Int    output_int_2     = 2
     String output_string_1  = "output string 1"
@@ -701,7 +706,7 @@ task mock_task_17 {
   }
 
   output {
-    File   output_file_1   = "output_file_1.txt"
+    File   output_file_1   = "mock_task_17_digest.txt"
     Int    output_int_1    = 1
     String output_string_1 = "an output string"
   }
@@ -739,7 +744,7 @@ task mock_task_18 {
   }
 
   output {
-    File   output_file_1    = "output_file_1.txt"
+    File   output_file_1    = "mock_task_18_digest.txt"
     Int    output_int_1     = 1
     String output_string_1  = "an output string"
   }
@@ -779,17 +784,18 @@ task mock_task_19 {
     echo 'input_file_1: ~{input_file_1}' >> mock_task_19_digest.txt
     echo 'optional_input_file_1: ~{optional_input_file_1}' >> mock_task_19_digest.txt
     echo 'input_file_2: ~{input_file_2}' >> mock_task_19_digest.txt
-    echo 'input_array_of_files_1: ~{input_array_of_files_1}' >> mock_task_19_digest.txt
+    echo 'input_array_of_files_1: ~{sep= ' ' input_array_of_files_1}' >> mock_task_19_digest.txt
     echo 'optional_input_file_2: ~{optional_input_file_2}' >> mock_task_19_digest.txt
     echo 'optional_input_file_3: ~{optional_input_file_3}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_1: ~{optional_input_array_of_strings1}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_2: ~{optional_input_array_of_strings2}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_1: ~{sep= ' ' optional_input_array_of_strings1}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_2: ~{sep= ' ' optional_input_array_of_strings2}' >> mock_task_19_digest.txt
     echo 'optional_input_file_4: ~{optional_input_file_4}' >> mock_task_19_digest.txt
-    echo 'optional_input_array_of_strings_3: ~{optional_input_array_of_strings3}' >> mock_task_19_digest.txt
+    echo 'optional_input_array_of_strings_3: ~{sep= ' ' optional_input_array_of_strings3}' >> mock_task_19_digest.txt
     echo 'optional_input_string_1: ~{optional_input_string_1}' >> mock_task_19_digest.txt
     echo 'input_bool_1: ~{input_bool_1}' >> mock_task_19_digest.txt
     echo 'input_string_1: ~{input_string_1}' >> mock_task_19_digest.txt
     echo 'optional_input_int_1: ~{optional_input_int_1}' >> mock_task_19_digest.txt
+    cp mock_task_19_digest.txt mock_task_19_digest_2.txt
   }
 
   runtime {
@@ -797,8 +803,8 @@ task mock_task_19 {
   }
 
   output {
-    File   output_file_1   = "output_file_1.txt"
-    File   output_file_2   = "output_file_2.txt"
+    File   output_file_1   = "mock_task_19_digest.txt"
+    File   output_file_2   = "mock_task_19_digest_2.txt"
     Int    output_int_1    = 1
     Int    output_int_2    = 2
     String output_string_1 = "an output string"
