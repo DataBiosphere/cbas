@@ -41,7 +41,7 @@ cbas:
   cbas-api:
     # for POST/run_sets, the number of record IDs must be less than or equal to this value.
     runSetsMaximumRecordIds: 100
-    maxWorkflowInputs: 40
+    maxWorkflowInputs: 100
     maxWorkflowOutputs: 40
 
 workflow-engines:
