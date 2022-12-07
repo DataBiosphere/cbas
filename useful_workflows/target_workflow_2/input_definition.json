@@ -1,0 +1,1036 @@
+[
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_4.input_string_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_4_input_string_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_bool_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_bool_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_8.input_int_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_8_input_int_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_5.input_string_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_5_input_string_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_string_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_string_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_int_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_int_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_optional_4",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_optional_4"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_3.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_3_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_10.input_file_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_10_input_file_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_1.input_string_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_1_input_string_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_10.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_10_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_bool_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_bool_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_optional_4",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_optional_4"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_file_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_file_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_5.input_int_optional_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_5_input_int_optional_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_string_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_string_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_1.input_string_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_1_input_string_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_8.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_8_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_9.input_string_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_9_input_string_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_bool_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_bool_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_float_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Float"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_float_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_6.input_string_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_6_input_string_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_9.input_bool_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_9_input_bool_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_5.input_int_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_5_input_int_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_8.input_boolean_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_8_input_boolean_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_int_optional_4",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_int_optional_4"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_int_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_int_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_3.input_string_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_3_input_string_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_bool_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_bool_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_11.input_string_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_11_input_string_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.docker",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_docker"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_int_optional_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_int_optional_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_int_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_int_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_10.input_string_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_10_input_string_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_8.input_int_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_8_input_int_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_string_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_string_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_file_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_file_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_9.input_string_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_9_input_string_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_bool_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_bool_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_optional_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_optional_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_1.input_bool_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_1_input_bool_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_optional_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_optional_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_3.input_file_optional",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_3_input_file_optional"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_6.input_string_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_6_input_string_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.docker",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_docker"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_bool_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_bool_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_5.input_string_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_5_input_string_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_11.input_string_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_11_input_string_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_5.input_int_optional_4",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_5_input_int_optional_4"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_9.input_string_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_9_input_string_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_2.input_int_optional_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_2_input_int_optional_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_8.input_float_default",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Float"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_8_input_float_default"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_file_array",
+    "input_type": {
+      "type": "array",
+      "array_type": {
+        "type": "primitive",
+        "primitive_type": "File"
+      },
+      "non_empty": true
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_file_array"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.delay_completion_until",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_delay_completion_until"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_string_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_string_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_1.input_string_default_3",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_1_input_string_default_3"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_int_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_int_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_12.input_string_optional_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_12_input_string_optional_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.input_file",
+    "input_type": {
+      "type": "primitive",
+      "primitive_type": "File"
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_input_file"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_4.input_string_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_4_input_string_default_1"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_int_default_2",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Int"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_int_default_2"
+    }
+  },
+  {
+    "input_name": "assemble_refbased_mock.call_7.input_bool_default_1",
+    "input_type": {
+      "type": "optional",
+      "optional_type": {
+        "type": "primitive",
+        "primitive_type": "Boolean"
+      }
+    },
+    "source": {
+      "type": "record_lookup",
+      "record_attribute": "assemble_refbased_mock_call_7_input_bool_default_1"
+    }
+  }
+]
