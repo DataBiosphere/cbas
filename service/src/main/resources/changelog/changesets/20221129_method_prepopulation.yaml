@@ -26,7 +26,7 @@ databaseChangeLog:
                   value: Github
               - column:
                   name: method_source_url
-                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful%20workflows/target_workflow_1/target_workflow_1.wdl'
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl'
         - insert:
             tableName: method
             columns:
@@ -50,7 +50,7 @@ databaseChangeLog:
                   value: Dockstore-Github
               - column:
                   name: method_source_url
-                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful%20workflows/target_workflow_2/target_workflow_2.wdl'
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl'
         - insert:
             tableName: method
             columns:
@@ -74,4 +74,4 @@ databaseChangeLog:
                   value: Dockstore-Github
               - column:
                   name: method_source_url
-                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful%20workflows/target_workflow_3/target_workflow_3.wdl'
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_3/target_workflow_3.wdl'
