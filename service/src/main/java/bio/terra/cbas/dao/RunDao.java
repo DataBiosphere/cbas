@@ -65,7 +65,8 @@ public class RunDao {
   }
 
   public int updateLastPolledTimestamp(UUID runID) {
-    String sql = "UPDATE run SET last_polled_timestamp = :last_polled_timestamp WHERE run_id = :run_id";
+    String sql =
+        "UPDATE run SET last_polled_timestamp = :last_polled_timestamp WHERE run_id = :run_id";
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(
