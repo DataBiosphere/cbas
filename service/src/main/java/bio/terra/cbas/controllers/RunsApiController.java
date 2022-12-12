@@ -9,6 +9,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -41,9 +42,9 @@ public class RunsApiController implements RunsApi {
   }
 
   @Override
-  public ResponseEntity<RunLogResponse> getRuns(String runSetId) {
+  public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
 
-    List<Run> queryResults = runDao.getRuns(runSetId);
+    List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
     List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
 
     List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();

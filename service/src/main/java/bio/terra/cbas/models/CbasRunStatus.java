@@ -19,8 +19,11 @@ public enum CbasRunStatus {
   CANCELED("CANCELED"),
   CANCELING("CANCELING");
 
-  private static final Set<CbasRunStatus> TERMINAL_STATES =
+  public static final Set<CbasRunStatus> TERMINAL_STATES =
       EnumSet.of(CANCELED, COMPLETE, EXECUTOR_ERROR, SYSTEM_ERROR);
+
+  public static final Set<CbasRunStatus> NON_TERMINAL_STATES =
+      EnumSet.of(UNKNOWN, QUEUED, INITIALIZING, RUNNING, PAUSED, CANCELING);
 
   private static final Set<CbasRunStatus> ERROR_STATES = EnumSet.of(EXECUTOR_ERROR, SYSTEM_ERROR);
 

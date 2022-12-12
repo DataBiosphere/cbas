@@ -1,15 +1,21 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.util.Pair;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -31,19 +37,25 @@ public class RunDao {
         new EnumAwareBeanPropertySqlParameterSource(run));
   }
 
-  public List<Run> getRuns(String runSetId) {
-    String whereClause = runSetId == null ? "" : " WHERE run.run_set_id = :runSetId";
-
-    MapSqlParameterSource source =
-        runSetId == null
-            ? new MapSqlParameterSource()
-            : new MapSqlParameterSource("runSetId", UUID.fromString(runSetId));
+  public List<Run> getRuns(RunsFilters filters) {
+    WhereClause whereClause = filters.buildWhereClause();
 
     String sql =
         "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
-            + " INNER JOIN method ON run_set.method_id = method.method_id"
+            + " INNER JOIN method ON run_set.method_id = method.method_id "
             + whereClause;
-    return jdbcTemplate.query(sql, source, new RunMapper());
+    return jdbcTemplate.query(
+        sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());
+  }
+
+  public Map<CbasRunStatus, Integer> getRunStatusCounts(RunsFilters filters) {
+    WhereClause whereClause = filters.buildWhereClause();
+    String sql =
+        "SELECT status, count(1) as status_count FROM run " + whereClause + " GROUP BY run.status";
+    return jdbcTemplate
+        .query(sql, new MapSqlParameterSource(whereClause.params()), new StatusCountMapper())
+        .stream()
+        .collect(Collectors.toMap(Pair::a, Pair::b));
   }
 
   public int updateRunStatus(UUID runId, CbasRunStatus newStatus) {
@@ -85,6 +97,41 @@ public class RunDao {
             Map.of(Run.RUN_ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
+  public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
+    public static RunsFilters empty() {
+      return new RunsFilters(null, null);
+    }
+
+    public WhereClause buildWhereClause() {
+      if (runSetId == null && (statuses == null || statuses.isEmpty())) {
+        return new WhereClause(List.of(), Map.of());
+      } else {
+        List<String> conditions = new LinkedList<>();
+        Map<String, Object> params = new HashMap<>();
+        if (runSetId != null) {
+          conditions.add("run.run_set_id = :runSetId");
+          params.put("runSetId", runSetId);
+        }
+        if (statuses != null && !statuses.isEmpty()) {
+          StringBuilder sb = new StringBuilder();
+          sb.append("run.status in (");
+          Integer counter = 0;
+          List<String> statusPlaceholders = new LinkedList<>();
+          for (CbasRunStatus status : statuses) {
+            String placeholder = "status_%d".formatted(counter);
+            statusPlaceholders.add(":%s".formatted(placeholder));
+            params.put(placeholder, status.toString());
+            counter++;
+          }
+          sb.append(String.join(",", statusPlaceholders));
+          sb.append(")");
+          conditions.add(sb.toString());
+        }
+        return new WhereClause(conditions, params);
+      }
+    }
+  }
+
   private static class RunMapper implements RowMapper<Run> {
     public Run mapRow(ResultSet rs, int rowNum) throws SQLException {
       RunSet runSet = new RunSetMapper().mapRow(rs, rowNum);
@@ -99,6 +146,13 @@ public class RunDao {
           rs.getObject(Run.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
           rs.getObject(Run.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
           rs.getString(Run.ERROR_MESSAGES_COL));
+    }
+  }
+
+  private static class StatusCountMapper implements RowMapper<Pair<CbasRunStatus, Integer>> {
+    public Pair<CbasRunStatus, Integer> mapRow(ResultSet rs, int rowNum) throws SQLException {
+      return new Pair<>(
+          CbasRunStatus.fromValue(rs.getString(Run.STATUS_COL)), rs.getInt("status_count"));
     }
   }
 }

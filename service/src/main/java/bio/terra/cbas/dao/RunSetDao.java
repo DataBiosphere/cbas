@@ -25,6 +25,14 @@ public class RunSetDao {
     return jdbcTemplate.query(sql, new RunSetMapper());
   }
 
+  public RunSet getRunSet(UUID runSetId) {
+    String sql =
+        "SELECT * FROM run_set INNER JOIN method ON run_set.method_id = method.method_id WHERE run_set_id = :runSetId";
+    return jdbcTemplate
+        .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
+        .get(0);
+  }
+
   public int createRunSet(RunSet runSet) {
     return jdbcTemplate.update(
         "insert into run_set (run_set_id, method_id, run_set_name, run_set_description, is_template, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_definition, output_definition, record_type)"

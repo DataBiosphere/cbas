@@ -31,6 +31,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,6 +60,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final SmartRunSetsPoller smartRunSetsPoller;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -70,7 +72,8 @@ public class RunSetsApiController implements RunSetsApi {
       MethodDao methodDao,
       RunDao runDao,
       RunSetDao runSetDao,
-      CbasApiConfiguration cbasApiConfiguration) {
+      CbasApiConfiguration cbasApiConfiguration,
+      SmartRunSetsPoller smartRunSetsPoller) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
@@ -78,6 +81,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.smartRunSetsPoller = smartRunSetsPoller;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -100,8 +104,10 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
     List<RunSet> runSets = runSetDao.getRunSets();
+    List<RunSet> updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
+
     List<RunSetDetailsResponse> runSetDetails =
-        runSets.stream().map(this::convertToRunSetDetails).toList();
+        updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
     RunSetListResponse response = new RunSetListResponse().runSets(runSetDetails);
 
     return new ResponseEntity<>(response, HttpStatus.OK);
