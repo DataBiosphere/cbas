@@ -43,7 +43,7 @@ public class TestRunDao {
     UUID uuid = UUID.randomUUID();
     RunsFilters filters = new RunsFilters(uuid, null);
     WhereClause actual = filters.buildWhereClause();
-    assertEquals("WHERE (run_set_id = :runSetId)", actual.toString());
+    assertEquals("WHERE (run.run_set_id = :runSetId)", actual.toString());
     assertEquals(Map.of("runSetId", uuid), actual.params());
   }
 
@@ -53,7 +53,7 @@ public class TestRunDao {
     RunsFilters filters = new RunsFilters(null, sortedNonTerminalStatuses);
     WhereClause actual = filters.buildWhereClause();
     assertEquals(
-        "WHERE (status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
+        "WHERE (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
         actual.toString());
     assertEquals(
         Map.of(
@@ -73,7 +73,7 @@ public class TestRunDao {
     RunsFilters filters = new RunsFilters(null, CbasRunStatus.NON_TERMINAL_STATES);
     WhereClause actual = filters.buildWhereClause();
     assertEquals(
-        "WHERE (status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
+        "WHERE (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
         actual.toString());
 
     // We can't assert any ordering on which status ends up in which 'status_0'...'status_5'
@@ -96,7 +96,7 @@ public class TestRunDao {
     WhereClause actual = filters.buildWhereClause();
 
     assertEquals(
-        "WHERE (run_set_id = :runSetId) AND (status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
+        "WHERE (run.run_set_id = :runSetId) AND (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
         actual.toString());
     assertEquals(
         Map.of(
