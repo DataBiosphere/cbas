@@ -3,6 +3,7 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,7 +112,7 @@ class TestRunsApiController {
   @Test
   void smartPollAndUpdateStatus() throws Exception {
 
-    when(runDao.getRuns(null)).thenReturn(List.of(returnedRun));
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
     when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
 

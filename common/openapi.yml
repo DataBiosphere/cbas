@@ -42,6 +42,7 @@ paths:
           name: run_set_id
           schema:
             type: string
+            format: uuid
           description: >
             When specified, filters runs to only return fields within specified run set.
           required: false

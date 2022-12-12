@@ -36,6 +36,7 @@ import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
@@ -112,6 +113,7 @@ class TestRunSetsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
+  @MockBean private SmartRunSetsPoller smartRunSetsPoller;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -335,13 +337,18 @@ class TestRunSetsApiController {
             "outputDefinition",
             "BAR");
 
-    when(runSetDao.getRunSets()).thenReturn(List.of(returnedRunSet1, returnedRunSet2));
+    List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
+    when(runSetDao.getRunSets()).thenReturn(response);
+    when(smartRunSetsPoller.updateRunSets(response)).thenReturn(response);
 
     MvcResult result =
         mockMvc
             .perform(get(API).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn();
+
+    // Make sure the runSetsPoller was indeed asked to update the runs:
+    verify(smartRunSetsPoller).updateRunSets(response);
 
     RunSetListResponse parsedResponse =
         objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
