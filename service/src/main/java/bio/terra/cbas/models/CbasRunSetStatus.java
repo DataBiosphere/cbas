@@ -65,9 +65,9 @@ public enum CbasRunSetStatus {
             new Pair<>(CbasRunStatus.QUEUED, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.PAUSED, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.INITIALIZING, CbasRunSetStatus.RUNNING),
+            new Pair<>(CbasRunStatus.CANCELED, CbasRunSetStatus.CANCELED),
             new Pair<>(CbasRunStatus.SYSTEM_ERROR, CbasRunSetStatus.ERROR),
-            new Pair<>(CbasRunStatus.EXECUTOR_ERROR, CbasRunSetStatus.ERROR),
-            new Pair<>(CbasRunStatus.CANCELED, CbasRunSetStatus.CANCELED));
+            new Pair<>(CbasRunStatus.EXECUTOR_ERROR, CbasRunSetStatus.ERROR));
 
     for (Pair<CbasRunStatus, CbasRunSetStatus> p : statusMapping) {
       if (runStatusCounts.getOrDefault(p.a(), 0) != 0) {

@@ -339,7 +339,6 @@ class TestRunSetsApiController {
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets()).thenReturn(response);
-    // No smart updates:
     when(smartRunSetsPoller.updateRunSets(response)).thenReturn(response);
 
     MvcResult result =
@@ -347,6 +346,9 @@ class TestRunSetsApiController {
             .perform(get(API).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn();
+
+    // Make sure the runSetsPoller was indeed asked to update the runs:
+    verify(smartRunSetsPoller.updateRunSets(response));
 
     RunSetListResponse parsedResponse =
         objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
