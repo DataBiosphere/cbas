@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,8 +19,6 @@ public class SmartRunSetsPoller {
   private final SmartRunsPoller smartRunsPoller;
   private final RunDao runDao;
   private final RunSetDao runSetDao;
-
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
 
   public SmartRunSetsPoller(SmartRunsPoller smartRunsPoller, RunSetDao runSetDao, RunDao runDao) {
     this.runDao = runDao;

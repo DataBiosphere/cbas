@@ -13,7 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
-public class TestRunDao {
+class TestRunDao {
 
   // Sort the NON_TERMINAL_STATES so that we can guarantee the order (based on enum ordination):
   // UNKNOWN, QUEUED, INITIALIZING, RUNNING, PAUSED, CANCELING
