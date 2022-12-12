@@ -348,7 +348,7 @@ class TestRunSetsApiController {
             .andReturn();
 
     // Make sure the runSetsPoller was indeed asked to update the runs:
-    verify(smartRunSetsPoller.updateRunSets(response));
+    verify(smartRunSetsPoller).updateRunSets(response);
 
     RunSetListResponse parsedResponse =
         objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
