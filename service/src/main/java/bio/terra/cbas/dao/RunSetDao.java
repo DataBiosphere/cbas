@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
@@ -38,6 +39,18 @@ public class RunSetDao {
         "insert into run_set (run_set_id, method_id, run_set_name, run_set_description, is_template, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_definition, output_definition, record_type)"
             + " values (:runSetId, :methodId, :name, :description, false, :status, :submissionTimestamp, :lastModifiedTimestamp, :lastPolledTimestamp, :runCount, :errorCount, :inputDefinition, :outputDefinition, :recordType)",
         new EnumAwareBeanPropertySqlParameterSource(runSet));
+  }
+
+  public int updateLastPolled(List<UUID> runSetIds) {
+
+    SqlPlaceholderMapping<UUID> placeholderMapping =
+        new SqlPlaceholderMapping<>("runSet", runSetIds);
+
+    String sql =
+        "UPDATE run_set SET last_modified_timestamp = :last_modified_timestamp WHERE run_set.run_set_id in (%s)"
+            .formatted(placeholderMapping.getSqlPlaceholderList());
+    return jdbcTemplate.update(
+        sql, new MapSqlParameterSource(placeholderMapping.getPlaceholderToValueMap()));
   }
 
   public int updateStateAndRunDetails(

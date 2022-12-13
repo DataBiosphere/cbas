@@ -9,6 +9,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -128,5 +129,90 @@ public class TestSmartRunSetsPoller {
     verify(runSetDao).getRunSet(runSetId);
 
     assertEquals(List.of(runSetUpdated), result);
+  }
+
+  @Test
+  void updateLastPolledTimestampAnyway() {
+    SmartRunSetsPoller smartRunSetsPoller =
+        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao);
+
+    UUID runSetId = UUID.randomUUID();
+    RunSet runSetToUpdate =
+        new RunSet(
+            runSetId,
+            null,
+            null,
+            null,
+            false,
+            CbasRunSetStatus.RUNNING,
+            null,
+            null,
+            null,
+            1,
+            0,
+            null,
+            null,
+            null);
+
+    RunSet runSetTimestampUpdated =
+        new RunSet(
+            runSetId,
+            null,
+            null,
+            null,
+            false,
+            CbasRunSetStatus.RUNNING,
+            null,
+            null,
+            OffsetDateTime.now(),
+            1,
+            0,
+            null,
+            null,
+            null);
+
+    UUID runId1 = UUID.randomUUID();
+    Run run1 = new Run(runId1, null, runSetToUpdate, null, null, RUNNING, null, null, null);
+
+    // Set up mocks:
+
+    // Initial query of runs in the run set:
+    ArgumentCaptor<RunDao.RunsFilters> runsFiltersForGetRuns =
+        ArgumentCaptor.forClass(RunDao.RunsFilters.class);
+    when(runDao.getRuns(runsFiltersForGetRuns.capture())).thenReturn(List.of(run1));
+
+    // When the smart runs poller is checked:
+    when(smartRunsPoller.updateRuns(List.of(run1))).thenReturn(List.of(run1));
+
+    // When we re-query for up-to-the-minute run status counts:
+    ArgumentCaptor<RunDao.RunsFilters> runsFiltersForGetRunStatusCounts =
+        ArgumentCaptor.forClass(RunDao.RunsFilters.class);
+    when(runDao.getRunStatusCounts(runsFiltersForGetRunStatusCounts.capture()))
+        .thenReturn(Map.of(RUNNING, 1));
+
+    // Updating the run set with the new information:
+    when(runSetDao.updateLastPolled(List.of(runSetId))).thenReturn(1);
+
+    // Re-fetching the updated run set for update:
+    when(runSetDao.getRunSet(runSetId)).thenReturn(runSetTimestampUpdated);
+
+    // Run the update:
+    var result = smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate));
+
+    // Validate the results:
+    verify(runDao).getRuns(any());
+    assertEquals(runSetId, runsFiltersForGetRuns.getValue().runSetId());
+    assertEquals(NON_TERMINAL_STATES, runsFiltersForGetRuns.getValue().statuses());
+
+    verify(smartRunsPoller).updateRuns(List.of(run1));
+
+    verify(runDao).getRunStatusCounts(any());
+    assertEquals(runSetId, runsFiltersForGetRunStatusCounts.getValue().runSetId());
+    assertNull(runsFiltersForGetRunStatusCounts.getValue().statuses());
+
+    verify(runSetDao).updateLastPolled(List.of(runSetId));
+    verify(runSetDao).getRunSet(runSetId);
+
+    assertEquals(List.of(runSetTimestampUpdated), result);
   }
 }

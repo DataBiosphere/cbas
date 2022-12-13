@@ -1,5 +1,8 @@
 package bio.terra.cbas.runsets.monitoring;
 
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
+import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
+
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -27,34 +30,56 @@ public class SmartRunSetsPoller {
   }
 
   public List<RunSet> updateRunSets(List<RunSet> runSets) {
-    var dividedByUpdateNeeded =
-        runSets.stream().collect(Collectors.partitioningBy(r -> r.status().nonTerminal()));
+    // For metrics:
+    long startTimeNs = System.nanoTime();
+    boolean successBoolean = false;
 
-    return Stream.concat(
-            dividedByUpdateNeeded.get(false).stream(),
-            dividedByUpdateNeeded.get(true).stream().map(this::updateRunSet))
-        .toList();
+    try {
+      var dividedByUpdateNeeded =
+          runSets.stream().collect(Collectors.partitioningBy(r -> r.status().nonTerminal()));
+
+      increaseEventCounter("run set status updated", dividedByUpdateNeeded.get(true).size());
+
+      List<RunSet> result =
+          Stream.concat(
+                  dividedByUpdateNeeded.get(false).stream(),
+                  dividedByUpdateNeeded.get(true).stream().map(this::updateRunSet))
+              .toList();
+      successBoolean = true;
+      return result;
+    } finally {
+      recordMethodCompletion(startTimeNs, successBoolean);
+    }
   }
 
   private RunSet updateRunSet(RunSet rs) {
-    List<Run> updateableRuns =
-        runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
 
-    smartRunsPoller.updateRuns(updateableRuns);
+    // For metrics:
+    long startTimeNs = System.nanoTime();
+    boolean successBoolean = false;
+    try {
+      List<Run> updateableRuns =
+          runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
 
-    StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
-    if (newStatusAndCounts.status != rs.status()
-        || !Objects.equals(newStatusAndCounts.runErrors, rs.errorCount())
-        || !Objects.equals(newStatusAndCounts.totalRuns, rs.runCount())) {
-      // Update and re-fetch:
-      runSetDao.updateStateAndRunDetails(
-          rs.runSetId(),
-          newStatusAndCounts.status(),
-          newStatusAndCounts.totalRuns(),
-          newStatusAndCounts.runErrors());
+      smartRunsPoller.updateRuns(updateableRuns);
+
+      StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
+      if (newStatusAndCounts.status != rs.status()
+          || !Objects.equals(newStatusAndCounts.runErrors, rs.errorCount())
+          || !Objects.equals(newStatusAndCounts.totalRuns, rs.runCount())) {
+        // Update and re-fetch:
+        runSetDao.updateStateAndRunDetails(
+            rs.runSetId(),
+            newStatusAndCounts.status(),
+            newStatusAndCounts.totalRuns(),
+            newStatusAndCounts.runErrors());
+      } else {
+        runSetDao.updateLastPolled(List.of(rs.runSetId()));
+      }
+      successBoolean = true;
       return runSetDao.getRunSet(rs.runSetId());
-    } else {
-      return rs;
+    } finally {
+      recordMethodCompletion(startTimeNs, successBoolean);
     }
   }
 
