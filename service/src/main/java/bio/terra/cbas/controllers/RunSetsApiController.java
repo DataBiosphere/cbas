@@ -14,6 +14,7 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
+import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -28,6 +29,7 @@ import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
@@ -55,7 +57,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private final CromwellService cromwellService;
   private final WdsService wdsService;
-  private final MethodDao methodDao;
+  private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
@@ -69,7 +71,7 @@ public class RunSetsApiController implements RunSetsApi {
       CromwellService cromwellService,
       WdsService wdsService,
       ObjectMapper objectMapper,
-      MethodDao methodDao,
+      MethodVersionDao methodVersionDao,
       RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
@@ -77,7 +79,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
-    this.methodDao = methodDao;
+    this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
@@ -87,7 +89,8 @@ public class RunSetsApiController implements RunSetsApi {
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
     return new RunSetDetailsResponse()
         .runSetId(runSet.runSetId())
-        .methodId(runSet.method().method_id())
+        .methodId(runSet.methodVersion().method().method_id())
+        .methodVersionId(runSet.methodVersion().method_version_id())
         .runSetName(runSet.name())
         .runSetDescription(runSet.description())
         .isTemplate(runSet.isTemplate())
@@ -138,7 +141,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Fetch existing method:
-    Method method = methodDao.getMethod(request.getMethodId());
+    MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
     // Create a new run_set
     UUID runSetId = UUID.randomUUID();
@@ -148,7 +151,7 @@ public class RunSetsApiController implements RunSetsApi {
       runSet =
           new RunSet(
               runSetId,
-              method,
+              methodVersion,
               request.getRunSetName(),
               request.getRunSetDescription(),
               false,
@@ -349,7 +352,7 @@ public class RunSetsApiController implements RunSetsApi {
 
         // Submit the workflow, get its ID and store the Run to database
         workflowResponse =
-            cromwellService.submitWorkflow(runSet.method().methodSourceUrl(), workflowInputs);
+            cromwellService.submitWorkflow(runSet.methodVersion().url(), workflowInputs);
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
       } catch (CoercionException e) {

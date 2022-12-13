@@ -19,5 +19,4 @@ public record Method(
   public static final String CREATED_COL = "created";
   public static final String LAST_RUN_COL = "last_run";
   public static final String METHOD_SOURCE_COL = "method_source";
-  public static final String METHOD_SOURCE_URL_COL = "method_source_url";
 }

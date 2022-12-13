@@ -164,10 +164,10 @@ components:
           type: string
         run_set_description:
           type: string
-        method_id:
+        method_version_id:
           type: string
           format: uuid
-          description: ID of the method to run
+          description: ID of the method version to run
         wds_records:
           $ref: '#/components/schemas/WdsRecordSet'
         workflow_input_definitions:
@@ -442,6 +442,9 @@ components:
           type: string
           format: uuid
         method_id:
+          type: string
+          format: uuid
+        method_version_id:
           type: string
           format: uuid
         is_template:

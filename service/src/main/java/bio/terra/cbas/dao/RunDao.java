@@ -43,6 +43,7 @@ public class RunDao {
 
     String sql =
         "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
+            + " INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + " INNER JOIN method ON run_set.method_id = method.method_id "
             + whereClause;
     return jdbcTemplate.query(

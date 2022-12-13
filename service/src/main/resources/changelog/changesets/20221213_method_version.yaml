@@ -1,0 +1,146 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+        - createTable:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: method_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_run_set_method
+                    references: method(method_id)
+              - column:
+                  name: method_version_name
+                  type: varchar(100)
+                  defaultValue: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_version_description
+                  type: varchar(1000)
+                  defaultValue: false
+                  constraints:
+                    nullable: true
+              - column:
+                  name: method_version_created
+                  type: timestamp with time zone
+                  defaultValueComputed: "CURRENT_TIMESTAMP"
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_version_last_run
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+              - column:
+                  name: method_version_url
+                  type: text
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 20000000-0000-0000-0000-000000000001
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000001
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'First version of target workflow 1'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl'
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 20000000-0000-0000-0000-000000000002
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000002
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'First version of target workflow 2'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl'
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 30000000-0000-0000-0000-000000000003
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000003
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'First version of target workflow 3'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_3/target_workflow_3.wdl'
+
+        - addColumn:
+            tableName: run_set
+            column:
+              name: method_version_id
+              type: uuid
+              constraints:
+                nullable: true
+                foreignKeyName: fk_run_set_method_version
+                references: method_version(method_version_id)
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 20000000-0000-0000-0000-000000000001
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 20000000-0000-0000-0000-000000000002
+            where: run_set_id='10000000-0000-0000-0000-000000000002'
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 20000000-0000-0000-0000-000000000003
+            where: run_set_id='10000000-0000-0000-0000-000000000003'
+        - addNotNullConstraint:
+            tableName: run_set
+            columnName: method_version_id
+
+        - dropColumn:
+            tableName: method
+            columnName: method_source_url
+        - dropColumn:
+            tableName: run_set
+            columnName: method_id
+
+
+

@@ -22,13 +22,18 @@ public class RunSetDao {
   }
 
   public List<RunSet> getRunSets() {
-    String sql = "SELECT * FROM run_set INNER JOIN method ON run_set.method_id = method.method_id";
+    String sql = "SELECT * FROM run_set " +
+        "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id " +
+        "INNER JOIN method on method_version.method_id = method.method_id";
     return jdbcTemplate.query(sql, new RunSetMapper());
   }
 
   public RunSet getRunSet(UUID runSetId) {
     String sql =
-        "SELECT * FROM run_set INNER JOIN method ON run_set.method_id = method.method_id WHERE run_set_id = :runSetId";
+        "SELECT * FROM run_set " +
+            "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id " +
+            "INNER JOIN method on method_version.method_id = method.method_id " +
+            "WHERE run_set_id = :runSetId";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
         .get(0);
@@ -36,8 +41,8 @@ public class RunSetDao {
 
   public int createRunSet(RunSet runSet) {
     return jdbcTemplate.update(
-        "insert into run_set (run_set_id, method_id, run_set_name, run_set_description, is_template, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_definition, output_definition, record_type)"
-            + " values (:runSetId, :methodId, :name, :description, false, :status, :submissionTimestamp, :lastModifiedTimestamp, :lastPolledTimestamp, :runCount, :errorCount, :inputDefinition, :outputDefinition, :recordType)",
+        "insert into run_set (run_set_id, method_version_id, run_set_name, run_set_description, is_template, status, submission_timestamp, last_modified_timestamp, last_polled_timestamp, run_count, error_count, input_definition, output_definition, record_type)"
+            + " values (:runSetId, :methodVersionId, :name, :description, false, :status, :submissionTimestamp, :lastModifiedTimestamp, :lastPolledTimestamp, :runCount, :errorCount, :inputDefinition, :outputDefinition, :recordType)",
         new EnumAwareBeanPropertySqlParameterSource(runSet));
   }
 
