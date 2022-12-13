@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
@@ -113,19 +114,12 @@ public class RunDao {
           params.put("runSetId", runSetId);
         }
         if (statuses != null && !statuses.isEmpty()) {
-          StringBuilder sb = new StringBuilder();
-          sb.append("run.status in (");
-          Integer counter = 0;
-          List<String> statusPlaceholders = new LinkedList<>();
-          for (CbasRunStatus status : statuses) {
-            String placeholder = "status_%d".formatted(counter);
-            statusPlaceholders.add(":%s".formatted(placeholder));
-            params.put(placeholder, status.toString());
-            counter++;
-          }
-          sb.append(String.join(",", statusPlaceholders));
-          sb.append(")");
-          conditions.add(sb.toString());
+          SqlPlaceholderMapping<String> placeholderMapping =
+              new SqlPlaceholderMapping<>(
+                  "status", statuses.stream().map(CbasRunStatus::toString).toList());
+          conditions.add(
+              "run.status in (%s)".formatted(placeholderMapping.getSqlPlaceholderList()));
+          params.putAll(placeholderMapping.getPlaceholderToValueMap());
         }
         return new WhereClause(conditions, params);
       }
