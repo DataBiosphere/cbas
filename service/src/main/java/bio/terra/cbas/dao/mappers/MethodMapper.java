@@ -1,4 +1,4 @@
-package bio.terra.cbas.dao;
+package bio.terra.cbas.dao.mappers;
 
 import bio.terra.cbas.models.Method;
 import java.sql.ResultSet;
@@ -17,7 +17,6 @@ public class MethodMapper implements RowMapper<Method> {
         rs.getString(Method.DESCRIPTION__COL),
         rs.getObject(Method.CREATED_COL, OffsetDateTime.class),
         rs.getObject(Method.LAST_RUN_COL, OffsetDateTime.class),
-        rs.getString(Method.METHOD_SOURCE_COL),
-        rs.getString(Method.METHOD_SOURCE_URL_COL));
+        rs.getString(Method.METHOD_SOURCE_COL));
   }
 }

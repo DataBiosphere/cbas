@@ -25,6 +25,22 @@ paths:
       tags: [ methods ]
       summary: Get list of methods
       operationId: getMethods
+      parameters:
+        - in: query
+          name: show_versions
+          schema:
+            type: boolean
+          description: >
+            If specified, toggles on or off the version breakdown within methods. Only applies if no method_version_id parameter is specified.
+          required: false
+        - in: query
+          name: method_version_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            When specified, filters to only include the appropriate method and version.
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/GetMethodsResponse'
@@ -355,15 +371,38 @@ components:
         source:
           type: string
           description: origin of this workflow (eg dockstore)
-        source_url:
-          type: string
-          description: URL of the workflow source (eg a dockstore project)
+        method_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodVersionDetails'
         created:
           type: string
           format: date-time
         last_run:
           type: string
           format: date-time
+    MethodVersionDetails:
+      type: object
+      properties:
+        method_version_id:
+          type: string
+          format: uuid
+        method_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        created:
+          type: string
+          format: date-time
+        last_run:
+          type: string
+          format: date-time
+        url:
+          type: string
+          format: url
     RunLog:
       type: object
       properties:

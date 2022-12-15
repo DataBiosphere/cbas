@@ -9,8 +9,7 @@ public record Method(
     String description,
     OffsetDateTime created,
     OffsetDateTime lastRun,
-    String methodSource,
-    String methodSourceUrl) {
+    String methodSource) {
 
   // Corresponding table column names in database
   public static final String METHOD_ID_COL = "method_id";

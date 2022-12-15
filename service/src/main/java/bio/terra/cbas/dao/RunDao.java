@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.mappers.RunSetMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;

@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.mappers.RunSetMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.RunSet;
@@ -22,18 +23,19 @@ public class RunSetDao {
   }
 
   public List<RunSet> getRunSets() {
-    String sql = "SELECT * FROM run_set " +
-        "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id " +
-        "INNER JOIN method on method_version.method_id = method.method_id";
+    String sql =
+        "SELECT * FROM run_set "
+            + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+            + "INNER JOIN method on method_version.method_id = method.method_id";
     return jdbcTemplate.query(sql, new RunSetMapper());
   }
 
   public RunSet getRunSet(UUID runSetId) {
     String sql =
-        "SELECT * FROM run_set " +
-            "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id " +
-            "INNER JOIN method on method_version.method_id = method.method_id " +
-            "WHERE run_set_id = :runSetId";
+        "SELECT * FROM run_set "
+            + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+            + "INNER JOIN method on method_version.method_id = method.method_id "
+            + "WHERE run_set_id = :runSetId";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
         .get(0);

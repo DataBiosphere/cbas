@@ -13,7 +13,6 @@ import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
-import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -28,7 +27,6 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -90,7 +88,7 @@ public class RunSetsApiController implements RunSetsApi {
     return new RunSetDetailsResponse()
         .runSetId(runSet.runSetId())
         .methodId(runSet.methodVersion().method().method_id())
-        .methodVersionId(runSet.methodVersion().method_version_id())
+        .methodVersionId(runSet.methodVersion().methodVersionId())
         .runSetName(runSet.name())
         .runSetDescription(runSet.description())
         .isTemplate(runSet.isTemplate())

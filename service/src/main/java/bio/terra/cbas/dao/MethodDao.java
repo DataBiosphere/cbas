@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
