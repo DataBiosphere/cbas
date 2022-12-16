@@ -41,6 +41,15 @@ paths:
           description: >
             When specified, filters to only include the indicated method.
           required: false
+        - in: query
+          name: method_version_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            When specified, filters to only include appropriate method and method version. If
+            included, forces "show_versions" to be true.
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/GetMethodsResponse'

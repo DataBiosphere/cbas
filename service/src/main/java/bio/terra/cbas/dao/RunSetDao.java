@@ -6,6 +6,7 @@ import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,8 +57,10 @@ public class RunSetDao {
     String sql =
         "UPDATE run_set SET last_modified_timestamp = :last_modified_timestamp WHERE run_set.run_set_id in (%s)"
             .formatted(placeholderMapping.getSqlPlaceholderList());
-    return jdbcTemplate.update(
-        sql, new MapSqlParameterSource(placeholderMapping.getPlaceholderToValueMap()));
+    Map<String, Object> params = new HashMap<>();
+    params.put("last_modified_timestamp", OffsetDateTime.now());
+    params.putAll(placeholderMapping.getPlaceholderToValueMap());
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(params));
   }
 
   public int updateStateAndRunDetails(

@@ -26,18 +26,28 @@ public class MethodsApiController implements MethodsApi {
   }
 
   @Override
-  public ResponseEntity<MethodListResponse> getMethods(Boolean showVersions, UUID methodId) {
+  public ResponseEntity<MethodListResponse> getMethods(
+      Boolean showVersions, UUID methodId, UUID methodVersionId) {
 
-    List<Method> methods =
-        methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
-    boolean nullSafeShowVersions = showVersions == null || showVersions;
+    if (methodVersionId != null) {
+      return ResponseEntity.ok(
+          new MethodListResponse()
+              .methods(
+                  List.of(
+                      methodVersionToMethodDetails(
+                          methodVersionDao.getMethodVersion(methodVersionId)))));
+    } else {
+      List<Method> methods =
+          methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
+      boolean nullSafeShowVersions = showVersions == null || showVersions;
 
-    return ResponseEntity.ok(
-        new MethodListResponse()
-            .methods(
-                methods.stream()
-                    .map(m -> methodToMethodDetails(m, nullSafeShowVersions))
-                    .toList()));
+      return ResponseEntity.ok(
+          new MethodListResponse()
+              .methods(
+                  methods.stream()
+                      .map(m -> methodToMethodDetails(m, nullSafeShowVersions))
+                      .toList()));
+    }
   }
 
   private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
@@ -69,5 +79,17 @@ public class MethodsApiController implements MethodsApi {
         .created(DateUtils.convertToDate(methodVersion.created()))
         .lastRun(DateUtils.convertToDate(methodVersion.lastRun()))
         .url(methodVersion.url());
+  }
+
+  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
+    Method method = methodVersion.method();
+    return new MethodDetails()
+        .methodId(method.method_id())
+        .name(method.name())
+        .description(method.description())
+        .source(method.methodSource())
+        .created(DateUtils.convertToDate(method.created()))
+        .lastRun(DateUtils.convertToDate(method.lastRun()))
+        .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)));
   }
 }
