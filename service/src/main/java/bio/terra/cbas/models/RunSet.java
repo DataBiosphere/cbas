@@ -34,7 +34,7 @@ public record RunSet(
   public static final String OUTPUT_DEFINITION_COL = "output_definition";
   public static final String RECORD_TYPE_COL = "record_type";
 
-  public UUID getMethodId() {
-    return methodVersion.method().method_id();
+  public UUID getMethodVersionId() {
+    return methodVersion.methodVersionId();
   }
 }

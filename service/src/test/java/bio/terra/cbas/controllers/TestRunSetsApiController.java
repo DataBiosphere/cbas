@@ -199,7 +199,7 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(methodId, newRunSetCaptor.getValue().getMethodId());
+    assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().method_id());
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
 

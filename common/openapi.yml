@@ -31,15 +31,15 @@ paths:
           schema:
             type: boolean
           description: >
-            If specified, toggles on or off the version breakdown within methods. Only applies if no method_version_id parameter is specified.
+            If specified, toggles on or off the version breakdown within methods.
           required: false
         - in: query
-          name: method_version_id
+          name: method_id
           schema:
             type: string
             format: uuid
           description: >
-            When specified, filters to only include the appropriate method and version.
+            When specified, filters to only include the indicated method.
           required: false
       responses:
         '200':
