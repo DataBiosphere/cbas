@@ -10,12 +10,14 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
@@ -55,22 +57,28 @@ class TestRunsApiController {
   private static final UUID returnedRunEngineId = UUID.randomUUID();
   private static final String returnedEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime methodCreatedTime = OffsetDateTime.now();
-  private static final OffsetDateTime methodLastRunTime = OffsetDateTime.now();
   private static final OffsetDateTime returnedSubmittedTime = OffsetDateTime.now();
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
 
+  private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet returnedRunSet =
       new RunSet(
-          UUID.randomUUID(),
-          new Method(
+          runSetId,
+          new MethodVersion(
               UUID.randomUUID(),
-              "methodName",
-              "methodDescription",
+              new Method(
+                  UUID.randomUUID(),
+                  "methodName",
+                  "methodDescription",
+                  methodCreatedTime,
+                  runSetId,
+                  "method source"),
+              "version name",
+              "version description",
               methodCreatedTime,
-              methodLastRunTime,
-              "method source",
+              runSetId,
               "methodurl"),
           "runSetName",
           "runSetDescription",

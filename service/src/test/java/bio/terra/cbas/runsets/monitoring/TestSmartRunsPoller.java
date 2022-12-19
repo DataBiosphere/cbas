@@ -90,9 +90,10 @@ public class TestSmartRunsPoller {
           }
         ]
       """;
+  private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet runSet =
       new RunSet(
-          UUID.randomUUID(),
+          runSetId,
           new MethodVersion(
               UUID.randomUUID(),
               new Method(
@@ -100,12 +101,12 @@ public class TestSmartRunsPoller {
                   "methodName",
                   "methodDescription",
                   methodCreatedTime,
-                  methodLastRunTime,
+                  runSetId,
                   "method source"),
               "version name",
               "version description",
               methodCreatedTime,
-              methodLastRunTime,
+              runSetId,
               "file:///method/source/url"),
           "runSetName",
           "runSetDescription",
@@ -409,12 +410,12 @@ public class TestSmartRunsPoller {
                     "methodName",
                     "methodDescription",
                     methodCreatedTime,
-                    methodLastRunTime,
+                    UUID.randomUUID(),
                     "method source"),
                 "version name",
                 "version description",
                 methodCreatedTime,
-                methodLastRunTime,
+                UUID.randomUUID(),
                 "file:///method/source/url"),
             "runSetName",
             "runSetDescription",

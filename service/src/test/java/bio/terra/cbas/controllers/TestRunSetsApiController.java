@@ -34,6 +34,7 @@ import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
@@ -162,9 +163,8 @@ class TestRunSetsApiController {
                 "methodname",
                 "methoddescription",
                 OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                "test method source",
-                workflowUrl));
+                UUID.randomUUID(),
+                "test method source"));
 
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
@@ -292,14 +292,20 @@ class TestRunSetsApiController {
     RunSet returnedRunSet1 =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
+            new MethodVersion(
                 UUID.randomUUID(),
-                "methodName",
-                "methodDescription",
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
                 OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                "method source",
-                "methodurl"),
+                UUID.randomUUID(),
+                "method url"),
             "",
             "",
             false,
@@ -316,14 +322,20 @@ class TestRunSetsApiController {
     RunSet returnedRunSet2 =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
+            new MethodVersion(
                 UUID.randomUUID(),
-                "methodName",
-                "methodDescription",
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
                 OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                "method source",
-                "methodurl"),
+                UUID.randomUUID(),
+                "method url"),
             "",
             "",
             false,
