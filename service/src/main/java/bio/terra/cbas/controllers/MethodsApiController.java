@@ -5,11 +5,14 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.model.MethodDetails;
+import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,24 +32,55 @@ public class MethodsApiController implements MethodsApi {
   public ResponseEntity<MethodListResponse> getMethods(
       Boolean showVersions, UUID methodId, UUID methodVersionId) {
 
+    List<MethodDetails> methodDetails;
+
     if (methodVersionId != null) {
-      return ResponseEntity.ok(
-          new MethodListResponse()
-              .methods(
-                  List.of(
-                      methodVersionToMethodDetails(
-                          methodVersionDao.getMethodVersion(methodVersionId)))));
+      methodDetails =
+          List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
       boolean nullSafeShowVersions = showVersions == null || showVersions;
 
-      return ResponseEntity.ok(
-          new MethodListResponse()
-              .methods(
-                  methods.stream()
-                      .map(m -> methodToMethodDetails(m, nullSafeShowVersions))
-                      .toList()));
+      methodDetails =
+          methods.stream().map(m -> methodToMethodDetails(m, nullSafeShowVersions)).toList();
+    }
+
+    addLastRunDetails(methodDetails);
+    return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
+  }
+
+  private void addLastRunDetails(List<MethodDetails> methodDetails) {
+    Set<UUID> lastRunSetIds = new HashSet<>();
+    for (MethodDetails details : methodDetails) {
+      if (details.getLastRun().isPreviouslyRun()) {
+        lastRunSetIds.add(details.getLastRun().getRunSetId());
+        if (details.getMethodVersions() != null) {
+          for (MethodVersionDetails versionDetails : details.getMethodVersions()) {
+            if (versionDetails.getLastRun().isPreviouslyRun()) {
+              lastRunSetIds.add(versionDetails.getLastRun().getRunSetId());
+            }
+          }
+        }
+      }
+    }
+
+    if (!lastRunSetIds.isEmpty()) {
+      var lastRunDetails = methodDao.methodLastRunDetailsFromRunSetIds(lastRunSetIds);
+
+      for (MethodDetails details : methodDetails) {
+        if (details.getLastRun().isPreviouslyRun()) {
+          details.setLastRun(lastRunDetails.get(details.getLastRun().getRunSetId()));
+          if (details.getMethodVersions() != null) {
+            for (MethodVersionDetails versionDetails : details.getMethodVersions()) {
+              if (versionDetails.getLastRun().isPreviouslyRun()) {
+                versionDetails.setLastRun(
+                    lastRunDetails.get(versionDetails.getLastRun().getRunSetId()));
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -65,7 +99,7 @@ public class MethodsApiController implements MethodsApi {
         .description(method.description())
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
-        .lastRun(DateUtils.convertToDate(method.lastRun()))
+        .lastRun(initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(versions);
   }
 
@@ -77,7 +111,7 @@ public class MethodsApiController implements MethodsApi {
         .name(methodVersion.name())
         .description(methodVersion.description())
         .created(DateUtils.convertToDate(methodVersion.created()))
-        .lastRun(DateUtils.convertToDate(methodVersion.lastRun()))
+        .lastRun(initializeLastRunDetails(methodVersion.lastRunSetId()))
         .url(methodVersion.url());
   }
 
@@ -89,7 +123,18 @@ public class MethodsApiController implements MethodsApi {
         .description(method.description())
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
-        .lastRun(DateUtils.convertToDate(method.lastRun()))
+        .lastRun(initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)));
+  }
+
+  private static MethodLastRunDetails initializeLastRunDetails(UUID lastRunSetId) {
+    MethodLastRunDetails lastRunDetails = new MethodLastRunDetails();
+    if (lastRunSetId != null) {
+      lastRunDetails.setRunSetId(lastRunSetId);
+      lastRunDetails.setPreviouslyRun(true);
+    } else {
+      lastRunDetails.setPreviouslyRun(false);
+    }
+    return lastRunDetails;
   }
 }

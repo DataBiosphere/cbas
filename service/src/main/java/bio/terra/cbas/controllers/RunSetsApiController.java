@@ -13,6 +13,7 @@ import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -56,6 +57,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final CromwellService cromwellService;
   private final WdsService wdsService;
   private final MethodVersionDao methodVersionDao;
+  private final MethodDao methodDao;
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
@@ -69,6 +71,7 @@ public class RunSetsApiController implements RunSetsApi {
       CromwellService cromwellService,
       WdsService wdsService,
       ObjectMapper objectMapper,
+      MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunDao runDao,
       RunSetDao runSetDao,
@@ -77,6 +80,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
+    this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
@@ -170,6 +174,9 @@ public class RunSetsApiController implements RunSetsApi {
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
     runSetDao.createRunSet(runSet);
+
+    methodDao.updateLastRunWithRunSet(runSet);
+    methodVersionDao.updateLastRunWithRunSet(runSet);
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =

@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: chrisl
+      changes:
+        - dropColumn:
+            tableName: method
+            columns:
+              - column:
+                  name: last_run
+        - addColumn:
+            tableName: method
+            columns:
+              - column:
+                  name: last_run_set_id
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_method_last_run_set_id
+                    references: run_set(run_set_id)

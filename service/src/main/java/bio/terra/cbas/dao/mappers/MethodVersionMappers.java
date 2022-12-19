@@ -23,7 +23,7 @@ public final class MethodVersionMappers {
           rs.getString(MethodVersion.NAME_COL),
           rs.getString(MethodVersion.DESCRIPTION__COL),
           rs.getObject(MethodVersion.CREATED_COL, OffsetDateTime.class),
-          rs.getObject(MethodVersion.LAST_RUN_COL, OffsetDateTime.class),
+          rs.getObject(MethodVersion.LAST_RUN_SET_ID_COL, UUID.class),
           rs.getString(MethodVersion.URL_COL));
     }
   }
@@ -43,7 +43,7 @@ public final class MethodVersionMappers {
           rs.getString(MethodVersion.NAME_COL),
           rs.getString(MethodVersion.DESCRIPTION__COL),
           rs.getObject(MethodVersion.CREATED_COL, OffsetDateTime.class),
-          rs.getObject(MethodVersion.LAST_RUN_COL, OffsetDateTime.class),
+          rs.getObject(MethodVersion.LAST_RUN_SET_ID_COL, UUID.class),
           rs.getString(MethodVersion.URL_COL));
     }
   }

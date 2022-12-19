@@ -38,10 +38,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: method_version_last_run
-                  type: timestamp with time zone
+                  name: method_version_last_run_set_id
+                  type: uuid
                   constraints:
-                    nullable: true
+                    foreignKeyName: fk_method_version_last_run_set_id
+                    references: run_set(run_set_id)
               - column:
                   name: method_version_url
                   type: text

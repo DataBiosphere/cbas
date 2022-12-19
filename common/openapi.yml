@@ -31,7 +31,7 @@ paths:
           schema:
             type: boolean
           description: >
-            If specified, toggles on or off the version breakdown within methods.
+            If specified, toggles on or off the version breakdown within methods. Defaults to true.
           required: false
         - in: query
           name: method_id
@@ -388,8 +388,7 @@ components:
           type: string
           format: date-time
         last_run:
-          type: string
-          format: date-time
+          $ref: '#/components/schemas/MethodLastRunDetails'
     MethodVersionDetails:
       type: object
       properties:
@@ -406,12 +405,28 @@ components:
         created:
           type: string
           format: date-time
-        last_run:
-          type: string
-          format: date-time
         url:
           type: string
           format: url
+        last_run:
+          $ref: '#/components/schemas/MethodLastRunDetails'
+    MethodLastRunDetails:
+      type: object
+      properties:
+        previously_run:
+          type: boolean
+          required: true
+        timestamp:
+          type: string
+          format: date-time
+        run_set_id:
+          type: string
+          format: uuid
+        method_version_id:
+          type: string
+          format: uuid
+        method_version_name:
+          type: string
     RunLog:
       type: object
       properties:
