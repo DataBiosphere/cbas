@@ -94,17 +94,6 @@ public class MethodsApiController implements MethodsApi {
     }
   }
 
-  private Set<UUID> lastRunSetIdsFromMethodVersionDetails(
-      List<MethodVersionDetails> methodVersionDetails) {
-    Set<UUID> lastRunSetIds = new HashSet<>();
-    for (MethodVersionDetails versionDetails : methodVersionDetails) {
-      if (versionDetails.getLastRun().isPreviouslyRun()) {
-        lastRunSetIds.add(versionDetails.getLastRun().getRunSetId());
-      }
-    }
-    return lastRunSetIds;
-  }
-
   private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
 
     List<MethodVersionDetails> versions =
