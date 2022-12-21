@@ -60,9 +60,9 @@ public class MethodsApiController implements MethodsApi {
     // Get a set of all run set IDs containing the "last run" information for these methods and versions:
     Set<UUID> lastRunSetIds = Stream.concat(
         methodDetails.stream()
-            .flatMap(md -> md.getLastRun().isPreviouslyRun() ? Stream.of(md.getLastRun().getRunSetId()) : Stream.of()),
+            .flatMap(md -> Boolean.TRUE.equals(md.getLastRun().isPreviouslyRun()) ? Stream.of(md.getLastRun().getRunSetId()) : Stream.of()),
         methodVersionDetails.stream()
-            .flatMap(mvd -> mvd.getLastRun().isPreviouslyRun() ? Stream.of(mvd.getLastRun().getRunSetId()) : Stream.of())
+            .flatMap(mvd -> Boolean.TRUE.equals(mvd.getLastRun().isPreviouslyRun()) ? Stream.of(mvd.getLastRun().getRunSetId()) : Stream.of())
     ).collect(Collectors.toSet());
 
     // Fetch the last run details for all run set IDs at the same time:
@@ -70,13 +70,13 @@ public class MethodsApiController implements MethodsApi {
 
     // Update method details and method version details from the map of last run details:
     for(MethodDetails details : methodDetails) {
-      if (details.getLastRun().isPreviouslyRun()) {
+      if (Boolean.TRUE.equals(details.getLastRun().isPreviouslyRun())) {
         details.setLastRun(lastRunDetails.get(details.getLastRun().getRunSetId()));
       }
     }
 
     for (MethodVersionDetails details : methodVersionDetails) {
-      if (details.getLastRun().isPreviouslyRun()) {
+      if (Boolean.TRUE.equals(details.getLastRun().isPreviouslyRun())) {
         details.setLastRun(
             lastRunDetails.get(details.getLastRun().getRunSetId()));
       }
