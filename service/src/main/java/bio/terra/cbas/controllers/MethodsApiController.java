@@ -10,7 +10,6 @@ import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
