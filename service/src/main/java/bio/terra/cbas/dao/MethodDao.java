@@ -40,6 +40,11 @@ public class MethodDao {
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(
       Collection<UUID> runSetIds) {
+
+    if (runSetIds.isEmpty()) {
+      return Map.of();
+    }
+
     SqlPlaceholderMapping<UUID> placeholderMapping =
         new SqlPlaceholderMapping<>("runSet", runSetIds);
 

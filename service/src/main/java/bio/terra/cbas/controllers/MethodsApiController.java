@@ -10,10 +10,13 @@ import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -50,37 +53,44 @@ public class MethodsApiController implements MethodsApi {
   }
 
   private void addLastRunDetails(List<MethodDetails> methodDetails) {
-    Set<UUID> lastRunSetIds = new HashSet<>();
-    for (MethodDetails details : methodDetails) {
+    List<MethodVersionDetails> methodVersionDetails = methodDetails.stream()
+        .flatMap(md -> md.getMethodVersions() == null ? Stream.of() : md.getMethodVersions().stream())
+        .toList();
+
+    // Get a set of all run set IDs containing the "last run" information for these methods and versions:
+    Set<UUID> lastRunSetIds = Stream.concat(
+        methodDetails.stream()
+            .flatMap(md -> md.getLastRun().isPreviouslyRun() ? Stream.of(md.getLastRun().getRunSetId()) : Stream.of()),
+        methodVersionDetails.stream()
+            .flatMap(mvd -> mvd.getLastRun().isPreviouslyRun() ? Stream.of(mvd.getLastRun().getRunSetId()) : Stream.of())
+    ).collect(Collectors.toSet());
+
+    // Fetch the last run details for all run set IDs at the same time:
+    var lastRunDetails = methodDao.methodLastRunDetailsFromRunSetIds(lastRunSetIds);
+
+    // Update method details and method version details from the map of last run details:
+    for(MethodDetails details : methodDetails) {
       if (details.getLastRun().isPreviouslyRun()) {
-        lastRunSetIds.add(details.getLastRun().getRunSetId());
-        if (details.getMethodVersions() != null) {
-          for (MethodVersionDetails versionDetails : details.getMethodVersions()) {
-            if (versionDetails.getLastRun().isPreviouslyRun()) {
-              lastRunSetIds.add(versionDetails.getLastRun().getRunSetId());
-            }
-          }
-        }
+        details.setLastRun(lastRunDetails.get(details.getLastRun().getRunSetId()));
       }
     }
 
-    if (!lastRunSetIds.isEmpty()) {
-      var lastRunDetails = methodDao.methodLastRunDetailsFromRunSetIds(lastRunSetIds);
-
-      for (MethodDetails details : methodDetails) {
-        if (details.getLastRun().isPreviouslyRun()) {
-          details.setLastRun(lastRunDetails.get(details.getLastRun().getRunSetId()));
-          if (details.getMethodVersions() != null) {
-            for (MethodVersionDetails versionDetails : details.getMethodVersions()) {
-              if (versionDetails.getLastRun().isPreviouslyRun()) {
-                versionDetails.setLastRun(
-                    lastRunDetails.get(versionDetails.getLastRun().getRunSetId()));
-              }
-            }
-          }
-        }
+    for (MethodVersionDetails details : methodVersionDetails) {
+      if (details.getLastRun().isPreviouslyRun()) {
+        details.setLastRun(
+            lastRunDetails.get(details.getLastRun().getRunSetId()));
       }
     }
+  }
+
+  private Set<UUID> lastRunSetIdsFromMethodVersionDetails(List<MethodVersionDetails> methodVersionDetails) {
+    Set<UUID> lastRunSetIds = new HashSet<>();
+    for (MethodVersionDetails versionDetails : methodVersionDetails) {
+      if (versionDetails.getLastRun().isPreviouslyRun()) {
+        lastRunSetIds.add(versionDetails.getLastRun().getRunSetId());
+      }
+    }
+    return lastRunSetIds;
   }
 
   private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
