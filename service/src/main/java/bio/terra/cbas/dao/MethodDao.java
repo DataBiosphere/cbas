@@ -54,7 +54,6 @@ public class MethodDao {
             + " WHERE run_set.%s in (%s) "
                 .formatted(RunSet.RUN_SET_ID_COL, placeholderMapping.getSqlPlaceholderList());
 
-    System.out.println(sql);
     List<MethodLastRunDetails> results =
         jdbcTemplate.query(
             sql,

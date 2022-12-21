@@ -19,7 +19,6 @@ import org.springframework.stereotype.Controller;
 
 @Controller
 public class MethodsApiController implements MethodsApi {
-
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
 
