@@ -1,7 +1,7 @@
-package bio.terra.cbas.dao;
+package bio.terra.cbas.dao.mappers;
 
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import java.sql.ResultSet;
@@ -14,11 +14,12 @@ public class RunSetMapper implements RowMapper<RunSet> {
 
   @Override
   public RunSet mapRow(ResultSet rs, int rowNum) throws SQLException {
-    Method method = new MethodMapper().mapRow(rs, rowNum);
+    MethodVersion methodVersion =
+        new MethodVersionMappers.DeepMethodVersionMapper().mapRow(rs, rowNum);
 
     return new RunSet(
         rs.getObject(Run.RUN_SET_ID_COL, UUID.class),
-        method,
+        methodVersion,
         rs.getString(RunSet.NAME_COL),
         rs.getString(RunSet.DESCRIPTION_COL),
         rs.getBoolean(RunSet.IS_TEMPLATE_COL),

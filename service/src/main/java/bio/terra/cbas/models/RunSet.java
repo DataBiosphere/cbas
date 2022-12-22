@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record RunSet(
     UUID runSetId,
-    Method method,
+    MethodVersion methodVersion,
     String name,
     String description,
     Boolean isTemplate,
@@ -34,7 +34,7 @@ public record RunSet(
   public static final String OUTPUT_DEFINITION_COL = "output_definition";
   public static final String RECORD_TYPE_COL = "record_type";
 
-  public UUID getMethodId() {
-    return method.method_id();
+  public UUID getMethodVersionId() {
+    return methodVersion.methodVersionId();
   }
 }

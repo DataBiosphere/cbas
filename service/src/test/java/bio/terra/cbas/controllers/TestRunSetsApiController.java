@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
+import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -34,6 +35,7 @@ import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
@@ -65,6 +67,7 @@ class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
   private final UUID methodId = UUID.randomUUID();
+  private final UUID methodVersionId = UUID.randomUUID();
   private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
@@ -82,7 +85,7 @@ class TestRunSetsApiController {
   private final String requestTemplate =
       """
         {
-          "method_id" : "%s",
+          "method_version_id" : "%s",
           "workflow_input_definitions" : [ {
             "input_name" : "myworkflow.mycall.inputname1",
             "input_type" : { "type": "primitive", "primitive_type": "String" },
@@ -111,6 +114,7 @@ class TestRunSetsApiController {
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private MethodDao methodDao;
+  @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
@@ -150,7 +154,7 @@ class TestRunSetsApiController {
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
     String request =
         requestTemplate.formatted(
-            methodId,
+            methodVersionId,
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
@@ -162,8 +166,24 @@ class TestRunSetsApiController {
                 "methodname",
                 "methoddescription",
                 OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "test method source"));
+
+    when(methodVersionDao.getMethodVersion(methodVersionId))
+        .thenReturn(
+            new MethodVersion(
+                methodVersionId,
+                new Method(
+                    methodId,
+                    "methodname",
+                    "methoddescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "test method source"),
+                "version name",
+                "version description",
                 OffsetDateTime.now(),
-                "test method source",
+                null,
                 workflowUrl));
 
     // Set up API responses
@@ -199,7 +219,8 @@ class TestRunSetsApiController {
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(methodId, newRunSetCaptor.getValue().getMethodId());
+    assertEquals(methodVersionId, newRunSetCaptor.getValue().methodVersion().methodVersionId());
+    assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().method_id());
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
 
@@ -260,7 +281,7 @@ class TestRunSetsApiController {
 
     String request =
         requestTemplate.formatted(
-            methodId,
+            methodVersionId,
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));
@@ -292,14 +313,20 @@ class TestRunSetsApiController {
     RunSet returnedRunSet1 =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
+            new MethodVersion(
                 UUID.randomUUID(),
-                "methodName",
-                "methodDescription",
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
                 OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                "method source",
-                "methodurl"),
+                UUID.randomUUID(),
+                "method url"),
             "",
             "",
             false,
@@ -316,14 +343,20 @@ class TestRunSetsApiController {
     RunSet returnedRunSet2 =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
+            new MethodVersion(
                 UUID.randomUUID(),
-                "methodName",
-                "methodDescription",
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
                 OffsetDateTime.now(),
-                OffsetDateTime.now(),
-                "method source",
-                "methodurl"),
+                UUID.randomUUID(),
+                "method url"),
             "",
             "",
             false,

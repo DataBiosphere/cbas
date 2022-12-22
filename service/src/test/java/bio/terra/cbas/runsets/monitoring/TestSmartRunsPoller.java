@@ -18,6 +18,7 @@ import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -89,16 +90,23 @@ public class TestSmartRunsPoller {
           }
         ]
       """;
+  private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet runSet =
       new RunSet(
-          UUID.randomUUID(),
-          new Method(
+          runSetId,
+          new MethodVersion(
               UUID.randomUUID(),
-              "methodName",
-              "methodDescription",
+              new Method(
+                  UUID.randomUUID(),
+                  "methodName",
+                  "methodDescription",
+                  methodCreatedTime,
+                  runSetId,
+                  "method source"),
+              "version name",
+              "version description",
               methodCreatedTime,
-              methodLastRunTime,
-              "method source",
+              runSetId,
               "file:///method/source/url"),
           "runSetName",
           "runSetDescription",
@@ -395,13 +403,19 @@ public class TestSmartRunsPoller {
     RunSet outputLessRunSet =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
+            new MethodVersion(
                 UUID.randomUUID(),
-                "methodName",
-                "methodDescription",
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    methodCreatedTime,
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
                 methodCreatedTime,
-                methodLastRunTime,
-                "method source",
+                UUID.randomUUID(),
                 "file:///method/source/url"),
             "runSetName",
             "runSetDescription",

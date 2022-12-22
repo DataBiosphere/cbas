@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.mappers.RunSetMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -43,7 +44,8 @@ public class RunDao {
 
     String sql =
         "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
-            + " INNER JOIN method ON run_set.method_id = method.method_id "
+            + " INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+            + " INNER JOIN method ON method_version.method_id = method.method_id "
             + whereClause;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());

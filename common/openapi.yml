@@ -25,6 +25,31 @@ paths:
       tags: [ methods ]
       summary: Get list of methods
       operationId: getMethods
+      parameters:
+        - in: query
+          name: show_versions
+          schema:
+            type: boolean
+          description: >
+            If specified, toggles on or off the version breakdown within methods. Defaults to true.
+          required: false
+        - in: query
+          name: method_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            When specified, filters to only include the indicated method.
+          required: false
+        - in: query
+          name: method_version_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            When specified, filters to only include appropriate method and method version. If
+            included, forces "show_versions" to be true.
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/GetMethodsResponse'
@@ -164,10 +189,10 @@ components:
           type: string
         run_set_description:
           type: string
-        method_id:
+        method_version_id:
           type: string
           format: uuid
-          description: ID of the method to run
+          description: ID of the method version to run
         wds_records:
           $ref: '#/components/schemas/WdsRecordSet'
         workflow_input_definitions:
@@ -355,15 +380,53 @@ components:
         source:
           type: string
           description: origin of this workflow (eg dockstore)
-        source_url:
-          type: string
-          description: URL of the workflow source (eg a dockstore project)
+        method_versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodVersionDetails'
         created:
           type: string
           format: date-time
         last_run:
+          $ref: '#/components/schemas/MethodLastRunDetails'
+    MethodVersionDetails:
+      type: object
+      properties:
+        method_version_id:
+          type: string
+          format: uuid
+        method_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        created:
           type: string
           format: date-time
+        url:
+          type: string
+          format: url
+        last_run:
+          $ref: '#/components/schemas/MethodLastRunDetails'
+    MethodLastRunDetails:
+      type: object
+      properties:
+        previously_run:
+          type: boolean
+          required: true
+        timestamp:
+          type: string
+          format: date-time
+        run_set_id:
+          type: string
+          format: uuid
+        method_version_id:
+          type: string
+          format: uuid
+        method_version_name:
+          type: string
     RunLog:
       type: object
       properties:
@@ -442,6 +505,9 @@ components:
           type: string
           format: uuid
         method_id:
+          type: string
+          format: uuid
+        method_version_id:
           type: string
           format: uuid
         is_template:
