@@ -32,14 +32,22 @@ public class CromwellService {
 
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
       throws ApiException, JsonProcessingException {
-    String workflowOptions = this.cromwellClient.getFinalWorkflowLogDirOption()
-        .map(dir -> String.format("{\"final_workflow_log_dir\": %s}", dir))
-        .orElse(null);
+    String workflowOptions =
+        this.cromwellClient
+            .getFinalWorkflowLogDirOption()
+            .map(dir -> String.format("{\"final_workflow_log_dir\": %s}", dir))
+            .orElse(null);
 
     return cromwellClient
         .wesAPI()
         .runWorkflow(
-            InputGenerator.inputsToJson(params), null, null, null, workflowOptions, workflowUrl, null);
+            InputGenerator.inputsToJson(params),
+            null,
+            null,
+            null,
+            workflowOptions,
+            workflowUrl,
+            null);
   }
 
   public RunStatus runStatus(String runId) throws ApiException {

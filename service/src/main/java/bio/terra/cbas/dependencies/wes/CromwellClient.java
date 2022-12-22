@@ -1,12 +1,10 @@
 package bio.terra.cbas.dependencies.wes;
 
-import java.util.Optional;
-
-import org.springframework.stereotype.Component;
-
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import cromwell.client.ApiClient;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
+import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CromwellClient {
