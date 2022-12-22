@@ -1,21 +1,18 @@
 package bio.terra.cbas.dependencies.wes;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
 import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import org.springframework.stereotype.Component;
 
 @Component
 public class CromwellService {
