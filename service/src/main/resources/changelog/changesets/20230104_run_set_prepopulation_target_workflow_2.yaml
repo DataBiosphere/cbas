@@ -1069,9 +1069,6 @@ databaseChangeLog:
                         }
                       }
                     ]
-
-
-
               - column:
                   name: output_definition
                   value: |
@@ -1473,7 +1470,6 @@ databaseChangeLog:
                         "record_attribute": "assemble_refbased_mock_output_file_3"
                       }
                     ]
-
               - column:
                   name: record_type
                   value: FOO
