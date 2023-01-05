@@ -79,9 +79,100 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "output_name": "target_workflow_1.file_output",
-                        "output_type": { "type": "primitive", "primitive_type": "String" },
-                        "record_attribute": "target_workflow_1_file_output"
+                        "output_name": "target_workflow_4.output_string_9",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_9"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_file_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_4_output_file_1"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_5",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_5"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_4",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_4"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_3",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_3"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_file_2",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_4_output_file_2"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_6",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_6"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_2",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_2"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_10",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_10"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_7",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_7"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_1"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_8",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_8"
                       }
                     ]
               - column:
