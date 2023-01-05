@@ -1,0 +1,89 @@
+databaseChangeLog:
+  - changeSet:
+      id: "run_set_prepopulation_target_workflow_4"
+      author: kpierre
+      changes:
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_id
+                  value: 10000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_id
+                  value: 20000000-0000-0000-0000-000000000004
+              - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: Target workflow 4, run 1
+              - column:
+                  name: run_set_description
+                  value: "Example run for target workflow 4"
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "target_workflow_4.mock_task.input_string_1",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_4.mock_task.optional_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_optional_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_4.mock_task.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_docker"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "target_workflow_1.file_output",
+                        "output_type": { "type": "primitive", "primitive_type": "String" },
+                        "record_attribute": "target_workflow_1_file_output"
+                      }
+                    ]
+              - column:
+                  name: record_type
+                  value: FOO
