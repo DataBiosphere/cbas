@@ -1,134 +1,98 @@
 [
   {
-    "input_name": "target_workflow_4.output_string_9",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_9",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_9"
-    }
+    "record_attribute": "target_workflow_4_output_string_9"
   },
   {
-    "input_name": "target_workflow_4.output_file_1",
-    "input_type": {
+    "output_name": "target_workflow_4.output_file_1",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "File"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_file_1"
-    }
+    "record_attribute": "target_workflow_4_output_file_1"
   },
   {
-    "input_name": "target_workflow_4.output_string_5",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_5",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_5"
-    }
+    "record_attribute": "target_workflow_4_output_string_5"
   },
   {
-    "input_name": "target_workflow_4.output_string_4",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_4",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_4"
-    }
+    "record_attribute": "target_workflow_4_output_string_4"
   },
   {
-    "input_name": "target_workflow_4.output_string_3",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_3",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_3"
-    }
+    "record_attribute": "target_workflow_4_output_string_3"
   },
   {
-    "input_name": "target_workflow_4.output_file_2",
-    "input_type": {
+    "output_name": "target_workflow_4.output_file_2",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "File"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_file_2"
-    }
+    "record_attribute": "target_workflow_4_output_file_2"
   },
   {
-    "input_name": "target_workflow_4.output_string_6",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_6",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_6"
-    }
+    "record_attribute": "target_workflow_4_output_string_6"
   },
   {
-    "input_name": "target_workflow_4.output_string_2",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_2",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_2"
-    }
+    "record_attribute": "target_workflow_4_output_string_2"
   },
   {
-    "input_name": "target_workflow_4.output_string_10",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_10",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_10"
-    }
+    "record_attribute": "target_workflow_4_output_string_10"
   },
   {
-    "input_name": "target_workflow_4.output_string_7",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_7",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_7"
-    }
+    "record_attribute": "target_workflow_4_output_string_7"
   },
   {
-    "input_name": "target_workflow_4.output_string_1",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_1",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_1"
-    }
+    "record_attribute": "target_workflow_4_output_string_1"
   },
   {
-    "input_name": "target_workflow_4.output_string_8",
-    "input_type": {
+    "output_name": "target_workflow_4.output_string_8",
+    "output_type": {
       "type": "primitive",
       "primitive_type": "String"
     },
-    "source": {
-      "type": "record_lookup",
-      "record_attribute": "target_workflow_4_output_string_8"
-    }
+    "record_attribute": "target_workflow_4_output_string_8"
   }
 ]
