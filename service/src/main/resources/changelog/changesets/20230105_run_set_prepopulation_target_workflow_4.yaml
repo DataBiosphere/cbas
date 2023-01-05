@@ -4,6 +4,45 @@ databaseChangeLog:
       author: kpierre
       changes:
         - insert:
+            tableName: method
+            columns:
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000004
+              - column:
+                  name: name
+                  value: Target Workflow 4
+              - column:
+                  name: description
+                  value: Target Workflow 4
+              - column:
+                  name: created
+                  valueDate: "CURRENT_TIMESTAMP()"
+              - column:
+                  name: method_source
+                  value: Github
+              - column:
+                  name: last_run_set_id
+                  value: null
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 40000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'First version of target workflow 4'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_4/target_workflow_4.wdl'
+        - insert:
             tableName: run_set
             columns:
               - column:
@@ -11,7 +50,7 @@ databaseChangeLog:
                   value: 10000000-0000-0000-0000-000000000004
               - column:
                   name: method_version_id
-                  value: 20000000-0000-0000-0000-000000000004
+                  value: 40000000-0000-0000-0000-000000000004
               - column:
                   name: is_template
                   value: true
@@ -178,3 +217,11 @@ databaseChangeLog:
               - column:
                   name: record_type
                   value: FOO
+
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 40000000-0000-0000-0000-000000000004
+            where: run_set_id='10000000-0000-0000-0000-000000000004'
