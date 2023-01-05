@@ -10,7 +10,7 @@ databaseChangeLog:
                   name: run_set_id
                   value: 10000000-0000-0000-0000-000000000004
               - column:
-                  name: method_id
+                  name: method_version_id
                   value: 20000000-0000-0000-0000-000000000004
               - column:
                   name: is_template
