@@ -47,6 +47,9 @@ task mock_task {
 }
 
 workflow target_workflow_4 {
+  meta {
+    description: "fetch_sra_to_bam workflow"
+  }
 
   call mock_task
 
