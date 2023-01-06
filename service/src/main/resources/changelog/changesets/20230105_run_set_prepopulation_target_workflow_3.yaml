@@ -1,0 +1,1517 @@
+databaseChangeLog:
+  - changeSet:
+      id: "run_set_prepopulation_target_workflow_3"
+      author: sshah
+      changes:
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_id
+                  value: 10000000-0000-0000-0000-000000000003
+              - column:
+                  name: method_version_id
+                  value: 30000000-0000-0000-0000-000000000003
+              - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: Target workflow 3, run 1
+              - column:
+                  name: run_set_description
+                  value: "Example run for target workflow 3"
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_string_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_string_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.optional_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_optional_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.optional_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_optional_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_1.optional_input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_1_optional_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_18.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_18_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_string_4",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_string_4"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_14.optional_input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_14_optional_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_14.optional_input_float_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_14_optional_input_float_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_int_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_int_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_1.input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_1_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_2.input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_2_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_2.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_2_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_float_4",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_float_4"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_float_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_float_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.input_string_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_input_string_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.input_string_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_input_string_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_17.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_17_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.optional_input_file_4",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_optional_input_file_4"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_string_5",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_string_5"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_float_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_float_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_1.array_of_files_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_1_array_of_files_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.input_string_2",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_input_string_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_array_of_strings3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_2.input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_2_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.optional_input_file_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_optional_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.input_bool_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_input_bool_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.array_of_files_input_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_array_of_files_input_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.input_bool_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_input_bool_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_string_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.input_file_2",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_float_7",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_float_7"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_17.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_17_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.optional_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_optional_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_string_6",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_string_6"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_7.input_string_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_7_input_string_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_float_8",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_float_8"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_float_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_float_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.array_of_strings_input_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_array_of_strings_input_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_1.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_1_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_2.input_int_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_2_input_int_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_11.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_11_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.optional_input_file_4",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_optional_input_file_4"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_2.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_2_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_14.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_14_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_2.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_2_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_16.input_bool_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_16_input_bool_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.input_bool_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_input_bool_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_array_of_strings2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_10.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_10_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.optional_input_file_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_optional_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.optional_input_file_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_optional_input_file_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_10.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_10_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_15.optional_input_float_6",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_15_optional_input_float_6"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.array_of_files_input_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_array_of_files_input_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_17.optional_input_file_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_17_optional_input_file_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_1.input_bool",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_1_input_bool"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.optional_input_file_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_optional_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_int_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_int_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.input_file_1",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_11.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_11_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_7.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_7_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.optional_input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_optional_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_1.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_1_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_5.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_5_docker"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.optional_input_file_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_optional_input_file_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_array_of_strings1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_array_of_strings1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_17.optional_input_file_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_17_optional_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_3.input_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_3_input_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_14.optional_input_file_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_14_optional_input_file_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.call_3.optional_input_file_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_call_3_optional_input_file_2"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_13.input_bool_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_13_input_bool_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_14.input_bool_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_14_input_bool_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_19.optional_input_file_3",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_19_optional_input_file_3"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_3.mock_task_12.input_string_2",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_3_mock_task_12_input_string_2"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "target_workflow_3.output_file_8",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_8"
+                        },
+                      {
+                        "output_name": "target_workflow_3.output_map_string_int_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_3_output_map_string_int_1"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_4",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_4"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_11",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_11"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_1"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_7",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_7"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_10",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_10"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_array_of_files_1",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "target_workflow_3_output_array_of_files_1"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_5",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_5"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_9",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_9"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_int_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "target_workflow_3_output_int_1"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_3",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_3"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_2",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_2"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_12",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_12"
+                      },
+                      {
+                        "output_name": "target_workflow_3.output_file_6",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_3_output_file_6"
+                        }
+                    ]
