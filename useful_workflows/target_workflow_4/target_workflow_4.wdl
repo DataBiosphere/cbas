@@ -10,7 +10,7 @@ task mock_task {
   }
 
   meta {
-    volitile: true
+    volatile: true
   }
 
   command {
