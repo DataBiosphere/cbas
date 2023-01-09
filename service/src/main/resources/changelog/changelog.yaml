@@ -21,5 +21,8 @@ databaseChangeLog:
       file: changesets/20221219_method_last_run.yaml
       relativeToChangelogFile: true
   - include:
+      file: changesets/20230104_run_set_prepopulation_target_workflow_2.yaml
+      relativeToChangelogFile: true
+  - include:
       file: changesets/20230105_run_set_prepopulation_target_workflow_3.yaml
       relativeToChangelogFile: true
