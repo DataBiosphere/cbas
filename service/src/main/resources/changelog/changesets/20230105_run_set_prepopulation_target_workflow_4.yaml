@@ -217,11 +217,3 @@ databaseChangeLog:
               - column:
                   name: record_type
                   value: FOO
-
-        - update:
-            tableName: run_set
-            columns:
-              - column:
-                  name: method_version_id
-                  value: 40000000-0000-0000-0000-000000000004
-            where: run_set_id='10000000-0000-0000-0000-000000000004'
