@@ -13,6 +13,14 @@ spring:
   # https://github.com/DataBiosphere/terra-common-lib/blob/480ab3daae282ddff0fef8dc329494a4422e32f1/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L118
   application.name: cbas
   application.version: ${cbas.version.gitHash:unknown}
+#  datasource:
+#    jdbc-url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+#    username: ${DATABASE_USER:cbas_user}
+#    password: ${DATABASE_USER_PASSWORD:cbas_password}
+#  sql:
+#    init:
+#      mode: always
+
 
   jackson:
     serialization.indent_output: true

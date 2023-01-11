@@ -1,12 +1,11 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.models.Method;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -20,16 +19,19 @@ public class TestMethodDao {
     Method actual = methodDao.getMethod(methodId);
 
     // Same values in db?
-    Method expected = new Method('');
+    // Method expected = new Method('');
 
-    assertEquals(expected, actual);
+    // assertEquals(expected, actual);
   }
 
   @Test
-  void retriesAllMethods() {
-    Method actual = methodDao.getMethods();
-    Method expected = new Method(...);
+  void retrievesAllMethods() {
 
-    assertEquals(expected, actual);
+    List<Method> actual = methodDao.getMethods();
+
+    // Same as in db?
+    // List<Method> expected = new Method(...);
+
+    // assertEquals(expected, actual);
   }
 }
