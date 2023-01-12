@@ -33,18 +33,18 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class App {
 
-  //  @Bean
-  //  @Primary
-  //  @ConfigurationProperties(prefix = "spring.datasource")
-  //  public DataSource cbasDb() {
-  //    return DataSourceBuilder.create().build();
-  //  }
-  //
-  //  @Bean
-  //  @Primary
-  //  public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
-  //    return new NamedParameterJdbcTemplate(cbasDb());
-  //  }
+    @Bean
+    @Primary
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource cbasDb() {
+      return DataSourceBuilder.create().build();
+    }
+
+    @Bean
+    @Primary
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
+      return new NamedParameterJdbcTemplate(cbasDb());
+    }
 
   public static void main(String[] args) {
     new SpringApplicationBuilder(App.class).initializers(new LoggingInitializer()).run(args);
