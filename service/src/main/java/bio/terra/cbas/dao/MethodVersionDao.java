@@ -7,6 +7,7 @@ import bio.terra.cbas.models.RunSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -42,6 +43,13 @@ public class MethodVersionDao {
         sql,
         new MapSqlParameterSource("method_id", method.method_id()),
         new MethodVersionMappers.ShallowMethodVersionMapper(method));
+  }
+
+  public int createMethodVersion(MethodVersion methodVersion) {
+    return jdbcTemplate.update(
+        "insert into method_version (method_version_id, method_id, method_version_name, method_version_description, method_version_created, method_version_last_run_set_id, method_version_url "
+            + "values (:methodVersionId, :method :name, :description, :created, :lastRunSetId, :url)",
+        new BeanPropertySqlParameterSource(methodVersion));
   }
 
   public int updateLastRunWithRunSet(RunSet runSet) {
