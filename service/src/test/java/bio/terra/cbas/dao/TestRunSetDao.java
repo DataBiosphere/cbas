@@ -80,7 +80,7 @@ public class TestRunSetDao {
 
   @Test
   void retrievesSingleRunSet() {
-    UUID runSetId = UUID.randomUUID();
+    // UUID runSetId = UUID.randomUUID();
 
     RunSet testRunSet =
         new RunSet(
