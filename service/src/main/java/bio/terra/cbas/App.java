@@ -16,10 +16,6 @@ import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
-    //    exclude = {
-    //      // We don't make use of DataSource in this application, so exclude it from scanning.
-    //      DataSourceAutoConfiguration.class,
-    //    },
     scanBasePackages = {
       // Scan for logging-related components & configs
       "bio.terra.common.logging",
