@@ -46,6 +46,12 @@ public class MethodDao {
         new BeanPropertySqlParameterSource(method));
   }
 
+  public int deleteMethod(Method method) {
+    return jdbcTemplate.update(
+        "DELETE FROM method WHERE name = :method",
+        new MapSqlParameterSource("method", method.name()));
+  }
+
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(
       Collection<UUID> runSetIds) {
 
