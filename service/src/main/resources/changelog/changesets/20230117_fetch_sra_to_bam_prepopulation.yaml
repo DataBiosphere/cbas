@@ -216,4 +216,4 @@ databaseChangeLog:
                     ]
               - column:
                   name: record_type
-                  value: FOO
+                  value: sample
