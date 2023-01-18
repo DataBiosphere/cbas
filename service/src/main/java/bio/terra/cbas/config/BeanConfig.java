@@ -12,12 +12,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BeanConfig {
 
-  //  @Bean("jdbcTemplate")
-  //  public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(
-  //      CbasDatabaseConfiguration config) {
-  //    return new NamedParameterJdbcTemplate(config.getDataSource());
-  //  }
-
   @Bean("objectMapper")
   public ObjectMapper objectMapper() {
     return new ObjectMapper()
