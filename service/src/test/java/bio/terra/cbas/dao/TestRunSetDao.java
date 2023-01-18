@@ -34,11 +34,75 @@ public class TestRunSetDao {
       """
             [
               {
-                "input_name": "test_workflow_1.foo.input_file_1",
+                "input_name": "target_workflow_1.foo.input_file_1",
                 "input_type": { "type": "primitive", "primitive_type": "File" },
                 "source": {
                   "type": "record_lookup",
-                  "record_attribute": "test_workflow_1_input_file_1"
+                  "record_attribute": "target_workflow_1_input_file_1"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_file_2",
+                "input_type": { "type": "primitive", "primitive_type": "File" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_file_2"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_1",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_1"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_2",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_2"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_3",
+                "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "String" } },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_3"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_4",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_4"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_5",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_5"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_6",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_6"
+                }
+              },
+              {
+                "input_name": "target_workflow_1.foo.input_string_7",
+                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "source": {
+                  "type": "record_lookup",
+                  "record_attribute": "target_workflow_1_input_string_7"
                 }
               }
             ]""";
@@ -47,58 +111,57 @@ public class TestRunSetDao {
       """
             [
               {
-                "output_name": "test_workflow_1.file_output",
+                "output_name": "target_workflow_1.file_output",
                 "output_type": { "type": "primitive", "primitive_type": "String" },
-                "record_attribute": "test_workflow_1_file_output"
+                "record_attribute": "target_workflow_1_file_output"
               }
             ]
             """;
 
-  Method method =
-      new Method(
-          methodId, "test method", "a test method", OffsetDateTime.parse(time), null, "Github");
+  //  Method method =
+  //      new Method(
+  //          methodId, "test method", "a test method", OffsetDateTime.parse(time), null, "Github");
 
-  MethodVersion methodVersion =
-      // methodVersionDao.getMethodVersion(UUID.fromString("20000000-0000-0000-0000-000000000001"));
-      new MethodVersion(
-          methodVersionId,
-          method,
-          "1.0",
-          "a test method version",
-          OffsetDateTime.now(),
-          null,
-          "https://hello.wdl");
+  //  MethodVersion methodVersion =
+  //      new MethodVersion(
+  //          methodVersionId,
+  //          method,
+  //          "1.0",
+  //          "a test method version",
+  //          OffsetDateTime.now(),
+  //          null,
+  //          "https://hello.wdl");
 
-  RunSet runSet =
-      new RunSet(
-          runSetId,
-          methodVersion,
-          "Test run",
-          "a test run set",
-          false,
-          CbasRunSetStatus.COMPLETE,
-          OffsetDateTime.parse(time),
-          OffsetDateTime.parse(time),
-          OffsetDateTime.parse(time),
-          1,
-          0,
-          inputDef,
-          outputDef,
-          "FOO");
+  //  RunSet runSet =
+  //      new RunSet(
+  //          runSetId,
+  //          methodVersion,
+  //          "Test run",
+  //          "a test run set",
+  //          false,
+  //          CbasRunSetStatus.COMPLETE,
+  //          OffsetDateTime.parse(time),
+  //          OffsetDateTime.parse(time),
+  //          OffsetDateTime.parse(time),
+  //          1,
+  //          0,
+  //          inputDef,
+  //          outputDef,
+  //          "FOO");
 
   @BeforeEach
   void setUp() {
 
-    methodDao.createMethod(method);
+    // methodDao.createMethod(method);
 
-    methodVersionDao.createMethodVersion(methodVersion);
+    // methodVersionDao.createMethodVersion(methodVersion);
 
-    runSetDao.createRunSet(runSet);
+    // runSetDao.createRunSet(runSet);
   }
 
   @AfterEach
   void cleanUp() {
-    methodDao.deleteMethod(method);
+    // methodDao.deleteMethod(method);
     //    methodVersionDao.deleteMethodVersion(methodVersion);
     //    runSetDao.deleteRunSet(runSet);
   }
@@ -106,7 +169,26 @@ public class TestRunSetDao {
   @Test
   void retrievesSingleRunSet() {
 
-    RunSet newRunSet =
+    Method method =
+        new Method(
+            UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            "Target Workflow 1",
+            "Target Workflow 1",
+            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
+            null,
+            "Github");
+
+    MethodVersion methodVersion =
+        new MethodVersion(
+            UUID.fromString("20000000-0000-0000-0000-000000000001"),
+            method,
+            "1.0",
+            "First version of target workflow 1",
+            OffsetDateTime.parse("2023-01-10T16:46:23.955430Z"),
+            null,
+            "https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl");
+
+    RunSet runSet =
         new RunSet(
             UUID.fromString("10000000-0000-0000-0000-000000000001"),
             methodVersion,
@@ -114,54 +196,18 @@ public class TestRunSetDao {
             "Example run for target workflow 1",
             true,
             CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
-            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
-            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
+            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
+            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
+            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
             0,
             0,
-            inputDef,
+            inputDef + "\n",
             outputDef,
             "FOO");
 
-    RunSet testRunSet =
-        new RunSet(
-            runSetId,
-            methodVersion,
-            "Test run set",
-            "A test run set for the db",
-            Boolean.TRUE,
-            CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse(time),
-            OffsetDateTime.parse(time),
-            OffsetDateTime.parse(time),
-            1,
-            0,
-            inputDef,
-            outputDef,
-            "TESTFOO");
+    RunSet expected = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000001"));
 
-    RunSet fromDb =
-        new RunSet(
-            UUID.fromString("10000000-0000-0000-0000-000000000001"),
-            methodVersion,
-            "Target workflow 1, run 1",
-            "Example run for target workflow 1",
-            true,
-            CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse(time),
-            OffsetDateTime.parse(time),
-            OffsetDateTime.parse(time),
-            1,
-            0,
-            inputDef,
-            outputDef,
-            "FOO");
-
-    runSetDao.createRunSet(fromDb);
-
-    RunSet expected = runSetDao.getRunSet(runSetId);
-
-    assertEquals(fromDb, expected);
+    assertEquals(runSet, expected);
   }
 
   @Test
@@ -169,9 +215,6 @@ public class TestRunSetDao {
 
     List<RunSet> runSets = runSetDao.getRunSets();
 
-    // what is pulled from the db?
-    // List<RunSet> runSetsExpected = new RunSet(...)
-
-    // assertEquals(runSetsExpected, runSets);
+    assertEquals(6, runSets.size());
   }
 }

@@ -45,13 +45,6 @@ public class MethodVersionDao {
         new MethodVersionMappers.ShallowMethodVersionMapper(method));
   }
 
-  public int createMethodVersion(MethodVersion methodVersion) {
-    return jdbcTemplate.update(
-        "insert into method_version (method_version_id, method_id, method_version_name, method_version_description, method_version_created, method_version_last_run_set_id, method_version_url "
-            + "values (:methodVersionId, :method_id, :name, :description, :created, :lastRunSetId, :url)",
-        new BeanPropertySqlParameterSource(methodVersion));
-  }
-
   public int updateLastRunWithRunSet(RunSet runSet) {
     String sql =
         "UPDATE method_version SET %s = :run_set_id WHERE %s = :method_version_id"
