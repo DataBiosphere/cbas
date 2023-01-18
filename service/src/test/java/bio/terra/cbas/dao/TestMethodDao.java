@@ -119,5 +119,6 @@ public class TestMethodDao {
     List<Method> actual = methodDao.getMethods();
 
     assertEquals(allMethods, actual);
+    // assertEquals(6, actual.size());
   }
 }
