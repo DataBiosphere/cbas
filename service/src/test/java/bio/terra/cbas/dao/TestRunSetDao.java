@@ -9,6 +9,7 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -17,44 +18,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-// @ContextConfiguration(classes = RunSetDao.class)
 public class TestRunSetDao {
 
   @Autowired RunSetDao runSetDao;
-  @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
-  UUID runSetId;
-  String inputDef;
-  String outputDef;
-  UUID methodVersionId = UUID.randomUUID();
+  @Autowired MethodVersionDao methodVersionDao;
+
+  UUID runSetId = UUID.randomUUID();
+
   UUID methodId = UUID.randomUUID();
+  UUID methodVersionId = UUID.randomUUID();
+
   String time = "2023-01-13T20:19:41.400292Z";
-
-  MethodVersion methodVersion;
-
-  @BeforeEach
-  void setUp() {
-    Method method =
-        new Method(
-            methodId, "test method", "test method", OffsetDateTime.parse(time), null, "Github");
-
-    methodDao.createMethod(method);
-
-    methodVersion =
-        new MethodVersion(
-            methodVersionId,
-            method,
-            "1.0",
-            "db test method version",
-            OffsetDateTime.now(),
-            null,
-            "http://helloworld.com");
-
-    methodVersionDao.createMethodVersion(methodVersion);
-
-    runSetId = UUID.randomUUID();
-    inputDef =
-        """
+  String inputDef =
+      """
             [
               {
                 "input_name": "test_workflow_1.foo.input_file_1",
@@ -66,8 +43,8 @@ public class TestRunSetDao {
               }
             ]""";
 
-    outputDef =
-        """
+  String outputDef =
+      """
             [
               {
                 "output_name": "test_workflow_1.file_output",
@@ -76,11 +53,75 @@ public class TestRunSetDao {
               }
             ]
             """;
+
+  Method method =
+      new Method(
+          methodId, "test method", "a test method", OffsetDateTime.parse(time), null, "Github");
+
+  MethodVersion methodVersion =
+      // methodVersionDao.getMethodVersion(UUID.fromString("20000000-0000-0000-0000-000000000001"));
+      new MethodVersion(
+          methodVersionId,
+          method,
+          "1.0",
+          "a test method version",
+          OffsetDateTime.now(),
+          null,
+          "https://hello.wdl");
+
+  RunSet runSet =
+      new RunSet(
+          runSetId,
+          methodVersion,
+          "Test run",
+          "a test run set",
+          false,
+          CbasRunSetStatus.COMPLETE,
+          OffsetDateTime.parse(time),
+          OffsetDateTime.parse(time),
+          OffsetDateTime.parse(time),
+          1,
+          0,
+          inputDef,
+          outputDef,
+          "FOO");
+
+  @BeforeEach
+  void setUp() {
+
+    methodDao.createMethod(method);
+
+    methodVersionDao.createMethodVersion(methodVersion);
+
+    runSetDao.createRunSet(runSet);
+  }
+
+  @AfterEach
+  void cleanUp() {
+    methodDao.deleteMethod(method);
+    //    methodVersionDao.deleteMethodVersion(methodVersion);
+    //    runSetDao.deleteRunSet(runSet);
   }
 
   @Test
   void retrievesSingleRunSet() {
-    // UUID runSetId = UUID.randomUUID();
+
+    RunSet newRunSet =
+        new RunSet(
+            UUID.fromString("10000000-0000-0000-0000-000000000001"),
+            methodVersion,
+            "Target workflow 1, run 1",
+            "Example run for target workflow 1",
+            true,
+            CbasRunSetStatus.COMPLETE,
+            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
+            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
+            OffsetDateTime.parse("2023-01-10 16:46:23.950968 +00:00"),
+            0,
+            0,
+            inputDef,
+            outputDef,
+            "FOO");
 
     RunSet testRunSet =
         new RunSet(
@@ -90,20 +131,37 @@ public class TestRunSetDao {
             "A test run set for the db",
             Boolean.TRUE,
             CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
+            OffsetDateTime.parse(time),
+            OffsetDateTime.parse(time),
+            OffsetDateTime.parse(time),
             1,
             0,
             inputDef,
             outputDef,
             "TESTFOO");
 
-    runSetDao.createRunSet(testRunSet);
+    RunSet fromDb =
+        new RunSet(
+            UUID.fromString("10000000-0000-0000-0000-000000000001"),
+            methodVersion,
+            "Target workflow 1, run 1",
+            "Example run for target workflow 1",
+            true,
+            CbasRunSetStatus.COMPLETE,
+            OffsetDateTime.parse(time),
+            OffsetDateTime.parse(time),
+            OffsetDateTime.parse(time),
+            1,
+            0,
+            inputDef,
+            outputDef,
+            "FOO");
+
+    runSetDao.createRunSet(fromDb);
 
     RunSet expected = runSetDao.getRunSet(runSetId);
 
-    assertEquals(testRunSet, expected);
+    assertEquals(fromDb, expected);
   }
 
   @Test
