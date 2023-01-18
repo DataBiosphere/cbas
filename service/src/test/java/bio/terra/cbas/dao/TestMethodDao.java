@@ -7,8 +7,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,34 +17,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class TestMethodDao {
 
   @Autowired MethodDao methodDao;
-  UUID methodId = UUID.randomUUID();
-  String time = "2023-01-13T20:19:41.400292Z";
-
-  String name = "test method";
-  String description = "test method for the db";
-  Method dbMethod =
-      new Method(methodId, name, description, OffsetDateTime.parse(time), null, "Github");
-
-  @BeforeEach
-  void setUp() {
-    methodDao.createMethod(dbMethod);
-  }
-
-  @AfterEach
-  void cleanup() {
-    methodDao.deleteMethod(dbMethod);
-  }
+  UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
   @Test
   void retrievesSingleMethod() {
     Method testMethod =
         new Method(
             methodId,
-            "test method",
-            "test method for the db",
-            OffsetDateTime.parse(time),
+            "Target workflow 2",
+            "Add description",
+            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
             null,
-            "Github");
+            "Dockstore-Github");
 
     Method expected = methodDao.getMethod(methodId);
     assertEquals(testMethod, expected);
@@ -93,14 +75,6 @@ public class TestMethodDao {
             "Github"));
     allMethods.add(
         new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000001"),
-            "Target Workflow 1",
-            "Target Workflow 1",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
-            UUID.fromString("38f81886-611b-4900-b960-b41aaecc1df4"),
-            "Github"));
-    allMethods.add(
-        new Method(
             UUID.fromString("00000000-0000-0000-0000-000000000006"),
             "sarscov2_nextstrain",
             "sarscov2_nextstrain / Target Workflow 3",
@@ -109,16 +83,24 @@ public class TestMethodDao {
             "Github"));
     allMethods.add(
         new Method(
-            dbMethod.method_id(),
-            dbMethod.name(),
-            dbMethod.description(),
-            OffsetDateTime.parse(time),
+            UUID.fromString("00000000-0000-0000-0000-000000000001"),
+            "Target Workflow 1",
+            "Target Workflow 1",
+            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
+            null,
+            "Github"));
+    allMethods.add(
+        new Method(
+            UUID.fromString("00000000-0000-0000-0000-000000000005"),
+            "assemble_refbased",
+            "assemble_refbased / Target Workflow 2",
+            OffsetDateTime.parse("2023-01-18T21:59:40.528573Z"),
             null,
             "Github"));
 
     List<Method> actual = methodDao.getMethods();
 
     assertEquals(allMethods, actual);
-    // assertEquals(6, actual.size());
+    assertEquals(7, actual.size());
   }
 }

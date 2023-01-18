@@ -9,8 +9,6 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,54 +116,6 @@ public class TestRunSetDao {
             ]
             """;
 
-  //  Method method =
-  //      new Method(
-  //          methodId, "test method", "a test method", OffsetDateTime.parse(time), null, "Github");
-
-  //  MethodVersion methodVersion =
-  //      new MethodVersion(
-  //          methodVersionId,
-  //          method,
-  //          "1.0",
-  //          "a test method version",
-  //          OffsetDateTime.now(),
-  //          null,
-  //          "https://hello.wdl");
-
-  //  RunSet runSet =
-  //      new RunSet(
-  //          runSetId,
-  //          methodVersion,
-  //          "Test run",
-  //          "a test run set",
-  //          false,
-  //          CbasRunSetStatus.COMPLETE,
-  //          OffsetDateTime.parse(time),
-  //          OffsetDateTime.parse(time),
-  //          OffsetDateTime.parse(time),
-  //          1,
-  //          0,
-  //          inputDef,
-  //          outputDef,
-  //          "FOO");
-
-  @BeforeEach
-  void setUp() {
-
-    // methodDao.createMethod(method);
-
-    // methodVersionDao.createMethodVersion(methodVersion);
-
-    // runSetDao.createRunSet(runSet);
-  }
-
-  @AfterEach
-  void cleanUp() {
-    // methodDao.deleteMethod(method);
-    //    methodVersionDao.deleteMethodVersion(methodVersion);
-    //    runSetDao.deleteRunSet(runSet);
-  }
-
   @Test
   void retrievesSingleRunSet() {
 
@@ -201,7 +151,7 @@ public class TestRunSetDao {
             OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
             0,
             0,
-            inputDef + "\n",
+            inputDef + "\n", // Compensating for the additional newline the db stores
             outputDef,
             "FOO");
 
@@ -214,7 +164,6 @@ public class TestRunSetDao {
   void retrievesAllRunSets() {
 
     List<RunSet> runSets = runSetDao.getRunSets();
-
-    assertEquals(6, runSets.size());
+    assertEquals(7, runSets.size());
   }
 }

@@ -49,7 +49,7 @@ public class TestMethodVersionDao {
   }
 
   @Test
-  void retrievesAllMethodVersions() {
+  void retrievesMethodVersionsForMethod() {
 
     List<MethodVersion> methodVersions = new ArrayList<>();
 
@@ -66,5 +66,6 @@ public class TestMethodVersionDao {
     List<MethodVersion> actual = methodVersionDao.getMethodVersionsForMethod(dbMethod);
 
     assertEquals(methodVersions, actual);
+    assertEquals(1, actual.size());
   }
 }
