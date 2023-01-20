@@ -29,3 +29,6 @@ databaseChangeLog:
   - include:
       file: changesets/20230105_run_set_prepopulation_target_workflow_3.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20230117_fetch_sra_to_bam_prepopulation.yaml
+      relativeToChangelogFile: true
