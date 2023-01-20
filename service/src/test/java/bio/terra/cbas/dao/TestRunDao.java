@@ -12,7 +12,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestRunDao {
 
   // Sort the NON_TERMINAL_STATES so that we can guarantee the order (based on enum ordination):
@@ -109,4 +113,26 @@ class TestRunDao {
             "status_5", "CANCELING"),
         actual.params());
   }
+
+  //  @Test
+  //  void createsNewRun() {
+  //    UUID runId = UUID.randomUUID();
+  //    String engineId = UUID.randomUUID().toString();
+  //    OffsetDateTime time = OffsetDateTime.now();
+  ////    RunSet runSet = new RunSet(
+  ////
+  ////    );
+  //
+  //    Run newRun = new Run(
+  //        runId,
+  //        engineId,
+  //        runSet,
+  //        "FOO1",
+  //        time,
+  //        CbasRunStatus.COMPLETE,
+  //        time,
+  //        time,
+  //        null
+  //    );
+  //  }
 }
