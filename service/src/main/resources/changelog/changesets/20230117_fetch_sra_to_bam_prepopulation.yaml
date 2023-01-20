@@ -14,7 +14,7 @@ databaseChangeLog:
                   value: fetch_sra_to_bam
               - column:
                   name: description
-                  value: fetch_sra_to_bam / Target Workflow 4
+                  value: fetch_sra_to_bam
               - column:
                   name: created
                   valueDate: "CURRENT_TIMESTAMP()"
