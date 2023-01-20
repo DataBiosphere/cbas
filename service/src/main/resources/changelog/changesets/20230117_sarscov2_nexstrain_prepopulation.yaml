@@ -14,7 +14,7 @@ databaseChangeLog:
                   value: sarscov2_nextstrain
               - column:
                   name: description
-                  value: sarscov2_nextstrain / Target Workflow 3
+                  value: sarscov2_nextstrain
               - column:
                   name: created
                   valueDate: "CURRENT_TIMESTAMP()"
