@@ -14,7 +14,7 @@ databaseChangeLog:
                   value: assemble_refbased
               - column:
                   name: description
-                  value: assemble_refbased / Target Workflow 2
+                  value: assemble_refbased
               - column:
                   name: created
                   valueDate: "CURRENT_TIMESTAMP()"
