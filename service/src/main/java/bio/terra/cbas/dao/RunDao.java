@@ -61,7 +61,8 @@ public class RunDao {
         .collect(Collectors.toMap(Pair::a, Pair::b));
   }
 
-  public int updateRunStatus(UUID runId, CbasRunStatus newStatus) {
+  public int updateRunStatus(
+      UUID runId, CbasRunStatus newStatus, OffsetDateTime lastModifiedTimestamp) {
     OffsetDateTime currentTimestamp = DateUtils.currentTimeInUTC();
     String sql =
         "UPDATE run SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp WHERE run_id = :run_id";
@@ -74,7 +75,7 @@ public class RunDao {
                 Run.STATUS_COL,
                 newStatus.toString(),
                 Run.LAST_MODIFIED_TIMESTAMP_COL,
-                currentTimestamp,
+                lastModifiedTimestamp,
                 Run.LAST_POLLED_TIMESTAMP_COL,
                 currentTimestamp)));
   }
