@@ -23,12 +23,13 @@ public class RunSetDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public List<RunSet> getRunSets() {
+  public List<RunSet> getRunSets(Integer pageSize) {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-            + "INNER JOIN method on method_version.method_id = method.method_id";
-    return jdbcTemplate.query(sql, new RunSetMapper());
+            + "INNER JOIN method on method_version.method_id = method.method_id GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id ORDER BY MIN(run_set.submission_timestamp) DESC LIMIT :pageSize";
+    return jdbcTemplate.query(
+        sql, new MapSqlParameterSource("pageSize", pageSize), new RunSetMapper());
   }
 
   public RunSet getRunSet(UUID runSetId) {
@@ -36,9 +37,25 @@ public class RunSetDao {
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE run_set_id = :runSetId";
+            + "WHERE run_set.run_set_id = :runSetId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
+            + "ORDER BY MIN(run_set.submission_timestamp) DESC";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
+        .get(0);
+  }
+
+  public RunSet getRunSetWithMethodId(UUID methodId, Integer pageSize) {
+    String sql =
+        "SELECT * FROM run_set "
+            + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+            + "INNER JOIN method on method_version.method_id = method.method_id "
+            + "WHERE method.method_id = :methodId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
+            + "ORDER BY MIN(run_set.submission_timestamp) DESC LIMIT :pageSize";
+    return jdbcTemplate
+        .query(
+            sql,
+            new MapSqlParameterSource(Map.of("methodId", methodId, "pageSize", pageSize)),
+            new RunSetMapper())
         .get(0);
   }
 
