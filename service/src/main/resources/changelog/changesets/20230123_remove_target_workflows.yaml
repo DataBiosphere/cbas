@@ -12,4 +12,33 @@ databaseChangeLog:
         - delete:
             tableName: method
             where: name = 'Target workflow 2'
+
         - delete:
+            tableName: run_set
+            where: run_set_name = 'Target workflow 1, run 1'
+        - delete:
+            tableName: method_version
+            where: method_version_description = 'First version of target workflow 1'
+        - delete:
+            tableName: method
+            where: name = 'Target Workflow 1'
+
+        - delete:
+            tableName: run_set
+            where: run_set_name = 'Target workflow 4, run 1'
+        - delete:
+            tableName: method_version
+            where: method_version_description = 'First version of target workflow 4'
+        - delete:
+            tableName: method
+            where: name = 'Target Workflow 4'
+
+        - delete:
+            tableName: run_set
+            where: run_set_name = 'Target workflow 3, run 1'
+        - delete:
+            tableName: method_version
+            where: method_version_description = 'First version of target workflow 3'
+        - delete:
+            tableName: method
+            where: name = 'Target workflow 3'
