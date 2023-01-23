@@ -112,7 +112,7 @@ public class RunSetsApiController implements RunSetsApi {
     RunSetListResponse response;
 
     if (methodId != null) {
-      List<RunSet> filteredRunSet = Collections.singletonList(runSetDao.getRunSet(methodId));
+      List<RunSet> filteredRunSet = Collections.singletonList(runSetDao.getRunSetWithMethod(methodId));
       updatedRunSets = smartRunSetsPoller.updateRunSets(filteredRunSet);
       List<RunSetDetailsResponse> filteredRunSetDetails =
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
