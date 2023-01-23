@@ -29,6 +29,23 @@ public final class StockOutputDefinitions {
     return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
   }
 
+  public static WorkflowOutputDefinition primitiveOutputDefinitionToNone(
+      String outputName, String outputType) throws Exception {
+    String rawOutputDefinition =
+        """
+        {
+          "output_name":"%s",
+          "output_type": { "type": "primitive", "primitive_type": "%s" },
+          "destination": { "type": "none" }
+        }
+        """
+            .formatted(outputName, outputType)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
+  }
+
   public static WorkflowOutputDefinition optionalOutputDefinition(
       String outputName, String innerOutputType, String recordAttribute) throws Exception {
     String rawOutputDefinition =

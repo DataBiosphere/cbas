@@ -3,6 +3,7 @@ package bio.terra.cbas.runsets.outputs;
 import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.multipleCromwellOutputs;
 import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.singleCromwellOutput;
 import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.primitiveOutputDefinition;
+import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.primitiveOutputDefinitionToNone;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -133,6 +134,24 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
     expected.put("foo_rating", 8.5);
+
+    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void oneUsedAndOneIgnoredOutput() throws Exception {
+    List<WorkflowOutputDefinition> outputDefinitions =
+        List.of(
+            primitiveOutputDefinition("myWorkflow.name", "String", "foo_name"),
+            primitiveOutputDefinitionToNone("myWorkflow.rating", "Float"));
+
+    Object cromwellOutputs =
+        multipleCromwellOutputs(
+            Map.of("myWorkflow.name", "\"Harry Potter\"", "myWorkflow.rating", "8.5"));
+
+    RecordAttributes expected = new RecordAttributes();
+    expected.put("foo_name", "Harry Potter");
 
     RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
     assertEquals(expected, actual);
