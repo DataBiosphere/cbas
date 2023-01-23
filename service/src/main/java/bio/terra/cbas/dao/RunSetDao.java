@@ -31,14 +31,14 @@ public class RunSetDao {
     return jdbcTemplate.query(sql, new RunSetMapper());
   }
 
-  public RunSet getRunSet(UUID runSetId) {
+  public RunSet getRunSet(UUID methodId) {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE run_set_id = :runSetId";
+            + "WHERE method.method_id = :methodId";
     return jdbcTemplate
-        .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
+        .query(sql, new MapSqlParameterSource("methodId", methodId), new RunSetMapper())
         .get(0);
   }
 
