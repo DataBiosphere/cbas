@@ -27,7 +27,7 @@ public class RunSetDao {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-            + "INNER JOIN method on method_version.method_id = method.method_id";
+            + "INNER JOIN method on method_version.method_id = method.method_id GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id ORDER BY MIN(run_set.submission_timestamp) DESC";
     return jdbcTemplate.query(sql, new RunSetMapper());
   }
 
@@ -36,7 +36,8 @@ public class RunSetDao {
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE method.method_id = :methodId";
+            + "WHERE method.method_id = :methodId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
+            + "ORDER BY MIN(run_set.submission_timestamp) DESC";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("methodId", methodId), new RunSetMapper())
         .get(0);
