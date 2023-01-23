@@ -30,6 +30,9 @@ databaseChangeLog:
       file: changesets/20230105_run_set_prepopulation_target_workflow_3.yaml
       relativeToChangelogFile: true
   - include:
+      file: changesets/20230118_assemble_refbased_prepopulation.yaml
+      relativeToChangelogFile: true
+  - include:
       file: changesets/20230117_sarscov2_nexstrain_prepopulation.yaml
       relativeToChangelogFile: true
   - include:

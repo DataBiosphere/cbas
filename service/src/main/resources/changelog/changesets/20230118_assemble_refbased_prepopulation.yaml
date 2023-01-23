@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: "method/run_set/method_version prepopulation for sarscov2_nextstrain"
+      id: "method prepopulation for assemble_refbased"
       author: kpierre
       changes:
         - insert:
@@ -8,13 +8,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: method_id
-                  value: 00000000-0000-0000-0000-000000000006
+                  value: 00000000-0000-0000-0000-000000000005
               - column:
                   name: name
-                  value: sarscov2_nextstrain
+                  value: assemble_refbased
               - column:
                   name: description
-                  value: sarscov2_nextstrain
+                  value: assemble_refbased
               - column:
                   name: created
                   valueDate: "CURRENT_TIMESTAMP()"
@@ -29,37 +29,37 @@ databaseChangeLog:
             columns:
               - column:
                   name: method_version_id
-                  value: 60000000-0000-0000-0000-000000000006
+                  value: 50000000-0000-0000-0000-000000000005
               - column:
                   name: method_id
-                  value: 00000000-0000-0000-0000-000000000006
+                  value: 00000000-0000-0000-0000-000000000005
               - column:
                   name: method_version_name
                   value: '1.0'
               - column:
                   name: method_version_description
-                  value: 'sarscov2_nextstrain sample submission'
+                  value: 'assemble_refbased sample submission'
               - column:
                   name: method_version_url
-                  value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/sarscov2_nextstrain.wdl'
+                  value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl'
         - insert:
             tableName: run_set
             columns:
               - column:
                   name: run_set_id
-                  value: 10000000-0000-0000-0000-000000000006
+                  value: 10000000-0000-0000-0000-000000000005
               - column:
                   name: method_version_id
-                  value: 60000000-0000-0000-0000-000000000006
+                  value: 50000000-0000-0000-0000-000000000005
               - column:
                   name: is_template
                   value: true
               - column:
                   name: run_set_name
-                  value: sarscov2_nextstrain workflow
+                  value: assemble_refbased workflow
               - column:
                   name: run_set_description
-                  value: "sarscov2_nextstrain sample submission"
+                  value: "assemble_refbased sample submission"
               - column:
                   name: status
                   value: COMPLETE
@@ -90,7 +90,7 @@ databaseChangeLog:
                           "type": "record_lookup",
                           "record_attribute": "sarscov2_nextstrain_export_auspice_json_maintainers"
                         }
-                    },
+                      },
                       {
                         "input_name": "sarscov2_nextstrain.translate_augur_tree.genes",
                         "input_type": {
@@ -1462,7 +1462,6 @@ databaseChangeLog:
                           "record_attribute": "sarscov2_nextstrain_export_auspice_json_machine_mem_gb"
                         }
                       }
-
                     ]
               - column:
                   name: output_definition
@@ -1475,7 +1474,7 @@ databaseChangeLog:
                           "primitive_type": "File"
                         },
                         "record_attribute": "sarscov2_nextstrain_masked_alignment"
-                    },
+                      },
                       {
                         "output_name": "sarscov2_nextstrain.time_tree",
                         "output_type": {
@@ -1595,4 +1594,4 @@ databaseChangeLog:
                     ]
               - column:
                   name: record_type
-                  value: nextstrain_mass_test
+                  value: sample

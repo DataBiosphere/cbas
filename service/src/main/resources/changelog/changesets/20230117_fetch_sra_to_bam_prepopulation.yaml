@@ -38,7 +38,7 @@ databaseChangeLog:
                   value: '1.0'
               - column:
                   name: method_version_description
-                  value: 'Target workflow fetch_sra_to_bam'
+                  value: 'fetch_sra_to_bam sample submission'
               - column:
                   name: method_version_url
                   value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl'
@@ -59,7 +59,7 @@ databaseChangeLog:
                   value: fetch_sra_to_bam workflow
               - column:
                   name: run_set_description
-                  value: "fetch_sra_to_bam workflow"
+                  value: "fetch_sra_to_bam sample submission"
               - column:
                   name: status
                   value: COMPLETE
