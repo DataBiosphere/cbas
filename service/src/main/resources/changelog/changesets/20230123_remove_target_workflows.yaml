@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: "remove all target workflows"
+      author: kpierre
+      changes:
+        - delete:
+            tableName: run_set
+            where: run_set_name = 'Target workflow 2, run 1'
+        - delete:
+            tableName: method_version
+            where: method_version_description = 'First version of target workflow 2'
+        - delete:
+            tableName: method
+            where: name = 'Target workflow 2'
+        - delete:
