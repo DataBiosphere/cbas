@@ -52,17 +52,18 @@ public class CromwellService {
             null);
   }
 
-  public RunStatus runStatus(String runId) throws ApiException {
-    return cromwellClient.wesAPI().getRunStatus(runId);
-  }
-
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
-    return cromwellConfig
+    var queryResults = cromwellConfig
         .workflowsApi()
         .queryGet(
             "v1", null, null, null, null, null, List.of(runId), null, null, null, null, null, null)
         .getResults()
-        .get(0);
+
+    if (queryResults.isEmpty()) {
+      return null;
+    } else {
+      return queryResults.get(0);
+    }
   }
 
   public Object getOutputs(String id) throws ApiException {

@@ -110,13 +110,15 @@ public class SmartRunsPoller {
                 "wes/runSummary", getStatusStartNanos, getStatusSuccess);
           }
 
-          CbasRunStatus newStatus =
-              CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
-          OffsetDateTime engineChangedTimestamp =
-              Optional.ofNullable(newWorkflowSummary.getEnd())
-                  .orElse(
-                      Optional.ofNullable(newWorkflowSummary.getStart())
-                          .orElse(newWorkflowSummary.getSubmission()));
+          CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+          if (newWorkflowSummary != null) {
+            newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
+          };
+          OffsetDateTime engineChangedTimestamp = null;
+          if (newWorkflowSummary != null) {
+            engineChangedTimestamp = Optional.ofNullable(newWorkflowSummary.getEnd()).orElse(Optional.ofNullable(newWorkflowSummary.getStart()).orElse(newWorkflowSummary.getSubmission()));
+          }
+
 
           try {
             Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
