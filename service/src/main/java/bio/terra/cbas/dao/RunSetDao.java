@@ -43,7 +43,7 @@ public class RunSetDao {
         .get(0);
   }
 
-  public RunSet getRunSetWithMethod(UUID methodId) {
+  public RunSet getRunSetWithMethodId(UUID methodId) {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
