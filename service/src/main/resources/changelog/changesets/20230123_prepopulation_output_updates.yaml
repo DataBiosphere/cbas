@@ -3,10 +3,31 @@ databaseChangeLog:
       id: "prepopulation_output_updates"
       author: cjllanwarne
       changes:
+        # Update fetch_sra_to_bam:
         - update:
             tableName: run_set
             columns:
               - column:
                   name: output_definition
-                  value: 'TBD for assemble_refbased'
-            where: run_set_id='TBD for assemble_refbased'
+                  value: |
+                    [ ]
+            where: run_set_id='10000000-0000-0000-0000-000000000005'
+        # Update sarscov2_nextstrain:
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: output_definition
+                  value: |
+                    [ ]
+            where: run_set_id='10000000-0000-0000-0000-000000000006'
+        # Update assemble_refbased:
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: output_definition
+                  value: |
+                    [ ]
+            where: run_set_id='10000000-0000-0000-0000-000000000005'
+
