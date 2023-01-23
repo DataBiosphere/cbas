@@ -38,7 +38,7 @@ databaseChangeLog:
                   value: '1.0'
               - column:
                   name: method_version_description
-                  value: 'Target workflow sarscov2_nextstrain'
+                  value: 'sarscov2_nextstrain sample submission'
               - column:
                   name: method_version_url
                   value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/sarscov2_nextstrain.wdl'
@@ -59,7 +59,7 @@ databaseChangeLog:
                   value: sarscov2_nextstrain workflow
               - column:
                   name: run_set_description
-                  value: "sarscov2_nextstrain workflow"
+                  value: "sarscov2_nextstrain sample submission"
               - column:
                   name: status
                   value: COMPLETE
