@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
-import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
@@ -53,11 +52,24 @@ public class CromwellService {
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
-    var queryResults = cromwellConfig
-        .workflowsApi()
-        .queryGet(
-            "v1", null, null, null, null, null, List.of(runId), null, null, null, null, null, null)
-        .getResults()
+    var queryResults =
+        cromwellConfig
+            .workflowsApi()
+            .queryGet(
+                "v1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(runId),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null)
+            .getResults();
 
     if (queryResults.isEmpty()) {
       return null;

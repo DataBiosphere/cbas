@@ -113,12 +113,16 @@ public class SmartRunsPoller {
           CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
           if (newWorkflowSummary != null) {
             newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
-          };
+          }
+          ;
           OffsetDateTime engineChangedTimestamp = null;
           if (newWorkflowSummary != null) {
-            engineChangedTimestamp = Optional.ofNullable(newWorkflowSummary.getEnd()).orElse(Optional.ofNullable(newWorkflowSummary.getStart()).orElse(newWorkflowSummary.getSubmission()));
+            engineChangedTimestamp =
+                Optional.ofNullable(newWorkflowSummary.getEnd())
+                    .orElse(
+                        Optional.ofNullable(newWorkflowSummary.getStart())
+                            .orElse(newWorkflowSummary.getSubmission()));
           }
-
 
           try {
             Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
