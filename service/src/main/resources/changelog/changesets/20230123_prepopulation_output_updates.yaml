@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: "prepopulation_output_updates"
+      author: cjllanwarne
+      changes:
+        - update:
+            tableName: run_set
+            columns:
+              - column:
+                  name: output_definition
+                  value: 'TBD for assemble_refbased'
+            where: run_set_id='TBD for assemble_refbased'
