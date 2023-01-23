@@ -19,7 +19,7 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "primitive", "primitive_type": "%s" },
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, outputType, recordAttribute)
@@ -36,7 +36,7 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "%s" }},
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, innerOutputType, recordAttribute)
@@ -53,7 +53,7 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "array", "array_type": { "type": "primitive", "primitive_type": "%s" }},
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, innerOutputType, recordAttributeName)

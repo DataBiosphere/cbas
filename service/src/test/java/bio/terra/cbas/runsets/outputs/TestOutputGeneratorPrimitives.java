@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
+import bio.terra.cbas.common.exceptions.OutputProcessingException.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.runsets.types.TypeCoercionException;
 import bio.terra.cbas.runsets.types.ValueCoercionException;

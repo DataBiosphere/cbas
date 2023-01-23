@@ -5,7 +5,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 import static java.util.stream.Collectors.groupingBy;
 
-import bio.terra.cbas.common.exceptions.WorkflowOutputNotFoundException;
+import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -56,7 +56,7 @@ public class SmartRunsPoller {
   }
 
   public void updateOutputAttributes(Run run)
-      throws WorkflowOutputNotFoundException, ApiException, JsonProcessingException,
+      throws OutputProcessingException, ApiException, JsonProcessingException,
           org.databiosphere.workspacedata.client.ApiException, CoercionException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
