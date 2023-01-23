@@ -108,20 +108,18 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    List<RunSet> runSets = runSetDao.getRunSets();
-    List<RunSet> updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
+    List<RunSet> updatedRunSets;
     RunSetListResponse response;
 
     if (methodId != null) {
       List<RunSet> filteredRunSet = Collections.singletonList(runSetDao.getRunSet(methodId));
-      //      List<RunSet> filteredRunSet =
-      //          updatedRunSets.stream()
-      //              .filter(s -> s.methodVersion().method().method_id().equals(methodId))
-      //              .toList();
+      updatedRunSets = smartRunSetsPoller.updateRunSets(filteredRunSet);
       List<RunSetDetailsResponse> filteredRunSetDetails =
-          filteredRunSet.stream().map(this::convertToRunSetDetails).toList();
+          updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
       response = new RunSetListResponse().runSets(filteredRunSetDetails);
     } else {
+      List<RunSet> runSets = runSetDao.getRunSets();
+      updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
       List<RunSetDetailsResponse> runSetDetails =
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
       response = new RunSetListResponse().runSets(runSetDetails);
