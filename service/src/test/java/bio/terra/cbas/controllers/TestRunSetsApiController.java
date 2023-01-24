@@ -100,6 +100,13 @@ class TestRunSetsApiController {
               "type" : "record_lookup",
               "record_attribute" : "MY_RECORD_ATTRIBUTE"
             }
+          }, {
+            "input_name" : "myworkflow.mycall.inputname3",
+            "input_type" : {"type": "optional", "optional_type": { "type": "primitive", "primitive_type": "Int" }},
+            "source" : {
+              "type" : "none",
+              "record_attribute" : null
+            }
           } ],
           "workflow_output_definitions" : %s,
           "wds_records" : {
@@ -146,12 +153,15 @@ class TestRunSetsApiController {
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
     workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap1.put("myworkflow.mycall.inputname2", 100L);
+    workflowInputsMap1.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap2 = new HashMap<>();
     workflowInputsMap2.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap2.put("myworkflow.mycall.inputname2", 200L);
+    workflowInputsMap2.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap3 = new HashMap<>();
     workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
+    workflowInputsMap3.put("myworkflow.mycall.inputname3", null);
     String request =
         requestTemplate.formatted(
             methodVersionId,
@@ -205,7 +215,7 @@ class TestRunSetsApiController {
                 "ApiException thrown on purpose for testing purposes."));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
-
+    
     MvcResult result =
         mockMvc
             .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
