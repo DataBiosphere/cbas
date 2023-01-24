@@ -139,7 +139,7 @@ class TestRunSetsApiController {
   @Autowired private ObjectMapper objectMapper;
 
   @BeforeEach
-  void setupConnectedTests() throws Exception {
+  void setupFunctionalChecks() throws Exception {
     // set up mock request
     final int recordAttributeValue1 = 100;
     final int recordAttributeValue2 = 200;
