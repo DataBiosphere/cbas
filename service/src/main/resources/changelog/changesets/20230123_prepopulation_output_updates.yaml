@@ -144,7 +144,7 @@ databaseChangeLog:
                         }
                       }
                     ]
-            where: run_set_id='10000000-0000-0000-0000-000000000005'
+            where: run_set_id='10000000-0000-0000-0000-000000000008'
         # Update sarscov2_nextstrain:
         - update:
             tableName: run_set
