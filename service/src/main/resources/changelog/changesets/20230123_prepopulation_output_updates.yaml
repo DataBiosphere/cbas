@@ -10,7 +10,140 @@ databaseChangeLog:
               - column:
                   name: output_definition
                   value: |
-                    [ ]
+                    [
+                      {
+                        "output_name": "fetch_sra_to_bam.sra_metadata",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sra_metadata"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.reads_ubam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_reads_ubam"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.biosample_accession",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_biosample_accession"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_geo_loc",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sample_geo_loc"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collection_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sample_collection_date"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_center",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sequencing_center"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sequencing_platform"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.library_id",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_library_id"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.run_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_run_date"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collected_by",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sample_collected_by"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_strain",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sample_strain"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform_model",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "fetch_sra_to_bam_sequencing_platform_model"
+                        }
+                      }
+                    ]
             where: run_set_id='10000000-0000-0000-0000-000000000005'
         # Update sarscov2_nextstrain:
         - update:
@@ -19,7 +152,177 @@ databaseChangeLog:
               - column:
                   name: output_definition
                   value: |
-                    [ ]
+                    [
+                      {
+                        "output_name": "sarscov2_nextstrain.masked_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_masked_alignment"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.time_tree",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_time_tree"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.auspice_input_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_auspice_input_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.metadata_merged",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_metadata_merged"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.multiple_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_multiple_alignment"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.tip_frequencies_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.subsampled_sequences",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_subsampled_sequences"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.sequences_kept",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_sequences_kept"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.unmasked_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_unmasked_snps"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.node_data_jsons",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_node_data_jsons"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.keep_list",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_keep_list"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.ml_tree",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_ml_tree"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.counts_by_group",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_counts_by_group"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.root_sequence_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_root_sequence_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.combined_assemblies",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sarscov2_nextstrain_combined_assemblies"
+                        }
+                      }
+                    ]
             where: run_set_id='10000000-0000-0000-0000-000000000006'
         # Update assemble_refbased:
         - update:
@@ -28,6 +331,560 @@ databaseChangeLog:
               - column:
                   name: output_definition
                   value: |
-                    [ ]
+                    [
+                      {
+                        "output_name": "assemble_refbased.dist_to_ref_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_dist_to_ref_snps"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.primer_trimmed_read_percent",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_primer_trimmed_read_percent"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats_parsed",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_samtools_ampliconstats_parsed"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.num_libraries",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_num_libraries"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_fasta",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_assembly_fasta"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats_tsv",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            },
+                            "non_empty": false
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_ivar_trim_stats_tsv"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_insert_size",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_picard_metrics_insert_size"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_assembly_mean_coverage"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_method",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_assembly_method"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_mean_coverage"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_coverage_plot"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_isnvs_vcf"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_bases_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_replicate_discordant_snps"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_replicate_discordant_vcf"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_read_pairs_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_reads_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_tsv",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_tsv"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.primer_trimmed_read_count",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_primer_trimmed_read_count"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_ivar_trim_stats"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_viral_core_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_viral_core_version"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_ivar_version"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_and_unaligned_bam",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_aligned_and_unaligned_bam"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_read_pairs_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.num_read_groups",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_num_read_groups"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_reads_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_assembly_length"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_tsv",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_coverage_tsv"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_replicate_discordant_indels"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_aligned",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_aligned_trimmed_only_bam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_aligned_trimmed_only_bam"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_variants_vcf_gz",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_variants_vcf_gz"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_aligned_flagstat",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_per_input_aligned_flagstat"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_picard_metrics_alignment"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_plot"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.reference_genome_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_reference_genome_length"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_fastqc",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_fastqc"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_wgs",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_picard_metrics_wgs"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_isnvs_vcf"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_merged_bases_aligned"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_provided",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_provided"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length_unambiguous",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_assembly_length_unambiguous"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.viral_assemble_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_viral_assemble_version"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_only_bam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_align_to_self_merged_aligned_only_bam"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.dist_to_ref_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_dist_to_ref_indels"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_concordant_sites",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_replicate_concordant_sites"
+                        }
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "assemble_refbased_samtools_ampliconstats"
+                        }
+                      }
+                    ]
             where: run_set_id='10000000-0000-0000-0000-000000000005'
 
