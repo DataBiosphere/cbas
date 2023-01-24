@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,10 @@ class TestRunSetsApiController {
               "type" : "record_lookup",
               "record_attribute" : "MY_RECORD_ATTRIBUTE"
             }
+          }, {
+            "input_name" : "myworkflow.mycall.inputname3",
+            "input_type" : { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "Int" }},
+            "source" : %s
           } ],
           "workflow_output_definitions" : %s,
           "wds_records" : {
@@ -108,6 +113,13 @@ class TestRunSetsApiController {
           }
         }
         """;
+
+  final String recordId1 = "MY_RECORD_ID_1";
+  final String recordId2 = "MY_RECORD_ID_2";
+  final String recordId3 = "MY_RECORD_ID_3";
+
+  final String cromwellWorkflowId1 = UUID.randomUUID().toString();
+  final String cromwellWorkflowId3 = UUID.randomUUID().toString();
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -126,12 +138,9 @@ class TestRunSetsApiController {
   // tests:
   @Autowired private ObjectMapper objectMapper;
 
-  @Test
-  void runSetWith1FailedRunTest() throws Exception {
+  @BeforeEach
+  void setupFunctionalChecks() throws Exception {
     // set up mock request
-    final String recordId1 = "MY_RECORD_ID_1";
-    final String recordId2 = "MY_RECORD_ID_2";
-    final String recordId3 = "MY_RECORD_ID_3";
     final int recordAttributeValue1 = 100;
     final int recordAttributeValue2 = 200;
     final int recordAttributeValue3 = 300;
@@ -141,23 +150,19 @@ class TestRunSetsApiController {
     recordAttributes2.put(recordAttribute, recordAttributeValue2);
     RecordAttributes recordAttributes3 = new RecordAttributes();
     recordAttributes3.put(recordAttribute, recordAttributeValue3);
-    final String cromwellWorkflowId1 = UUID.randomUUID().toString();
-    final String cromwellWorkflowId3 = UUID.randomUUID().toString();
+
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
     workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap1.put("myworkflow.mycall.inputname2", 100L);
+    workflowInputsMap1.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap2 = new HashMap<>();
     workflowInputsMap2.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap2.put("myworkflow.mycall.inputname2", 200L);
+    workflowInputsMap2.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap3 = new HashMap<>();
     workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
-    String request =
-        requestTemplate.formatted(
-            methodVersionId,
-            outputDefinitionAsString,
-            recordType,
-            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+    workflowInputsMap3.put("myworkflow.mycall.inputname3", null);
 
     when(methodDao.getMethod(methodId))
         .thenReturn(
@@ -205,6 +210,18 @@ class TestRunSetsApiController {
                 "ApiException thrown on purpose for testing purposes."));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
+  }
+
+  @Test
+  void runSetWith1FailedRunTest() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
     MvcResult result =
         mockMvc
@@ -255,12 +272,86 @@ class TestRunSetsApiController {
   }
 
   @Test
+  void runSetOptionalSourceNone() throws Exception {
+    String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String requestOptionalNone =
+        requestTemplate.formatted(
+            methodVersionId,
+            inputSourceAsString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    MvcResult resultOptionalNone =
+        mockMvc
+            .perform(post(API).content(requestOptionalNone).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse responseOptionalNone =
+        objectMapper.readValue(
+            resultOptionalNone.getResponse().getContentAsString(), RunSetStateResponse.class);
+  }
+
+  @Test
+  void runSetOptionalSourceRecordLookup() throws Exception {
+    String inputSourceAsString = "{ \"type\" : \"record_lookup\", \"record_attribute\" : 101 }";
+    String requestOptionalRecordLookup =
+        requestTemplate.formatted(
+            methodVersionId,
+            inputSourceAsString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    MvcResult resultOptionalRecordLookup =
+        mockMvc
+            .perform(
+                post(API)
+                    .content(requestOptionalRecordLookup)
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse responseOptionalRecordLookup =
+        objectMapper.readValue(
+            resultOptionalRecordLookup.getResponse().getContentAsString(),
+            RunSetStateResponse.class);
+  }
+
+  @Test
+  void runSetOptionalSourceLiteral() throws Exception {
+    String inputSourceAsString = "{ \"type\" : \"literal\", \"value\" : 102 }";
+    String requestOptionalLiteral =
+        requestTemplate.formatted(
+            methodVersionId,
+            inputSourceAsString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    MvcResult resultOptionalLiteral =
+        mockMvc
+            .perform(
+                post(API).content(requestOptionalLiteral).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse responseOptionalLiteral =
+        objectMapper.readValue(
+            resultOptionalLiteral.getResponse().getContentAsString(), RunSetStateResponse.class);
+  }
+
+  @Test
   void tooManyRecordIds() throws Exception {
     final String recordIds = "[ \"RECORD1\", \"RECORD2\", \"RECORD3\", \"RECORD4\" ]";
-    final int recordAttributeValue = 100;
-
+    String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
-        requestTemplate.formatted(workflowUrl, outputDefinitionAsString, recordType, recordIds);
+        requestTemplate.formatted(
+            workflowUrl, inputSourceAsString, outputDefinitionAsString, recordType, recordIds);
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -275,13 +366,14 @@ class TestRunSetsApiController {
     final String recordId1 = "MY_RECORD_ID_1";
     final String recordId2 = "MY_RECORD_ID_2";
     final int recordAttributeValue1 = 100;
-    final int recordAttributeValue2 = 200;
     RecordAttributes recordAttributes1 = new RecordAttributes();
     recordAttributes1.put(recordAttribute, recordAttributeValue1);
 
+    String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
             methodVersionId,
+            inputSourceAsString,
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));

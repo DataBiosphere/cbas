@@ -36,6 +36,8 @@ public class InputGenerator {
       Object parameterValue;
       if (param.getSource().getType() == ParameterDefinition.TypeEnum.LITERAL) {
         parameterValue = ((ParameterDefinitionLiteralValue) param.getSource()).getParameterValue();
+      } else if (param.getSource().getType() == ParameterDefinition.TypeEnum.NONE) {
+        parameterValue = null;
       } else {
         String attributeName =
             ((ParameterDefinitionRecordLookup) param.getSource()).getRecordAttribute();

@@ -69,6 +69,24 @@ public final class StockInputDefinitions {
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
+  public static WorkflowInputDefinition inputDefinitionWithOptionalNoneParameter(
+      String parameterType) throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "%s" }},
+          "source": {
+            "type": "none"
+          }
+        }"""
+            .formatted(parameterType)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
   public static WorkflowInputDefinition inputDefinitionWithArrayFooRatingParameter(
       Boolean nonEmpty, String arrayInnerType) throws JsonProcessingException {
     String paramDefinitionJson =
