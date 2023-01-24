@@ -74,39 +74,7 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.maintainers",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "primitive",
-                              "primitive_type": "String"
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_maintainers"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.translate_augur_tree.genes",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_translate_augur_tree_genes"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.docker",
+                        "input_name": "assemble_refbased.plot_self_coverage.binning_summary_statistic",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -116,102 +84,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_docker"
+                          "record_attribute": "assemble_refbased_plot_self_coverage_binning_summary_statistic"
                         }
-                      },
+                    },
                       {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits.confidence",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_confidence"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.nextstrain_ncov_defaults.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_nextstrain_ncov_defaults_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tsv_join.prefer_first",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tsv_join_prefer_first"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.method",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_method"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits.sampling_bias_correction",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_sampling_bias_correction"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.derived_cols.table_map",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "optional",
-                              "optional_type": {
-                                "type": "primitive",
-                                "primitive_type": "File"
-                              }
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_derived_cols_table_map"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.cpus",
+                        "input_name": "assemble_refbased.plot_ref_coverage.base_q_threshold",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -221,25 +98,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_cpus"
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_base_q_threshold"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.subsample.machine_mem_gb",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_machine_mem_gb"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.vcf_reference",
+                        "input_name": "assemble_refbased.novocraft_license",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -249,1105 +112,22 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_vcf_reference"
+                          "record_attribute": "assemble_refbased_novocraft_license"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.subsample.nextstrain_ncov_repo_commit",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_nextstrain_ncov_repo_commit"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.subsample.drop_list",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_drop_list"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.output_vcf",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_output_vcf"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.derived_cols.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_derived_cols_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.assembly_fastas",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "optional",
-                              "optional_type": {
-                                "type": "primitive",
-                                "primitive_type": "File"
-                              }
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_assembly_fastas"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.snp_sites.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_snp_sites_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_std_dev",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_clock_std_dev"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.colors_tsv",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_colors_tsv"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.remove_reference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_remove_reference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.tree_builder_args",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_tree_builder_args"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.filter_sequences_by_length.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_filter_sequences_by_length_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_filter_iqd",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_clock_filter_iqd"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.dedup_seqs.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_dedup_seqs_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tree_root_seq_id",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tree_root_seq_id"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.batch_chunk_size",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_batch_chunk_size"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.description_md",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_description_md"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.clades_tsv",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_clades_tsv"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.vcf_reference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_vcf_reference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.inertia",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_inertia"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.covariance",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_covariance"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.nextstrain_ncov_defaults.nextstrain_ncov_repo_commit",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_nextstrain_ncov_defaults_nextstrain_ncov_repo_commit"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.date_confidence",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_date_confidence"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.method",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_method"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.keep_root",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_keep_root"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.gen_per_year",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_gen_per_year"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.max_date",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_max_date"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.infer_ambiguous",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_infer_ambiguous"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.include_root_sequence",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_include_root_sequence"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.precision",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_precision"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_rate",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_clock_rate"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.snp_sites.allow_wildcard_bases",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_snp_sites_allow_wildcard_bases"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.geo_resolutions",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "primitive",
-                              "primitive_type": "String"
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_geo_resolutions"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.branch_length_inference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_branch_length_inference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.date_inference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_date_inference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.translate_augur_tree.vcf_reference_output",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_translate_augur_tree_vcf_reference_output"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits.machine_mem_gb",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_machine_mem_gb"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.assign_clades_to_nodes.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_assign_clades_to_nodes_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.exclude_sites",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_exclude_sites"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.stiffness",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_stiffness"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.zcat.cpus",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_zcat_cpus"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.sample_metadata_tsvs",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "optional",
-                              "optional_type": {
-                                "type": "primitive",
-                                "primitive_type": "File"
-                              }
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_sample_metadata_tsvs"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.title",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_title"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.build_name",
-                        "input_type": {
-                          "type": "primitive",
-                          "primitive_type": "String"
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_build_name"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.inference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_inference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.include_internal_nodes",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_include_internal_nodes"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.augur_mask_sites.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_augur_mask_sites_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.keep_overhangs",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_keep_overhangs"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits.weights",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_weights"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.keep_polytomies",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_keep_polytomies"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.dedup_seqs.error_on_seq_diff",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_dedup_seqs_error_on_seq_diff"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.wide_bandwidth",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_wide_bandwidth"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.augur_mask_sites.mask_bed",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_augur_mask_sites_mask_bed"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.substitution_model",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_substitution_model"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.coalescent",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_coalescent"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.mem_size",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_mem_size"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.subsample.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.min_unambig_genome",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_min_unambig_genome"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.subsample.keep_list",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_keep_list"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.lat_longs_tsv",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_lat_longs_tsv"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.translate_augur_tree.docker",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_translate_augur_tree_docker"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.color_by_metadata",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "primitive",
-                              "primitive_type": "String"
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_color_by_metadata"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.vcf_reference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_vcf_reference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.subsample.parameters_yaml",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_subsample_parameters_yaml"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.minimal_frequency",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Float"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_minimal_frequency"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ref_fasta",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ref_fasta"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.ancestral_tree.keep_ambiguous",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_tree_keep_ambiguous"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.mafft.threads_per_job",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Int"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_mafft_threads_per_job"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.derived_cols.lab_highlight_loc",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_derived_cols_lab_highlight_loc"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.censored",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "Boolean"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_censored"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.translate_augur_tree.vcf_reference",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "File"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_translate_augur_tree_vcf_reference"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.builds_yaml",
+                        "input_name": "assemble_refbased.reference_fasta",
                         "input_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_builds_yaml"
+                          "record_attribute": "assemble_refbased_reference_fasta"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.tip_frequencies.machine_mem_gb",
+                        "input_name": "assemble_refbased.alignment_metrics.max_amp_len",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1357,11 +137,40 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tip_frequencies_machine_mem_gb"
+                          "record_attribute": "assemble_refbased_alignment_metrics_max_amp_len"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.auspice_config",
+                        "input_name": "assemble_refbased.plot_self_coverage.max_coverage_depth",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_max_coverage_depth"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.reads_unmapped_bams",
+                        "input_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": true
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_reads_unmapped_bams"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.trim_coords_bed",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1371,25 +180,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_auspice_config"
+                          "record_attribute": "assemble_refbased_trim_coords_bed"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.refine_augur_tree.divergence_units",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
-                          }
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_refine_augur_tree_divergence_units"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.draft_augur_tree.cpus",
+                        "input_name": "assemble_refbased.ivar_trim.primer_offset",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1399,29 +194,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_draft_augur_tree_cpus"
+                          "record_attribute": "assemble_refbased_ivar_trim_primer_offset"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.ancestral_traits_to_infer",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "primitive",
-                              "primitive_type": "String"
-                            }
-                          },
-                          "non_empty": false
-                        },
-                        "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_ancestral_traits_to_infer"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.dedup_seqs.nextstrain_ncov_repo_commit",
+                        "input_name": "assemble_refbased.align_to_self.docker",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1431,11 +208,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_dedup_seqs_nextstrain_ncov_repo_commit"
+                          "record_attribute": "assemble_refbased_align_to_self_docker"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.tsv_join.out_suffix",
+                        "input_name": "assemble_refbased.plot_ref_coverage.plotYLimits",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1445,11 +222,11 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_tsv_join_out_suffix"
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plotYLimits"
                         }
                       },
                       {
-                        "input_name": "sarscov2_nextstrain.export_auspice_json.machine_mem_gb",
+                        "input_name": "assemble_refbased.plot_self_coverage.mapping_q_threshold",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -1459,7 +236,763 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "record_lookup",
-                          "record_attribute": "sarscov2_nextstrain_export_auspice_json_machine_mem_gb"
+                          "record_attribute": "assemble_refbased_plot_self_coverage_mapping_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.run_discordance.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_run_discordance_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.max_amplicons",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_max_amplicons"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.mapping_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_mapping_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.read_length_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_read_length_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.binning_summary_statistic",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_binning_summary_statistic"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_pixels_per_inch",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_pixels_per_inch"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.mark_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_mark_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plotYLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plotYLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_only_non_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_only_non_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_self.reheader_table",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_self_reheader_table"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_height_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_height_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_self.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_self_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plotXLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plotXLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.major_cutoff",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_major_cutoff"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.amplicon_set",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_amplicon_set"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.aligner",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_aligner"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_self.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_self_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_width_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_width_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.bin_large_plots",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_bin_large_plots"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_ref.reheader_table",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_ref_reheader_table"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.sliding_window",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_sliding_window"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.min_quality",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_min_quality"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.min_coverage",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_min_coverage"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.max_coverage_depth",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_max_coverage_depth"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_width_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_width_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plotXLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plotXLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.base_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_base_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_ref_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.bin_large_plots",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_bin_large_plots"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_self.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_self_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_only_non_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_only_non_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_self.out_basename",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_self_out_basename"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_self.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_self_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_pixels_per_inch",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_pixels_per_inch"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_height_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_height_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_ref.out_basename",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_ref_out_basename"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_ref_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.min_keep_length",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_min_keep_length"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.read_length_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_read_length_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_docker"
                         }
                       }
                     ]
@@ -1468,79 +1001,195 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "output_name": "sarscov2_nextstrain.masked_alignment",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_masked_alignment"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.time_tree",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_time_tree"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.auspice_input_json",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_auspice_input_json"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.metadata_merged",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_metadata_merged"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.multiple_alignment",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_multiple_alignment"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.tip_frequencies_json",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_tip_frequencies_json"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.subsampled_sequences",
-                        "output_type": {
-                          "type": "primitive",
-                          "primitive_type": "File"
-                        },
-                        "record_attribute": "sarscov2_nextstrain_subsampled_sequences"
-                      },
-                      {
-                        "output_name": "sarscov2_nextstrain.sequences_kept",
+                        "output_name": "assemble_refbased.dist_to_ref_snps",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "Int"
                         },
-                        "record_attribute": "sarscov2_nextstrain_sequences_kept"
+                        "record_attribute": "assemble_refbased_dist_to_ref_snps"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.unmasked_snps",
+                        "output_name": "assemble_refbased.primer_trimmed_read_percent",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_primer_trimmed_read_percent"
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats_parsed",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sarscov2_nextstrain_unmasked_snps"
+                        "record_attribute": "assemble_refbased_samtools_ampliconstats_parsed"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.node_data_jsons",
+                        "output_name": "assemble_refbased.num_libraries",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_num_libraries"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_fasta",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_fasta"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats_tsv",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            },
+                            "non_empty": false
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_ivar_trim_stats_tsv"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_insert_size",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_insert_size"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_mean_coverage"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_mean_coverage"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_coverage_plot"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_isnvs_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_bases_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_snps"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_read_pairs_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_tsv",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_tsv"
+                      },
+                      {
+                        "output_name": "assemble_refbased.primer_trimmed_read_count",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_primer_trimmed_read_count"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_ivar_trim_stats"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_viral_core_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_viral_core_version"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "assemble_refbased_ivar_version"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_and_unaligned_bam",
                         "output_type": {
                           "type": "array",
                           "array_type": {
@@ -1549,47 +1198,215 @@ databaseChangeLog:
                           },
                           "non_empty": false
                         },
-                        "record_attribute": "sarscov2_nextstrain_node_data_jsons"
+                        "record_attribute": "assemble_refbased_align_to_self_merged_aligned_and_unaligned_bam"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.keep_list",
+                        "output_name": "assemble_refbased.align_to_ref_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_read_pairs_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.num_read_groups",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_num_read_groups"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_length"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_tsv",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sarscov2_nextstrain_keep_list"
+                        "record_attribute": "assemble_refbased_align_to_self_merged_coverage_tsv"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.ml_tree",
+                        "output_name": "assemble_refbased.replicate_discordant_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_indels"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_aligned",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_aligned_trimmed_only_bam",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sarscov2_nextstrain_ml_tree"
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_aligned_trimmed_only_bam"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.counts_by_group",
+                        "output_name": "assemble_refbased.align_to_ref_variants_vcf_gz",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_variants_vcf_gz"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_aligned_flagstat",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_aligned_flagstat"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_alignment"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_plot"
+                      },
+                      {
+                        "output_name": "assemble_refbased.reference_genome_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_reference_genome_length"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_fastqc",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_fastqc"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_wgs",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_wgs"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_isnvs_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_bases_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_provided",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_provided"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length_unambiguous",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_length_unambiguous"
+                      },
+                      {
+                        "output_name": "assemble_refbased.viral_assemble_version",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sarscov2_nextstrain_counts_by_group"
+                        "record_attribute": "assemble_refbased_viral_assemble_version"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.root_sequence_json",
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_only_bam",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sarscov2_nextstrain_root_sequence_json"
+                        "record_attribute": "assemble_refbased_align_to_self_merged_aligned_only_bam"
                       },
                       {
-                        "output_name": "sarscov2_nextstrain.combined_assemblies",
+                        "output_name": "assemble_refbased.dist_to_ref_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_dist_to_ref_indels"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_concordant_sites",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_concordant_sites"
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sarscov2_nextstrain_combined_assemblies"
+                        "record_attribute": "assemble_refbased_samtools_ampliconstats"
                       }
                     ]
               - column:
