@@ -1,6 +1,7 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOptionalFooRatingParameter;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOptionalNoneParameter;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +37,17 @@ class TestInputGeneratorBuildOptionalInputs {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")), emptyRecord());
+    Map<Object, Object> expected = new HashMap<>();
+    expected.put("lookup_foo", null);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void optionalStringNoneSource()
+      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithOptionalNoneParameter("String")), emptyRecord());
     Map<Object, Object> expected = new HashMap<>();
     expected.put("lookup_foo", null);
     assertEquals(expected, actual);
