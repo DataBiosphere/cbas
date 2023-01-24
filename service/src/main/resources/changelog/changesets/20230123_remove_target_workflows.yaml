@@ -5,40 +5,40 @@ databaseChangeLog:
       changes:
         - delete:
             tableName: run_set
-            where: run_set_name = 'Target workflow 2, run 1'
+            where: run_set_id = '10000000-0000-0000-0000-000000000002'
         - delete:
             tableName: method_version
-            where: method_version_description = 'First version of target workflow 2'
+            where: method_id = '00000000-0000-0000-0000-000000000002'
         - delete:
             tableName: method
-            where: name = 'Target workflow 2'
+            where: method_id = '00000000-0000-0000-0000-000000000002'
 
         - delete:
             tableName: run_set
-            where: run_set_name = 'Target workflow 1, run 1'
+            where: run_set_id = '10000000-0000-0000-0000-000000000001'
         - delete:
             tableName: method_version
-            where: method_version_description = 'First version of target workflow 1'
+            where: method_id = '00000000-0000-0000-0000-000000000001'
         - delete:
             tableName: method
-            where: name = 'Target Workflow 1'
+            where: method_id = '00000000-0000-0000-0000-000000000001'
 
         - delete:
             tableName: run_set
-            where: run_set_name = 'Target workflow 4, run 1'
+            where: run_set_id = '10000000-0000-0000-0000-000000000004'
         - delete:
             tableName: method_version
-            where: method_version_description = 'First version of target workflow 4'
+            where: method_id = '00000000-0000-0000-0000-000000000004'
         - delete:
             tableName: method
-            where: name = 'Target Workflow 4'
+            where: method_id = '00000000-0000-0000-0000-000000000004'
 
         - delete:
             tableName: run_set
-            where: run_set_name = 'Target workflow 3, run 1'
+            where: run_set_id = '10000000-0000-0000-0000-000000000003'
         - delete:
             tableName: method_version
-            where: method_version_description = 'First version of target workflow 3'
+            where: method_id = '00000000-0000-0000-0000-000000000003'
         - delete:
             tableName: method
-            where: name = 'Target workflow 3'
+            where: method_id = '00000000-0000-0000-0000-000000000003'
