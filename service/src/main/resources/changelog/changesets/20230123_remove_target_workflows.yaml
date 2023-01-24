@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: "remove all target workflows"
+      author: kpierre
+      changes:
+        - delete:
+            tableName: run_set
+            where: run_set_id = '10000000-0000-0000-0000-000000000002'
+        - delete:
+            tableName: method_version
+            where: method_version_id = '20000000-0000-0000-0000-000000000002'
+        - delete:
+            tableName: method
+            where: method_id = '00000000-0000-0000-0000-000000000002'
+
+        - delete:
+            tableName: run_set
+            where: run_set_id = '10000000-0000-0000-0000-000000000001'
+        - delete:
+            tableName: method_version
+            where: method_version_id = '20000000-0000-0000-0000-000000000001'
+        - delete:
+            tableName: method
+            where: method_id = '00000000-0000-0000-0000-000000000001'
+
+        - delete:
+            tableName: run_set
+            where: run_set_id = '10000000-0000-0000-0000-000000000004'
+        - delete:
+            tableName: method_version
+            where: method_version_id = '40000000-0000-0000-0000-000000000004'
+        - delete:
+            tableName: method
+            where: method_id = '00000000-0000-0000-0000-000000000004'
+
+        - delete:
+            tableName: run_set
+            where: run_set_id = '10000000-0000-0000-0000-000000000003'
+        - delete:
+            tableName: method_version
+            where: method_version_id = '30000000-0000-0000-0000-000000000003'
+        - delete:
+            tableName: method
+            where: method_id = '00000000-0000-0000-0000-000000000003'
