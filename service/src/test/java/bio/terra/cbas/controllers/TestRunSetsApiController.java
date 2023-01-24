@@ -371,7 +371,7 @@ class TestRunSetsApiController {
             "BAR");
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
-    when(runSetDao.getRunSets()).thenReturn(response);
+    when(runSetDao.getRunSets(any())).thenReturn(response);
     when(smartRunSetsPoller.updateRunSets(response)).thenReturn(response);
 
     MvcResult result =
