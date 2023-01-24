@@ -355,9 +355,6 @@ components:
       type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
-      properties:
-        parameter_value:
-          required: false
 
     RunSetStateResponse:
       type: object
