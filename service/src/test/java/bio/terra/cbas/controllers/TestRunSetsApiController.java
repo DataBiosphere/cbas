@@ -157,15 +157,12 @@ class TestRunSetsApiController {
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
     workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap1.put("myworkflow.mycall.inputname2", 100L);
-    workflowInputsMap1.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap2 = new HashMap<>();
     workflowInputsMap2.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap2.put("myworkflow.mycall.inputname2", 200L);
-    workflowInputsMap2.put("myworkflow.mycall.inputname3", null);
     HashMap<String, Object> workflowInputsMap3 = new HashMap<>();
     workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
-    workflowInputsMap3.put("myworkflow.mycall.inputname3", null);
 
     when(methodDao.getMethod(methodId))
         .thenReturn(
