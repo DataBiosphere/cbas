@@ -59,7 +59,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "sra_metadata"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sra_metadata"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.reads_ubam",
@@ -67,7 +70,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "File"
                         },
-                        "record_attribute": "reads_ubam"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "reads_ubam"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.biosample_accession",
@@ -75,7 +81,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "biosample_accession"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "biosample_accession"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sample_geo_loc",
@@ -83,7 +92,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sample_geo_loc"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_geo_loc"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sample_collection_date",
@@ -91,7 +103,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sample_collection_date"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_collection_date"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sequencing_center",
@@ -99,7 +114,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sequencing_center"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_center"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sequencing_platform",
@@ -107,7 +125,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sequencing_platform"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_platform"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.library_id",
@@ -115,7 +136,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "library_id"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "library_id"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.run_date",
@@ -123,7 +147,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "run_date"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "run_date"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sample_collected_by",
@@ -131,7 +158,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sample_collected_by"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_collected_by"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sample_strain",
@@ -139,7 +169,10 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sample_strain"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_strain"
+                        }
                       },
                       {
                         "output_name": "fetch_sra_to_bam.sequencing_platform_model",
@@ -147,6 +180,9 @@ databaseChangeLog:
                           "type": "primitive",
                           "primitive_type": "String"
                         },
-                        "record_attribute": "sequencing_platform_model"
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_platform_model"
+                        }
                       }
                     ]
