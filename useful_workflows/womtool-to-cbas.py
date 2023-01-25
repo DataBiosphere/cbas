@@ -1,5 +1,5 @@
 '''
-A script for converting the output of womtool's `inputs` command to a CBAS input definition. 
+A script for converting the output of womtool's `inputs` command to a CBAS input definition.
 This script was written (quickly) to accelerate the test and development of CBAS features,
 and should not be considered to be actively maintained. Use at your own risk.
 
@@ -44,7 +44,7 @@ def get_args():
 
 def main():
     args = get_args()
-    
+
     with open(args.womtool_file) as f:
         womtool_result = json.load(f)
         cbas_definition = [womtool_to_cbas(k, v, args.output_def) for k, v in womtool_result.items()]
@@ -62,33 +62,33 @@ def parse_default_value(womtool_string):
     return default_value
 
 
-def parse_source_spec(name, record_attribute_only=False):
+def parse_source_spec(name, output_def):
     record_attribute = name.replace('.', '_')
-    return record_attribute if record_attribute_only else {
-        "type": "record_lookup",
+    return {
+        "type": "record_lookup" if output_def == False else "record_update",
         "record_attribute": record_attribute
     }
 
 def parse_type(womtool_string):
-    # WARNING: Doesn't support type "Map" yet.    
+    # WARNING: Doesn't support type "Map" yet.
     type_matches = re.search(
         f'({ "|".join(ALL_TYPES) })(\[(.+)?\]\+?)?',
         womtool_string
     )
-    
+
     if not type_matches:
         raise ValueError(
             f"String '{womtool_string}' could not be parsed into a type specification."
         )
-        
+
     outer_type, inner_type_opts, inner_type = type_matches.groups()
     outer_type_key = outer_type.lower() if not outer_type in PRIMITIVES else "primitive"
-    
+
     type_spec = {
         "type": outer_type_key,
         f"{outer_type_key}_type": outer_type if not inner_type else parse_type(inner_type)
     }
-    
+
     # reminder: the parentheses around '(optional)' denote a capture group, not literal parentheses
     optional_match = re.search('(optional)', womtool_string)
     if optional_match:
@@ -96,7 +96,7 @@ def parse_type(womtool_string):
             "type": "optional",
             "optional_type": type_spec
         }
-    
+
     if outer_type_key == 'array':
         if not (inner_type_opts and inner_type):
             raise ValueError(
@@ -104,14 +104,14 @@ def parse_type(womtool_string):
             )
         type_spec["non_empty"] = inner_type_opts.endswith('+')
     return type_spec
-    
+
 
 def womtool_to_cbas(name, womtool_string, output_def=False):
     mode = "input" if not output_def else "output"
     definition = {
         f"{mode}_name": name,
         f"{mode}_type": parse_type(womtool_string),
-        "source" if mode == "input" else "record_attribute": parse_source_spec(name, record_attribute_only=output_def),
+        "source" if mode == "input" else "destination": parse_source_spec(name, output_def),
     }
 
     return definition

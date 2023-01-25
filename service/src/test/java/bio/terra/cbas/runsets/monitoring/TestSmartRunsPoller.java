@@ -86,7 +86,7 @@ public class TestSmartRunsPoller {
           {
             "output_name": "wf_hello.hello.salutation",
             "output_type": { "type": "primitive", "primitive_type": "String" },
-            "record_attribute": "foo_name"
+            "destination": { "type": "record_update", "record_attribute": "foo_name" }
           }
         ]
       """;

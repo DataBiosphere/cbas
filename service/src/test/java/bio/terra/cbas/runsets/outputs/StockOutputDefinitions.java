@@ -19,10 +19,27 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "primitive", "primitive_type": "%s" },
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, outputType, recordAttribute)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
+  }
+
+  public static WorkflowOutputDefinition primitiveOutputDefinitionToNone(
+      String outputName, String outputType) throws Exception {
+    String rawOutputDefinition =
+        """
+        {
+          "output_name":"%s",
+          "output_type": { "type": "primitive", "primitive_type": "%s" },
+          "destination": { "type": "none" }
+        }
+        """
+            .formatted(outputName, outputType)
             .stripIndent()
             .trim();
 
@@ -36,7 +53,7 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "%s" }},
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, innerOutputType, recordAttribute)
@@ -53,7 +70,7 @@ public final class StockOutputDefinitions {
         {
           "output_name":"%s",
           "output_type": { "type": "array", "array_type": { "type": "primitive", "primitive_type": "%s" }},
-          "record_attribute":"%s"
+          "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """
             .formatted(outputName, innerOutputType, recordAttributeName)

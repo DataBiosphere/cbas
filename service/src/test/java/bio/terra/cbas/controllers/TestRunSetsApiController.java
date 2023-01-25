@@ -80,7 +80,10 @@ class TestRunSetsApiController {
           "type" : "primitive",
           "primitive_type" : "String"
         },
-        "record_attribute" : "foo_rating"
+        "destination" : {
+          "type" : "record_update",
+          "record_attribute" : "foo_rating"
+        }
       } ]""";
 
   private final String requestTemplate =
