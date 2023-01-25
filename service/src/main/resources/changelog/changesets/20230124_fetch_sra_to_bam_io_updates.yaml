@@ -12,7 +12,7 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "input_name": "Fetch_SRA_to_BAM.SRA_ID",
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID",
                         "input_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -23,7 +23,7 @@ databaseChangeLog:
                         }
                       },
                       {
-                        "input_name": "Fetch_SRA_to_BAM.docker",
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.docker",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -36,7 +36,7 @@ databaseChangeLog:
                         }
                       },
                       {
-                        "input_name": "Fetch_SRA_to_BAM.machine_mem_gb",
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.machine_mem_gb",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
