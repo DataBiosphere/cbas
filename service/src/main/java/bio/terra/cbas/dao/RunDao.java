@@ -7,7 +7,6 @@ import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.util.Pair;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
@@ -51,14 +50,17 @@ public class RunDao {
         sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());
   }
 
-  public Map<CbasRunStatus, Integer> getRunStatusCounts(RunsFilters filters) {
+  public Map<CbasRunStatus, StatusCountRecord> getRunStatusCounts(RunsFilters filters) {
     WhereClause whereClause = filters.buildWhereClause();
     String sql =
-        "SELECT status, count(1) as status_count FROM run " + whereClause + " GROUP BY run.status";
+        "SELECT %s, count(1) as status_count, max(%s) as last_modified FROM run "
+                .formatted(Run.STATUS_COL, Run.LAST_MODIFIED_TIMESTAMP_COL)
+            + whereClause
+            + " GROUP BY run.status";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource(whereClause.params()), new StatusCountMapper())
         .stream()
-        .collect(Collectors.toMap(Pair::a, Pair::b));
+        .collect(Collectors.toMap(StatusCountRecord::status, record -> record));
   }
 
   public int updateRunStatus(
@@ -146,10 +148,15 @@ public class RunDao {
     }
   }
 
-  private static class StatusCountMapper implements RowMapper<Pair<CbasRunStatus, Integer>> {
-    public Pair<CbasRunStatus, Integer> mapRow(ResultSet rs, int rowNum) throws SQLException {
-      return new Pair<>(
-          CbasRunStatus.fromValue(rs.getString(Run.STATUS_COL)), rs.getInt("status_count"));
+  public record StatusCountRecord(
+      CbasRunStatus status, Integer count, OffsetDateTime lastModified) {}
+
+  private static class StatusCountMapper implements RowMapper<StatusCountRecord> {
+    public StatusCountRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
+      return new StatusCountRecord(
+          CbasRunStatus.fromValue(rs.getString(Run.STATUS_COL)),
+          rs.getInt("status_count"),
+          rs.getObject("last_modified", OffsetDateTime.class));
     }
   }
 }

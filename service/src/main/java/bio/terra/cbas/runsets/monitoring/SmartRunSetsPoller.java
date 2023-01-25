@@ -9,6 +9,7 @@ import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +73,8 @@ public class SmartRunSetsPoller {
             rs.runSetId(),
             newStatusAndCounts.status(),
             newStatusAndCounts.totalRuns(),
-            newStatusAndCounts.runErrors());
+            newStatusAndCounts.runErrors(),
+            newStatusAndCounts.lastModified);
       } else {
         runSetDao.updateLastPolled(List.of(rs.runSetId()));
       }
@@ -83,15 +85,37 @@ public class SmartRunSetsPoller {
     }
   }
 
-  private record StatusAndCounts(CbasRunSetStatus status, Integer totalRuns, Integer runErrors) {}
+  private record StatusAndCounts(
+      CbasRunSetStatus status, Integer totalRuns, Integer runErrors, OffsetDateTime lastModified) {}
 
   private StatusAndCounts newStatusAndErrorCounts(RunSet rs) {
-    Map<CbasRunStatus, Integer> runStatusCounts =
+    Map<CbasRunStatus, RunDao.StatusCountRecord> runStatusRecords =
         runDao.getRunStatusCounts(new RunDao.RunsFilters(rs.runSetId(), null));
+
+    Map<CbasRunStatus, Integer> runStatusCounts =
+        runStatusRecords.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().count()));
+
+    OffsetDateTime lastModified =
+        runStatusRecords.values().stream()
+            .map(RunDao.StatusCountRecord::lastModified)
+            .reduce(null, this::chooseLater);
+
     return new StatusAndCounts(
         CbasRunSetStatus.fromRunStatuses(runStatusCounts),
         runStatusCounts.values().stream().mapToInt(Integer::intValue).sum(),
         runStatusCounts.getOrDefault(CbasRunStatus.SYSTEM_ERROR, 0)
-            + runStatusCounts.getOrDefault(CbasRunStatus.EXECUTOR_ERROR, 0));
+            + runStatusCounts.getOrDefault(CbasRunStatus.EXECUTOR_ERROR, 0),
+        lastModified);
+  }
+
+  private OffsetDateTime chooseLater(OffsetDateTime a, OffsetDateTime b) {
+    if (a == null) {
+      return b;
+    } else if (b == null) {
+      return a;
+    } else {
+      return a.isAfter(b) ? a : b;
+    }
   }
 }

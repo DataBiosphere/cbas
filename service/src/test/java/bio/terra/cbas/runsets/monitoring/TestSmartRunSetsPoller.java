@@ -98,14 +98,17 @@ public class TestSmartRunSetsPoller {
     when(smartRunsPoller.updateRuns(List.of(run1Incomplete, run2Incomplete)))
         .thenReturn(List.of(run1Complete, run2Complete));
 
+    OffsetDateTime lastModified = OffsetDateTime.now();
+
     // When we re-query for up-to-the-minute run status counts:
     ArgumentCaptor<RunDao.RunsFilters> runsFiltersForGetRunStatusCounts =
         ArgumentCaptor.forClass(RunDao.RunsFilters.class);
     when(runDao.getRunStatusCounts(runsFiltersForGetRunStatusCounts.capture()))
-        .thenReturn(Map.of(COMPLETE, 2));
+        .thenReturn(Map.of(COMPLETE, new RunDao.StatusCountRecord(COMPLETE, 2, lastModified)));
 
     // Updating the run set with the new information:
-    when(runSetDao.updateStateAndRunDetails(runSetId, CbasRunSetStatus.COMPLETE, 2, 0))
+    when(runSetDao.updateStateAndRunDetails(
+            runSetId, CbasRunSetStatus.COMPLETE, 2, 0, lastModified))
         .thenReturn(1);
 
     // Re-fetching the updated run set for update:
@@ -125,7 +128,8 @@ public class TestSmartRunSetsPoller {
     assertEquals(runSetId, runsFiltersForGetRunStatusCounts.getValue().runSetId());
     assertNull(runsFiltersForGetRunStatusCounts.getValue().statuses());
 
-    verify(runSetDao).updateStateAndRunDetails(runSetId, CbasRunSetStatus.COMPLETE, 2, 0);
+    verify(runSetDao)
+        .updateStateAndRunDetails(runSetId, CbasRunSetStatus.COMPLETE, 2, 0, lastModified);
     verify(runSetDao).getRunSet(runSetId);
 
     assertEquals(List.of(runSetUpdated), result);
@@ -188,7 +192,8 @@ public class TestSmartRunSetsPoller {
     ArgumentCaptor<RunDao.RunsFilters> runsFiltersForGetRunStatusCounts =
         ArgumentCaptor.forClass(RunDao.RunsFilters.class);
     when(runDao.getRunStatusCounts(runsFiltersForGetRunStatusCounts.capture()))
-        .thenReturn(Map.of(RUNNING, 1));
+        .thenReturn(
+            Map.of(RUNNING, new RunDao.StatusCountRecord(RUNNING, 1, OffsetDateTime.now())));
 
     // Updating the run set with the new information:
     when(runSetDao.updateLastPolled(List.of(runSetId))).thenReturn(1);
