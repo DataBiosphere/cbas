@@ -102,10 +102,8 @@ public class RunSetDao {
           updateClause + ", %s = :last_modified".formatted(RunSet.LAST_MODIFIED_TIMESTAMP_COL);
     }
 
-    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
-    return jdbcTemplate.update(
-        sql,
-        new MapSqlParameterSource(
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
             Map.of(
                 "run_set_id",
                 runSetId,
@@ -116,11 +114,15 @@ public class RunSetDao {
                 "run_count",
                 runCount,
                 "error_count",
-                errorCount,
-                "last_modified",
-                // If we hit the orelse, we shouldn't be adding lastModified to the DB query, so MAX
-                // should never actually be hitting
-                // the database. If it does, we have a bug!)
-                Optional.ofNullable(lastModified).orElse(OffsetDateTime.MAX))));
+                errorCount));
+
+    Optional.ofNullable(lastModified)
+        .ifPresent(
+            lm -> {
+              parameterMap.put("last_modified", lm);
+            });
+
+    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 }
