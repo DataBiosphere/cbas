@@ -12,7 +12,7 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "input_name": "SRA_ID",
+                        "input_name": "Fetch_SRA_to_BAM.SRA_ID",
                         "input_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -23,7 +23,7 @@ databaseChangeLog:
                         }
                       },
                       {
-                        "input_name": "docker",
+                        "input_name": "Fetch_SRA_to_BAM.docker",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -36,7 +36,7 @@ databaseChangeLog:
                         }
                       },
                       {
-                        "input_name": "machine_mem_gb",
+                        "input_name": "Fetch_SRA_to_BAM.machine_mem_gb",
                         "input_type": {
                           "type": "optional",
                           "optional_type": {
@@ -54,7 +54,7 @@ databaseChangeLog:
                   value: |
                     [
                       {
-                        "output_name": "sra_metadata",
+                        "output_name": "fetch_sra_to_bam.sra_metadata",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
@@ -62,7 +62,7 @@ databaseChangeLog:
                         "record_attribute": "sra_metadata"
                       },
                       {
-                        "output_name": "reads_ubam",
+                        "output_name": "fetch_sra_to_bam.reads_ubam",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "File"
@@ -70,7 +70,7 @@ databaseChangeLog:
                         "record_attribute": "reads_ubam"
                       },
                       {
-                        "output_name": "biosample_accession",
+                        "output_name": "fetch_sra_to_bam.biosample_accession",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -78,7 +78,7 @@ databaseChangeLog:
                         "record_attribute": "biosample_accession"
                       },
                       {
-                        "output_name": "sample_geo_loc",
+                        "output_name": "fetch_sra_to_bam.sample_geo_loc",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -86,7 +86,7 @@ databaseChangeLog:
                         "record_attribute": "sample_geo_loc"
                       },
                       {
-                        "output_name": "sample_collection_date",
+                        "output_name": "fetch_sra_to_bam.sample_collection_date",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -94,7 +94,7 @@ databaseChangeLog:
                         "record_attribute": "sample_collection_date"
                       },
                       {
-                        "output_name": "sequencing_center",
+                        "output_name": "fetch_sra_to_bam.sequencing_center",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -102,7 +102,7 @@ databaseChangeLog:
                         "record_attribute": "sequencing_center"
                       },
                       {
-                        "output_name": "sequencing_platform",
+                        "output_name": "fetch_sra_to_bam.sequencing_platform",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -110,7 +110,7 @@ databaseChangeLog:
                         "record_attribute": "sequencing_platform"
                       },
                       {
-                        "output_name": "library_id",
+                        "output_name": "fetch_sra_to_bam.library_id",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -118,7 +118,7 @@ databaseChangeLog:
                         "record_attribute": "library_id"
                       },
                       {
-                        "output_name": "run_date",
+                        "output_name": "fetch_sra_to_bam.run_date",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -126,7 +126,7 @@ databaseChangeLog:
                         "record_attribute": "run_date"
                       },
                       {
-                        "output_name": "sample_collected_by",
+                        "output_name": "fetch_sra_to_bam.sample_collected_by",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -134,7 +134,7 @@ databaseChangeLog:
                         "record_attribute": "sample_collected_by"
                       },
                       {
-                        "output_name": "sample_strain",
+                        "output_name": "fetch_sra_to_bam.sample_strain",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
@@ -142,7 +142,7 @@ databaseChangeLog:
                         "record_attribute": "sample_strain"
                       },
                       {
-                        "output_name": "sequencing_platform_model",
+                        "output_name": "fetch_sra_to_bam.sequencing_platform_model",
                         "output_type": {
                           "type": "primitive",
                           "primitive_type": "String"
