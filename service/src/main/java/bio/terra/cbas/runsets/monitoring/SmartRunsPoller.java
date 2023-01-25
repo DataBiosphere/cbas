@@ -114,7 +114,7 @@ public class SmartRunsPoller {
           if (newWorkflowSummary != null) {
             newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
           }
-          ;
+
           OffsetDateTime engineChangedTimestamp = null;
           if (newWorkflowSummary != null) {
             engineChangedTimestamp =
