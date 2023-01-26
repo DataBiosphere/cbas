@@ -94,52 +94,57 @@ public class SmartRunsPoller {
       Set<Run> updatedRuns = new HashSet<>();
 
       for (Run r : runs) {
-        if (updatableRuns.contains(r)) {
-          // Get the new workflow summary:
-          long getStatusStartNanos = System.nanoTime();
-          boolean getStatusSuccess = false;
-          WorkflowQueryResult newWorkflowSummary;
-          try {
-            newWorkflowSummary = cromwellService.runSummary(r.engineId());
-          } catch (ApiException | IllegalArgumentException e) {
-            logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
-            updatedRuns.add(r);
-            break;
-          } finally {
-            recordOutboundApiRequestCompletion(
-                "wes/runSummary", getStatusStartNanos, getStatusSuccess);
-          }
-
-          CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
-          if (newWorkflowSummary != null) {
-            newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
-          }
-
-          OffsetDateTime engineChangedTimestamp = null;
-          if (newWorkflowSummary != null) {
-            engineChangedTimestamp =
-                Optional.ofNullable(newWorkflowSummary.getEnd())
-                    .orElse(
-                        Optional.ofNullable(newWorkflowSummary.getStart())
-                            .orElse(newWorkflowSummary.getSubmission()));
-          }
-
-          try {
-            Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
-            updatedRuns.add(updatedRun);
-          } catch (Exception e) {
-            logger.warn("Unable to update run details for {} in database.", r.runId(), e);
-            updatedRuns.add(r);
-          }
-        } else {
-          updatedRuns.add(r);
-        }
+        if (!tryUpdateRun(updatableRuns, updatedRuns, r)) break;
       }
       successBoolean = true;
       return List.copyOf(updatedRuns);
     } finally {
       recordMethodCompletion(startTimeNs, successBoolean);
     }
+  }
+
+  private boolean tryUpdateRun(Set<Run> updatableRuns, Set<Run> updatedRuns, Run r) {
+    if (updatableRuns.contains(r)) {
+      // Get the new workflow summary:
+      long getStatusStartNanos = System.nanoTime();
+      boolean getStatusSuccess = false;
+      WorkflowQueryResult newWorkflowSummary;
+      try {
+        newWorkflowSummary = cromwellService.runSummary(r.engineId());
+      } catch (ApiException | IllegalArgumentException e) {
+        logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
+        updatedRuns.add(r);
+        return false;
+      } finally {
+        recordOutboundApiRequestCompletion(
+            "wes/runSummary", getStatusStartNanos, getStatusSuccess);
+      }
+
+      CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+      if (newWorkflowSummary != null) {
+        newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
+      }
+
+      OffsetDateTime engineChangedTimestamp = null;
+      if (newWorkflowSummary != null) {
+        engineChangedTimestamp =
+            Optional.ofNullable(newWorkflowSummary.getEnd())
+                .orElse(
+                    Optional.ofNullable(newWorkflowSummary.getStart())
+                        .orElse(newWorkflowSummary.getSubmission()));
+      }
+
+      try {
+        Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
+        updatedRuns.add(updatedRun);
+      } catch (Exception e) {
+        logger.warn("Unable to update run details for {} in database.", r.runId(), e);
+        updatedRuns.add(r);
+      }
+    } else {
+      updatedRuns.add(r);
+    }
+    return true;
   }
 
   private Run updateDatabaseRunStatus(

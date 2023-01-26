@@ -60,7 +60,7 @@ public class RunDao {
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource(whereClause.params()), new StatusCountMapper())
         .stream()
-        .collect(Collectors.toMap(StatusCountRecord::status, record -> record));
+        .collect(Collectors.toMap(StatusCountRecord::status, r -> r));
   }
 
   public int updateRunStatus(
