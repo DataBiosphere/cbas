@@ -7,7 +7,7 @@ import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWit
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.runsets.types.ValueCoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -19,7 +19,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void zeroElementArrayLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -31,7 +31,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void zeroElementArrayLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayLiteral(false, "String", "[]")), emptyRecord());
@@ -42,7 +42,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void oneElementArrayLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -54,7 +54,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void oneElementArrayLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayLiteral(false, "String", "[ \"exquisite\" ]")),
@@ -66,7 +66,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void twoElementArrayLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
@@ -78,7 +78,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void twoElementArrayLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
@@ -111,7 +111,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void twoElementNonEmptyArrayLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithArrayFooRatingParameter(true, "String")),
@@ -123,7 +123,7 @@ class TestInputGeneratorBuildArrayInputs {
 
   @Test
   void twoElementNonEmptyArrayLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(

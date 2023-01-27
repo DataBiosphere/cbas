@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.runsets.types.ValueCoercionException;
@@ -27,8 +27,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
       new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   @Test
-  void stringLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+  void stringLiteral() throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("String", "\"hello world\"")), emptyRecord());
@@ -36,8 +35,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void intLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+  void intLiteral() throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(List.of(fooRatingLiteralParameter("Int", "1")), emptyRecord());
     assertEquals(Map.of("literal_foo", 1L), actual);
@@ -45,7 +43,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void booleanLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("Boolean", "false")), emptyRecord());
@@ -53,8 +51,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
   }
 
   @Test
-  void floatLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+  void floatLiteral() throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("Float", "1.1")), emptyRecord());
@@ -63,7 +60,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void validFileLiteral()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingLiteralParameter("File", "\"gs://bucket/file.txt\"")), emptyRecord());
@@ -82,7 +79,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void stringRecordLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("String")),
@@ -92,7 +89,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void numberRecordLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Int")), wdsRecordWithFooRating("1000"));
@@ -101,7 +98,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void booleanRecordLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Boolean")), wdsRecordWithFooRating("true"));
@@ -110,7 +107,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void floatRecordLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(fooRatingRecordLookupParameter("Float")), wdsRecordWithFooRating("1000.0001"));
@@ -119,7 +116,7 @@ class TestInputGeneratorBuildPrimitiveInputs {
 
   @Test
   void mixedLiteralAndLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(
@@ -166,9 +163,9 @@ class TestInputGeneratorBuildPrimitiveInputs {
             RecordResponse.class);
     List<WorkflowInputDefinition> inputDefinitions =
         objectMapper.readValue(incorrectAttributeDefinition, new TypeReference<>() {});
-    WorkflowAttributesNotFoundException thrown =
+    InputProcessingException thrown =
         assertThrows(
-            WorkflowAttributesNotFoundException.class,
+            InputProcessingException.class,
             () -> InputGenerator.buildInputs(inputDefinitions, recordResponse),
             "Expected buildInputs() to throw and error, but didn't.");
     assertTrue(
