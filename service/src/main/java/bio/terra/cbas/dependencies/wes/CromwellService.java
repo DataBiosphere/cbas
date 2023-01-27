@@ -7,8 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
-import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
+import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +51,31 @@ public class CromwellService {
             null);
   }
 
-  public RunStatus runStatus(String runId) throws ApiException {
-    return cromwellClient.wesAPI().getRunStatus(runId);
+  public WorkflowQueryResult runSummary(String runId) throws ApiException {
+    var queryResults =
+        cromwellConfig
+            .workflowsApi()
+            .queryGet(
+                "v1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(runId),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null)
+            .getResults();
+
+    if (queryResults.isEmpty()) {
+      return null;
+    } else {
+      return queryResults.get(0);
+    }
   }
 
   public Object getOutputs(String id) throws ApiException {

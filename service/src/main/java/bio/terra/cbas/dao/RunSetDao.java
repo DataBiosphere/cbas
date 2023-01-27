@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -81,25 +82,43 @@ public class RunSetDao {
   }
 
   public int updateStateAndRunDetails(
-      UUID runSetId, CbasRunSetStatus newStatus, Integer runCount, Integer errorCount) {
+      UUID runSetId,
+      CbasRunSetStatus newStatus,
+      Integer runCount,
+      Integer errorCount,
+      OffsetDateTime lastModified) {
     OffsetDateTime currentTimestamp = DateUtils.currentTimeInUTC();
-    String sql =
-        "UPDATE run_set SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp, run_count = :run_count, error_count = :error_count WHERE run_set_id = :run_set_id";
-    return jdbcTemplate.update(
-        sql,
-        new MapSqlParameterSource(
-            Map.of(
-                RunSet.RUN_SET_ID_COL,
-                runSetId,
+
+    String updateClause =
+        "UPDATE run_set SET %s = :status, %s = :last_polled_timestamp, %s = :run_count, %s = :error_count"
+            .formatted(
                 RunSet.STATUS_COL,
-                newStatus.toString(),
-                RunSet.LAST_MODIFIED_TIMESTAMP_COL,
-                currentTimestamp,
                 RunSet.LAST_POLLED_TIMESTAMP_COL,
-                currentTimestamp,
                 RunSet.RUN_COUNT_COL,
+                RunSet.ERROR_COUNT_COL);
+
+    if (lastModified != null) {
+      updateClause =
+          updateClause + ", %s = :last_modified".formatted(RunSet.LAST_MODIFIED_TIMESTAMP_COL);
+    }
+
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
+            Map.of(
+                "run_set_id",
+                runSetId,
+                "status",
+                newStatus.toString(),
+                "last_polled_timestamp",
+                currentTimestamp,
+                "run_count",
                 runCount,
-                RunSet.ERROR_COUNT_COL,
-                errorCount)));
+                "error_count",
+                errorCount));
+
+    Optional.ofNullable(lastModified).ifPresent(lm -> parameterMap.put("last_modified", lm));
+
+    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 }

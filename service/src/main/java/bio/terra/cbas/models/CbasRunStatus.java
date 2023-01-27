@@ -73,6 +73,18 @@ public enum CbasRunStatus {
     return fromValue(runState.toString());
   }
 
+  public static CbasRunStatus fromCromwellStatus(String status) {
+    return switch (status) {
+      case "Submitted" -> CbasRunStatus.QUEUED;
+      case "Running" -> CbasRunStatus.RUNNING;
+      case "Aborting" -> CbasRunStatus.CANCELING;
+      case "Aborted" -> CbasRunStatus.CANCELED;
+      case "Failed" -> CbasRunStatus.EXECUTOR_ERROR;
+      case "Succeeded" -> CbasRunStatus.COMPLETE;
+      default -> CbasRunStatus.UNKNOWN;
+    };
+  }
+
   public static cromwell.client.model.State toWesState(CbasRunStatus cbasRunStatus) {
     return cromwell.client.model.State.fromValue(cbasRunStatus.toString());
   }
