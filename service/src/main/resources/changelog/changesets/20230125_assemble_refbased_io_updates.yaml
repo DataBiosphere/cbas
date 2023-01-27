@@ -1210,8 +1210,17 @@ databaseChangeLog:
                         "output_type": {
                           "type": "array",
                           "array_type": {
-                            "type": "primitive",
-                            "primitive_type": "String"
+                            "type": "map",
+                            "map_type": {
+                              "key_type": {
+                                "type": "primitive",
+                                "primitive_type": "String"
+                              },
+                              "value_type": {
+                                "type": "primitive",
+                                "primitive_type": "String"
+                              }
+                            }
                           },
                           "non_empty": false
                         },
