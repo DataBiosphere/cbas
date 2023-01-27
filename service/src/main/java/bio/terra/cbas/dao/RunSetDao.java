@@ -116,8 +116,7 @@ public class RunSetDao {
                 "error_count",
                 errorCount));
 
-    Optional.ofNullable(lastModified)
-        .ifPresent(lm -> parameterMap.put("last_modified", lm));
+    Optional.ofNullable(lastModified).ifPresent(lm -> parameterMap.put("last_modified", lm));
 
     String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));

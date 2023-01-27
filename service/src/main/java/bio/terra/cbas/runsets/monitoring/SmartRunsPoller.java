@@ -116,8 +116,7 @@ public class SmartRunsPoller {
         updatedRuns.add(r);
         return false;
       } finally {
-        recordOutboundApiRequestCompletion(
-            "wes/runSummary", getStatusStartNanos, getStatusSuccess);
+        recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
       }
 
       CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
