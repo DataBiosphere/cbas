@@ -1,0 +1,219 @@
+databaseChangeLog:
+  - changeSet:
+      id: "run_set_prepopulation_target_workflow_4"
+      author: kpierre
+      changes:
+        - insert:
+            tableName: method
+            columns:
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000004
+              - column:
+                  name: name
+                  value: Target Workflow 4
+              - column:
+                  name: description
+                  value: Target Workflow 4
+              - column:
+                  name: created
+                  valueDate: "CURRENT_TIMESTAMP()"
+              - column:
+                  name: method_source
+                  value: Github
+              - column:
+                  name: last_run_set_id
+                  value: null
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 40000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'First version of target workflow 4'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_4/target_workflow_4.wdl'
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_id
+                  value: 10000000-0000-0000-0000-000000000004
+              - column:
+                  name: method_version_id
+                  value: 40000000-0000-0000-0000-000000000004
+              - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: Target workflow 4, run 1
+              - column:
+                  name: run_set_description
+                  value: "Example run for target workflow 4"
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "target_workflow_4.mock_task.input_string_1",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_input_string_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_4.mock_task.optional_int_1",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_optional_int_1"
+                        }
+                      },
+                      {
+                        "input_name": "target_workflow_4.mock_task.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "target_workflow_4_mock_task_docker"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "target_workflow_4.output_string_9",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_9"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_file_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_4_output_file_1"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_5",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_5"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_4",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_4"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_3",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_3"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_file_2",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "target_workflow_4_output_file_2"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_6",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_6"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_2",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_2"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_10",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_10"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_7",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_7"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_1",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_1"
+                      },
+                      {
+                        "output_name": "target_workflow_4.output_string_8",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "target_workflow_4_output_string_8"
+                      }
+                    ]
+              - column:
+                  name: record_type
+                  value: FOO

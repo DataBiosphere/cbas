@@ -1,0 +1,219 @@
+databaseChangeLog:
+  - changeSet:
+      id: "method prepopulation for fetch_sra_to_bam"
+      author: kpierre
+      changes:
+        - insert:
+            tableName: method
+            columns:
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000008
+              - column:
+                  name: name
+                  value: fetch_sra_to_bam
+              - column:
+                  name: description
+                  value: fetch_sra_to_bam
+              - column:
+                  name: created
+                  valueDate: "CURRENT_TIMESTAMP()"
+              - column:
+                  name: method_source
+                  value: Github
+              - column:
+                  name: last_run_set_id
+                  value: null
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 80000000-0000-0000-0000-000000000008
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000008
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'fetch_sra_to_bam sample submission'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl'
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_id
+                  value: 10000000-0000-0000-0000-000000000008
+              - column:
+                  name: method_version_id
+                  value: 80000000-0000-0000-0000-000000000008
+              - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: fetch_sra_to_bam workflow
+              - column:
+                  name: run_set_description
+                  value: "fetch_sra_to_bam sample submission"
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "fetch_sra_to_bam_Fetch_SRA_to_BAM_docker"
+                        }
+                    },
+                      {
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "fetch_sra_to_bam_Fetch_SRA_to_BAM_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "fetch_sra_to_bam_Fetch_SRA_to_BAM_SRA_ID"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "fetch_sra_to_bam.sra_metadata",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sra_metadata"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.reads_ubam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_reads_ubam"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.biosample_accession",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_biosample_accession"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_geo_loc",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sample_geo_loc"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collection_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sample_collection_date"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_center",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sequencing_center"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sequencing_platform"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.library_id",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_library_id"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.run_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_run_date"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collected_by",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sample_collected_by"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_strain",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sample_strain"
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform_model",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "fetch_sra_to_bam_sequencing_platform_model"
+                      }
+                    ]
+              - column:
+                  name: record_type
+                  value: sample

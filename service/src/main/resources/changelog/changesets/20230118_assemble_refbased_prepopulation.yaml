@@ -1,0 +1,1414 @@
+databaseChangeLog:
+  - changeSet:
+      id: "method prepopulation for assemble_refbased"
+      author: kpierre
+      changes:
+        - insert:
+            tableName: method
+            columns:
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000005
+              - column:
+                  name: name
+                  value: assemble_refbased
+              - column:
+                  name: description
+                  value: assemble_refbased
+              - column:
+                  name: created
+                  valueDate: "CURRENT_TIMESTAMP()"
+              - column:
+                  name: method_source
+                  value: Github
+              - column:
+                  name: last_run_set_id
+                  value: null
+        - insert:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_id
+                  value: 50000000-0000-0000-0000-000000000005
+              - column:
+                  name: method_id
+                  value: 00000000-0000-0000-0000-000000000005
+              - column:
+                  name: method_version_name
+                  value: '1.0'
+              - column:
+                  name: method_version_description
+                  value: 'assemble_refbased sample submission'
+              - column:
+                  name: method_version_url
+                  value: 'https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl'
+        - insert:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_id
+                  value: 10000000-0000-0000-0000-000000000005
+              - column:
+                  name: method_version_id
+                  value: 50000000-0000-0000-0000-000000000005
+              - column:
+                  name: is_template
+                  value: true
+              - column:
+                  name: run_set_name
+                  value: assemble_refbased workflow
+              - column:
+                  name: run_set_description
+                  value: "assemble_refbased sample submission"
+              - column:
+                  name: status
+                  value: COMPLETE
+              - column:
+                  name: run_count
+                  value: 0
+              - column:
+                  name: error_count
+                  value: 0
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.binning_summary_statistic",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_binning_summary_statistic"
+                        }
+                    },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.base_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_base_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.novocraft_license",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_novocraft_license"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.reference_fasta",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_reference_fasta"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.max_amp_len",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_max_amp_len"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.max_coverage_depth",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_max_coverage_depth"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.reads_unmapped_bams",
+                        "input_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": true
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_reads_unmapped_bams"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.trim_coords_bed",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_trim_coords_bed"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.primer_offset",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_primer_offset"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_self.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_self_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plotYLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plotYLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.mapping_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_mapping_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.run_discordance.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_run_discordance_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.max_amplicons",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_max_amplicons"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.mapping_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_mapping_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.read_length_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_read_length_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.binning_summary_statistic",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_binning_summary_statistic"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_pixels_per_inch",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_pixels_per_inch"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.mark_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_mark_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plotYLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plotYLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_only_non_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_only_non_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_self.reheader_table",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_self_reheader_table"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_height_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_height_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.call_consensus.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_call_consensus_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_self.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_self_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plotXLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plotXLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.major_cutoff",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_major_cutoff"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.amplicon_set",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_amplicon_set"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.aligner",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_aligner"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_self.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_self_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_width_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_width_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.bin_large_plots",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_bin_large_plots"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_ref.reheader_table",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_ref_reheader_table"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.sliding_window",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_sliding_window"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.min_quality",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_min_quality"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.min_coverage",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_min_coverage"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.max_coverage_depth",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_max_coverage_depth"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_width_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_width_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plotXLimits",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plotXLimits"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.base_q_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_base_q_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.merge_align_to_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_merge_align_to_ref_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.alignment_metrics.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_alignment_metrics_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_machine_mem_gb"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.bin_large_plots",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_bin_large_plots"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_self.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_self_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_only_non_duplicates",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_only_non_duplicates"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_self.out_basename",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_self_out_basename"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.skip_mark_dupes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_skip_mark_dupes"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_self.sample_name",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_self_sample_name"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.plot_pixels_per_inch",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_plot_pixels_per_inch"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_ref_coverage.plot_height_pixels",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_ref_coverage_plot_height_pixels"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_ref.out_basename",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_ref_out_basename"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.isnvs_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_isnvs_ref_docker"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.ivar_trim.min_keep_length",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_ivar_trim_min_keep_length"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.plot_self_coverage.read_length_threshold",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_plot_self_coverage_read_length_threshold"
+                        }
+                      },
+                      {
+                        "input_name": "assemble_refbased.align_to_ref.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "assemble_refbased_align_to_ref_docker"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "assemble_refbased.dist_to_ref_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_dist_to_ref_snps"
+                      },
+                      {
+                        "output_name": "assemble_refbased.primer_trimmed_read_percent",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_primer_trimmed_read_percent"
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats_parsed",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_samtools_ampliconstats_parsed"
+                      },
+                      {
+                        "output_name": "assemble_refbased.num_libraries",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_num_libraries"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_fasta",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_fasta"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats_tsv",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            },
+                            "non_empty": false
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_ivar_trim_stats_tsv"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_insert_size",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_insert_size"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_mean_coverage"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_mean_coverage",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_mean_coverage"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_coverage_plot"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_isnvs_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_bases_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_snps"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_read_pairs_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_tsv",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_tsv"
+                      },
+                      {
+                        "output_name": "assemble_refbased.primer_trimmed_read_count",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_primer_trimmed_read_count"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_trim_stats",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_ivar_trim_stats"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_viral_core_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_viral_core_version"
+                      },
+                      {
+                        "output_name": "assemble_refbased.ivar_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "assemble_refbased_ivar_version"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_and_unaligned_bam",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_aligned_and_unaligned_bam"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_read_pairs_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_read_pairs_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.num_read_groups",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_num_read_groups"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_reads_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_length"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_coverage_tsv",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_coverage_tsv"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_discordant_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_discordant_indels"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_aligned",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_aligned_trimmed_only_bam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_aligned_trimmed_only_bam"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_variants_vcf_gz",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_variants_vcf_gz"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_aligned_flagstat",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_aligned_flagstat"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_alignment"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_coverage_plot",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_coverage_plot"
+                      },
+                      {
+                        "output_name": "assemble_refbased.reference_genome_length",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_reference_genome_length"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_fastqc",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_fastqc"
+                      },
+                      {
+                        "output_name": "assemble_refbased.picard_metrics_wgs",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_picard_metrics_wgs"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_isnvs_vcf",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_isnvs_vcf"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_merged_bases_aligned",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Float"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_merged_bases_aligned"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_ref_per_input_reads_provided",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          },
+                          "non_empty": false
+                        },
+                        "record_attribute": "assemble_refbased_align_to_ref_per_input_reads_provided"
+                      },
+                      {
+                        "output_name": "assemble_refbased.assembly_length_unambiguous",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_assembly_length_unambiguous"
+                      },
+                      {
+                        "output_name": "assemble_refbased.viral_assemble_version",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "record_attribute": "assemble_refbased_viral_assemble_version"
+                      },
+                      {
+                        "output_name": "assemble_refbased.align_to_self_merged_aligned_only_bam",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_align_to_self_merged_aligned_only_bam"
+                      },
+                      {
+                        "output_name": "assemble_refbased.dist_to_ref_indels",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_dist_to_ref_indels"
+                      },
+                      {
+                        "output_name": "assemble_refbased.replicate_concordant_sites",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "record_attribute": "assemble_refbased_replicate_concordant_sites"
+                      },
+                      {
+                        "output_name": "assemble_refbased.samtools_ampliconstats",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "record_attribute": "assemble_refbased_samtools_ampliconstats"
+                      }
+                    ]
+              - column:
+                  name: record_type
+                  value: sample

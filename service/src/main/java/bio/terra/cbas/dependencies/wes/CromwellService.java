@@ -7,8 +7,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
-import cromwell.client.model.RunStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
+import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +30,52 @@ public class CromwellService {
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
       throws ApiException, JsonProcessingException {
 
+    // TODO [WX-887]: This supplies a JSON snippet to WES to use as workflowOptions for a cromwell
+    // submission, but will require additional changes to the WesSubmission in Cromwell to use
+    // these options correctly to enable the log writing
+    String workflowOptions =
+        this.cromwellClient
+            .getFinalWorkflowLogDirOption()
+            .map(dir -> String.format("{\"final_workflow_log_dir\": %s}", dir))
+            .orElse(null);
+
     return cromwellClient
         .wesAPI()
         .runWorkflow(
-            InputGenerator.inputsToJson(params), null, null, null, null, workflowUrl, null);
+            InputGenerator.inputsToJson(params),
+            null,
+            null,
+            null,
+            workflowOptions,
+            workflowUrl,
+            null);
   }
 
-  public RunStatus runStatus(String runId) throws ApiException {
-    return cromwellClient.wesAPI().getRunStatus(runId);
+  public WorkflowQueryResult runSummary(String runId) throws ApiException {
+    var queryResults =
+        cromwellConfig
+            .workflowsApi()
+            .queryGet(
+                "v1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                List.of(runId),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null)
+            .getResults();
+
+    if (queryResults.isEmpty()) {
+      return null;
+    } else {
+      return queryResults.get(0);
+    }
   }
 
   public Object getOutputs(String id) throws ApiException {

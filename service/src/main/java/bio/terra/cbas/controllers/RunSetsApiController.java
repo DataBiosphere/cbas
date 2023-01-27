@@ -11,7 +11,7 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -38,11 +38,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import cromwell.client.model.RunId;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -108,13 +110,24 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    List<RunSet> runSets = runSetDao.getRunSets();
-    List<RunSet> updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
+    List<RunSet> updatedRunSets;
+    RunSetListResponse response;
 
-    List<RunSetDetailsResponse> runSetDetails =
-        updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
-    RunSetListResponse response = new RunSetListResponse().runSets(runSetDetails);
-
+    if (methodId != null) {
+      List<RunSet> filteredRunSet =
+          Collections.singletonList(
+              runSetDao.getRunSetWithMethodId(methodId, Optional.ofNullable(pageSize).orElse(10)));
+      updatedRunSets = smartRunSetsPoller.updateRunSets(filteredRunSet);
+      List<RunSetDetailsResponse> filteredRunSetDetails =
+          updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
+      response = new RunSetListResponse().runSets(filteredRunSetDetails);
+    } else {
+      List<RunSet> runSets = runSetDao.getRunSets(Optional.ofNullable(pageSize).orElse(10));
+      updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
+      List<RunSetDetailsResponse> runSetDetails =
+          updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
+      response = new RunSetListResponse().runSets(runSetDetails);
+    }
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
@@ -198,7 +211,8 @@ public class RunSetsApiController implements RunSetsApi {
         runSetId,
         CbasRunSetStatus.fromValue(runSetState),
         runStateResponseList.size(),
-        runsInErrorState.size());
+        runsInErrorState.size(),
+        OffsetDateTime.now());
 
     RunSetStateResponse response =
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
@@ -383,9 +397,8 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn(errorMsg, e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
-      } catch (WorkflowAttributesNotFoundException e) {
-        String errorMsg = "Attribute was not found in WDS record";
-        log.warn(errorMsg, e);
+      } catch (InputProcessingException e) {
+        log.warn("Error processing inputs", e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }

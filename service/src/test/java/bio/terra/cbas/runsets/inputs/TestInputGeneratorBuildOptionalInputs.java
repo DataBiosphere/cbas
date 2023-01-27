@@ -1,11 +1,12 @@
 package bio.terra.cbas.runsets.inputs;
 
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOptionalFooRatingParameter;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOptionalNoneParameter;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -22,7 +23,7 @@ class TestInputGeneratorBuildOptionalInputs {
 
   @Test
   void optionalStringProvided()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")),
@@ -32,12 +33,21 @@ class TestInputGeneratorBuildOptionalInputs {
 
   @Test
   void optionalStringNotProvided()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithOptionalFooRatingParameter("String")), emptyRecord());
     Map<Object, Object> expected = new HashMap<>();
-    expected.put("lookup_foo", null);
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void optionalStringNoneSource()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithOptionalNoneParameter("String")), emptyRecord());
+    Map<Object, Object> expected = new HashMap<>();
     assertEquals(expected, actual);
   }
 }

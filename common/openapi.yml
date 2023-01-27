@@ -239,11 +239,8 @@ components:
           example: workflow_output_foo_rating
         output_type:
           $ref: '#/components/schemas/ParameterTypeDefinition'
-        record_attribute:
-          type: string
-          description: The attribute name on the record to use.
-          required: true
-          example: record_field_foo_rating
+        destination:
+          $ref: '#/components/schemas/OutputDestination'
 
     ParameterTypeDefinition:
       title: ParameterTypeDefinition
@@ -319,16 +316,18 @@ components:
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
-          enum: [ literal, record_lookup ]
+          enum: [ literal, record_lookup, none ]
           example: record_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterDefinitionRecordLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
+        - $ref: '#/components/schemas/ParameterDefinitionNone'
       discriminator:
         propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
           record_lookup: 'ParameterDefinitionRecordLookup'
+          none: 'ParameterDefinitionNone'
 
     ParameterDefinitionLiteralValue:
       type: object
@@ -349,6 +348,48 @@ components:
           description: The attribute name on the record to use.
           required: true
           example: record_field_foo_rating
+    ParameterDefinitionNone:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
+
+
+    OutputDestination:
+      title: OutputDestination
+      properties:
+        # Note: In quotes to remind us that this "type" is an API field, not an OpenAPI spec 'type':
+        "type":
+          type: string
+          description: Indicates what type of output destination this is.
+          required: true
+          enum: [ none, record_update ]
+          example: record_update
+      oneOf:
+        - $ref: '#/components/schemas/OutputDestinationNone'
+        - $ref: '#/components/schemas/OutputDestinationRecordUpdate'
+      discriminator:
+        propertyName: "type"
+        mapping:
+          none: 'OutputDestinationNone'
+          record_update: 'OutputDestinationRecordUpdate'
+
+    OutputDestinationNone:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/OutputDestination'
+      # No additional properties here.
+
+    OutputDestinationRecordUpdate:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/OutputDestination'
+      properties:
+        record_attribute:
+          type: string
+          description: The attribute name of the record to update
+          required: true
+          example: record_field_foo_rating
+
     RunSetStateResponse:
       type: object
       required: [run_set_id]
