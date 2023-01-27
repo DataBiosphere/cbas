@@ -33,8 +33,8 @@ databaseChangeLog:
                           "primitive_type": "File"
                         },
                         "source": {
-                          "type": "record_lookup",
-                          "record_attribute": "workspace.ncov_reference_genome_fasta"
+                          "type": "literal",
+                          "parameter_value": "gs://fc-7ae14861-7808-44e7-8a0a-0a288d691bc3/reference_files/ref-sarscov2-NC_045512.2.fasta"
                         }
                       },
                       {
