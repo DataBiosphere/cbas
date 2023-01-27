@@ -34,7 +34,7 @@ public class MethodDao {
   }
 
   public List<Method> getMethods() {
-    String sql = "SELECT * FROM method GROUP BY method.method_id ORDER BY MIN(created) DESC";
+    String sql = "SELECT * FROM method ORDER BY created DESC";
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
