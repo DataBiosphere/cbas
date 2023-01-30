@@ -34,7 +34,7 @@ databaseChangeLog:
                         },
                         "source": {
                           "type": "literal",
-                          "parameter_value": "gs://fc-7ae14861-7808-44e7-8a0a-0a288d691bc3/reference_files/ref-sarscov2-NC_045512.2.fasta"
+                          "parameter_value": "https://lze033433beed5b4a6a47de6.blob.core.windows.net/sc-e3ac5af2-dc4f-42cc-9111-a6f37acfe21a/ref-sarscov2-NC_045512.2.fasta"
                         }
                       },
                       {
