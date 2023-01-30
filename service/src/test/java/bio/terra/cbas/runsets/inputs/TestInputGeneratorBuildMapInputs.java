@@ -4,7 +4,7 @@ import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitio
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.common.exceptions.WorkflowAttributesNotFoundException;
+import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
@@ -53,7 +53,7 @@ class TestInputGeneratorBuildMapInputs {
 
   @Test
   void emptyMapLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
     Map<String, Object> actual =
         InputGenerator.buildInputs(
             List.of(inputDefinitionWithMapFooRatingParameter("String", "String")),
@@ -65,7 +65,7 @@ class TestInputGeneratorBuildMapInputs {
 
   @Test
   void oneEntryMapLookup()
-      throws JsonProcessingException, CoercionException, WorkflowAttributesNotFoundException {
+      throws JsonProcessingException, CoercionException, InputProcessingException {
 
     Map<String, Object> actual =
         InputGenerator.buildInputs(
