@@ -45,7 +45,11 @@ public class TestMethodVersionDao {
 
     MethodVersion actual = methodVersionDao.getMethodVersion(methodVersionId);
 
-    assertEquals(methodVersion, actual);
+    assertEquals(methodVersion.methodVersionId(), actual.methodVersionId());
+    assertEquals(methodVersion.name(), actual.name());
+    assertEquals(methodVersion.description(), actual.description());
+    assertEquals(methodVersion.lastRunSetId(), actual.lastRunSetId());
+    assertEquals(methodVersion.url(), actual.url());
   }
 
   @Test
@@ -65,7 +69,13 @@ public class TestMethodVersionDao {
 
     List<MethodVersion> actual = methodVersionDao.getMethodVersionsForMethod(dbMethod);
 
-    assertEquals(methodVersions, actual);
+    assertEquals(methodVersions.get(0).methodVersionId(), actual.get(0).methodVersionId());
+    assertEquals(methodVersions.get(0).method().method_id(), actual.get(0).method().method_id());
+    assertEquals(methodVersions.get(0).name(), actual.get(0).name());
+    assertEquals(methodVersions.get(0).description(), actual.get(0).description());
+    assertEquals(methodVersions.get(0).lastRunSetId(), actual.get(0).lastRunSetId());
+    assertEquals(methodVersions.get(0).url(), actual.get(0).url());
+
     assertEquals(1, actual.size());
   }
 }
