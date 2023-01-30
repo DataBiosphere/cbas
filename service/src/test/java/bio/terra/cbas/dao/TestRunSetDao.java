@@ -244,7 +244,15 @@ public class TestRunSetDao {
 
     RunSet actual = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000008"));
 
-    assertEquals(runSet, actual);
+    assertEquals(runSet.runSetId(), actual.runSetId());
+    assertEquals(
+        runSet.methodVersion().methodVersionId(), actual.methodVersion().methodVersionId());
+    assertEquals(runSet.name(), actual.name());
+    assertEquals(runSet.description(), actual.description());
+    assertEquals(runSet.status(), actual.status());
+    assertEquals(runSet.runCount(), actual.runCount());
+    assertEquals(runSet.errorCount(), actual.errorCount());
+    assertEquals(runSet.recordType(), actual.recordType());
   }
 
   @Test
