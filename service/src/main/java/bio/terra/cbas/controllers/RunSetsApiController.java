@@ -19,6 +19,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -279,7 +280,12 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // check that the number of outputs does not exceed their maximum allowed values
-    int numWorkflowOutputs = request.getWorkflowOutputDefinitions().size();
+    long numWorkflowOutputs =
+        request.getWorkflowOutputDefinitions().stream()
+            .filter(
+                output ->
+                    output.getDestination().getType() == OutputDestination.TypeEnum.RECORD_UPDATE)
+            .count();
     int maxWorkflowOutputs = config.getMaxWorkflowOutputs();
     if (numWorkflowOutputs > maxWorkflowOutputs) {
       errorList.add(
