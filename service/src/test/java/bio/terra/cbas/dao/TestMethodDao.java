@@ -32,9 +32,10 @@ public class TestMethodDao {
 
     Method actual = methodDao.getMethod(methodId);
 
-    //    Asserting each column value separately here and omitting the 'created' column due to
-    // github
-    //    passing in a current_timestamp() value, causing the test to fail.
+    /*
+    Asserting each column value separately here and omitting the 'created' column due to github
+    passing in a current_timestamp() value, causing the test to fail.
+    */
 
     assertEquals(testMethod.method_id(), actual.method_id());
     assertEquals(testMethod.name(), actual.name());
