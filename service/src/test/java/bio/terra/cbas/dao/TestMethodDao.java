@@ -17,21 +17,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class TestMethodDao {
 
   @Autowired MethodDao methodDao;
-  UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000002");
+  UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000005");
 
   @Test
   void retrievesSingleMethod() {
     Method testMethod =
         new Method(
             methodId,
-            "Target workflow 2",
-            "Add description",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
+            "assemble_refbased",
+            "assemble_refbased",
+            OffsetDateTime.parse("2023-01-27T19:21:24.542692Z"),
             null,
-            "Dockstore-Github");
+            "Github");
 
-    Method expected = methodDao.getMethod(methodId);
-    assertEquals(testMethod, expected);
+    Method actual = methodDao.getMethod(methodId);
+    assertEquals(testMethod, actual);
   }
 
   @Test
@@ -39,68 +39,34 @@ public class TestMethodDao {
 
     List<Method> allMethods = new ArrayList<>();
 
-    System.out.print(methodDao.getMethods());
-
     allMethods.add(
         new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000002"),
-            "Target workflow 2",
-            "Add description",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
-            null,
-            "Dockstore-Github"));
-    allMethods.add(
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000003"),
-            "Target workflow 3",
-            "Add description",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
-            null,
-            "Dockstore-Github"));
-    allMethods.add(
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000004"),
-            "Target Workflow 4",
-            "Target Workflow 4",
-            OffsetDateTime.parse("2023-01-10T16:46:23.982587Z"),
-            null,
-            "Github"));
-    allMethods.add(
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000008"),
-            "fetch_sra_to_bam",
-            "fetch_sra_to_bam / Target Workflow 4",
-            OffsetDateTime.parse("2023-01-17T18:40:48.824995Z"),
+            UUID.fromString("00000000-0000-0000-0000-000000000005"),
+            "assemble_refbased",
+            "assemble_refbased",
+            OffsetDateTime.parse("2023-01-27T19:21:24.542692Z"),
             null,
             "Github"));
     allMethods.add(
         new Method(
             UUID.fromString("00000000-0000-0000-0000-000000000006"),
             "sarscov2_nextstrain",
-            "sarscov2_nextstrain / Target Workflow 3",
-            OffsetDateTime.parse("2023-01-17T19:50:21.319178Z"),
+            "sarscov2_nextstrain",
+            OffsetDateTime.parse("2023-01-27T19:21:24.552878Z"),
             null,
             "Github"));
     allMethods.add(
         new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000001"),
-            "Target Workflow 1",
-            "Target Workflow 1",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
-            null,
-            "Github"));
-    allMethods.add(
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000005"),
-            "assemble_refbased",
-            "assemble_refbased / Target Workflow 2",
-            OffsetDateTime.parse("2023-01-18T21:59:40.528573Z"),
+            UUID.fromString("00000000-0000-0000-0000-000000000008"),
+            "fetch_sra_to_bam",
+            "fetch_sra_to_bam",
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
             null,
             "Github"));
 
     List<Method> actual = methodDao.getMethods();
 
     assertEquals(allMethods, actual);
-    assertEquals(7, actual.size());
+    assertEquals(3, actual.size());
   }
 }
