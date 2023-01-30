@@ -32,86 +32,179 @@ public class TestRunSetDao {
       """
             [
               {
-                "input_name": "target_workflow_1.foo.input_file_1",
-                "input_type": { "type": "primitive", "primitive_type": "File" },
+                "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.SRA_ID",
+                "input_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
                 "source": {
                   "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_file_1"
+                  "record_attribute": "sra_id"
                 }
               },
               {
-                "input_name": "target_workflow_1.foo.input_file_2",
-                "input_type": { "type": "primitive", "primitive_type": "File" },
+                "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.docker",
+                "input_type": {
+                  "type": "optional",
+                  "optional_type": {
+                    "type": "primitive",
+                    "primitive_type": "String"
+                  }
+                },
                 "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_file_2"
+                  "type": "none"
                 }
               },
               {
-                "input_name": "target_workflow_1.foo.input_string_1",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
+                "input_name": "fetch_sra_to_bam.Fetch_SRA_to_BAM.machine_mem_gb",
+                "input_type": {
+                  "type": "optional",
+                  "optional_type": {
+                    "type": "primitive",
+                    "primitive_type": "Int"
+                  }
+                },
                 "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_1"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_2",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_2"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_3",
-                "input_type": { "type": "optional", "optional_type": { "type": "primitive", "primitive_type": "String" } },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_3"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_4",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_4"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_5",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_5"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_6",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_6"
-                }
-              },
-              {
-                "input_name": "target_workflow_1.foo.input_string_7",
-                "input_type": { "type": "primitive", "primitive_type": "String" },
-                "source": {
-                  "type": "record_lookup",
-                  "record_attribute": "target_workflow_1_input_string_7"
+                  "type": "none"
                 }
               }
-            ]""";
+            ]
+            """;
 
   String outputDef =
       """
             [
               {
-                "output_name": "target_workflow_1.file_output",
-                "output_type": { "type": "primitive", "primitive_type": "String" },
-                "record_attribute": "target_workflow_1_file_output"
+                "output_name": "fetch_sra_to_bam.sra_metadata",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "File"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sra_metadata"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.reads_ubam",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "File"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "reads_ubam"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.biosample_accession",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "biosample_accession"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sample_geo_loc",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sample_geo_loc"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sample_collection_date",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sample_collection_date"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sequencing_center",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sequencing_center"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sequencing_platform",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sequencing_platform"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.library_id",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "library_id"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.run_date",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "run_date"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sample_collected_by",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sample_collected_by"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sample_strain",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sample_strain"
+                }
+              },
+              {
+                "output_name": "fetch_sra_to_bam.sequencing_platform_model",
+                "output_type": {
+                  "type": "primitive",
+                  "primitive_type": "String"
+                },
+                "destination": {
+                  "type": "record_update",
+                  "record_attribute": "sequencing_platform_model"
+                }
               }
             ]
             """;
@@ -121,49 +214,49 @@ public class TestRunSetDao {
 
     Method method =
         new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000001"),
-            "Target Workflow 1",
-            "Target Workflow 1",
-            OffsetDateTime.parse("2023-01-10T16:46:23.946326Z"),
+            UUID.fromString("00000000-0000-0000-0000-000000000008"),
+            "fetch_sra_to_bam",
+            "fetch_sra_to_bam",
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
             null,
             "Github");
 
     MethodVersion methodVersion =
         new MethodVersion(
-            UUID.fromString("20000000-0000-0000-0000-000000000001"),
+            UUID.fromString("80000000-0000-0000-0000-000000000008"),
             method,
             "1.0",
-            "First version of target workflow 1",
-            OffsetDateTime.parse("2023-01-10T16:46:23.955430Z"),
+            "fetch_sra_to_bam sample submission",
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
             null,
-            "https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_1/target_workflow_1.wdl");
+            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl");
 
     RunSet runSet =
         new RunSet(
-            UUID.fromString("10000000-0000-0000-0000-000000000001"),
+            UUID.fromString("10000000-0000-0000-0000-000000000008"),
             methodVersion,
-            "Target workflow 1, run 1",
-            "Example run for target workflow 1",
+            "fetch_sra_to_bam workflow",
+            "fetch_sra_to_bam sample submission",
             true,
             CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
-            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
-            OffsetDateTime.parse("2023-01-10T16:46:23.950968Z"),
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
             0,
             0,
-            inputDef + "\n", // Compensating for the additional newline the db stores
+            inputDef, // Compensating for the additional newline the db stores
             outputDef,
-            "FOO");
+            "sample");
 
-    RunSet expected = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000001"));
+    RunSet actual = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000008"));
 
-    assertEquals(runSet, expected);
+    assertEquals(runSet, actual);
   }
 
   @Test
   void retrievesAllRunSets() {
 
-    List<RunSet> runSets = runSetDao.getRunSets();
-    assertEquals(7, runSets.size());
+    List<RunSet> runSets = runSetDao.getRunSets(10);
+    assertEquals(3, runSets.size());
   }
 }
