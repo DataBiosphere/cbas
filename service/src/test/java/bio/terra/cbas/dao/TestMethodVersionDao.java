@@ -19,16 +19,16 @@ public class TestMethodVersionDao {
 
   @Autowired MethodVersionDao methodVersionDao;
 
-  UUID methodVersionId = UUID.fromString("20000000-0000-0000-0000-000000000002");
+  UUID methodVersionId = UUID.fromString("50000000-0000-0000-0000-000000000005");
 
-  UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000002");
-  String time = "2023-01-10T16:46:23.946326Z";
+  UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000005");
+  String time = "2023-01-27T19:21:24.542692Z";
 
-  String name = "Target workflow 2";
-  String description = "Add description";
+  String name = "assemble_refbased";
+  String description = "assemble_refbased";
 
   Method dbMethod =
-      new Method(methodId, name, description, OffsetDateTime.parse(time), null, "Dockstore-Github");
+      new Method(methodId, name, description, OffsetDateTime.parse(time), null, "Github");
 
   @Test
   void retrievesSingleMethodVersion() {
@@ -38,10 +38,10 @@ public class TestMethodVersionDao {
             methodVersionId,
             dbMethod,
             "1.0",
-            "First version of target workflow 2",
-            OffsetDateTime.parse("2023-01-10T16:46:23.955430Z"),
+            "assemble_refbased sample submission",
+            OffsetDateTime.parse("2023-01-27T19:21:24.542692Z"),
             null,
-            "https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl");
+            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl");
 
     MethodVersion actual = methodVersionDao.getMethodVersion(methodVersionId);
 
@@ -55,13 +55,13 @@ public class TestMethodVersionDao {
 
     methodVersions.add(
         new MethodVersion(
-            UUID.fromString("20000000-0000-0000-0000-000000000002"),
+            UUID.fromString("50000000-0000-0000-0000-000000000005"),
             dbMethod,
             "1.0",
-            "First version of target workflow 2",
-            OffsetDateTime.parse("2023-01-10T16:46:23.955430Z"),
+            "assemble_refbased sample submission",
+            OffsetDateTime.parse("2023-01-27T19:21:24.542692Z"),
             null,
-            "https://raw.githubusercontent.com/DataBiosphere/cbas/main/useful_workflows/target_workflow_2/target_workflow_2.wdl"));
+            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/assemble_refbased.wdl"));
 
     List<MethodVersion> actual = methodVersionDao.getMethodVersionsForMethod(dbMethod);
 
