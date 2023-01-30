@@ -2,6 +2,7 @@ package bio.terra.cbas.runsets.types;
 
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
+import bio.terra.cbas.model.ParameterTypeDefinitionMap;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 
@@ -35,6 +36,10 @@ public interface CbasValue {
     } else if (parameterType instanceof ParameterTypeDefinitionArray arrayDefinition) {
       var innerType = arrayDefinition.getArrayType();
       return CbasArray.parseValue(innerType, value, arrayDefinition.isNonEmpty());
+    } else if (parameterType instanceof ParameterTypeDefinitionMap mapDefinition) {
+      ParameterTypeDefinition keyType = mapDefinition.getKeyType();
+      ParameterTypeDefinition valueType = mapDefinition.getValueType();
+      return CbasMap.parseValue(keyType, valueType, value);
     } else {
       throw new TypeCoercionException(value, parameterType.toString());
     }

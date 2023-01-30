@@ -250,7 +250,7 @@ components:
           type: string
           description: Indicates what type of parameter type definition this is.
           required: true
-          enum: [ primitive, optional, array ]
+          enum: [ primitive, optional, array, map ]
           example: record_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterTypeDefinitionPrimitive'
@@ -262,6 +262,7 @@ components:
           primitive: 'ParameterTypeDefinitionPrimitive'
           optional: 'ParameterTypeDefinitionOptional'
           array: 'ParameterTypeDefinitionArray'
+          map: 'ParameterTypeDefinitionMap'
 
     PrimitiveParameterValueType:
       title: PrimitiveParameterValueType
@@ -300,6 +301,19 @@ components:
           type: boolean
           default: false
         array_type:
+          $ref: ParameterTypeDefinition
+
+    ParameterTypeDefinitionMap:
+      type: object
+      required:
+        - key_type
+        - value_type
+      allOf:
+        - $ref: '#/components/schemas/ParameterTypeDefinition'
+      properties:
+        key_type:
+          $ref: ParameterTypeDefinition
+        value_type:
           $ref: ParameterTypeDefinition
 
     # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can

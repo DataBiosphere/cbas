@@ -4,7 +4,7 @@ import bio.terra.cbas.model.ParameterTypeDefinition;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CbasArray implements CbasOptional {
+public class CbasArray implements CbasValue {
 
   private final List<CbasValue> values;
 
