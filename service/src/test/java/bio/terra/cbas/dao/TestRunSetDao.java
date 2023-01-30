@@ -22,12 +22,6 @@ public class TestRunSetDao {
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
 
-  UUID runSetId = UUID.randomUUID();
-
-  UUID methodId = UUID.randomUUID();
-  UUID methodVersionId = UUID.randomUUID();
-
-  String time = "2023-01-13T20:19:41.400292Z";
   String inputDef =
       """
             [
