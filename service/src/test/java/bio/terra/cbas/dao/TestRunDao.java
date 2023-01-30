@@ -113,26 +113,4 @@ class TestRunDao {
             "status_5", "CANCELING"),
         actual.params());
   }
-
-  //  @Test
-  //  void createsNewRun() {
-  //    UUID runId = UUID.randomUUID();
-  //    String engineId = UUID.randomUUID().toString();
-  //    OffsetDateTime time = OffsetDateTime.now();
-  ////    RunSet runSet = new RunSet(
-  ////
-  ////    );
-  //
-  //    Run newRun = new Run(
-  //        runId,
-  //        engineId,
-  //        runSet,
-  //        "FOO1",
-  //        time,
-  //        CbasRunStatus.COMPLETE,
-  //        time,
-  //        time,
-  //        null
-  //    );
-  //  }
 }
