@@ -42,9 +42,10 @@ public class InputGenerator {
         parameterValue = null;
       } else if (param.getSource() instanceof ParameterDefinitionRecordLookup recordLookup) {
         String attributeName = recordLookup.getRecordAttribute();
-        parameterValue = recordResponse.getAttributes().get(attributeName);
 
-        if (!((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
+        if (((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
+          parameterValue = recordResponse.getAttributes().get(attributeName);
+        } else {
           if (param.getInputType().getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
             parameterValue = null;
           } else {

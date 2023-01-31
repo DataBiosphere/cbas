@@ -4,8 +4,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import bio.terra.cbas.model.ParameterTypeDefinition;
+import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +59,40 @@ class TestCoercions {
             CbasValue.parseValue(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.FILE),
+                input));
+  }
+
+  @Test
+  void autoBoxingStringToArrayStringSucceeds() throws Exception {
+    Object input = "String";
+    var actual =
+        CbasValue.parseValue(
+            new ParameterTypeDefinitionArray()
+                .arrayType(
+                    new ParameterTypeDefinitionPrimitive()
+                        .primitiveType(PrimitiveParameterValueType.STRING)
+                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                .type(ParameterTypeDefinition.TypeEnum.ARRAY),
+            input);
+
+    // The result should be a boxed up version of the input:
+    assertEquals(actual.asSerializableValue(), List.of(input));
+  }
+
+  @Test
+  void autoBoxingStringToArrayIntFails() {
+    Object input = "String";
+
+    Assertions.assertThrows(
+        TypeCoercionException.class,
+        () ->
+            CbasValue.parseValue(
+                new ParameterTypeDefinitionArray()
+                    .arrayType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                    .type(ParameterTypeDefinition.TypeEnum.ARRAY),
                 input));
   }
 }
