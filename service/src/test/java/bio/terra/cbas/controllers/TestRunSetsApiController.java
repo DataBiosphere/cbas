@@ -26,6 +26,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -531,14 +532,21 @@ class TestRunSetsApiControllerUnits {
     assertEquals(expected, actual);
   }
 
+  private final WorkflowOutputDefinition recordUpdatingOutputDefinition =
+      new WorkflowOutputDefinition()
+          .destination(new OutputDestination().type(OutputDestination.TypeEnum.RECORD_UPDATE));
+
+  private final WorkflowOutputDefinition noDestinationOutputDefinition =
+      new WorkflowOutputDefinition()
+          .destination(new OutputDestination().type(OutputDestination.TypeEnum.NONE));
+
   @Test
   void testRequestInputsGreaterThanMax() {
     final CbasApiConfiguration config = new CbasApiConfiguration();
     final RunSetRequest request = new RunSetRequest();
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
-    request.setWorkflowOutputDefinitions(
-        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+    request.setWorkflowOutputDefinitions(List.of());
 
     config.setMaxWorkflowInputs(1);
     config.setMaxWorkflowOutputs(5);
@@ -558,7 +566,7 @@ class TestRunSetsApiControllerUnits {
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
     request.setWorkflowOutputDefinitions(
-        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+        List.of(recordUpdatingOutputDefinition, recordUpdatingOutputDefinition));
 
     config.setMaxWorkflowInputs(5);
     config.setMaxWorkflowOutputs(1);
@@ -572,13 +580,35 @@ class TestRunSetsApiControllerUnits {
   }
 
   @Test
+  void testUnusedRequestOutputsDontCountTowardsMax() {
+    final CbasApiConfiguration config = new CbasApiConfiguration();
+    final RunSetRequest request = new RunSetRequest();
+    request.setWdsRecords(new WdsRecordSet().recordIds(Arrays.asList("r1", "r2")));
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    request.setWorkflowOutputDefinitions(
+        List.of(
+            recordUpdatingOutputDefinition,
+            noDestinationOutputDefinition,
+            noDestinationOutputDefinition,
+            noDestinationOutputDefinition));
+
+    config.setMaxWorkflowInputs(5);
+    config.setMaxWorkflowOutputs(1);
+    config.setRunSetsMaximumRecordIds(2);
+
+    System.out.println(RunSetsApiController.validateRequestRecordIds(request, config));
+    assertTrue(RunSetsApiController.validateRequestRecordIds(request, config).isEmpty());
+  }
+
+  @Test
   void testRequestInputsAndOutputsGreaterThanMax() {
     final CbasApiConfiguration config = new CbasApiConfiguration();
     final RunSetRequest request = new RunSetRequest();
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
     request.setWorkflowOutputDefinitions(
-        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+        List.of(recordUpdatingOutputDefinition, recordUpdatingOutputDefinition));
 
     config.setMaxWorkflowInputs(1);
     config.setMaxWorkflowOutputs(1);
@@ -600,7 +630,7 @@ class TestRunSetsApiControllerUnits {
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
     request.setWorkflowOutputDefinitions(
-        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+        List.of(recordUpdatingOutputDefinition, recordUpdatingOutputDefinition));
 
     config.setMaxWorkflowInputs(2);
     config.setMaxWorkflowOutputs(2);
