@@ -1211,10 +1211,7 @@ databaseChangeLog:
                           "type": "array",
                           "array_type": {
                             "type": "map",
-                            "key_type": {
-                              "type": "primitive",
-                              "primitive_type": "String"
-                            },
+                            "key_type": "String",
                             "value_type": {
                               "type": "primitive",
                               "primitive_type": "String"
