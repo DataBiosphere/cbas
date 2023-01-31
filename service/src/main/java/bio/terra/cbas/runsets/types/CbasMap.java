@@ -1,6 +1,7 @@
 package bio.terra.cbas.runsets.types;
 
 import bio.terra.cbas.model.ParameterTypeDefinition;
+import bio.terra.cbas.model.PrimitiveParameterValueType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,11 +10,11 @@ public class CbasMap implements CbasValue {
 
   private final Map<CbasValue, CbasValue> values;
 
-  private final ParameterTypeDefinition keyType;
-  private final ParameterTypeDefinition valueType;
+  final PrimitiveParameterValueType keyType;
+  final ParameterTypeDefinition valueType;
 
   public CbasMap(
-      ParameterTypeDefinition keyType,
+      PrimitiveParameterValueType keyType,
       ParameterTypeDefinition valueType,
       Map<CbasValue, CbasValue> values) {
     this.values = values;
@@ -37,13 +38,13 @@ public class CbasMap implements CbasValue {
   }
 
   public static CbasMap parseValue(
-      ParameterTypeDefinition keyType, ParameterTypeDefinition valueType, Object values)
+      PrimitiveParameterValueType keyType, ParameterTypeDefinition valueType, Object values)
       throws CoercionException {
     if (values instanceof Map<?, ?> valueMap) {
       HashMap<CbasValue, CbasValue> coercedValues = new HashMap<>();
       for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
         coercedValues.put(
-            CbasValue.parseValue(keyType, entry.getKey()),
+            CbasValue.parsePrimitive(keyType, entry.getKey()),
             CbasValue.parseValue(valueType, entry.getValue()));
       }
       return new CbasMap(keyType, valueType, coercedValues);

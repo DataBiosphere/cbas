@@ -112,7 +112,7 @@ public final class StockInputDefinitions {
         """
         {
           "input_name": "lookup_foo",
-          "input_type": { "type": "map", "key_type": { "type": "primitive", "primitive_type": "%s" }, "value_type": { "type": "primitive", "primitive_type": "%s" }},
+          "input_type": { "type": "map", "key_type": "%s", "value_type": { "type": "primitive", "primitive_type": "%s" }},
           "source": {
             "type": "record_lookup",
             "record_attribute": "foo-rating"

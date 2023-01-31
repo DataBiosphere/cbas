@@ -90,7 +90,7 @@ public final class StockOutputDefinitions {
         """
         {
           "output_name":"%s",
-          "output_type": { "type": "map", "key_type": { "type": "primitive", "primitive_type": "%s" }, "value_type": { "type": "primitive", "primitive_type": "%s" }},
+          "output_type": { "type": "map", "key_type": "%s", "value_type": { "type": "primitive", "primitive_type": "%s" }},
           "destination": { "type": "record_update", "record_attribute": "%s" }
         }
         """

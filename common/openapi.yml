@@ -256,6 +256,7 @@ components:
         - $ref: '#/components/schemas/ParameterTypeDefinitionPrimitive'
         - $ref: '#/components/schemas/ParameterTypeDefinitionOptional'
         - $ref: '#/components/schemas/ParameterTypeDefinitionArray'
+        - $ref: '#/components/schemas/ParameterTypeDefinitionMap'
       discriminator:
         propertyName: "type"
         mapping:
@@ -312,7 +313,7 @@ components:
         - $ref: '#/components/schemas/ParameterTypeDefinition'
       properties:
         key_type:
-          $ref: ParameterTypeDefinition
+          $ref: PrimitiveParameterValueType
         value_type:
           $ref: ParameterTypeDefinition
 

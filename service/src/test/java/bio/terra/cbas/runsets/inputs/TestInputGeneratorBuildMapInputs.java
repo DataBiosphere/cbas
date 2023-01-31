@@ -27,10 +27,7 @@ class TestInputGeneratorBuildMapInputs {
 
     ParameterTypeDefinition expectedInputTypeDefinition =
         new ParameterTypeDefinitionMap()
-            .keyType(
-                new ParameterTypeDefinitionPrimitive()
-                    .primitiveType(PrimitiveParameterValueType.STRING)
-                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+            .keyType(PrimitiveParameterValueType.STRING)
             .valueType(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.INT)

@@ -22,10 +22,7 @@ class TestDefinitionParsing {
         """
         {
          "type": "map",
-          "key_type": {
-            "type": "primitive",
-            "primitive_type": "String"
-          },
+          "key_type": "String",
           "value_type": {
             "type": "primitive",
             "primitive_type": "String"
@@ -34,10 +31,7 @@ class TestDefinitionParsing {
 
     ParameterTypeDefinition expectedType =
         new ParameterTypeDefinitionMap()
-            .keyType(
-                new ParameterTypeDefinitionPrimitive()
-                    .primitiveType(PrimitiveParameterValueType.STRING)
-                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+            .keyType(PrimitiveParameterValueType.STRING)
             .valueType(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
