@@ -546,8 +546,7 @@ class TestRunSetsApiControllerUnits {
     final RunSetRequest request = new RunSetRequest();
     request.setWorkflowInputDefinitions(
         List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
-    request.setWorkflowOutputDefinitions(
-        List.of(new WorkflowOutputDefinition(), new WorkflowOutputDefinition()));
+    request.setWorkflowOutputDefinitions(List.of());
 
     config.setMaxWorkflowInputs(1);
     config.setMaxWorkflowOutputs(5);
