@@ -79,4 +79,25 @@ public final class StockOutputDefinitions {
 
     return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
   }
+
+  public static WorkflowOutputDefinition mapOutputDefinition(
+      String outputName,
+      String primitiveKeyType,
+      String primitiveValueType,
+      String recordAttributeName)
+      throws Exception {
+    String rawOutputDefinition =
+        """
+        {
+          "output_name":"%s",
+          "output_type": { "type": "map", "key_type": "%s", "value_type": { "type": "primitive", "primitive_type": "%s" }},
+          "destination": { "type": "record_update", "record_attribute": "%s" }
+        }
+        """
+            .formatted(outputName, primitiveKeyType, primitiveValueType, recordAttributeName)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(rawOutputDefinition, new TypeReference<>() {});
+  }
 }

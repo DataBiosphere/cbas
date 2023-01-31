@@ -106,6 +106,25 @@ public final class StockInputDefinitions {
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
+  public static WorkflowInputDefinition inputDefinitionWithMapFooRatingParameter(
+      String mapKeyType, String mapValueType) throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": { "type": "map", "key_type": "%s", "value_type": { "type": "primitive", "primitive_type": "%s" }},
+          "source": {
+            "type": "record_lookup",
+            "record_attribute": "foo-rating"
+          }
+        }"""
+            .formatted(mapKeyType, mapValueType)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
   public static WorkflowInputDefinition inputDefinitionWithArrayLiteral(
       Boolean nonEmpty, String arrayInnerType, String rawLiteralJson)
       throws JsonProcessingException {
