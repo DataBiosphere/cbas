@@ -14,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestMethodDao {
+class TestMethodDao {
 
   @Autowired MethodDao methodDao;
   UUID methodId = UUID.fromString("00000000-0000-0000-0000-000000000005");

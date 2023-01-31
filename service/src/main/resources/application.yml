@@ -36,9 +36,6 @@ spring:
           must-revalidate: true
         use-last-modified: false
   liquibase:
-    url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
-    user: ${DATABASE_USER:cbas_user}
-    password: ${DATABASE_USER_PASSWORD:cbas_password}
     change-log: changelog/changelog.yaml
 
 cbas:

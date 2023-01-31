@@ -15,7 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestMethodVersionDao {
+class TestMethodVersionDao {
 
   @Autowired MethodVersionDao methodVersionDao;
 
