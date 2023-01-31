@@ -1,0 +1,1485 @@
+databaseChangeLog:
+  - changeSet:
+      id: "update sarscov2_nextstrain inputs/outputs to match the target workspace for public preview"
+      author: mspector
+      changes:
+        - update:
+            tableName: run_set
+            where: run_set_id='10000000-0000-0000-0000-000000000006'
+            columns:
+              - column:
+                  name: input_definition
+                  value: |
+                    [
+                      {
+                        "input_name": "sarscov2_nextstrain.build_name",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "build_name"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.builds_yaml",
+                        "input_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "build_yaml"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits.confidence",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits.sampling_bias_correction",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits.weights",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.infer_ambiguous",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.inference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.keep_ambiguous",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.keep_overhangs",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.output_vcf",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_tree.vcf_reference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.assign_clades_to_nodes.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.augur_mask_sites.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.augur_mask_sites.mask_bed",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.dedup_seqs.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.dedup_seqs.error_on_seq_diff",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.dedup_seqs.nextstrain_ncov_repo_commit",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.derived_cols.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.derived_cols.lab_highlight_loc",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.derived_cols.table_map",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.cpus",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.exclude_sites",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.method",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.substitution_model",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.tree_builder_args",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.draft_augur_tree.vcf_reference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.color_by_metadata",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.colors_tsv",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "colors_tsv"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.description_md",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.geo_resolutions",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.include_root_sequence",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.maintainers",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.export_auspice_json.title",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.filter_sequences_by_length.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.batch_chunk_size",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.cpus",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.mem_size",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.remove_reference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.mafft.threads_per_job",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.nextstrain_ncov_defaults.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.nextstrain_ncov_defaults.nextstrain_ncov_repo_commit",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.branch_length_inference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_filter_iqd",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_rate",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.clock_std_dev",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.coalescent",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.covariance",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.date_confidence",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.date_inference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.divergence_units",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.gen_per_year",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.keep_polytomies",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.keep_root",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.precision",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.refine_augur_tree.vcf_reference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ancestral_traits_to_infer",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "primitive",
+                              "primitive_type": "String"
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.assembly_fastas",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.auspice_config",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "auspice_config_json"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.clades_tsv",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.lat_longs_tsv",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.min_unambig_genome",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.ref_fasta",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.sample_metadata_tsvs",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            }
+                          },
+                          "non_empty": false
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "metadata_merged"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tree_root_seq_id",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.snp_sites.allow_wildcard_bases",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.snp_sites.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.drop_list",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.keep_list",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.nextstrain_ncov_repo_commit",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.subsample.parameters_yaml",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.censored",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.include_internal_nodes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.inertia",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.machine_mem_gb",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.max_date",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.method",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.minimal_frequency",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.stiffness",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tip_frequencies.wide_bandwidth",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Float"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.translate_augur_tree.docker",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.translate_augur_tree.genes",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.translate_augur_tree.vcf_reference",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.translate_augur_tree.vcf_reference_output",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tsv_join.out_suffix",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "String"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.tsv_join.prefer_first",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Boolean"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      },
+                      {
+                        "input_name": "sarscov2_nextstrain.zcat.cpus",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "primitive",
+                            "primitive_type": "Int"
+                          }
+                        },
+                        "source": {
+                          "type": "none"
+                        }
+                      }
+                    ]
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "sarscov2_nextstrain.auspice_input_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "auspice_input_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.combined_assemblies",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "combined_assemblies"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.counts_by_group",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "counts_by_group"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.keep_list",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "keep_list"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.masked_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "masked_alignment"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.metadata_merged",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "metadata_merged"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.ml_tree",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "ml_tree"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.multiple_alignment",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "multiple_alignment"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.node_data_jsons",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          },
+                          "non_empty": false
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "node_data_jsons"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.root_sequence_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "root_sequence_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.sequences_kept",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "Int"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequences_kept"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.subsampled_sequences",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "subsampled_sequences"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.time_tree",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "time_tree"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.tip_frequencies_json",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "tip_frequencies_json"
+                        }
+                      },
+                      {
+                        "output_name": "sarscov2_nextstrain.unmasked_snps",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "unmasked_snps"
+                        }
+                      }
+                    ]
