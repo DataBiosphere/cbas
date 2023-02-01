@@ -1,0 +1,149 @@
+databaseChangeLog:
+  - changeSet:
+      id: "correct fetch_sra_to_bam.reads_ubam output to match corresponding input for next workflow"
+      author: mspector
+      changes:
+        - update:
+            tableName: run_set
+            where: run_set_id='10000000-0000-0000-0000-000000000008'
+            columns:
+              - column:
+                  name: output_definition
+                  value: |
+                    [
+                      {
+                        "output_name": "fetch_sra_to_bam.sra_metadata",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "File"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sra_metadata"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.reads_ubam",
+                        "output_type": {
+                          "type": "array",
+                          "array_type": {
+                            "type": "primitive",
+                            "primitive_type": "File"
+                          }
+                        }
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "reads_ubam"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.biosample_accession",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "biosample_accession"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_geo_loc",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_geo_loc"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collection_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_collection_date"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_center",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_center"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_platform"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.library_id",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "library_id"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.run_date",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "run_date"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_collected_by",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_collected_by"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sample_strain",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sample_strain"
+                        }
+                      },
+                      {
+                        "output_name": "fetch_sra_to_bam.sequencing_platform_model",
+                        "output_type": {
+                          "type": "primitive",
+                          "primitive_type": "String"
+                        },
+                        "destination": {
+                          "type": "record_update",
+                          "record_attribute": "sequencing_platform_model"
+                        }
+                      }
+                    ]
