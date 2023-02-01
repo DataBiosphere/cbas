@@ -134,4 +134,16 @@ class TestInputGeneratorBuildArrayInputs {
     Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite", "wonderful"));
     assertEquals(expected, actual);
   }
+
+  @Test
+  void autoBoxingSingleElementIntoArrayFromLookup()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithArrayFooRatingParameter(false, "String")),
+            wdsRecordWithFooRating("\"exquisite\""));
+
+    Map<String, Object> expected = Map.of("lookup_foo", List.of("exquisite"));
+    assertEquals(expected, actual);
+  }
 }

@@ -38,7 +38,11 @@ public class CbasArray implements CbasValue {
 
       return new CbasArray(coercedValues);
     } else {
-      throw new TypeCoercionException(values, "Array[%s]".formatted(innerType));
+      try {
+        return new CbasArray(List.of(CbasValue.parseValue(innerType, values)));
+      } catch (CoercionException e) {
+        throw new TypeCoercionException(values, "Array[%s]".formatted(innerType));
+      }
     }
   }
 }
