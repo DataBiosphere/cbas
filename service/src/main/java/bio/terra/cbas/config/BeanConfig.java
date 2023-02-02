@@ -8,16 +8,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 @Configuration
 public class BeanConfig {
-
-  @Bean("jdbcTemplate")
-  public NamedParameterJdbcTemplate getNamedParameterJdbcTemplate(
-      CbasDatabaseConfiguration config) {
-    return new NamedParameterJdbcTemplate(config.getDataSource());
-  }
 
   @Bean("objectMapper")
   public ObjectMapper objectMapper() {

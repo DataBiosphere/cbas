@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -36,6 +37,19 @@ public class MethodDao {
   public List<Method> getMethods() {
     String sql = "SELECT * FROM method ORDER BY created DESC";
     return jdbcTemplate.query(sql, new MethodMapper());
+  }
+
+  public int createMethod(Method method) {
+    return jdbcTemplate.update(
+        "insert into method (method_id, name, description, created, last_run_set_id, method_source) "
+            + "values (:method_id, :name, :description, :created, :lastRunSetId, :methodSource)",
+        new BeanPropertySqlParameterSource(method));
+  }
+
+  public int deleteMethod(Method method) {
+    return jdbcTemplate.update(
+        "DELETE FROM method WHERE name = :method",
+        new MapSqlParameterSource("method", method.name()));
   }
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(

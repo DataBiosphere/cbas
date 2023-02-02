@@ -12,7 +12,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.boot.test.context.SpringBootTest;
 
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestRunDao {
 
   // Sort the NON_TERMINAL_STATES so that we can guarantee the order (based on enum ordination):
