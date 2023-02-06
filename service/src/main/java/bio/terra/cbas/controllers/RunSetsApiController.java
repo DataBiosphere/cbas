@@ -94,7 +94,7 @@ public class RunSetsApiController implements RunSetsApi {
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
     return new RunSetDetailsResponse()
         .runSetId(runSet.runSetId())
-        .methodId(runSet.methodVersion().method().method_id())
+        .methodId(runSet.methodVersion().method().methodId())
         .methodVersionId(runSet.methodVersion().methodVersionId())
         .runSetName(runSet.name())
         .runSetDescription(runSet.description())

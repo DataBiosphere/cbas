@@ -36,7 +36,7 @@ class TestMethodDao {
     passing in a current_timestamp() value, causing the test to fail.
     */
 
-    assertEquals(testMethod.method_id(), actual.method_id());
+    assertEquals(testMethod.methodId(), actual.methodId());
     assertEquals(testMethod.name(), actual.name());
     assertEquals(testMethod.description(), actual.description());
     assertEquals(testMethod.lastRunSetId(), actual.lastRunSetId());

@@ -52,8 +52,8 @@ class TestMethodsApiController {
   // the results should change:
   private void initMocks() {
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
-    when(methodDao.getMethod(neverRunMethod1.method_id())).thenReturn(neverRunMethod1);
-    when(methodDao.getMethod(previouslyRunMethod2.method_id())).thenReturn(previouslyRunMethod2);
+    when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
+    when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
@@ -127,7 +127,7 @@ class TestMethodsApiController {
     initMocks();
     MvcResult result =
         mockMvc
-            .perform(get(API).param("method_id", previouslyRunMethod2.method_id().toString()))
+            .perform(get(API).param("method_id", previouslyRunMethod2.methodId().toString()))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -137,7 +137,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(2, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
   }
@@ -149,7 +149,7 @@ class TestMethodsApiController {
         mockMvc
             .perform(
                 get(API)
-                    .param("method_id", previouslyRunMethod2.method_id().toString())
+                    .param("method_id", previouslyRunMethod2.methodId().toString())
                     .param("show_versions", "false"))
             .andExpect(status().isOk())
             .andReturn();
@@ -160,7 +160,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertNull(actualResponseForMethod2.getMethodVersions());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
   }
@@ -181,7 +181,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(1, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
 

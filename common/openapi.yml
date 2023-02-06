@@ -21,6 +21,21 @@ paths:
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
   "/api/batch/v1/methods":
+    post:
+      tags: [ methods ]
+      summary: Create new method
+      operationId: postMethod
+      requestBody:
+        $ref: '#/components/requestBodies/PostMethodRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostMethodResponse'
+        '201':
+          $ref: '#/components/responses/PostMethodResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
     get:
       tags: [ methods ]
       summary: Get list of methods
@@ -130,6 +145,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetRequest'
+    PostMethodRequest:
+      description: Request body to create a new method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PostMethodRequest'
+
 
   responses:
     PostRunSetResponse:
@@ -138,6 +160,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetStateResponse'
+    PostMethodResponse:
+      description: Response from creating a new method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PostMethodResponse'
     GetMethodsResponse:
       description: Details about methods
       content:
@@ -423,6 +451,38 @@ components:
         errors:
           type:
             string
+
+    PostMethodRequest:
+      type: object
+      properties:
+        method_name:
+          type: string
+        method_description:
+          type: string
+        method_source:
+          type: string
+          description: Source for method eg. Dockstore, GitHub, Agora
+        method_version:
+          type: string
+        method_url:
+          type: string
+
+    PostMethodResponse:
+      type: object
+      properties:
+        method_id:
+          type:
+            string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        run_set_id:
+          type:
+            string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        error:
+          type: string
+
     MethodDetails:
       type: object
       properties:

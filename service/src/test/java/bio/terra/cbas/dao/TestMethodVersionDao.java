@@ -70,7 +70,7 @@ class TestMethodVersionDao {
     List<MethodVersion> actual = methodVersionDao.getMethodVersionsForMethod(dbMethod);
 
     assertEquals(methodVersions.get(0).methodVersionId(), actual.get(0).methodVersionId());
-    assertEquals(methodVersions.get(0).method().method_id(), actual.get(0).method().method_id());
+    assertEquals(methodVersions.get(0).method().methodId(), actual.get(0).method().methodId());
     assertEquals(methodVersions.get(0).name(), actual.get(0).name());
     assertEquals(methodVersions.get(0).description(), actual.get(0).description());
     assertEquals(methodVersions.get(0).lastRunSetId(), actual.get(0).lastRunSetId());
