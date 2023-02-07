@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
+
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.MethodDao;
@@ -58,8 +60,15 @@ public class MethodsApiController implements MethodsApi {
     if (!validationErrors.isEmpty()) {
       String errorMsg = "Bad user request. Error(s): " + validationErrors;
       log.warn(errorMsg);
+      recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
+
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
+
+    increaseEventCounter(
+        String.format(
+            "method creation request with %s source", postMethodRequest.getMethodSource()),
+        1);
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
@@ -74,6 +83,8 @@ public class MethodsApiController implements MethodsApi {
                 "Method '%s' in invalid. Error(s): %s",
                 postMethodRequest.getMethodUrl(), workflowDescription.getErrors());
         log.warn(invalidMethodErrors);
+        recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
+
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMethodErrors), HttpStatus.BAD_REQUEST);
       }
@@ -104,7 +115,8 @@ public class MethodsApiController implements MethodsApi {
               null,
               postMethodRequest.getMethodUrl());
 
-      String templateRunSetName = String.format("%s/%s workflow", method.name(), methodVersion.name());
+      String templateRunSetName =
+          String.format("%s/%s workflow", method.name(), methodVersion.name());
       String templateRunSetDesc = "Template Run Set for Method " + templateRunSetName;
       RunSet templateRunSet =
           new RunSet(
@@ -119,8 +131,8 @@ public class MethodsApiController implements MethodsApi {
               DateUtils.currentTimeInUTC(),
               0,
               0,
-              "{}", // TODO: convert inputs & outputs to CBAS definitions
-              "{}", // TODO: convert inputs & outputs to CBAS definitions
+              "{}", // TODO: https://broadworkbench.atlassian.net/browse/WM-1696
+              "{}", // TODO: https://broadworkbench.atlassian.net/browse/WM-1696
               null);
 
       methodDao.createMethod(method);
@@ -130,8 +142,9 @@ public class MethodsApiController implements MethodsApi {
       methodDao.updateLastRunWithRunSet(templateRunSet);
       methodVersionDao.updateLastRunWithRunSet(templateRunSet);
 
+      recordPostMethodResponseMetrics(HttpStatus.OK.value());
       PostMethodResponse postMethodResponse =
-          new PostMethodResponse().methodId(methodId).runSetId(runSetId).error(null);
+          new PostMethodResponse().methodId(methodId).runSetId(runSetId);
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
     } catch (cromwell.client.ApiException e) {
       String errorMsg =
@@ -139,6 +152,8 @@ public class MethodsApiController implements MethodsApi {
               "Something went wrong while importing the method '%s'. Error(s): %s",
               postMethodRequest.getMethodUrl(), e.getMessage());
       log.warn(errorMsg);
+      recordPostMethodResponseMetrics(HttpStatus.INTERNAL_SERVER_ERROR.value());
+
       return new ResponseEntity<>(
           new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -164,6 +179,47 @@ public class MethodsApiController implements MethodsApi {
 
     addLastRunDetails(methodDetails);
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
+  }
+
+  public static List<String> validateMethod(PostMethodRequest methodRequest) {
+    String methodName = methodRequest.getMethodName();
+    String methodSource = methodRequest.getMethodSource();
+    String methodVersion = methodRequest.getMethodVersion();
+    String methodUrl = methodRequest.getMethodUrl();
+    List<String> errors = new ArrayList<>();
+
+    if (methodName == null || methodName.trim().isEmpty()) {
+      errors.add("method_name is required.");
+    }
+
+    if (methodSource == null || methodSource.trim().isEmpty()) {
+      errors.add("method_source is required.");
+    } else {
+      // verify that method source is supported. Currently, we only support GitHub as the source
+      if (SUPPORTED_SOURCES.stream().noneMatch(methodSource::equalsIgnoreCase)) {
+        errors.add("method_source is invalid. Supported source(s): " + SUPPORTED_SOURCES);
+      }
+    }
+
+    if (methodVersion == null || methodVersion.trim().isEmpty()) {
+      errors.add("method_version is required.");
+    }
+
+    if (methodUrl == null || methodUrl.trim().isEmpty()) {
+      errors.add("method_url is required.");
+    } else {
+      // verify that URL is valid, and it's host is supported
+      try {
+        URI uri = new URI(methodUrl);
+        if (!SUPPORTED_URL_HOSTS.contains(uri.getHost())) {
+          errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
+        }
+      } catch (URISyntaxException e) {
+        errors.add("method_url is invalid. Reason: " + e.getMessage());
+      }
+    }
+
+    return errors;
   }
 
   private void addLastRunDetails(List<MethodDetails> methodDetails) {
@@ -263,36 +319,7 @@ public class MethodsApiController implements MethodsApi {
     return lastRunDetails;
   }
 
-  private List<String> validateMethod(PostMethodRequest methodRequest) {
-    List<String> errors = new ArrayList<>();
-
-    if (methodRequest.getMethodName() == null) {
-      errors.add("method_name is required.");
-    }
-
-    if (methodRequest.getMethodSource() == null) {
-      errors.add("method_source is required.");
-    } else {
-      // verify that method source is supported. Currently, we only support GitHub as the source
-      if (!SUPPORTED_SOURCES.contains(methodRequest.getMethodSource())) {
-        errors.add("method_source is invalid. Supported source(s): " + SUPPORTED_SOURCES);
-      }
-    }
-
-    if (methodRequest.getMethodUrl() == null) {
-      errors.add("method_url is required.");
-    } else {
-      // verify that URL is valid, and it's host is supported
-      try {
-        URI uri = new URI(methodRequest.getMethodUrl());
-        if (!SUPPORTED_URL_HOSTS.contains(uri.getHost())) {
-          errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
-        }
-      } catch (URISyntaxException e) {
-        errors.add("method_url is invalid. Reason: " + e.getMessage());
-      }
-    }
-
-    return errors;
+  private void recordPostMethodResponseMetrics(int statusCode) {
+    increaseEventCounter("post method response code " + statusCode, 1);
   }
 }

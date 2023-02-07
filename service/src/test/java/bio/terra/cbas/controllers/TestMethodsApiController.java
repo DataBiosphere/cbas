@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.DateUtils;
@@ -14,6 +15,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
+import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -189,6 +192,33 @@ class TestMethodsApiController {
     assertEquals(method2Version1.description(), actualVersionDetails.getDescription());
     assertTrue(actualVersionDetails.getLastRun().isPreviouslyRun());
     assertEquals(method2Version1Runset.runSetId(), actualVersionDetails.getLastRun().getRunSetId());
+  }
+
+  @Test
+  void returnErrorForInvalidPostRequest() throws Exception {
+    String invalidPostRequest =
+        """
+      {
+        "method_name": "",
+        "method_source":"FOO",
+        "method_version":"",
+        "method_url":"https://foo.net/abc/hello.wdl
+      }
+      """;
+    String expectedError = "";
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(invalidPostRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(postMethodResponse.getMethodId());
+    assertNull(postMethodResponse.getRunSetId());
+    assertEquals(expectedError, postMethodResponse.getError());
   }
 
   private static final Method neverRunMethod1 =

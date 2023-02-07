@@ -48,7 +48,7 @@ public class MethodVersionDao {
             + "WHERE method_version.method_id = :methodId";
     return jdbcTemplate.query(
         sql,
-        new MapSqlParameterSource("method_id", method.methodId()),
+        new MapSqlParameterSource("methodId", method.methodId()),
         new MethodVersionMappers.ShallowMethodVersionMapper(method));
   }
 
