@@ -58,7 +58,7 @@ public class MethodsApiController implements MethodsApi {
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);
     if (!validationErrors.isEmpty()) {
-      String errorMsg = "Bad user request. Error(s): " + validationErrors;
+      String errorMsg = "Bad user request. Error(s): " + String.join(". ", validationErrors);
       log.warn(errorMsg);
       recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
 
@@ -80,8 +80,9 @@ public class MethodsApiController implements MethodsApi {
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
             String.format(
-                "Method '%s' in invalid. Error(s): %s",
-                postMethodRequest.getMethodUrl(), workflowDescription.getErrors());
+                "Bad user request. Method '%s' in invalid. Error(s): %s",
+                postMethodRequest.getMethodUrl(),
+                String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
         recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
 
@@ -189,11 +190,11 @@ public class MethodsApiController implements MethodsApi {
     List<String> errors = new ArrayList<>();
 
     if (methodName == null || methodName.trim().isEmpty()) {
-      errors.add("method_name is required.");
+      errors.add("method_name is required");
     }
 
     if (methodSource == null || methodSource.trim().isEmpty()) {
-      errors.add("method_source is required.");
+      errors.add("method_source is required");
     } else {
       // verify that method source is supported. Currently, we only support GitHub as the source
       if (SUPPORTED_SOURCES.stream().noneMatch(methodSource::equalsIgnoreCase)) {
@@ -202,11 +203,11 @@ public class MethodsApiController implements MethodsApi {
     }
 
     if (methodVersion == null || methodVersion.trim().isEmpty()) {
-      errors.add("method_version is required.");
+      errors.add("method_version is required");
     }
 
     if (methodUrl == null || methodUrl.trim().isEmpty()) {
-      errors.add("method_url is required.");
+      errors.add("method_url is required");
     } else {
       // verify that URL is valid, and it's host is supported
       try {
