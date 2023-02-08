@@ -40,7 +40,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
 
-  private static final List<String> SUPPORTED_SOURCES = new ArrayList<>(List.of("GitHub"));
   private static final List<String> SUPPORTED_URL_HOSTS =
       new ArrayList<>(List.of("raw.githubusercontent.com"));
 
@@ -186,7 +185,7 @@ public class MethodsApiController implements MethodsApi {
 
   public static List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
-    String methodSource = methodRequest.getMethodSource().toString();
+    PostMethodRequest.MethodSourceEnum methodSource = methodRequest.getMethodSource();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
     List<String> errors = new ArrayList<>();
@@ -195,13 +194,8 @@ public class MethodsApiController implements MethodsApi {
       errors.add("method_name is required");
     }
 
-    if (methodSource == null || methodSource.trim().isEmpty()) {
+    if (methodSource == null) {
       errors.add("method_source is required");
-    } else {
-      // verify that method source is supported. Currently, we only support GitHub as the source
-      if (SUPPORTED_SOURCES.stream().noneMatch(methodSource::equalsIgnoreCase)) {
-        errors.add("method_source is invalid. Supported source(s): " + SUPPORTED_SOURCES);
-      }
     }
 
     if (methodVersion == null || methodVersion.trim().isEmpty()) {
