@@ -1,6 +1,6 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
+import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
@@ -19,8 +19,10 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import cromwell.client.model.WorkflowDescription;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -55,20 +57,17 @@ public class MethodsApiController implements MethodsApi {
 
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
+    long requestStartNanos = System.nanoTime();
+
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);
     if (!validationErrors.isEmpty()) {
       String errorMsg = "Bad user request. Error(s): " + String.join(". ", validationErrors);
       log.warn(errorMsg);
-      recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
-
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    increaseEventCounter(
-        String.format(
-            "method creation request with %s source", postMethodRequest.getMethodSource()),
-        1);
+    String methodSource = postMethodRequest.getMethodSource().toString();
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
@@ -84,7 +83,8 @@ public class MethodsApiController implements MethodsApi {
                 postMethodRequest.getMethodUrl(),
                 String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
-        recordPostMethodResponseMetrics(HttpStatus.BAD_REQUEST.value());
+        recordMethodCreationCompletion(
+            methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
 
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMethodErrors), HttpStatus.BAD_REQUEST);
@@ -104,7 +104,7 @@ public class MethodsApiController implements MethodsApi {
               postMethodRequest.getMethodDescription(),
               DateUtils.currentTimeInUTC(),
               null,
-              postMethodRequest.getMethodSource());
+              postMethodRequest.getMethodSource().toString());
 
       MethodVersion methodVersion =
           new MethodVersion(
@@ -143,7 +143,8 @@ public class MethodsApiController implements MethodsApi {
       methodDao.updateLastRunWithRunSet(templateRunSet);
       methodVersionDao.updateLastRunWithRunSet(templateRunSet);
 
-      recordPostMethodResponseMetrics(HttpStatus.OK.value());
+      recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
+
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
@@ -153,7 +154,8 @@ public class MethodsApiController implements MethodsApi {
               "Something went wrong while importing the method '%s'. Error(s): %s",
               postMethodRequest.getMethodUrl(), e.getMessage());
       log.warn(errorMsg);
-      recordPostMethodResponseMetrics(HttpStatus.INTERNAL_SERVER_ERROR.value());
+      recordMethodCreationCompletion(
+          methodSource, HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
 
       return new ResponseEntity<>(
           new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -184,7 +186,7 @@ public class MethodsApiController implements MethodsApi {
 
   public static List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
-    String methodSource = methodRequest.getMethodSource();
+    String methodSource = methodRequest.getMethodSource().toString();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
     List<String> errors = new ArrayList<>();
@@ -211,11 +213,11 @@ public class MethodsApiController implements MethodsApi {
     } else {
       // verify that URL is valid, and it's host is supported
       try {
-        URI uri = new URI(methodUrl);
-        if (!SUPPORTED_URL_HOSTS.contains(uri.getHost())) {
+        URL url = new URI(methodUrl).toURL();
+        if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
           errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
         }
-      } catch (URISyntaxException e) {
+      } catch (URISyntaxException | MalformedURLException e) {
         errors.add("method_url is invalid. Reason: " + e.getMessage());
       }
     }
@@ -318,9 +320,5 @@ public class MethodsApiController implements MethodsApi {
       lastRunDetails.setPreviouslyRun(false);
     }
     return lastRunDetails;
-  }
-
-  private void recordPostMethodResponseMetrics(int statusCode) {
-    increaseEventCounter("post method response code " + statusCode, 1);
   }
 }

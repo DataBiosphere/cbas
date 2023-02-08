@@ -312,7 +312,7 @@ class TestMethodsApiController {
         postMethodResponse.getMethodId(),
         updateMethodCaptor.getValue().methodVersion().method().methodId());
 
-    // verify that 'lastRunSetId' in =method_version table was updated
+    // verify that 'lastRunSetId' in method_version table was updated
     ArgumentCaptor<RunSet> updateMethodVersionCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(methodVersionDao).updateLastRunWithRunSet(updateMethodVersionCaptor.capture());
     assertEquals(postMethodResponse.getRunSetId(), updateMethodVersionCaptor.getValue().runSetId());
