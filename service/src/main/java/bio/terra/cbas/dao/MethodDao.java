@@ -30,7 +30,7 @@ public class MethodDao {
   public Method getMethod(UUID methodId) {
     String sql = "SELECT * FROM method WHERE method_id = :methodId";
     return jdbcTemplate
-        .query(sql, new MapSqlParameterSource("method_id", methodId), new MethodMapper())
+        .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
         .get(0);
   }
 
@@ -46,10 +46,10 @@ public class MethodDao {
         new BeanPropertySqlParameterSource(method));
   }
 
-  public int deleteMethod(Method method) {
+  public int deleteMethod(UUID methodId) {
     return jdbcTemplate.update(
-        "DELETE FROM method WHERE name = :method",
-        new MapSqlParameterSource("method", method.name()));
+        "DELETE FROM method WHERE method_id = :methodId",
+        new MapSqlParameterSource("methodId", methodId));
   }
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(

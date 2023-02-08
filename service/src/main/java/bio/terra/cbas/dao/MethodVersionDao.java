@@ -66,4 +66,10 @@ public class MethodVersionDao {
                 "method_version_id",
                 runSet.methodVersion().methodVersionId())));
   }
+
+  public int deleteMethodVersion(UUID methodVersionId) {
+    return jdbcTemplate.update(
+        "DELETE FROM method_version WHERE method_version_id = :methodVersionId",
+        new MapSqlParameterSource("methodVersionId", methodVersionId));
+  }
 }
