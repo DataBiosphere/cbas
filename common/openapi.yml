@@ -24,6 +24,7 @@ paths:
     post:
       tags: [ methods ]
       summary: Create new method
+      required: true
       operationId: postMethod
       requestBody:
         $ref: '#/components/requestBodies/PostMethodRequest'
@@ -454,12 +455,19 @@ components:
 
     PostMethodRequest:
       type: object
+      required:
+        - method_name
+        - method_source
+        - method_version
+        - method_url
       properties:
         method_name:
           type: string
         method_description:
           type: string
         method_source:
+          enum:
+            - GitHub
           type: string
           description: Source for method eg. Dockstore, GitHub, Agora
         method_version:
