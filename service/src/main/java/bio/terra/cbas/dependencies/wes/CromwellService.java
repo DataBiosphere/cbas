@@ -30,13 +30,11 @@ public class CromwellService {
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
       throws ApiException, JsonProcessingException {
 
-    // TODO [WX-887]: This supplies a JSON snippet to WES to use as workflowOptions for a cromwell
-    // submission, but will require additional changes to the WesSubmission in Cromwell to use
-    // these options correctly to enable the log writing
+    // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
     String workflowOptions =
         this.cromwellClient
             .getFinalWorkflowLogDirOption()
-            .map(dir -> String.format("{\"final_workflow_log_dir\": %s}", dir))
+            .map(dir -> String.format("{\"final_workflow_log_dir\": \"%s\"}", dir))
             .orElse(null);
 
     return cromwellClient
