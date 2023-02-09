@@ -24,9 +24,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
@@ -185,7 +187,6 @@ public class MethodsApiController implements MethodsApi {
 
   public static List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
-    PostMethodRequest.MethodSourceEnum methodSource = methodRequest.getMethodSource();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
     List<String> errors = new ArrayList<>();
@@ -194,8 +195,10 @@ public class MethodsApiController implements MethodsApi {
       errors.add("method_name is required");
     }
 
-    if (methodSource == null) {
-      errors.add("method_source is required");
+    if (methodRequest.getMethodSource() == null) {
+      errors.add(
+          "method_source is required and should be one of: "
+              + Arrays.toString(PostMethodRequest.MethodSourceEnum.values()));
     }
 
     if (methodVersion == null || methodVersion.trim().isEmpty()) {
@@ -208,10 +211,17 @@ public class MethodsApiController implements MethodsApi {
       // verify that URL is valid, and it's host is supported
       try {
         URL url = new URI(methodUrl).toURL();
-        if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
+        Pattern pattern =
+            Pattern.compile(
+                "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
+        boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
+
+        if (!doesUrlMatchPattern) {
+          errors.add("method_url is invalid. URL doesn't match pattern format");
+        } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
           errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
         }
-      } catch (URISyntaxException | MalformedURLException e) {
+      } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
         errors.add("method_url is invalid. Reason: " + e.getMessage());
       }
     }

@@ -212,7 +212,7 @@ class TestMethodsApiController {
       }
       """;
     String expectedError =
-        "Bad user request. Error(s): method_name is required. method_source is required. method_version is required. method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]";
+        "Bad user request. Error(s): method_name is required. method_source is required and should be one of: [GitHub]. method_version is required. method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]";
 
     MvcResult response =
         mockMvc

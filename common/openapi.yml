@@ -455,11 +455,6 @@ components:
 
     PostMethodRequest:
       type: object
-      required:
-        - method_name
-        - method_source
-        - method_version
-        - method_url
       properties:
         method_name:
           type: string
@@ -474,6 +469,7 @@ components:
           type: string
         method_url:
           type: string
+          format: uri
 
     PostMethodResponse:
       type: object
@@ -531,7 +527,7 @@ components:
           format: date-time
         url:
           type: string
-          format: url
+          format: uri
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
     MethodLastRunDetails:
