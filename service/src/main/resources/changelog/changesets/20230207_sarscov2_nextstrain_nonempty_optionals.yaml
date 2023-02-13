@@ -34,6 +34,28 @@ databaseChangeLog:
                         }
                       },
                       {
+                        "input_name": "sarscov2_nextstrain.assembly_fastas",
+                        "input_type": {
+                          "type": "optional",
+                          "optional_type": {
+                            "type": "array",
+                            "array_type": {
+                              "type": "optional",
+                              "optional_type": {
+                                "type": "primitive",
+                                "primitive_type": "File"
+                              }
+                            },
+                            "non_empty": false
+                          }
+                        },
+                        "source": {
+                          "type": "record_lookup",
+                          "record_attribute": "combined_assemblies"
+                          
+                        }
+                      },
+                      {
                         "input_name": "sarscov2_nextstrain.ancestral_traits.confidence",
                         "input_type": {
                           "type": "optional",
@@ -855,26 +877,6 @@ databaseChangeLog:
                             "array_type": {
                               "type": "primitive",
                               "primitive_type": "String"
-                            },
-                            "non_empty": false
-                          }
-                        },
-                        "source": {
-                          "type": "none"
-                        }
-                      },
-                      {
-                        "input_name": "sarscov2_nextstrain.assembly_fastas",
-                        "input_type": {
-                          "type": "optional",
-                          "optional_type": {
-                            "type": "array",
-                            "array_type": {
-                              "type": "optional",
-                              "optional_type": {
-                                "type": "primitive",
-                                "primitive_type": "File"
-                              }
                             },
                             "non_empty": false
                           }
