@@ -16,7 +16,7 @@ dependencies {
     implementation "com.google.guava:guava:31.0.1-jre"
     implementation "io.prometheus:simpleclient_httpserver:0.12.0"
     implementation "io.opencensus:opencensus-exporter-stats-prometheus:0.28.3"
-    implementation "org.broadinstitute.cromwell:cromwell-client_2.13:0.1-4a6ad8e13-SNAP"
+    implementation "org.broadinstitute.cromwell:cromwell-client_2.13:0.1-7407120a2-SNAP"
     implementation 'bio.terra:terra-common-lib'
     implementation 'org.apache.commons:commons-dbcp2'
     implementation 'org.databiosphere:workspacedataservice-client:0.1.56-SNAPSHOT'

@@ -6,25 +6,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
+import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
+import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.model.WorkflowDescription;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -35,10 +42,13 @@ class TestMethodsApiController {
 
   private static final String API = "/api/batch/v1/methods";
 
+  @MockBean private CromwellService cromwellService;
+
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
+  @MockBean private RunSetDao runSetDao;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -52,8 +62,8 @@ class TestMethodsApiController {
   // the results should change:
   private void initMocks() {
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
-    when(methodDao.getMethod(neverRunMethod1.method_id())).thenReturn(neverRunMethod1);
-    when(methodDao.getMethod(previouslyRunMethod2.method_id())).thenReturn(previouslyRunMethod2);
+    when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
+    when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
@@ -127,7 +137,7 @@ class TestMethodsApiController {
     initMocks();
     MvcResult result =
         mockMvc
-            .perform(get(API).param("method_id", previouslyRunMethod2.method_id().toString()))
+            .perform(get(API).param("method_id", previouslyRunMethod2.methodId().toString()))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -137,7 +147,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(2, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
   }
@@ -149,7 +159,7 @@ class TestMethodsApiController {
         mockMvc
             .perform(
                 get(API)
-                    .param("method_id", previouslyRunMethod2.method_id().toString())
+                    .param("method_id", previouslyRunMethod2.methodId().toString())
                     .param("show_versions", "false"))
             .andExpect(status().isOk())
             .andReturn();
@@ -160,7 +170,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertNull(actualResponseForMethod2.getMethodVersions());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
   }
@@ -181,7 +191,7 @@ class TestMethodsApiController {
     assertEquals(1, parsedResponse.getMethods().size());
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
-    assertEquals(previouslyRunMethod2.method_id(), actualResponseForMethod2.getMethodId());
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(1, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
 
@@ -189,6 +199,123 @@ class TestMethodsApiController {
     assertEquals(method2Version1.description(), actualVersionDetails.getDescription());
     assertTrue(actualVersionDetails.getLastRun().isPreviouslyRun());
     assertEquals(method2Version1Runset.runSetId(), actualVersionDetails.getLastRun().getRunSetId());
+  }
+
+  @Test
+  void returnErrorForInvalidPostRequest() throws Exception {
+    String invalidPostRequest =
+        """
+      {
+        "method_name": "",
+        "method_version":"",
+        "method_url":"https://foo.net/abc/hello.wdl"
+      }
+      """;
+    String expectedError =
+        "Bad user request. Error(s): method_name is required. method_source is required and should be one of: [GitHub]. method_version is required. method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]";
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(invalidPostRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(postMethodResponse.getMethodId());
+    assertNull(postMethodResponse.getRunSetId());
+    assertEquals(expectedError, postMethodResponse.getError());
+  }
+
+  @Test
+  void returnErrorForInvalidWorkflowInPostRequest() throws Exception {
+    initMocks();
+    String invalidWorkflowRequest = postRequestTemplate.formatted(invalidWorkflow);
+    String expectedError =
+        "Bad user request. Method 'https://raw.githubusercontent.com/abc/invalidWorkflow.wdl' in invalid. Error(s): Workflow invalid for test purposes";
+
+    when(cromwellService.describeWorkflow(invalidWorkflow))
+        .thenReturn(workflowDescForInvalidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(invalidWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(postMethodResponse.getMethodId());
+    assertNull(postMethodResponse.getRunSetId());
+    assertEquals(expectedError, postMethodResponse.getError());
+  }
+
+  @Test
+  void validPostRequest() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted(validWorkflow);
+
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(cromwellService.describeWorkflow(validWorkflow)).thenReturn(workflowDescForValidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    // verify records in method, method_version and run_set tables were passed arguments as expected
+    ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
+    verify(methodDao).createMethod(newMethodCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newMethodCaptor.getValue().methodId());
+    assertEquals("test workflow", newMethodCaptor.getValue().name());
+    assertEquals("GitHub", newMethodCaptor.getValue().methodSource());
+    assertEquals("test method description", newMethodCaptor.getValue().description());
+    assertNull(newMethodCaptor.getValue().lastRunSetId());
+
+    ArgumentCaptor<MethodVersion> newMethodVersionCaptor =
+        ArgumentCaptor.forClass(MethodVersion.class);
+    verify(methodVersionDao).createMethodVersion(newMethodVersionCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newMethodVersionCaptor.getValue().getMethodId());
+    assertEquals("develop", newMethodVersionCaptor.getValue().name());
+    assertEquals("test method description", newMethodVersionCaptor.getValue().description());
+    assertEquals(validWorkflow, newMethodVersionCaptor.getValue().url());
+    assertNull(newMethodVersionCaptor.getValue().lastRunSetId());
+
+    UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
+    ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(runSetDao).createRunSet(newRunSetCaptor.capture());
+    assertEquals(postMethodResponse.getRunSetId(), newRunSetCaptor.getValue().runSetId());
+    assertEquals(methodVersionId, newRunSetCaptor.getValue().getMethodVersionId());
+    assertEquals("test workflow/develop workflow", newRunSetCaptor.getValue().name());
+    assertEquals(
+        "Template Run Set for Method test workflow/develop workflow",
+        newRunSetCaptor.getValue().description());
+    assertEquals("{}", newRunSetCaptor.getValue().inputDefinition());
+    assertEquals("{}", newRunSetCaptor.getValue().outputDefinition());
+    assertTrue(newRunSetCaptor.getValue().isTemplate());
+
+    // verify that 'lastRunSetId' in method table was updated
+    ArgumentCaptor<RunSet> updateMethodCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(methodDao).updateLastRunWithRunSet(updateMethodCaptor.capture());
+    assertEquals(postMethodResponse.getRunSetId(), updateMethodCaptor.getValue().runSetId());
+    assertEquals(
+        postMethodResponse.getMethodId(),
+        updateMethodCaptor.getValue().methodVersion().method().methodId());
+
+    // verify that 'lastRunSetId' in method_version table was updated
+    ArgumentCaptor<RunSet> updateMethodVersionCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(methodVersionDao).updateLastRunWithRunSet(updateMethodVersionCaptor.capture());
+    assertEquals(postMethodResponse.getRunSetId(), updateMethodVersionCaptor.getValue().runSetId());
+    assertEquals(methodVersionId, updateMethodCaptor.getValue().methodVersion().methodVersionId());
   }
 
   private static final Method neverRunMethod1 =
@@ -222,6 +349,10 @@ class TestMethodsApiController {
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
+  private static final String invalidWorkflow =
+      "https://raw.githubusercontent.com/abc/invalidWorkflow.wdl";
+  private static final String validWorkflow =
+      "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
 
   private static final Method previouslyRunMethod2 =
       new Method(
@@ -303,4 +434,61 @@ class TestMethodsApiController {
           .methodVersionName(method2Version2Runset.methodVersion().name())
           .methodVersionId(method2Version2Runset.getMethodVersionId())
           .runSetId(method2Version2Runset.runSetId());
+
+  private final String postRequestTemplate =
+      """
+      {
+        "method_name": "test workflow",
+        "method_description": "test method description",
+        "method_source":"GitHub",
+        "method_version":"develop",
+        "method_url": "%s"
+      }
+      """;
+
+  private final String validWorkflowDescriptionJson =
+      """
+      {
+        "valid": true,
+        "errors": [],
+        "validWorkflow": true,
+        "name": "wf_hello",
+        "inputs": [
+          {
+            "name": "hello.addressee",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String",
+            "optional": false,
+            "default": null
+          }
+        ],
+        "outputs": [
+          {
+            "name": "hello.salutation",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String"
+          }
+        ],
+        "images": [
+          "ubuntu@sha256:71cd81252a3563a03ad8daee81047b62ab5d892ebbfbf71cf53415f29c130950"
+        ],
+        "submittedDescriptorType": {
+          "descriptorType": "WDL",
+          "descriptorTypeVersion": "draft-2"
+        },
+        "importedDescriptorTypes": [],
+        "meta": {},
+        "parameterMeta": {},
+        "isRunnableWorkflow": true
+      }
+      """
+          .stripIndent()
+          .trim();
+
+  private static final WorkflowDescription workflowDescForInvalidWorkflow =
+      new WorkflowDescription().valid(false).errors(List.of("Workflow invalid for test purposes"));
 }

@@ -4,7 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record Method(
-    UUID method_id,
+    UUID methodId,
     String name,
     String description,
     OffsetDateTime created,

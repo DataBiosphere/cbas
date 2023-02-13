@@ -7,6 +7,7 @@ import bio.terra.cbas.models.RunSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -18,6 +19,13 @@ public class MethodVersionDao {
 
   public MethodVersionDao(NamedParameterJdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
+  }
+
+  public int createMethodVersion(MethodVersion methodVersion) {
+    return jdbcTemplate.update(
+        "insert into method_version (method_version_id, method_id, method_version_name, method_version_description, method_version_created, method_version_last_run_set_id, method_version_url) "
+            + "values (:methodVersionId, :methodId, :name, :description, :created, :lastRunSetId, :url)",
+        new BeanPropertySqlParameterSource(methodVersion));
   }
 
   public MethodVersion getMethodVersion(UUID methodVersionId) {
@@ -37,10 +45,10 @@ public class MethodVersionDao {
     String sql =
         "SELECT * FROM method_version "
             + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE method_version.method_id = :method_id";
+            + "WHERE method_version.method_id = :methodId";
     return jdbcTemplate.query(
         sql,
-        new MapSqlParameterSource("method_id", method.method_id()),
+        new MapSqlParameterSource("methodId", method.methodId()),
         new MethodVersionMappers.ShallowMethodVersionMapper(method));
   }
 
@@ -57,5 +65,11 @@ public class MethodVersionDao {
                 runSet.runSetId(),
                 "method_version_id",
                 runSet.methodVersion().methodVersionId())));
+  }
+
+  public int deleteMethodVersion(UUID methodVersionId) {
+    return jdbcTemplate.update(
+        "DELETE FROM method_version WHERE method_version_id = :methodVersionId",
+        new MapSqlParameterSource("methodVersionId", methodVersionId));
   }
 }

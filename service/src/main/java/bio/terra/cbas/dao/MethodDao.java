@@ -28,9 +28,9 @@ public class MethodDao {
   }
 
   public Method getMethod(UUID methodId) {
-    String sql = "SELECT * FROM method WHERE method_id = :method_id";
+    String sql = "SELECT * FROM method WHERE method_id = :methodId";
     return jdbcTemplate
-        .query(sql, new MapSqlParameterSource("method_id", methodId), new MethodMapper())
+        .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
         .get(0);
   }
 
@@ -42,14 +42,14 @@ public class MethodDao {
   public int createMethod(Method method) {
     return jdbcTemplate.update(
         "insert into method (method_id, name, description, created, last_run_set_id, method_source) "
-            + "values (:method_id, :name, :description, :created, :lastRunSetId, :methodSource)",
+            + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource)",
         new BeanPropertySqlParameterSource(method));
   }
 
-  public int deleteMethod(Method method) {
+  public int deleteMethod(UUID methodId) {
     return jdbcTemplate.update(
-        "DELETE FROM method WHERE name = :method",
-        new MapSqlParameterSource("method", method.name()));
+        "DELETE FROM method WHERE method_id = :methodId",
+        new MapSqlParameterSource("methodId", methodId));
   }
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(
@@ -93,6 +93,6 @@ public class MethodDao {
         new MapSqlParameterSource(
             Map.of(
                 "run_set_id", runSet.runSetId(),
-                "method_id", runSet.methodVersion().method().method_id())));
+                "method_id", runSet.methodVersion().method().methodId())));
   }
 }

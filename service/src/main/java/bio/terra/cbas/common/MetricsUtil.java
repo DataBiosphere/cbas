@@ -36,6 +36,8 @@ public final class MetricsUtil {
   public static final String METHOD_METRICS = METRICS_PREFIX + "method";
   public static final String EVENT_METRICS = METRICS_PREFIX + "event";
   public static final String FILE_PARSE_METRICS = EVENT_METRICS + "/files/parsed";
+  public static final String METHOD_CREATION_METRIC = INBOUND_REQUEST_METRICS + "/method-creation";
+  public static final String METHOD_CREATION_METRIC_NAME = "method creation request";
 
   public static final Measure.MeasureDouble M_METHOD_DURATION_MS =
       Measure.MeasureDouble.create(METHOD_METRICS, "Duration of method runs", "ms");
@@ -49,6 +51,10 @@ public final class MetricsUtil {
   public static final Measure.MeasureLong M_FILE_PARSED_COUNT =
       Measure.MeasureLong.create(
           FILE_PARSE_METRICS, "Counter for file parse operations", "occurrences");
+
+  public static final Measure.MeasureDouble M_METHOD_CREATION_DURATION_MS =
+      Measure.MeasureDouble.create(
+          METHOD_CREATION_METRIC, "Duration of method creation request", "ms");
 
   public static final Measure.MeasureLong M_RECORDS_PER_REQUEST =
       Measure.MeasureLong.create(
@@ -79,6 +85,9 @@ public final class MetricsUtil {
 
   public static final TagKey TAGKEY_FILE_SCHEME = TagKey.create("scheme");
   public static final TagKey TAGKEY_FILE_FROM_TYPE = TagKey.create("from-type");
+
+  public static final TagKey TAGKEY_METHOD_CREATION_SOURCE = TagKey.create("source");
+  public static final TagKey TAGKEY_METHOD_CREATION_RESPONSE = TagKey.create("response-code");
 
   public enum OutcomeStatus {
     SUCCESS("SUCCESS"),
@@ -147,6 +156,20 @@ public final class MetricsUtil {
     recordTaggedStat(
         Map.of(TAGKEY_NAME, apiName, TAGKEY_STATUS, OutcomeStatus.ofSuccessBoolean(successBoolean)),
         M_OUTBOUND_REQUEST_DURATION_MS,
+        sinceInMilliseconds(startTimeNs));
+  }
+
+  public static void recordMethodCreationCompletion(
+      String source, int responseCode, long startTimeNs) {
+    recordTaggedStat(
+        Map.of(
+            TAGKEY_NAME,
+            METHOD_CREATION_METRIC_NAME,
+            TAGKEY_METHOD_CREATION_SOURCE,
+            source,
+            TAGKEY_METHOD_CREATION_RESPONSE,
+            responseCode),
+        M_METHOD_CREATION_DURATION_MS,
         sinceInMilliseconds(startTimeNs));
   }
 
@@ -281,7 +304,13 @@ public final class MetricsUtil {
               "Stats related to outbound requests",
               M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET,
               recordsPerRequestDistribution,
-              List.of())
+              List.of()),
+          View.create(
+              View.Name.create(METHOD_CREATION_METRIC),
+              "Stats related to method creation request",
+              M_METHOD_CREATION_DURATION_MS,
+              methodTimeDistribution,
+              List.of(TAGKEY_NAME, TAGKEY_METHOD_CREATION_SOURCE, TAGKEY_METHOD_CREATION_RESPONSE))
         };
 
     // Create the view manager

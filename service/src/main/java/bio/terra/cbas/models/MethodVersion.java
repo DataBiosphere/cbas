@@ -21,6 +21,6 @@ public record MethodVersion(
   public static final String URL_COL = "method_version_url";
 
   public UUID getMethodId() {
-    return method.method_id();
+    return method.methodId();
   }
 }
