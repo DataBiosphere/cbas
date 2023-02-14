@@ -79,5 +79,8 @@ class TestRunSetDao {
     // DB has no non-templated run sets, so it will return empty list
     List<RunSet> runSets = runSetDao.getRunSets(10, false);
     assertEquals(0, runSets.size());
+
+    List<RunSet> templateRunSets = runSetDao.getRunSets(10, true);
+    assertEquals(3, templateRunSets.size());
   }
 }
