@@ -123,7 +123,7 @@ public class RunSetsApiController implements RunSetsApi {
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
       response = new RunSetListResponse().runSets(filteredRunSetDetails);
     } else {
-      List<RunSet> runSets = runSetDao.getRunSets(Optional.ofNullable(pageSize).orElse(10));
+      List<RunSet> runSets = runSetDao.getRunSets(Optional.ofNullable(pageSize).orElse(10), false);
       updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
       List<RunSetDetailsResponse> runSetDetails =
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
