@@ -53,11 +53,14 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testImplementation("au.com.dius.pact.provider:junit5:4.1.7")
-    testImplementation('au.com.dius:pact-jvm-provider-junit5-spring:4.0.10')
+    testImplementation('au.com.dius.pact.provider:junit5spring:4.1.7')
 }
 
 test {
     useJUnitPlatform()
+    systemProperty 'pact.provider.version', '4fe95c836ecda746c6ccb364bc2ce9ac5019e4d6'
+//    systemProperty 'pact.provider.tag', 'mls-pact-provider-test'
+    systemProperty 'pact.provider.branch', 'mls-pact-provider-test'
 }
 
 sonarqube {

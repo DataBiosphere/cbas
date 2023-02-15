@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -81,7 +81,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebMvcTest
 @ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
 @Provider("cbas")
-@PactFolder("pacts")
+@PactBroker()
 class TestRunSetsApiControllerPacts {
   private static final String API = "/api/batch/v1/run_sets";
 
@@ -106,9 +106,9 @@ class TestRunSetsApiControllerPacts {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State("exactly 2 run sets exist")
+  @State({"one_runset_complete"})
   public void runSetsData() throws Exception {
-    RunSet returnedRunSet1 =
+    RunSet runSetError =
         new RunSet(
             UUID.randomUUID(),
             new Method(
@@ -120,19 +120,44 @@ class TestRunSetsApiControllerPacts {
             5,
             1);
 
-    RunSet returnedRunSet2 =
+    RunSet runSetComplete =
         new RunSet(
             UUID.randomUUID(),
             new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "BAR"),
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            CbasRunSetStatus.COMPLETE,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1);
+
+    RunSet runSetUnknown =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            CbasRunSetStatus.UNKNOWN,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1);
+
+    RunSet runSetRunning =
+        new RunSet(
+            UUID.randomUUID(),
+            new Method(
+                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            10,
-            0);
+            5,
+            1);
 
-    when(runSetDao.getRunSets()).thenReturn(List.of(returnedRunSet1, returnedRunSet2));
+    when(runSetDao.getRunSets())
+        .thenReturn(List.of(runSetError, runSetComplete, runSetUnknown, runSetRunning));
   }
 }
 
