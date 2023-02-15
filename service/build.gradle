@@ -52,7 +52,7 @@ dependencies {
         exclude group: 'com.vaadin.external.google', module: 'android-json'
     }
     testImplementation("au.com.dius.pact.provider:junit5:4.1.7")
-    testImplementation('au.com.dius:pact-jvm-provider-junit5-spring:4.0.10')
+    testImplementation('au.com.dius.pact.provider:junit5spring:4.1.7')
 }
 
 test {
