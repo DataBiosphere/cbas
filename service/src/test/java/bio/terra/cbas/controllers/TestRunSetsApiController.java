@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -69,7 +69,8 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebMvcTest
 @ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
 @Provider("cbas")
-@PactFolder("pacts")
+// @PactFolder("pacts")
+@PactBroker()
 class TestRunSetsApiControllerPacts {
   private static final String API = "/api/batch/v1/run_sets";
 
@@ -94,7 +95,7 @@ class TestRunSetsApiControllerPacts {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State("exactly 2 run sets exist")
+  @State("two_runsets_exist")
   public void runSetsData() throws Exception {
     RunSet returnedRunSet1 =
         new RunSet(

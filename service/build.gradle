@@ -57,6 +57,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    systemProperty 'pact.provider.version', project.version
+    systemProperty 'pact.provider.version', project.version
 }
 
 sonarqube {
