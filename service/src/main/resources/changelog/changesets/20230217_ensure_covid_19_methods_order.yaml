@@ -9,18 +9,18 @@ databaseChangeLog:
             columns:
               - column:
                   name: created
-                  valueDate: "NOW() - interval '10 minutes'"
+                  valueDate: "NOW() - interval '45 minutes'"
         - update:
             tableName: method
             where: method_id='00000000-0000-0000-0000-000000000005' # assemble_refbased
             columns:
               - column:
                   name: created
-                  valueDate: "NOW() - interval '5 minutes'"
+                  valueDate: "NOW() - interval '30 minutes'"
         - update:
             tableName: method
             where: method_id='00000000-0000-0000-0000-000000000008' # fetch_sra_to_bam
             columns:
               - column:
                   name: created
-                  valueDate: "NOW()"
+                  valueDate: "NOW() - interval '15 minutes'"

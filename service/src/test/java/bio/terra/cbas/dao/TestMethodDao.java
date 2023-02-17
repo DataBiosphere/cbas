@@ -71,7 +71,7 @@ class TestMethodDao {
   void retrievesAllMethods() {
     List<Method> allMethods = methodDao.getMethods();
 
-    assertEquals(5, allMethods.size()); // because database has 5 pre-staged workflows
+    assertEquals(5, allMethods.size()); // because database has 3 pre-staged workflows
 
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method1.methodId())));
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method2.methodId())));
