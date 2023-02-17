@@ -71,9 +71,16 @@ class TestMethodDao {
   void retrievesAllMethods() {
     List<Method> allMethods = methodDao.getMethods();
 
-    assertEquals(5, allMethods.size()); // because database has 5 pre-staged workflows
+    assertEquals(5, allMethods.size()); // because database has 3 pre-staged workflows
 
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method1.methodId())));
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method2.methodId())));
+
+    // ensure that methods are listed in desc order of creation
+    assertEquals(method2.methodId(), allMethods.get(0).methodId());
+    assertEquals(method1.methodId(), allMethods.get(1).methodId());
+    assertEquals("fetch_sra_to_bam", allMethods.get(2).name());
+    assertEquals("assemble_refbased", allMethods.get(3).name());
+    assertEquals("sarscov2_nextstrain", allMethods.get(4).name());
   }
 }

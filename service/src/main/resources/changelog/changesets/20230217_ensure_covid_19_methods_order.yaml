@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: "update created column for Covid-19 workflows to ensure their order"
+      author: sshah
+      changes:
+        - update:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000006' # sarscov2_nextstrain
+            columns:
+              - column:
+                  name: created
+                  valueDate: "NOW() - interval '45 minutes'"
+        - update:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000005' # assemble_refbased
+            columns:
+              - column:
+                  name: created
+                  valueDate: "NOW() - interval '30 minutes'"
+        - update:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000008' # fetch_sra_to_bam
+            columns:
+              - column:
+                  name: created
+                  valueDate: "NOW() - interval '15 minutes'"
