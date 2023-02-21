@@ -69,7 +69,6 @@ import org.springframework.test.web.servlet.MvcResult;
 @WebMvcTest
 @ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
 @Provider("cbas")
-// @PactFolder("pacts")
 @PactBroker()
 class TestRunSetsApiControllerPacts {
   private static final String API = "/api/batch/v1/run_sets";

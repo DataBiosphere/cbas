@@ -57,8 +57,9 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    systemProperty 'pact.provider.version', project.version
-    systemProperty 'pact.provider.version', project.version
+    systemProperty 'pact.provider.version', '4fe95c836ecda746c6ccb364bc2ce9ac5019e4d6'
+//    systemProperty 'pact.provider.tag', 'mls-pact-provider-test'
+    systemProperty 'pact.provider.branch', 'mls-pact-provider-test'
 }
 
 sonarqube {
