@@ -28,11 +28,16 @@ public class RunSetDao {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id AND run_set.is_template = :isTemplate "
-            + "INNER JOIN method on method_version.method_id = method.method_id GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id ORDER BY MIN(run_set.submission_timestamp) DESC LIMIT :pageSize";
-    return jdbcTemplate.query(
-        sql,
-        new MapSqlParameterSource(Map.of("isTemplate", isTemplate, "pageSize", pageSize)),
-        new RunSetMapper());
+            + "INNER JOIN method on method_version.method_id = method.method_id GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id ORDER BY MIN(run_set.submission_timestamp) DESC";
+
+    HashMap<String, Object> parameterMap = new HashMap<>(Map.of("isTemplate", isTemplate));
+
+    if (pageSize != null) {
+      sql = sql + " LIMIT :pageSize";
+      parameterMap.put("pageSize", pageSize);
+    }
+
+    return jdbcTemplate.query(sql, new MapSqlParameterSource(parameterMap), new RunSetMapper());
   }
 
   public RunSet getRunSet(UUID runSetId) {
@@ -47,18 +52,15 @@ public class RunSetDao {
         .get(0);
   }
 
-  public RunSet getRunSetWithMethodId(UUID methodId, Integer pageSize) {
+  public RunSet getRunSetWithMethodId(UUID methodId) {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + "INNER JOIN method on method_version.method_id = method.method_id "
             + "WHERE method.method_id = :methodId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
-            + "ORDER BY MIN(run_set.submission_timestamp) DESC LIMIT :pageSize";
+            + "ORDER BY MIN(run_set.submission_timestamp) DESC";
     return jdbcTemplate
-        .query(
-            sql,
-            new MapSqlParameterSource(Map.of("methodId", methodId, "pageSize", pageSize)),
-            new RunSetMapper())
+        .query(sql, new MapSqlParameterSource(Map.of("methodId", methodId)), new RunSetMapper())
         .get(0);
   }
 
