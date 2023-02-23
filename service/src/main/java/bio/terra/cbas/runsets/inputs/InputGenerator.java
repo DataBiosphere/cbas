@@ -8,6 +8,8 @@ import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
+import bio.terra.cbas.model.ParameterTypeDefinitionMap;
+import bio.terra.cbas.model.ParameterTypeDefinitionMapMapType;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
@@ -46,8 +48,6 @@ public class InputGenerator {
       WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
 
       // Name
-      // name_of_workflow.call_name.name_input --> used fetch-sra_to_bam in womtool endpoint and
-      // compare to cbas db inputs
       workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
 
       // Input type
@@ -96,6 +96,30 @@ public class InputGenerator {
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.FLOAT)
                 .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
+      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.MAP)) {
+        workflowInputDefinition.inputType(
+            new ParameterTypeDefinitionMap()
+                .mapType(
+                    new ParameterTypeDefinitionMapMapType()
+                        .keyType(
+                            PrimitiveParameterValueType.fromValue(
+                                Objects.requireNonNull(
+                                    input
+                                        .getValueType()
+                                        .getMapType()
+                                        .getKeyType()
+                                        .getTypeName()
+                                        .toString())))
+                        .valueType(
+                            new ParameterTypeDefinition()
+                                .type(
+                                    ParameterTypeDefinition.TypeEnum.fromValue(
+                                        input
+                                            .getValueType()
+                                            .getMapType()
+                                            .getValueType()
+                                            .toString()))))
+                .type(ParameterTypeDefinition.TypeEnum.MAP));
       }
 
       // Source
