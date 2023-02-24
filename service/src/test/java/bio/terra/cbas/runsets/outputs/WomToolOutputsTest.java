@@ -19,6 +19,7 @@ import cromwell.client.model.ValueType;
 import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -126,6 +127,12 @@ public class WomToolOutputsTest {
   public void init() {
     womtoolOutputs = new ArrayList<>();
     cbasOutputDef = new ArrayList<>();
+  }
+
+  @AfterEach
+  public void afterEach() {
+    womtoolOutputs.clear();
+    cbasOutputDef.clear();
   }
 
   @Test
@@ -411,8 +418,7 @@ public class WomToolOutputsTest {
   @Test
   void test_recursive_file() throws WomtoolOutputTypeNotFoundException {
 
-    String valueType =
-        """
+    String valueType = """
         {
           "typeName": "File"
         }
@@ -431,7 +437,7 @@ public class WomToolOutputsTest {
   }
 
   @Test
-  void test_recursive_array() throws WomtoolOutputTypeNotFoundException{
+  void test_recursive_array() throws WomtoolOutputTypeNotFoundException {
 
     String valueType =
         """
@@ -454,13 +460,14 @@ public class WomToolOutputsTest {
         .arrayType(
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.FILE)
-                .type(ParameterTypeDefinition.TypeEnum.ARRAY));
+                .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+        .type(ParameterTypeDefinition.TypeEnum.ARRAY);
 
     assertEquals(cbasParameterTypeDef, recursivelyGetOutputParameterType(womtoolString));
   }
 
   @Test
-  void test_recursive_map() throws WomtoolOutputTypeNotFoundException{
+  void test_recursive_map() throws WomtoolOutputTypeNotFoundException {
 
     String valueType =
         """
@@ -494,7 +501,7 @@ public class WomToolOutputsTest {
   }
 
   @Test
-  void test_recursive_optional() throws WomtoolOutputTypeNotFoundException{
+  void test_recursive_optional() throws WomtoolOutputTypeNotFoundException {
 
     String valueType =
         """
@@ -511,10 +518,12 @@ public class WomToolOutputsTest {
 
     ParameterTypeDefinitionOptional cbasParameterTypeDef = new ParameterTypeDefinitionOptional();
 
-    cbasParameterTypeDef.optionalType(
-        new ParameterTypeDefinitionPrimitive()
-            .primitiveType(PrimitiveParameterValueType.STRING)
-            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
+    cbasParameterTypeDef
+        .optionalType(
+            new ParameterTypeDefinitionPrimitive()
+                .primitiveType(PrimitiveParameterValueType.STRING)
+                .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+        .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
 
     assertEquals(cbasParameterTypeDef, recursivelyGetOutputParameterType(womtoolString));
   }

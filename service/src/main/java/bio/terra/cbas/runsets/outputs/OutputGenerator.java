@@ -28,7 +28,8 @@ import org.databiosphere.workspacedata.model.RecordAttributes;
 
 public class OutputGenerator {
 
-  public static ParameterTypeDefinition recursivelyGetOutputParameterType(ValueType valueType) throws WomtoolOutputTypeNotFoundException {
+  public static ParameterTypeDefinition recursivelyGetOutputParameterType(ValueType valueType)
+      throws WomtoolOutputTypeNotFoundException {
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
       return new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.STRING)
@@ -66,7 +67,7 @@ public class OutputGenerator {
       return new ParameterTypeDefinitionMap()
           .keyType(
               PrimitiveParameterValueType.fromValue(
-                  Objects.requireNonNull(valueType.getMapType().getKeyType().getTypeName())
+                  Objects.requireNonNull(Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
                       .toString()))
           .valueType(
               recursivelyGetOutputParameterType(
@@ -77,8 +78,8 @@ public class OutputGenerator {
     }
   }
 
-  public static List<WorkflowOutputDefinition> womtoolToCbasOutputs(
-      WorkflowDescription womOutputs) throws WomtoolOutputTypeNotFoundException {
+  public static List<WorkflowOutputDefinition> womtoolToCbasOutputs(WorkflowDescription womOutputs)
+      throws WomtoolOutputTypeNotFoundException {
     List<WorkflowOutputDefinition> cbasOutputs = new ArrayList<>();
 
     for (ToolOutputParameter output : womOutputs.getOutputs()) {

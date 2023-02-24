@@ -1,9 +1,9 @@
 package bio.terra.cbas.runsets.inputs;
 
 import bio.terra.cbas.common.exceptions.InputProcessingException;
+import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowInputSourceNotSupportedException;
-import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionNone;
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.databiosphere.workspacedata.model.RecordResponse;
-import scala.annotation.meta.param;
 
 public class InputGenerator {
 
@@ -42,7 +41,8 @@ public class InputGenerator {
           .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
           .build();
 
-  public static ParameterTypeDefinition recursivelyGetParameterType(ValueType valueType) throws WomtoolInputTypeNotFoundException {
+  public static ParameterTypeDefinition recursivelyGetParameterType(ValueType valueType)
+      throws WomtoolInputTypeNotFoundException {
 
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
       return new ParameterTypeDefinitionPrimitive()
@@ -79,9 +79,9 @@ public class InputGenerator {
       return new ParameterTypeDefinitionMap()
           .keyType(
               PrimitiveParameterValueType.fromValue(
-                  Objects.requireNonNull(valueType.getMapType())
-                      .getKeyType()
-                      .getTypeName()
+                  Objects.requireNonNull(Objects.requireNonNull(valueType.getMapType())
+                          .getKeyType()
+                          .getTypeName())
                       .toString()))
           .valueType(
               recursivelyGetParameterType(
@@ -92,7 +92,8 @@ public class InputGenerator {
     }
   }
 
-  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs) throws WomtoolInputTypeNotFoundException {
+  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs)
+      throws WomtoolInputTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
 

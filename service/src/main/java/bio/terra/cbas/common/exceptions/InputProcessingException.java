@@ -2,7 +2,7 @@ package bio.terra.cbas.common.exceptions;
 
 import bio.terra.cbas.model.ParameterDefinition;
 import cromwell.client.model.ValueType;
-import cromwell.client.model.WorkflowDescription;
+import java.util.Objects;
 
 public class InputProcessingException extends Exception {
 
@@ -29,7 +29,7 @@ public class InputProcessingException extends Exception {
   public static class WomtoolInputTypeNotFoundException extends InputProcessingException {
 
     public WomtoolInputTypeNotFoundException(ValueType type) {
-      super("Unsupported input value type: " + type.getTypeName().toString());
+      super("Unsupported input value type: " + Objects.requireNonNull(type.getTypeName()));
     }
   }
 }
