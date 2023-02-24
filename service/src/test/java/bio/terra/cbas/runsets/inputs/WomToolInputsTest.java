@@ -5,7 +5,8 @@ import static bio.terra.cbas.runsets.inputs.InputGenerator.womToCbasInputBuilder
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
-import bio.terra.cbas.model.ParameterDefinitionNone;
+import bio.terra.cbas.model.ParameterDefinition;
+import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
@@ -167,7 +168,10 @@ public class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -188,7 +192,10 @@ public class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.INT)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -209,7 +216,10 @@ public class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.FLOAT)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -231,7 +241,10 @@ public class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.BOOLEAN)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
 
     cbasInputDef.add(cbasThing);
 
@@ -253,7 +266,10 @@ public class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.FILE)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
 
     cbasInputDef.add(cbasThing);
 
@@ -279,7 +295,10 @@ public class WomToolInputsTest {
                             .primitiveType(PrimitiveParameterValueType.INT)
                             .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
                     .type(ParameterTypeDefinition.TypeEnum.MAP))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
 
     cbasInputDef.add(cbasThing);
 
@@ -308,7 +327,10 @@ public class WomToolInputsTest {
                                     .primitiveType(PrimitiveParameterValueType.STRING)
                                     .type(ParameterTypeDefinition.TypeEnum.ARRAY))
                             .type(ParameterTypeDefinition.TypeEnum.ARRAY)))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
 
     cbasInputDef.add(cbasDefinition);
 
@@ -333,7 +355,10 @@ public class WomToolInputsTest {
                         new ParameterTypeDefinitionPrimitive()
                             .primitiveType(PrimitiveParameterValueType.INT)
                             .type(ParameterTypeDefinition.TypeEnum.OPTIONAL)))
-            .source(new ParameterDefinitionNone());
+            .source(
+                new ParameterDefinitionLiteralValue()
+                    .parameterValue(null)
+                    .type(ParameterDefinition.TypeEnum.LITERAL));
 
     cbasInputDef.add(cbasThing);
 

@@ -267,7 +267,7 @@ class TestMethodsApiController {
             "primitive_type" : "String"
           },
           "source" : {
-            "type" : ""
+            "type" : "literal"
           }
         } ]
         """

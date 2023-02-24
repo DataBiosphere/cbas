@@ -106,14 +106,10 @@ public class InputGenerator {
       workflowInputDefinition.inputType(recursivelyGetParameterType(input.getValueType()));
 
       // Source
-      if (input.getDefault() == null) {
-        workflowInputDefinition.source(new ParameterDefinitionNone());
-      } else {
-        workflowInputDefinition.source(
-            new ParameterDefinitionLiteralValue()
-                .parameterValue(input.getDefault())
-                .type(ParameterDefinition.TypeEnum.LITERAL));
-      }
+      workflowInputDefinition.source(
+          new ParameterDefinitionLiteralValue()
+              .parameterValue(input.getDefault())
+              .type(ParameterDefinition.TypeEnum.LITERAL));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }
