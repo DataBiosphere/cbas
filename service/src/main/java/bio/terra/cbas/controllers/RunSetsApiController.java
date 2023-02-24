@@ -45,7 +45,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -116,14 +115,13 @@ public class RunSetsApiController implements RunSetsApi {
 
     if (methodId != null) {
       List<RunSet> filteredRunSet =
-          Collections.singletonList(
-              runSetDao.getRunSetWithMethodId(methodId, Optional.ofNullable(pageSize).orElse(10)));
+          Collections.singletonList(runSetDao.getRunSetWithMethodId(methodId));
       updatedRunSets = smartRunSetsPoller.updateRunSets(filteredRunSet);
       List<RunSetDetailsResponse> filteredRunSetDetails =
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
       response = new RunSetListResponse().runSets(filteredRunSetDetails);
     } else {
-      List<RunSet> runSets = runSetDao.getRunSets(Optional.ofNullable(pageSize).orElse(10), false);
+      List<RunSet> runSets = runSetDao.getRunSets(pageSize, false);
       updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
       List<RunSetDetailsResponse> runSetDetails =
           updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
