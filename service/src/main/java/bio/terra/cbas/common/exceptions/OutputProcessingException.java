@@ -1,6 +1,7 @@
 package bio.terra.cbas.common.exceptions;
 
 import bio.terra.cbas.model.OutputDestination;
+import cromwell.client.model.ValueType;
 
 public class OutputProcessingException extends Exception {
 
@@ -18,6 +19,13 @@ public class OutputProcessingException extends Exception {
       extends OutputProcessingException {
     public WorkflowOutputDestinationNotSupportedException(OutputDestination destination) {
       super("Unsupported output destination type: " + destination.getClass().getSimpleName());
+    }
+  }
+
+  public static class WomtoolOutputTypeNotFoundException extends OutputProcessingException {
+
+    public WomtoolOutputTypeNotFoundException(ValueType type) {
+      super("Unsupported output value type: " + type.getTypeName());
     }
   }
 }
