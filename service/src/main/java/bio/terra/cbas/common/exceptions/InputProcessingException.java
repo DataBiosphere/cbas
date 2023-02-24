@@ -1,6 +1,8 @@
 package bio.terra.cbas.common.exceptions;
 
 import bio.terra.cbas.model.ParameterDefinition;
+import cromwell.client.model.ValueType;
+import cromwell.client.model.WorkflowDescription;
 
 public class InputProcessingException extends Exception {
 
@@ -21,6 +23,13 @@ public class InputProcessingException extends Exception {
   public static class WorkflowInputSourceNotSupportedException extends InputProcessingException {
     public WorkflowInputSourceNotSupportedException(ParameterDefinition parameterSource) {
       super("Unsupported input source type: " + parameterSource.getClass().getSimpleName());
+    }
+  }
+
+  public static class WomtoolInputTypeNotFoundException extends InputProcessingException {
+
+    public WomtoolInputTypeNotFoundException(ValueType type) {
+      super("Unsupported input value type: " + type.getTypeName().toString());
     }
   }
 }

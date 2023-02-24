@@ -3,13 +3,14 @@ package bio.terra.cbas.runsets.inputs;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowInputSourceNotSupportedException;
+import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
+import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
-import bio.terra.cbas.model.ParameterTypeDefinitionMapMapType;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import scala.annotation.meta.param;
 
 public class InputGenerator {
 
@@ -40,7 +42,57 @@ public class InputGenerator {
           .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
           .build();
 
-  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs) {
+  public static ParameterTypeDefinition recursivelyGetParameterType(ValueType valueType) throws WomtoolInputTypeNotFoundException {
+
+    if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
+      return new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.STRING)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.INT)) {
+      return new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.INT)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.BOOLEAN)) {
+      return new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.BOOLEAN)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
+      return new ParameterTypeDefinitionOptional()
+          .optionalType(
+              recursivelyGetParameterType(Objects.requireNonNull(valueType.getOptionalType()))
+                  .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FILE)) {
+      return new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.FILE)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.ARRAY)) {
+      return new ParameterTypeDefinitionArray()
+          .nonEmpty(valueType.getNonEmpty())
+          .arrayType(
+              recursivelyGetParameterType(Objects.requireNonNull(valueType.getArrayType()))
+                  .type(ParameterTypeDefinition.TypeEnum.ARRAY));
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
+      return new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.FLOAT)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.MAP)) {
+      return new ParameterTypeDefinitionMap()
+          .keyType(
+              PrimitiveParameterValueType.fromValue(
+                  Objects.requireNonNull(valueType.getMapType())
+                      .getKeyType()
+                      .getTypeName()
+                      .toString()))
+          .valueType(
+              recursivelyGetParameterType(
+                  Objects.requireNonNull(valueType.getMapType()).getValueType()))
+          .type(ParameterTypeDefinition.TypeEnum.MAP);
+    } else {
+      throw new WomtoolInputTypeNotFoundException(valueType);
+    }
+  }
+
+  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs) throws WomtoolInputTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
 
@@ -51,82 +103,16 @@ public class InputGenerator {
       workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
 
       // Input type
-      if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.STRING)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionPrimitive()
-                .primitiveType(PrimitiveParameterValueType.STRING)
-                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
-      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.INT)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionPrimitive()
-                .primitiveType(PrimitiveParameterValueType.INT)
-                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
-      } else if (Objects.equals(
-          input.getValueType().getTypeName(), ValueType.TypeNameEnum.BOOLEAN)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionPrimitive()
-                .primitiveType(PrimitiveParameterValueType.BOOLEAN)
-                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
-      } else if (Objects.equals(
-          input.getValueType().getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionOptional()
-                .optionalType(
-                    new ParameterTypeDefinitionOptional()
-                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-                .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
-      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.FILE)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionPrimitive()
-                .primitiveType(PrimitiveParameterValueType.FILE)
-                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
-      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.ARRAY)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionArray()
-                .nonEmpty(false)
-                .arrayType(
-                    new ParameterTypeDefinitionPrimitive()
-                        .primitiveType(
-                            PrimitiveParameterValueType.fromValue(
-                                String.valueOf(input.getValueType())))
-                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-                .type(ParameterTypeDefinition.TypeEnum.ARRAY));
-      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionPrimitive()
-                .primitiveType(PrimitiveParameterValueType.FLOAT)
-                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE));
-      } else if (Objects.equals(input.getValueType().getTypeName(), ValueType.TypeNameEnum.MAP)) {
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionMap()
-                .mapType(
-                    new ParameterTypeDefinitionMapMapType()
-                        .keyType(
-                            PrimitiveParameterValueType.fromValue(
-                                Objects.requireNonNull(
-                                    input
-                                        .getValueType()
-                                        .getMapType()
-                                        .getKeyType()
-                                        .getTypeName()
-                                        .toString())))
-                        .valueType(
-                            new ParameterTypeDefinition()
-                                .type(
-                                    ParameterTypeDefinition.TypeEnum.fromValue(
-                                        input
-                                            .getValueType()
-                                            .getMapType()
-                                            .getValueType()
-                                            .toString()))))
-                .type(ParameterTypeDefinition.TypeEnum.MAP));
-      }
+      workflowInputDefinition.inputType(recursivelyGetParameterType(input.getValueType()));
 
       // Source
       if (input.getDefault() == null) {
         workflowInputDefinition.source(new ParameterDefinitionNone());
       } else {
-        workflowInputDefinition.source(new ParameterDefinitionLiteralValue());
+        workflowInputDefinition.source(
+            new ParameterDefinitionLiteralValue()
+                .parameterValue(input.getDefault())
+                .type(ParameterDefinition.TypeEnum.LITERAL));
       }
 
       cbasInputDefinition.add(workflowInputDefinition);
@@ -138,7 +124,6 @@ public class InputGenerator {
   public static Map<String, Object> buildInputs(
       List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
       throws CoercionException, InputProcessingException {
-    // System.out.println("BUILDINS DEF: " + inputDefinitions);
     Map<String, Object> params = new HashMap<>();
     for (WorkflowInputDefinition param : inputDefinitions) {
       String parameterName = param.getInputName();
@@ -164,14 +149,14 @@ public class InputGenerator {
         throw new WorkflowInputSourceNotSupportedException(param.getSource());
       }
 
-      System.out.println("PARAM VAL: " + param.getInputType());
       if (parameterValue != null) {
         // Convert into an appropriate CbasValue:
+        System.out.println("INPUT TYPE: " + param.getInputType());
         CbasValue cbasValue = CbasValue.parseValue(param.getInputType(), parameterValue);
         params.put(parameterName, cbasValue.asSerializableValue());
+        System.out.println("PARAMS: " + params);
       }
     }
-    System.out.println(params);
     return params;
   }
 
