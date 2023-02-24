@@ -5,6 +5,7 @@ databaseChangeLog:
       changes:
         - update:
             tableName: run_set
+            where: run_set_id='10000000-0000-0000-0000-000000000006'
             columns:
               - column:
                   name: record_type
