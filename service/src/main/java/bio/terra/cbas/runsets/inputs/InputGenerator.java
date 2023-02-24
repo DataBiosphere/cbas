@@ -147,10 +147,8 @@ public class InputGenerator {
 
       if (parameterValue != null) {
         // Convert into an appropriate CbasValue:
-        System.out.println("INPUT TYPE: " + param.getInputType());
         CbasValue cbasValue = CbasValue.parseValue(param.getInputType(), parameterValue);
         params.put(parameterName, cbasValue.asSerializableValue());
-        System.out.println("PARAMS: " + params);
       }
     }
     return params;
