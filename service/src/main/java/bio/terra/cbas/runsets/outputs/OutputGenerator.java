@@ -67,7 +67,8 @@ public class OutputGenerator {
       return new ParameterTypeDefinitionMap()
           .keyType(
               PrimitiveParameterValueType.fromValue(
-                  Objects.requireNonNull(Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
+                  Objects.requireNonNull(
+                          Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
                       .toString()))
           .valueType(
               recursivelyGetOutputParameterType(
