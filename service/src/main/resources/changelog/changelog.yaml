@@ -65,3 +65,6 @@ databaseChangeLog:
   - include:
       file: changesets/20230217_ensure_covid_19_methods_order.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20230224_sarscov2_nextstrain_change_table.yaml
+      relativeToChangelogFile: true
