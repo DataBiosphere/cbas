@@ -1,6 +1,8 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womtoolToCbasOutputs;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
@@ -22,8 +24,6 @@ import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.runsets.inputs.InputGenerator;
-import bio.terra.cbas.runsets.outputs.OutputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -89,11 +89,9 @@ public class MethodsApiController implements MethodsApi {
     try {
       workflowDescription = cromwellService.describeWorkflow(postMethodRequest.getMethodUrl());
 
-      List<WorkflowInputDefinition> inputs =
-          InputGenerator.womToCbasInputBuilder(workflowDescription);
+      List<WorkflowInputDefinition> inputs = womToCbasInputBuilder(workflowDescription);
 
-      List<WorkflowOutputDefinition> outputs =
-          OutputGenerator.womtoolToCbasOutputs(workflowDescription);
+      List<WorkflowOutputDefinition> outputs = womtoolToCbasOutputs(workflowDescription);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {

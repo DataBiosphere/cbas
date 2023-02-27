@@ -1,7 +1,7 @@
 package bio.terra.cbas.runsets.inputs;
 
-import static bio.terra.cbas.runsets.inputs.InputGenerator.getParameterType;
-import static bio.terra.cbas.runsets.inputs.InputGenerator.womToCbasInputBuilder;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParameterType;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;

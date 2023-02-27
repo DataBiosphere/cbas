@@ -1,7 +1,7 @@
 package bio.terra.cbas.runsets.outputs;
 
-import static bio.terra.cbas.runsets.outputs.OutputGenerator.getOutputParameterType;
-import static bio.terra.cbas.runsets.outputs.OutputGenerator.womtoolToCbasOutputs;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getOutputParameterType;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womtoolToCbasOutputs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.common.exceptions.OutputProcessingException.WomtoolOutputTypeNotFoundException;

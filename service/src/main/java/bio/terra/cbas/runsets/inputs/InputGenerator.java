@@ -1,19 +1,12 @@
 package bio.terra.cbas.runsets.inputs;
 
 import bio.terra.cbas.common.exceptions.InputProcessingException;
-import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowAttributesNotFoundException;
 import bio.terra.cbas.common.exceptions.InputProcessingException.WorkflowInputSourceNotSupportedException;
-import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
-import bio.terra.cbas.model.ParameterTypeDefinitionArray;
-import bio.terra.cbas.model.ParameterTypeDefinitionMap;
-import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
-import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
-import bio.terra.cbas.model.PrimitiveParameterValueType;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.runsets.types.CbasValue;
 import bio.terra.cbas.runsets.types.CoercionException;
@@ -21,14 +14,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import cromwell.client.model.ToolInputParameter;
-import cromwell.client.model.ValueType;
-import cromwell.client.model.WorkflowDescription;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.databiosphere.workspacedata.model.RecordResponse;
 
 public class InputGenerator {
@@ -40,82 +28,6 @@ public class InputGenerator {
           .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
           .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
           .build();
-
-  public static ParameterTypeDefinition getParameterType(ValueType valueType)
-      throws WomtoolInputTypeNotFoundException {
-
-    if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.STRING)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.INT)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.INT)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.BOOLEAN)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.BOOLEAN)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
-      return new ParameterTypeDefinitionOptional()
-          .optionalType(
-              getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
-                  .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FILE)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.FILE)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.ARRAY)) {
-      return new ParameterTypeDefinitionArray()
-          .nonEmpty(valueType.getNonEmpty())
-          .arrayType(
-              getParameterType(Objects.requireNonNull(valueType.getArrayType()))
-                  .type(ParameterTypeDefinition.TypeEnum.ARRAY));
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.FLOAT)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.MAP)) {
-      return new ParameterTypeDefinitionMap()
-          .keyType(
-              PrimitiveParameterValueType.fromValue(
-                  Objects.requireNonNull(
-                          Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
-                      .toString()))
-          .valueType(
-              getParameterType(
-                  Objects.requireNonNull(valueType.getMapType()).getValueType()))
-          .type(ParameterTypeDefinition.TypeEnum.MAP);
-    } else {
-      throw new WomtoolInputTypeNotFoundException(valueType);
-    }
-  }
-
-  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs)
-      throws WomtoolInputTypeNotFoundException {
-    List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
-    String workflowName = womInputs.getName();
-
-    for (ToolInputParameter input : womInputs.getInputs()) {
-      WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
-
-      // Name
-      workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
-
-      // Input type
-      workflowInputDefinition.inputType(getParameterType(input.getValueType()));
-
-      // Source
-      workflowInputDefinition.source(
-          new ParameterDefinitionLiteralValue()
-              .parameterValue(input.getDefault())
-              .type(ParameterDefinition.TypeEnum.LITERAL));
-
-      cbasInputDefinition.add(workflowInputDefinition);
-    }
-
-    return cbasInputDefinition;
-  }
 
   public static Map<String, Object> buildInputs(
       List<WorkflowInputDefinition> inputDefinitions, RecordResponse recordResponse)
