@@ -26,41 +26,34 @@ public class WomtoolToCbasInputsAndOutputs {
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
 
-    if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
-      return new ParameterTypeDefinitionPrimitive()
+    return switch (Objects.requireNonNull(valueType.getTypeName())) {
+      case STRING -> new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.STRING)
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.INT)) {
-      return new ParameterTypeDefinitionPrimitive()
+      case INT -> new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.INT)
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.BOOLEAN)) {
-      return new ParameterTypeDefinitionPrimitive()
+      case BOOLEAN -> new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.BOOLEAN)
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
-      return new ParameterTypeDefinitionOptional()
+      case FILE -> new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.FILE)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+      case FLOAT -> new ParameterTypeDefinitionPrimitive()
+          .primitiveType(PrimitiveParameterValueType.FLOAT)
+          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+      case OPTIONAL -> new ParameterTypeDefinitionOptional()
           .optionalType(
               getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
                   .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FILE)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.FILE)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.ARRAY)) {
-      return new ParameterTypeDefinitionArray()
+      case ARRAY -> new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
           .arrayType(
               getParameterType(Objects.requireNonNull(valueType.getArrayType()))
                   .type(ParameterTypeDefinition.TypeEnum.ARRAY))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
-      return new ParameterTypeDefinitionPrimitive()
-          .primitiveType(PrimitiveParameterValueType.FLOAT)
-          .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
-    } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.MAP)) {
-      return new ParameterTypeDefinitionMap()
+      case MAP -> new ParameterTypeDefinitionMap()
           .keyType(
               PrimitiveParameterValueType.fromValue(
                   Objects.requireNonNull(
@@ -69,9 +62,8 @@ public class WomtoolToCbasInputsAndOutputs {
           .valueType(
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
-    } else {
-      throw new WomtoolValueTypeNotFoundException(valueType);
-    }
+      default -> throw new WomtoolValueTypeNotFoundException(valueType);
+    };
   }
 
   public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs)
