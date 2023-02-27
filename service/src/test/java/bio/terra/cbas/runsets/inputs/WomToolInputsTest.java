@@ -171,7 +171,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -195,7 +195,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -219,7 +219,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
     cbasInputDef.add(cbasThing);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
@@ -244,7 +244,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(cbasThing);
 
@@ -269,7 +269,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(cbasThing);
 
@@ -298,7 +298,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(cbasThing);
 
@@ -331,7 +331,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(cbasDefinition);
 
@@ -360,7 +360,7 @@ class WomToolInputsTest {
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.LITERAL));
+                    .type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(cbasThing);
 

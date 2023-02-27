@@ -84,7 +84,7 @@ public class WomtoolToCbasInputsAndOutputs {
       workflowInputDefinition.source(
           new ParameterDefinitionLiteralValue()
               .parameterValue(input.getDefault())
-              .type(ParameterDefinition.TypeEnum.LITERAL));
+              .type(ParameterDefinition.TypeEnum.NONE));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }
