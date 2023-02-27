@@ -28,7 +28,7 @@ import org.databiosphere.workspacedata.model.RecordAttributes;
 
 public class OutputGenerator {
 
-  public static ParameterTypeDefinition recursivelyGetOutputParameterType(ValueType valueType)
+  public static ParameterTypeDefinition getOutputParameterType(ValueType valueType)
       throws WomtoolOutputTypeNotFoundException {
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
       return new ParameterTypeDefinitionPrimitive()
@@ -45,7 +45,7 @@ public class OutputGenerator {
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
       return new ParameterTypeDefinitionOptional()
           .optionalType(
-              recursivelyGetOutputParameterType(Objects.requireNonNull(valueType.getOptionalType()))
+              getOutputParameterType(Objects.requireNonNull(valueType.getOptionalType()))
                   .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FILE)) {
@@ -56,7 +56,7 @@ public class OutputGenerator {
       return new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
           .arrayType(
-              recursivelyGetOutputParameterType(Objects.requireNonNull(valueType.getArrayType()))
+              getOutputParameterType(Objects.requireNonNull(valueType.getArrayType()))
                   .type(ParameterTypeDefinition.TypeEnum.ARRAY))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
@@ -71,7 +71,7 @@ public class OutputGenerator {
                           Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
                       .toString()))
           .valueType(
-              recursivelyGetOutputParameterType(
+              getOutputParameterType(
                   Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
     } else {
@@ -91,7 +91,7 @@ public class OutputGenerator {
       workflowOutputDefinition.outputName("%s.%s".formatted(workflowName, output.getName()));
 
       // ValueType
-      workflowOutputDefinition.outputType(recursivelyGetOutputParameterType(output.getValueType()));
+      workflowOutputDefinition.outputType(getOutputParameterType(output.getValueType()));
 
       // Destination
       workflowOutputDefinition.destination(new OutputDestinationNone());

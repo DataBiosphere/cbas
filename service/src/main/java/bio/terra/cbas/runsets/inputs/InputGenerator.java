@@ -41,7 +41,7 @@ public class InputGenerator {
           .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
           .build();
 
-  public static ParameterTypeDefinition recursivelyGetParameterType(ValueType valueType)
+  public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolInputTypeNotFoundException {
 
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
@@ -59,7 +59,7 @@ public class InputGenerator {
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.OPTIONAL)) {
       return new ParameterTypeDefinitionOptional()
           .optionalType(
-              recursivelyGetParameterType(Objects.requireNonNull(valueType.getOptionalType()))
+              getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
                   .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FILE)) {
       return new ParameterTypeDefinitionPrimitive()
@@ -69,7 +69,7 @@ public class InputGenerator {
       return new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
           .arrayType(
-              recursivelyGetParameterType(Objects.requireNonNull(valueType.getArrayType()))
+              getParameterType(Objects.requireNonNull(valueType.getArrayType()))
                   .type(ParameterTypeDefinition.TypeEnum.ARRAY));
     } else if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.FLOAT)) {
       return new ParameterTypeDefinitionPrimitive()
@@ -83,7 +83,7 @@ public class InputGenerator {
                           Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
                       .toString()))
           .valueType(
-              recursivelyGetParameterType(
+              getParameterType(
                   Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
     } else {
@@ -103,7 +103,7 @@ public class InputGenerator {
       workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
 
       // Input type
-      workflowInputDefinition.inputType(recursivelyGetParameterType(input.getValueType()));
+      workflowInputDefinition.inputType(getParameterType(input.getValueType()));
 
       // Source
       workflowInputDefinition.source(
