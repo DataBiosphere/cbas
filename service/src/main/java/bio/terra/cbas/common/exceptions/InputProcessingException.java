@@ -1,8 +1,6 @@
 package bio.terra.cbas.common.exceptions;
 
 import bio.terra.cbas.model.ParameterDefinition;
-import cromwell.client.model.ValueType;
-import java.util.Objects;
 
 public class InputProcessingException extends Exception {
 

@@ -1,6 +1,6 @@
 package bio.terra.cbas.runsets.outputs;
 
-import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getOutputParameterType;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParameterType;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womtoolToCbasOutputs;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -347,7 +347,7 @@ class WomToolOutputsTest {
         .primitiveType(PrimitiveParameterValueType.STRING)
         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -368,7 +368,7 @@ class WomToolOutputsTest {
         .primitiveType(PrimitiveParameterValueType.INT)
         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -390,7 +390,7 @@ class WomToolOutputsTest {
         .primitiveType(PrimitiveParameterValueType.FLOAT)
         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -412,7 +412,7 @@ class WomToolOutputsTest {
         .primitiveType(PrimitiveParameterValueType.BOOLEAN)
         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -433,7 +433,7 @@ class WomToolOutputsTest {
         .primitiveType(PrimitiveParameterValueType.FILE)
         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -463,7 +463,7 @@ class WomToolOutputsTest {
                 .type(ParameterTypeDefinition.TypeEnum.ARRAY))
         .type(ParameterTypeDefinition.TypeEnum.ARRAY);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -497,7 +497,7 @@ class WomToolOutputsTest {
         .keyType(PrimitiveParameterValueType.STRING)
         .type(ParameterTypeDefinition.TypeEnum.MAP);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   @Test
@@ -525,6 +525,6 @@ class WomToolOutputsTest {
                 .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
         .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
 
-    assertEquals(cbasParameterTypeDef, getOutputParameterType(womtoolString));
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 }

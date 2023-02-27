@@ -1,7 +1,6 @@
 package bio.terra.cbas.common.exceptions;
 
 import bio.terra.cbas.model.OutputDestination;
-import cromwell.client.model.ValueType;
 
 public class OutputProcessingException extends Exception {
 

@@ -326,7 +326,8 @@ class WomToolInputsTest {
                                 new ParameterTypeDefinitionPrimitive()
                                     .primitiveType(PrimitiveParameterValueType.STRING)
                                     .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                            .type(ParameterTypeDefinition.TypeEnum.ARRAY)))
+                            .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+                    .type(ParameterTypeDefinition.TypeEnum.ARRAY))
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
@@ -354,7 +355,8 @@ class WomToolInputsTest {
                     .optionalType(
                         new ParameterTypeDefinitionPrimitive()
                             .primitiveType(PrimitiveParameterValueType.INT)
-                            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL)))
+                            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+                    .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
             .source(
                 new ParameterDefinitionLiteralValue()
                     .parameterValue(null)
@@ -501,7 +503,8 @@ class WomToolInputsTest {
         .arrayType(
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.FILE)
-                .type(ParameterTypeDefinition.TypeEnum.ARRAY));
+                .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+        .type(ParameterTypeDefinition.TypeEnum.ARRAY);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
@@ -558,10 +561,12 @@ class WomToolInputsTest {
 
     ParameterTypeDefinitionOptional cbasParameterTypeDef = new ParameterTypeDefinitionOptional();
 
-    cbasParameterTypeDef.optionalType(
-        new ParameterTypeDefinitionPrimitive()
-            .primitiveType(PrimitiveParameterValueType.STRING)
-            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL));
+    cbasParameterTypeDef
+        .optionalType(
+            new ParameterTypeDefinitionPrimitive()
+                .primitiveType(PrimitiveParameterValueType.STRING)
+                .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+        .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
