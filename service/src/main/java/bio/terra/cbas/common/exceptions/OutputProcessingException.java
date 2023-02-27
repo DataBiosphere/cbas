@@ -21,11 +21,4 @@ public class OutputProcessingException extends Exception {
       super("Unsupported output destination type: " + destination.getClass().getSimpleName());
     }
   }
-
-  public static class WomtoolOutputTypeNotFoundException extends OutputProcessingException {
-
-    public WomtoolOutputTypeNotFoundException(ValueType type) {
-      super("Unsupported output value type: " + type.getTypeName());
-    }
-  }
 }

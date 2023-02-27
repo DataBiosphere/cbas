@@ -1,7 +1,6 @@
 package bio.terra.cbas.util.methods;
 
-import bio.terra.cbas.common.exceptions.InputProcessingException;
-import bio.terra.cbas.common.exceptions.OutputProcessingException;
+import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
@@ -25,7 +24,7 @@ public class WomtoolToCbasInputsAndOutputs {
 
   // Inputs
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
-      throws InputProcessingException.WomtoolInputTypeNotFoundException {
+      throws WomtoolValueTypeNotFoundException {
 
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
       return new ParameterTypeDefinitionPrimitive()
@@ -69,12 +68,12 @@ public class WomtoolToCbasInputsAndOutputs {
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
     } else {
-      throw new InputProcessingException.WomtoolInputTypeNotFoundException(valueType);
+      throw new WomtoolValueTypeNotFoundException(valueType);
     }
   }
 
   public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs)
-      throws InputProcessingException.WomtoolInputTypeNotFoundException {
+      throws WomtoolValueTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
 
@@ -101,7 +100,7 @@ public class WomtoolToCbasInputsAndOutputs {
 
   // Outputs
   public static ParameterTypeDefinition getOutputParameterType(ValueType valueType)
-      throws OutputProcessingException.WomtoolOutputTypeNotFoundException {
+      throws WomtoolValueTypeNotFoundException {
     if (Objects.equals(valueType.getTypeName(), ValueType.TypeNameEnum.STRING)) {
       return new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.STRING)
@@ -146,12 +145,12 @@ public class WomtoolToCbasInputsAndOutputs {
               getOutputParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
     } else {
-      throw new OutputProcessingException.WomtoolOutputTypeNotFoundException(valueType);
+      throw new WomtoolValueTypeNotFoundException(valueType);
     }
   }
 
   public static List<WorkflowOutputDefinition> womtoolToCbasOutputs(WorkflowDescription womOutputs)
-      throws OutputProcessingException.WomtoolOutputTypeNotFoundException {
+      throws WomtoolValueTypeNotFoundException {
     List<WorkflowOutputDefinition> cbasOutputs = new ArrayList<>();
 
     for (ToolOutputParameter output : womOutputs.getOutputs()) {

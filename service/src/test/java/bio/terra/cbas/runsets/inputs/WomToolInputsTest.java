@@ -4,7 +4,7 @@ import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParam
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.common.exceptions.InputProcessingException.WomtoolInputTypeNotFoundException;
+import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterTypeDefinition;
@@ -154,7 +154,7 @@ class WomToolInputsTest {
    * Testing the womToCbasInputBuilder() function
    * */
   @Test
-  void test_string() throws WomtoolInputTypeNotFoundException {
+  void test_string() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolInput = object.fromJson(womtoolStringInput, ToolInputParameter.class);
 
@@ -178,7 +178,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_ints() throws WomtoolInputTypeNotFoundException {
+  void test_ints() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolInt = object.fromJson(womtoolIntInput, ToolInputParameter.class);
 
@@ -202,7 +202,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_floats() throws WomtoolInputTypeNotFoundException {
+  void test_floats() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolFloat = object.fromJson(womtoolFloatInput, ToolInputParameter.class);
 
@@ -226,7 +226,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_bools() throws WomtoolInputTypeNotFoundException {
+  void test_bools() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolBoolean =
         object.fromJson(womtoolBooleanInput, ToolInputParameter.class);
@@ -252,7 +252,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_files() throws WomtoolInputTypeNotFoundException {
+  void test_files() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolFile = object.fromJson(womtoolFileInput, ToolInputParameter.class);
 
@@ -277,7 +277,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_maps() throws WomtoolInputTypeNotFoundException {
+  void test_maps() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolMap = object.fromJson(womtoolMapInput, ToolInputParameter.class);
 
@@ -306,7 +306,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_arrays() throws WomtoolInputTypeNotFoundException {
+  void test_arrays() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolArray = object.fromJson(womtoolArrayInput, ToolInputParameter.class);
 
@@ -338,7 +338,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_optional() throws WomtoolInputTypeNotFoundException {
+  void test_optional() throws WomtoolValueTypeNotFoundException {
     Gson object = new Gson();
     ToolInputParameter womtoolOptional =
         object.fromJson(womtoolOptionalInput, ToolInputParameter.class);
@@ -370,7 +370,7 @@ class WomToolInputsTest {
    */
 
   @Test
-  void test_recursive_string() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_string() throws WomtoolValueTypeNotFoundException {
 
     String valueType = """
           {
@@ -391,7 +391,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_int() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_int() throws WomtoolValueTypeNotFoundException {
 
     String valueType = """
           {
@@ -412,7 +412,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_float() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_float() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """
@@ -434,7 +434,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_boolean() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_boolean() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """
@@ -456,7 +456,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_file() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_file() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """
@@ -478,7 +478,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_array() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_array() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """
@@ -507,7 +507,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_map() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_map() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """
@@ -541,7 +541,7 @@ class WomToolInputsTest {
   }
 
   @Test
-  void test_recursive_optional() throws WomtoolInputTypeNotFoundException {
+  void test_recursive_optional() throws WomtoolValueTypeNotFoundException {
 
     String valueType =
         """

@@ -25,11 +25,4 @@ public class InputProcessingException extends Exception {
       super("Unsupported input source type: " + parameterSource.getClass().getSimpleName());
     }
   }
-
-  public static class WomtoolInputTypeNotFoundException extends InputProcessingException {
-
-    public WomtoolInputTypeNotFoundException(ValueType type) {
-      super("Unsupported input value type: " + Objects.requireNonNull(type.getTypeName()));
-    }
-  }
 }
