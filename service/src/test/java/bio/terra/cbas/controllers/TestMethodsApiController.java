@@ -282,7 +282,7 @@ class TestMethodsApiController {
             "primitive_type" : "String"
           },
           "destination" : {
-            "type" : ""
+            "type" : "none"
           }
         } ]
         """
