@@ -21,7 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class WomtoolToCbasInputsAndOutputs {
+public final class WomtoolToCbasInputsAndOutputs {
+
+  private WomtoolToCbasInputsAndOutputs() {
+    throw new UnsupportedOperationException("Cannot be instantiated");
+  }
 
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
