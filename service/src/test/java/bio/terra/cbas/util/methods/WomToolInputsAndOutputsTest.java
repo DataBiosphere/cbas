@@ -1,4 +1,4 @@
-package bio.terra.cbas.runsets.inputs;
+package bio.terra.cbas.util.methods;
 
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParameterType;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
@@ -119,172 +119,6 @@ class WomToolInputsTest {
     cbasInputDef.add(input2);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(womtoolDescription));
-  }
-
-  @Test
-  void test_map_nested_in_array() throws WomtoolValueTypeNotFoundException {
-    String mapNestedInArray =
-        """
-        {
-          "name": "hello",
-          "valueType": {
-            "typeName": "Array",
-            "arrayType": {
-              "typeName": "Map",
-              "mapType": {
-                "keyType": {
-                  "typeName": "String"
-                },
-                "valueType": {
-                  "typeName": "String"
-                }
-              }
-            },
-            "nonEmpty": false
-          },
-          "typeDisplayName": "Array[Map[String, String]]"
-        }
-        """;
-
-    Gson object = new Gson();
-    ToolInputParameter womtoolMap = object.fromJson(mapNestedInArray, ToolInputParameter.class);
-
-    womtoolInputs.add(womtoolMap);
-    WorkflowDescription workflowDescription = new WorkflowDescription().inputs(womtoolInputs);
-
-    WorkflowInputDefinition cbasDef =
-        new WorkflowInputDefinition()
-            .inputName("null.hello")
-            .inputType(
-                new ParameterTypeDefinitionArray()
-                    .nonEmpty(false)
-                    .arrayType(
-                        new ParameterTypeDefinitionMap()
-                            .keyType(PrimitiveParameterValueType.STRING)
-                            .valueType(
-                                new ParameterTypeDefinitionPrimitive()
-                                    .primitiveType(PrimitiveParameterValueType.STRING)
-                                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-                            .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                    .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE));
-
-    cbasInputDef.add(cbasDef);
-
-    assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
-  }
-
-  // Testing getParameterType function
-  @Test
-  void test_array_nested_in_map() throws WomtoolValueTypeNotFoundException {
-    String mapNestedInArray =
-        """
-        {
-          "name": "hello",
-          "valueType": {
-            "typeName": "Map",
-            "mapType": {
-              "keyType": {
-                "typeName": "String"
-              },
-              "valueType": {
-                "typeName": "Array",
-                   "arrayType": {
-                     "typeName": "Int"
-                   },
-                   "nonEmpty": false
-              }
-            }
-          },
-          "optional": false,
-          "default": null,
-          "typeDisplayName": "Map[String, Array[Int]"
-        }
-        """;
-
-    Gson object = new Gson();
-    ToolInputParameter womtoolMap = object.fromJson(mapNestedInArray, ToolInputParameter.class);
-
-    womtoolInputs.add(womtoolMap);
-    WorkflowDescription workflowDescription = new WorkflowDescription().inputs(womtoolInputs);
-
-    WorkflowInputDefinition cbasDef =
-        new WorkflowInputDefinition()
-            .inputName("null.hello")
-            .inputType(
-                new ParameterTypeDefinitionMap()
-                    .keyType(PrimitiveParameterValueType.STRING)
-                    .valueType(
-                        new ParameterTypeDefinitionArray()
-                            .nonEmpty(false)
-                            .arrayType(
-                                new ParameterTypeDefinitionPrimitive()
-                                    .primitiveType(PrimitiveParameterValueType.INT)
-                                    .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                            .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                    .type(ParameterTypeDefinition.TypeEnum.MAP))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE));
-
-    cbasInputDef.add(cbasDef);
-
-    assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
-  }
-
-  @Test
-  void test_nested_arrays() throws WomtoolValueTypeNotFoundException {
-    String arrayNestedInArray =
-        """
-            {
-              "name": "hello",
-              "valueType": {
-                "typeName": "Array",
-                "arrayType": {
-                  "typeName": "Array",
-                  "arrayType": {
-                    "typeName": "String"
-                  },
-                  "nonEmpty": false
-                },
-                "nonEmpty": false
-              },
-              "typeDisplayName": "Array[Array[String]]"
-            }
-        """;
-    Gson object = new Gson();
-    ToolInputParameter womtoolArray = object.fromJson(arrayNestedInArray, ToolInputParameter.class);
-
-    womtoolInputs.add(womtoolArray);
-    WorkflowDescription workflowDescription = new WorkflowDescription().inputs(womtoolInputs);
-
-    WorkflowInputDefinition cbasDefinition =
-        new WorkflowInputDefinition()
-            .inputName("null.hello")
-            .inputType(
-                new ParameterTypeDefinitionArray()
-                    .nonEmpty(false)
-                    .arrayType(
-                        new ParameterTypeDefinitionArray()
-                            .nonEmpty(false)
-                            .arrayType(
-                                new ParameterTypeDefinitionPrimitive()
-                                    .primitiveType(PrimitiveParameterValueType.STRING)
-                                    .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                            .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-                    .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE));
-
-    cbasInputDef.add(cbasDefinition);
-
-    assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
   }
 
   @Test
@@ -567,6 +401,125 @@ class WomToolInputsTest {
                 .primitiveType(PrimitiveParameterValueType.STRING)
                 .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
         .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
+  }
+
+  @Test
+  void test_array_nested_in_map() throws WomtoolValueTypeNotFoundException {
+    String mapNestedInArrayType =
+        """
+        {
+          "typeName": "Map",
+          "mapType": {
+            "keyType": {
+              "typeName": "String"
+            },
+            "valueType": {
+              "typeName": "Array",
+                 "arrayType": {
+                   "typeName": "Int"
+                 },
+                 "nonEmpty": false
+            }
+          }
+        }
+        """;
+
+    Gson object = new Gson();
+    ValueType womtoolString = object.fromJson(mapNestedInArrayType, ValueType.class);
+
+    ParameterTypeDefinitionMap cbasParameterTypeDef = new ParameterTypeDefinitionMap();
+
+    cbasParameterTypeDef
+        .keyType(PrimitiveParameterValueType.STRING)
+        .valueType(
+            new ParameterTypeDefinitionArray()
+                .nonEmpty(false)
+                .arrayType(
+                    new ParameterTypeDefinitionPrimitive()
+                        .primitiveType(PrimitiveParameterValueType.INT)
+                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+        .type(ParameterTypeDefinition.TypeEnum.MAP);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
+  }
+
+  @Test
+  void test_nested_arrays() throws WomtoolValueTypeNotFoundException {
+    String arrayNestedInArrayType =
+        """
+        {
+            "typeName": "Array",
+            "arrayType": {
+              "typeName": "Array",
+              "arrayType": {
+                "typeName": "String"
+              },
+              "nonEmpty": false
+            },
+            "nonEmpty": false
+        }
+        """;
+
+    Gson object = new Gson();
+    ValueType womtoolString = object.fromJson(arrayNestedInArrayType, ValueType.class);
+
+    ParameterTypeDefinitionArray cbasParameterTypeDef = new ParameterTypeDefinitionArray();
+
+    cbasParameterTypeDef
+        .nonEmpty(false)
+        .arrayType(
+            new ParameterTypeDefinitionArray()
+                .nonEmpty(false)
+                .arrayType(
+                    new ParameterTypeDefinitionPrimitive()
+                        .primitiveType(PrimitiveParameterValueType.STRING)
+                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+        .type(ParameterTypeDefinition.TypeEnum.ARRAY);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
+  }
+
+  @Test
+  void test_map_nested_in_array() throws WomtoolValueTypeNotFoundException {
+    String mapNestedInArrayType =
+        """
+        {
+            "typeName": "Array",
+            "arrayType": {
+              "typeName": "Map",
+              "mapType": {
+                "keyType": {
+                  "typeName": "String"
+                },
+                "valueType": {
+                  "typeName": "String"
+                }
+              }
+            },
+            "nonEmpty": false
+        }
+        """;
+
+    Gson object = new Gson();
+    ValueType womtoolString = object.fromJson(mapNestedInArrayType, ValueType.class);
+
+    ParameterTypeDefinitionArray cbasParameterTypeDef = new ParameterTypeDefinitionArray();
+
+    cbasParameterTypeDef
+        .nonEmpty(false)
+        .arrayType(
+            new ParameterTypeDefinitionMap()
+                .keyType(PrimitiveParameterValueType.STRING)
+                .valueType(
+                    new ParameterTypeDefinitionPrimitive()
+                        .primitiveType(PrimitiveParameterValueType.STRING)
+                        .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                .type(ParameterTypeDefinition.TypeEnum.MAP))
+        .type(ParameterTypeDefinition.TypeEnum.ARRAY);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }

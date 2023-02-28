@@ -49,8 +49,7 @@ public class WomtoolToCbasInputsAndOutputs {
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
       case ARRAY -> new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
-          .arrayType(
-              getParameterType(Objects.requireNonNull(valueType.getArrayType())))
+          .arrayType(getParameterType(Objects.requireNonNull(valueType.getArrayType())))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
       case MAP -> new ParameterTypeDefinitionMap()
           .keyType(
@@ -107,7 +106,8 @@ public class WomtoolToCbasInputsAndOutputs {
       workflowOutputDefinition.outputType(getParameterType(output.getValueType()));
 
       // Destination
-      workflowOutputDefinition.destination(new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
+      workflowOutputDefinition.destination(
+          new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
 
       cbasOutputs.add(workflowOutputDefinition);
     }
