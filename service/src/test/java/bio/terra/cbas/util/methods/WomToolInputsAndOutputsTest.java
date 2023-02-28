@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
+import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
@@ -185,7 +186,7 @@ class WomToolInputsTest {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .destination(new OutputDestinationNone());
+            .destination(new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
     WorkflowOutputDefinition output2 =
         new WorkflowOutputDefinition()
             .outputName("test.bar")
@@ -194,10 +195,10 @@ class WomToolInputsTest {
                     .arrayType(
                         new ParameterTypeDefinitionPrimitive()
                             .primitiveType(PrimitiveParameterValueType.STRING)
-                            .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
                     .nonEmpty(null)
                     .type(ParameterTypeDefinition.TypeEnum.ARRAY))
-            .destination(new OutputDestinationNone());
+            .destination(new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
     cbasOutputDef.add(output1);
     cbasOutputDef.add(output2);
 
@@ -337,7 +338,7 @@ class WomToolInputsTest {
         .arrayType(
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.FILE)
-                .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
         .type(ParameterTypeDefinition.TypeEnum.ARRAY);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
