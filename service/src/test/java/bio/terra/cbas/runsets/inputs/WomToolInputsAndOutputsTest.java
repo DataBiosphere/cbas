@@ -2,7 +2,7 @@ package bio.terra.cbas.runsets.inputs;
 
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParameterType;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
-import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womtoolToCbasOutputs;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -92,12 +92,9 @@ class WomToolInputsTest {
     WorkflowDescription womtoolDescription =
         object.fromJson(womtoolStringInputs, WorkflowDescription.class);
 
-    WorkflowDescription workflowDescription =
-        new WorkflowDescription().inputs(womtoolDescription.getInputs());
-
     WorkflowInputDefinition input1 =
         new WorkflowInputDefinition()
-            .inputName("null.hello")
+            .inputName("test.hello")
             .inputType(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
@@ -108,7 +105,7 @@ class WomToolInputsTest {
                     .type(ParameterDefinition.TypeEnum.NONE));
     WorkflowInputDefinition input2 =
         new WorkflowInputDefinition()
-            .inputName("null.foo")
+            .inputName("test.foo")
             .inputType(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
@@ -121,7 +118,7 @@ class WomToolInputsTest {
     cbasInputDef.add(input1);
     cbasInputDef.add(input2);
 
-    assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
+    assertEquals(cbasInputDef, womToCbasInputBuilder(womtoolDescription));
   }
 
   @Test
@@ -180,6 +177,7 @@ class WomToolInputsTest {
     assertEquals(cbasInputDef, womToCbasInputBuilder(workflowDescription));
   }
 
+  // Testing getParameterType function
   @Test
   void test_array_nested_in_map() throws WomtoolValueTypeNotFoundException {
     String mapNestedInArray =
@@ -346,12 +344,9 @@ class WomToolInputsTest {
     WorkflowDescription womtoolDescription =
         object.fromJson(womtoolWorkflowDescription, WorkflowDescription.class);
 
-    WorkflowDescription workflowDescription =
-        new WorkflowDescription().outputs(womtoolDescription.getOutputs());
-
     WorkflowOutputDefinition output1 =
         new WorkflowOutputDefinition()
-            .outputName("null.foo")
+            .outputName("test.foo")
             .outputType(
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
@@ -359,7 +354,7 @@ class WomToolInputsTest {
             .destination(new OutputDestinationNone());
     WorkflowOutputDefinition output2 =
         new WorkflowOutputDefinition()
-            .outputName("null.bar")
+            .outputName("test.bar")
             .outputType(
                 new ParameterTypeDefinitionArray()
                     .arrayType(
@@ -372,7 +367,7 @@ class WomToolInputsTest {
     cbasOutputDef.add(output1);
     cbasOutputDef.add(output2);
 
-    assertEquals(cbasOutputDef, womtoolToCbasOutputs(workflowDescription));
+    assertEquals(cbasOutputDef, womToCbasOutputBuilder(womtoolDescription));
   }
 
   /*

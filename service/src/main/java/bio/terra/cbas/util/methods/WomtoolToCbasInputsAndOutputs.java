@@ -1,6 +1,7 @@
 package bio.terra.cbas.util.methods;
 
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
+import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
@@ -22,7 +23,6 @@ import java.util.Objects;
 
 public class WomtoolToCbasInputsAndOutputs {
 
-  // Inputs
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
 
@@ -50,8 +50,7 @@ public class WomtoolToCbasInputsAndOutputs {
       case ARRAY -> new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
           .arrayType(
-              getParameterType(Objects.requireNonNull(valueType.getArrayType()))
-                  .type(ParameterTypeDefinition.TypeEnum.ARRAY))
+              getParameterType(Objects.requireNonNull(valueType.getArrayType())))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
       case MAP -> new ParameterTypeDefinitionMap()
           .keyType(
@@ -93,8 +92,8 @@ public class WomtoolToCbasInputsAndOutputs {
   }
 
   // Outputs
-  public static List<WorkflowOutputDefinition> womtoolToCbasOutputs(WorkflowDescription womOutputs)
-      throws WomtoolValueTypeNotFoundException {
+  public static List<WorkflowOutputDefinition> womToCbasOutputBuilder(
+      WorkflowDescription womOutputs) throws WomtoolValueTypeNotFoundException {
     List<WorkflowOutputDefinition> cbasOutputs = new ArrayList<>();
 
     for (ToolOutputParameter output : womOutputs.getOutputs()) {
@@ -108,7 +107,7 @@ public class WomtoolToCbasInputsAndOutputs {
       workflowOutputDefinition.outputType(getParameterType(output.getValueType()));
 
       // Destination
-      workflowOutputDefinition.destination(new OutputDestinationNone());
+      workflowOutputDefinition.destination(new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
 
       cbasOutputs.add(workflowOutputDefinition);
     }

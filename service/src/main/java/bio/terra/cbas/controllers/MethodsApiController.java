@@ -2,7 +2,7 @@ package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
-import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womtoolToCbasOutputs;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
@@ -90,7 +90,7 @@ public class MethodsApiController implements MethodsApi {
 
       List<WorkflowInputDefinition> inputs = womToCbasInputBuilder(workflowDescription);
 
-      List<WorkflowOutputDefinition> outputs = womtoolToCbasOutputs(workflowDescription);
+      List<WorkflowOutputDefinition> outputs = womToCbasOutputBuilder(workflowDescription);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
