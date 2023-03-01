@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InputGenerator {
 
@@ -63,45 +65,9 @@ public class InputGenerator {
     } else if (parameterSource instanceof ParameterDefinitionNone) {
       parameterValue = null;
     } else if (parameterSource instanceof ParameterDefinitionRecordLookup recordLookup) {
-      String attributeName = recordLookup.getRecordAttribute();
-
-      if (((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
-        parameterValue = recordResponse.getAttributes().get(attributeName);
-      } else {
-        if (inputType.getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
-          parameterValue = null;
-        } else {
-          throw new WorkflowAttributesNotFoundException(
-              attributeName, recordResponse.getId(), parameterName);
-        }
-      }
+      parameterValue = handleRecordLookupInput(parameterName, inputType, recordResponse, recordLookup);
     } else if (parameterSource instanceof ParameterDefinitionObjectBuilder objectBuilderSource) {
-      Map<String, Object> fields = new HashMap<>();
-      if (inputType instanceof ParameterTypeDefinitionStruct structInputType) {
-        for (StructField structField : structInputType.getFields()) {
-          ParameterDefinition fieldSource =
-              objectBuilderSource.getFields().stream()
-                  .filter(f -> Objects.equals(f.getName(), structField.getFieldName()))
-                  .findFirst()
-                  .map(ObjectBuilderField::getSource)
-                  .orElseThrow(
-                      () ->
-                          new StructMissingFieldException(
-                              structField.getFieldName(), structInputType.getName()));
-          Object paramValue =
-              buildInput(
-                  structField.getFieldName(),
-                  structField.getFieldType(),
-                  fieldSource,
-                  recordResponse);
-          if (paramValue != null) {
-            fields.put(structField.getFieldName(), paramValue);
-          }
-        }
-        parameterValue = fields;
-      } else {
-        throw new InappropriateInputSourceException(objectBuilderSource, inputType);
-      }
+      parameterValue = handleObjectBuilderInput(inputType, recordResponse, objectBuilderSource);
     } else {
       throw new WorkflowInputSourceNotSupportedException(parameterSource);
     }
@@ -113,6 +79,56 @@ public class InputGenerator {
     } else {
       return null;
     }
+  }
+
+  @Nullable
+  private static Object handleRecordLookupInput(String parameterName, ParameterTypeDefinition inputType, RecordResponse recordResponse, ParameterDefinitionRecordLookup recordLookup) throws WorkflowAttributesNotFoundException {
+    Object parameterValue;
+    String attributeName = recordLookup.getRecordAttribute();
+
+    if (((Map<String, Object>) recordResponse.getAttributes()).containsKey(attributeName)) {
+      parameterValue = recordResponse.getAttributes().get(attributeName);
+    } else {
+      if (inputType.getType().equals(ParameterTypeDefinition.TypeEnum.OPTIONAL)) {
+        parameterValue = null;
+      } else {
+        throw new WorkflowAttributesNotFoundException(
+            attributeName, recordResponse.getId(), parameterName);
+      }
+    }
+    return parameterValue;
+  }
+
+  @NotNull
+  private static Object handleObjectBuilderInput(ParameterTypeDefinition inputType, RecordResponse recordResponse, ParameterDefinitionObjectBuilder objectBuilderSource) throws InputProcessingException, CoercionException {
+    Object parameterValue;
+    Map<String, Object> fields = new HashMap<>();
+    if (inputType instanceof ParameterTypeDefinitionStruct structInputType) {
+      for (StructField structField : structInputType.getFields()) {
+        ParameterDefinition fieldSource =
+            objectBuilderSource.getFields().stream()
+                .filter(f -> Objects.equals(f.getName(), structField.getFieldName()))
+                .findFirst()
+                .map(ObjectBuilderField::getSource)
+                .orElseThrow(
+                    () ->
+                        new StructMissingFieldException(
+                            structField.getFieldName(), structInputType.getName()));
+        Object paramValue =
+            buildInput(
+                structField.getFieldName(),
+                structField.getFieldType(),
+                fieldSource,
+                recordResponse);
+        if (paramValue != null) {
+          fields.put(structField.getFieldName(), paramValue);
+        }
+      }
+      parameterValue = fields;
+    } else {
+      throw new InappropriateInputSourceException(objectBuilderSource, inputType);
+    }
+    return parameterValue;
   }
 
   public static String inputsToJson(Map<String, Object> inputs) throws JsonProcessingException {
