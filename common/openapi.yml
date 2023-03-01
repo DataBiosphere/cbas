@@ -389,17 +389,19 @@ components:
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
-          enum: [ literal, record_lookup, none ]
+          enum: [ literal, record_lookup, object_builder, none ]
           example: record_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterDefinitionRecordLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
+        - $ref: '#/components/schemas/ParameterDefinitionObjectBuilder'
         - $ref: '#/components/schemas/ParameterDefinitionNone'
       discriminator:
         propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
           record_lookup: 'ParameterDefinitionRecordLookup'
+          object_builder: 'ParameterDefinitionObjectBuilder'
           none: 'ParameterDefinitionNone'
 
     ParameterDefinitionLiteralValue:
@@ -421,11 +423,26 @@ components:
           description: The attribute name on the record to use.
           required: true
           example: record_field_foo_rating
+    ParameterDefinitionObjectBuilder:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
+      properties:
+        fields:
+          type: object
+          items:
+            $ref: '#/components/schemas/ObjectBuilderField'
+    ObjectBuilderField:
+      type: object
+      properties:
+        "name":
+          type: string
+        source:
+          $ref: '#/components/schemas/ParameterDefinition'
     ParameterDefinitionNone:
       type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
-
 
     OutputDestination:
       title: OutputDestination

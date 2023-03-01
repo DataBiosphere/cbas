@@ -1,5 +1,6 @@
 package bio.terra.cbas.runsets.inputs;
 
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOneFieldStructFooRatingParameterRecordLookup;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +48,7 @@ class TestInputGeneratorBuildStructInputs {
   }
 
   @Test
-  void oneFieldStructLookup()
+  void oneFieldStructRecordLookup()
       throws JsonProcessingException, CoercionException, InputProcessingException {
 
     Map<String, Object> actual =
@@ -56,6 +57,21 @@ class TestInputGeneratorBuildStructInputs {
                 inputDefinitionWithOneFieldStructFooRatingParameterRecordLookup(
                     "struct_field", "Int")),
             wdsRecordWithFooRating("{ \"struct_field\": 5 }"));
+
+    Map<String, Object> expected = Map.of("lookup_foo", Map.of("struct_field", 5L));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void oneFieldStructObjectBuilder()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(
+                inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder(
+                    "struct_field", "Int")),
+            wdsRecordWithFooRating("5"));
 
     Map<String, Object> expected = Map.of("lookup_foo", Map.of("struct_field", 5L));
     assertEquals(expected, actual);
