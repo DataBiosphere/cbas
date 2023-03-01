@@ -155,11 +155,8 @@ public final class StockInputDefinitions {
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
-  public static WorkflowInputDefinition
-      inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder(
-          String fieldName, String fieldType) throws JsonProcessingException {
-    String paramDefinitionJson =
-        """
+  private static String oneFieldStructInputDefinitionTemplate =
+      """
         {
           "input_name": "lookup_foo",
           "input_type": {
@@ -183,8 +180,25 @@ public final class StockInputDefinitions {
               }
             }]
           }
-        }"""
+        }""";
+
+  public static WorkflowInputDefinition
+      inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder(
+          String fieldName, String fieldType) throws JsonProcessingException {
+    String paramDefinitionJson =
+        oneFieldStructInputDefinitionTemplate
             .formatted(fieldName, fieldType, fieldName)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  public static WorkflowInputDefinition nestedStructInputDefinitionWithBadFieldNamesInSource(
+      String fieldName, String fieldType) throws JsonProcessingException {
+    String paramDefinitionJson =
+        oneFieldStructInputDefinitionTemplate
+            .formatted(fieldName, fieldType, fieldName + "oops")
             .stripIndent()
             .trim();
 
@@ -235,6 +249,30 @@ public final class StockInputDefinitions {
           }
         }"""
             .formatted(fieldName, innerFieldName, innerFieldType, fieldName, innerFieldName)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  public static WorkflowInputDefinition objectBuilderSourceUsedForStringInput()
+      throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": { "type": "primitive", "primitive_type": "string" },
+          "source": {
+            "type": "object_builder",
+            "fields": [{
+              "name": "struct_field",
+              "source": {
+                "type": "record_lookup",
+                "record_attribute": "foo-rating"
+              }
+            }]
+          }
+        }"""
             .stripIndent()
             .trim();
 
