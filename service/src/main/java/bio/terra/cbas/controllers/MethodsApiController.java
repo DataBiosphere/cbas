@@ -1,9 +1,12 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -14,10 +17,15 @@ import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodResponse;
+import bio.terra.cbas.model.WorkflowInputDefinition;
+import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -49,12 +57,16 @@ public class MethodsApiController implements MethodsApi {
       CromwellService cromwellService,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
-      RunSetDao runSetDao) {
+      RunSetDao runSetDao,
+      ObjectMapper objectMapper) {
     this.cromwellService = cromwellService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
+    this.objectMapper = objectMapper;
   }
+
+  private final ObjectMapper objectMapper;
 
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
@@ -75,6 +87,10 @@ public class MethodsApiController implements MethodsApi {
     WorkflowDescription workflowDescription;
     try {
       workflowDescription = cromwellService.describeWorkflow(postMethodRequest.getMethodUrl());
+
+      List<WorkflowInputDefinition> inputs = womToCbasInputBuilder(workflowDescription);
+
+      List<WorkflowOutputDefinition> outputs = womToCbasOutputBuilder(workflowDescription);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
@@ -133,8 +149,8 @@ public class MethodsApiController implements MethodsApi {
               DateUtils.currentTimeInUTC(),
               0,
               0,
-              "{}", // TODO: https://broadworkbench.atlassian.net/browse/WM-1696
-              "{}", // TODO: https://broadworkbench.atlassian.net/browse/WM-1696
+              objectMapper.writeValueAsString(inputs),
+              objectMapper.writeValueAsString(outputs),
               null);
 
       methodDao.createMethod(method);
@@ -149,7 +165,7 @@ public class MethodsApiController implements MethodsApi {
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch (cromwell.client.ApiException e) {
+    } catch (ApiException | JsonProcessingException | WomtoolValueTypeNotFoundException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",

@@ -258,6 +258,36 @@ class TestMethodsApiController {
   void validPostRequest() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted(validWorkflow);
 
+    String expectedInput =
+        """
+        [ {
+          "input_name" : "wf_hello.hello.addressee",
+          "input_type" : {
+            "type" : "primitive",
+            "primitive_type" : "String"
+          },
+          "source" : {
+            "type" : "none"
+          }
+        } ]
+        """
+            .trim();
+
+    String expectedOutput =
+        """
+        [ {
+          "output_name" : "wf_hello.hello.salutation",
+          "output_type" : {
+            "type" : "primitive",
+            "primitive_type" : "String"
+          },
+          "destination" : {
+            "type" : "none"
+          }
+        } ]
+        """
+            .trim();
+
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validWorkflow)).thenReturn(workflowDescForValidWorkflow);
@@ -299,8 +329,8 @@ class TestMethodsApiController {
     assertEquals(
         "Template Run Set for Method test workflow/develop workflow",
         newRunSetCaptor.getValue().description());
-    assertEquals("{}", newRunSetCaptor.getValue().inputDefinition());
-    assertEquals("{}", newRunSetCaptor.getValue().outputDefinition());
+    assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
+    assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
 
     // verify that 'lastRunSetId' in method table was updated
