@@ -65,7 +65,8 @@ public class InputGenerator {
     } else if (parameterSource instanceof ParameterDefinitionNone) {
       parameterValue = null;
     } else if (parameterSource instanceof ParameterDefinitionRecordLookup recordLookup) {
-      parameterValue = handleRecordLookupInput(parameterName, inputType, recordResponse, recordLookup);
+      parameterValue =
+          handleRecordLookupInput(parameterName, inputType, recordResponse, recordLookup);
     } else if (parameterSource instanceof ParameterDefinitionObjectBuilder objectBuilderSource) {
       parameterValue = handleObjectBuilderInput(inputType, recordResponse, objectBuilderSource);
     } else {
@@ -82,7 +83,12 @@ public class InputGenerator {
   }
 
   @Nullable
-  private static Object handleRecordLookupInput(String parameterName, ParameterTypeDefinition inputType, RecordResponse recordResponse, ParameterDefinitionRecordLookup recordLookup) throws WorkflowAttributesNotFoundException {
+  private static Object handleRecordLookupInput(
+      String parameterName,
+      ParameterTypeDefinition inputType,
+      RecordResponse recordResponse,
+      ParameterDefinitionRecordLookup recordLookup)
+      throws WorkflowAttributesNotFoundException {
     Object parameterValue;
     String attributeName = recordLookup.getRecordAttribute();
 
@@ -100,7 +106,11 @@ public class InputGenerator {
   }
 
   @NotNull
-  private static Object handleObjectBuilderInput(ParameterTypeDefinition inputType, RecordResponse recordResponse, ParameterDefinitionObjectBuilder objectBuilderSource) throws InputProcessingException, CoercionException {
+  private static Object handleObjectBuilderInput(
+      ParameterTypeDefinition inputType,
+      RecordResponse recordResponse,
+      ParameterDefinitionObjectBuilder objectBuilderSource)
+      throws InputProcessingException, CoercionException {
     Object parameterValue;
     Map<String, Object> fields = new HashMap<>();
     if (inputType instanceof ParameterTypeDefinitionStruct structInputType) {

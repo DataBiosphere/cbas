@@ -76,11 +76,11 @@ class TestInputGeneratorBuildStructInputs {
     assertThrows(
         ValueCoercionException.class,
         () ->
-        InputGenerator.buildInputs(
-            List.of(
-                inputDefinitionWithOneFieldStructFooRatingParameterRecordLookup(
-                    "struct_field", "Int")),
-            wdsRecordWithFooRating("{ \"struct_field_BAD\": 5 }")));
+            InputGenerator.buildInputs(
+                List.of(
+                    inputDefinitionWithOneFieldStructFooRatingParameterRecordLookup(
+                        "struct_field", "Int")),
+                wdsRecordWithFooRating("{ \"struct_field_BAD\": 5 }")));
   }
 
   @Test
