@@ -5,6 +5,7 @@ import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
 
 public interface CbasValue {
@@ -47,6 +48,8 @@ public interface CbasValue {
       PrimitiveParameterValueType keyType = mapDefinition.getKeyType();
       ParameterTypeDefinition valueType = mapDefinition.getValueType();
       return CbasMap.parseValue(keyType, valueType, value);
+    } else if (parameterType instanceof ParameterTypeDefinitionStruct structDefinition) {
+      return CbasStruct.parseValue(structDefinition, value);
     } else {
       throw new TypeCoercionException(value, parameterType.toString());
     }
