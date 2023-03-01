@@ -191,6 +191,56 @@ public final class StockInputDefinitions {
     return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
   }
 
+  public static WorkflowInputDefinition
+      inputDefinitionWithOneNestedFieldStructFooRatingParameterObjectBuilder(
+          String fieldName, String innerFieldName, String innerFieldType)
+          throws JsonProcessingException {
+    String paramDefinitionJson =
+        """
+        {
+          "input_name": "lookup_foo",
+          "input_type": {
+            "type": "struct",
+            "name": "StructName1",
+            "fields": [{
+              "field_name": "%s",
+              "field_type": {
+                "type": "struct",
+                "name": "StructName2",
+                "fields": [{
+                  "field_name": "%s",
+                  "field_type": {
+                    "type": "primitive",
+                    "primitive_type": "%s"
+                  }
+                }]
+              }
+            }]
+          },
+          "source": {
+            "type": "object_builder",
+            "fields": [{
+              "name": "%s",
+              "source": {
+                "type": "object_builder",
+                "fields": [{
+                  "name": "%s",
+                  "source": {
+                    "type": "record_lookup",
+                    "record_attribute": "foo-rating"
+                  }
+                }]
+              }
+            }]
+          }
+        }"""
+            .formatted(fieldName, innerFieldName, innerFieldType, fieldName, innerFieldName)
+            .stripIndent()
+            .trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
   public static WorkflowInputDefinition inputDefinitionWithArrayLiteral(
       Boolean nonEmpty, String arrayInnerType, String rawLiteralJson)
       throws JsonProcessingException {
