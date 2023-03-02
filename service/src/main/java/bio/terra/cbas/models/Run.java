@@ -29,7 +29,8 @@ public record Run(
     return runSet.runSetId();
   }
 
-  public Run withStatus(CbasRunStatus newStatus) {
+  public Run withStatusAndModifiedTimestamp(
+      CbasRunStatus newStatus, OffsetDateTime newLastModified) {
     return new Run(
         runId,
         engineId,
@@ -37,7 +38,7 @@ public record Run(
         recordId,
         submissionTimestamp,
         newStatus,
-        lastModifiedTimestamp,
+        newLastModified,
         lastPolledTimestamp,
         errorMessages);
   }

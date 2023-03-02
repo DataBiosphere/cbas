@@ -199,7 +199,8 @@ public class SmartRunsPoller {
         var changes =
             runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
         if (changes == 1) {
-          updatableRun = updatableRun.withStatus(updatedRunState);
+          updatableRun =
+              updatableRun.withStatusAndModifiedTimestamp(updatedRunState, engineStatusChanged);
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
