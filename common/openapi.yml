@@ -279,13 +279,14 @@ components:
           type: string
           description: Indicates what type of parameter type definition this is.
           required: true
-          enum: [ primitive, optional, array, map ]
+          enum: [ primitive, optional, array, map, struct ]
           example: record_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterTypeDefinitionPrimitive'
         - $ref: '#/components/schemas/ParameterTypeDefinitionOptional'
         - $ref: '#/components/schemas/ParameterTypeDefinitionArray'
         - $ref: '#/components/schemas/ParameterTypeDefinitionMap'
+        - $ref: '#/components/schemas/ParameterTypeDefinitionStruct'
       discriminator:
         propertyName: "type"
         mapping:
@@ -293,6 +294,7 @@ components:
           optional: 'ParameterTypeDefinitionOptional'
           array: 'ParameterTypeDefinitionArray'
           map: 'ParameterTypeDefinitionMap'
+          struct: 'ParameterTypeDefinitionStruct'
 
     PrimitiveParameterValueType:
       title: PrimitiveParameterValueType
@@ -346,6 +348,33 @@ components:
         value_type:
           $ref: ParameterTypeDefinition
 
+    ParameterTypeDefinitionStruct:
+      type: object
+      required:
+        - name
+        - fields
+      allOf:
+        - $ref: '#/components/schemas/ParameterTypeDefinition'
+      properties:
+        name:
+          type: string
+          description: The name of the struct
+        fields:
+          type: array
+          items:
+            $ref: StructField
+
+    StructField:
+      type: object
+      required:
+        - field_name
+        - field_type
+      properties:
+        field_name:
+          type: string
+        field_type:
+          $ref: ParameterTypeDefinition
+
     # This ParameterDefinition holds the 'oneOf' declaration for all the various types that can
     # be used as parameter definitions.
     # In addition, in Java it acts as the superclass for the various
@@ -360,17 +389,19 @@ components:
           type: string
           description: Indicates what type of parameter declaration this is.
           required: true
-          enum: [ literal, record_lookup, none ]
+          enum: [ literal, record_lookup, object_builder, none ]
           example: record_lookup
       oneOf:
         - $ref: '#/components/schemas/ParameterDefinitionRecordLookup'
         - $ref: '#/components/schemas/ParameterDefinitionLiteralValue'
+        - $ref: '#/components/schemas/ParameterDefinitionObjectBuilder'
         - $ref: '#/components/schemas/ParameterDefinitionNone'
       discriminator:
         propertyName: "type"
         mapping:
           literal: 'ParameterDefinitionLiteralValue'
           record_lookup: 'ParameterDefinitionRecordLookup'
+          object_builder: 'ParameterDefinitionObjectBuilder'
           none: 'ParameterDefinitionNone'
 
     ParameterDefinitionLiteralValue:
@@ -392,11 +423,26 @@ components:
           description: The attribute name on the record to use.
           required: true
           example: record_field_foo_rating
+    ParameterDefinitionObjectBuilder:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ParameterDefinition'
+      properties:
+        fields:
+          type: object
+          items:
+            $ref: '#/components/schemas/ObjectBuilderField'
+    ObjectBuilderField:
+      type: object
+      properties:
+        "name":
+          type: string
+        source:
+          $ref: '#/components/schemas/ParameterDefinition'
     ParameterDefinitionNone:
       type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
-
 
     OutputDestination:
       title: OutputDestination
