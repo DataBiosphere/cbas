@@ -54,4 +54,17 @@ public record Run(
         lastPolledTimestamp,
         message);
   }
+
+  public Run withLastModified(OffsetDateTime newLastModifiedTimestamp) {
+    return new Run(
+        runId,
+        engineId,
+        runSet,
+        recordId,
+        submissionTimestamp,
+        status,
+        newLastModifiedTimestamp,
+        lastPolledTimestamp,
+        errorMessages);
+  }
 }
