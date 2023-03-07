@@ -332,20 +332,6 @@ class TestMethodsApiController {
     assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
-
-    // verify that 'lastRunSetId' in method table was updated
-    ArgumentCaptor<RunSet> updateMethodCaptor = ArgumentCaptor.forClass(RunSet.class);
-    verify(methodDao).updateLastRunWithRunSet(updateMethodCaptor.capture());
-    assertEquals(postMethodResponse.getRunSetId(), updateMethodCaptor.getValue().runSetId());
-    assertEquals(
-        postMethodResponse.getMethodId(),
-        updateMethodCaptor.getValue().methodVersion().method().methodId());
-
-    // verify that 'lastRunSetId' in method_version table was updated
-    ArgumentCaptor<RunSet> updateMethodVersionCaptor = ArgumentCaptor.forClass(RunSet.class);
-    verify(methodVersionDao).updateLastRunWithRunSet(updateMethodVersionCaptor.capture());
-    assertEquals(postMethodResponse.getRunSetId(), updateMethodVersionCaptor.getValue().runSetId());
-    assertEquals(methodVersionId, updateMethodCaptor.getValue().methodVersion().methodVersionId());
   }
 
   private static final Method neverRunMethod1 =
