@@ -157,9 +157,6 @@ public class MethodsApiController implements MethodsApi {
       methodVersionDao.createMethodVersion(methodVersion);
       runSetDao.createRunSet(templateRunSet);
 
-      methodDao.updateLastRunWithRunSet(templateRunSet);
-      methodVersionDao.updateLastRunWithRunSet(templateRunSet);
-
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
 
       PostMethodResponse postMethodResponse =
