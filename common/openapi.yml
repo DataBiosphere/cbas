@@ -429,7 +429,7 @@ components:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:
         fields:
-          type: object
+          type: array
           items:
             $ref: '#/components/schemas/ObjectBuilderField'
     ObjectBuilderField:
