@@ -15,6 +15,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -45,7 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = SmartRunsPoller.class)
-public class TestSmartRunsPoller {
+public class TestSmartRunsPollerFunctional {
 
   private static final OffsetDateTime methodCreatedTime = OffsetDateTime.now();
   private static final OffsetDateTime runSubmittedTime = OffsetDateTime.now();
@@ -79,6 +80,8 @@ public class TestSmartRunsPoller {
   private RunDao runsDao;
   private WdsService wdsService;
   private SmartRunsPoller smartRunsPoller;
+
+  private CbasApiConfiguration cbasApiConfiguration;
 
   static String outputDefinition =
       """
@@ -173,7 +176,10 @@ public class TestSmartRunsPoller {
     cromwellService = mock(CromwellService.class);
     runsDao = mock(RunDao.class);
     wdsService = mock(WdsService.class);
-    smartRunsPoller = new SmartRunsPoller(cromwellService, runsDao, wdsService, objectMapper);
+    cbasApiConfiguration = mock(CbasApiConfiguration.class);
+    smartRunsPoller =
+        new SmartRunsPoller(
+            cromwellService, runsDao, wdsService, objectMapper, cbasApiConfiguration);
   }
 
   @Test
@@ -190,13 +196,21 @@ public class TestSmartRunsPoller {
     verify(cromwellService, never()).runSummary(completedRunEngineId);
     verify(runsDao, never()).updateLastPolledTimestamp(runAlreadyCompleted.runId());
 
-    assertEquals(2, actual.size());
+    assertEquals(2, actual.updatedRuns().size());
     assertEquals(
         RUNNING,
-        actual.stream().filter(r -> r.runId().equals(runningRunId1)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(runningRunId1))
+            .toList()
+            .get(0)
+            .status());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.runId().equals(completedRunId)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(completedRunId))
+            .toList()
+            .get(0)
+            .status());
   }
 
   @Test
@@ -264,13 +278,21 @@ public class TestSmartRunsPoller {
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE), any());
 
-    assertEquals(2, actual.size());
+    assertEquals(2, actual.updatedRuns().size());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.runId().equals(runningRunId1)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(runningRunId1))
+            .toList()
+            .get(0)
+            .status());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.runId().equals(completedRunId)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(completedRunId))
+            .toList()
+            .get(0)
+            .status());
   }
 
   @Test
@@ -332,16 +354,28 @@ public class TestSmartRunsPoller {
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE), any());
 
-    assertEquals(3, actual.size());
+    assertEquals(3, actual.updatedRuns().size());
     assertEquals(
         SYSTEM_ERROR,
-        actual.stream().filter(r -> r.runId().equals(runningRunId1)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(runningRunId1))
+            .toList()
+            .get(0)
+            .status());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.runId().equals(runningRunId2)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(runningRunId2))
+            .toList()
+            .get(0)
+            .status());
     assertEquals(
         COMPLETE,
-        actual.stream().filter(r -> r.runId().equals(completedRunId)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(completedRunId))
+            .toList()
+            .get(0)
+            .status());
   }
 
   @Test
@@ -383,11 +417,15 @@ public class TestSmartRunsPoller {
 
     assertEquals(
         EXECUTOR_ERROR,
-        actual.stream().filter(r -> r.runId().equals(runningRunId3)).toList().get(0).status());
+        actual.updatedRuns().stream()
+            .filter(r -> r.runId().equals(runningRunId3))
+            .toList()
+            .get(0)
+            .status());
 
     assertEquals(
         "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified)",
-        actual.stream()
+        actual.updatedRuns().stream()
             .filter(r -> r.runId().equals(runningRunId3))
             .toList()
             .get(0)
