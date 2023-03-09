@@ -38,6 +38,7 @@ public class RunsApiController implements RunsApi {
         .workflowOutputs(run.runSet().outputDefinition())
         .submissionDate(DateUtils.convertToDate(run.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(run.lastModifiedTimestamp()))
+        .lastPolledTimestamp(DateUtils.convertToDate(run.lastPolledTimestamp()))
         .errorMessages(run.errorMessages());
   }
 
@@ -45,9 +46,9 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
-    List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
+    SmartRunsPoller.UpdateRunsResult updatedRunsResult = smartPoller.updateRuns(queryResults);
 
-    List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();
-    return new ResponseEntity<>(new RunLogResponse().runs(responseList), HttpStatus.OK);
+    List<RunLog> responseList = updatedRunsResult.updatedRuns().stream().map(this::runToRunLog).toList();
+    return new ResponseEntity<>(new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()), HttpStatus.OK);
   }
 }

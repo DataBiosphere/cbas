@@ -9,6 +9,8 @@ public class CbasApiConfiguration {
   private int runSetsMaximumRecordIds;
   private int maxWorkflowInputs;
   private int maxWorkflowOutputs;
+  private int maxSmartPollRunUpdates;
+  private int maxSmartPollRunSetUpdates;
 
   public void setRunSetsMaximumRecordIds(int runSetsMaximumRecordIds) {
     this.runSetsMaximumRecordIds = runSetsMaximumRecordIds;
@@ -32,5 +34,21 @@ public class CbasApiConfiguration {
 
   public int getMaxWorkflowOutputs() {
     return this.maxWorkflowOutputs;
+  }
+
+  public int getMaxSmartPollRunUpdates() {
+    return maxSmartPollRunUpdates;
+  }
+
+  public void setMaxSmartPollRunUpdates(int maxSmartPollRunUpdates) {
+    this.maxSmartPollRunUpdates = maxSmartPollRunUpdates;
+  }
+
+  public int getMaxSmartPollRunSetUpdates() {
+    return maxSmartPollRunSetUpdates;
+  }
+
+  public void setMaxSmartPollRunSetUpdates(int maxSmartPollRunSetUpdates) {
+    this.maxSmartPollRunSetUpdates = maxSmartPollRunSetUpdates;
   }
 }

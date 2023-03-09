@@ -96,7 +96,8 @@ public class TestSmartRunSetsPoller {
 
     // When the smart runs poller is checked:
     when(smartRunsPoller.updateRuns(List.of(run1Incomplete, run2Incomplete)))
-        .thenReturn(List.of(run1Complete, run2Complete));
+        .thenReturn(
+            new SmartRunsPoller.UpdateRunsResult(List.of(run1Complete, run2Complete), 2, true));
 
     OffsetDateTime lastModified = OffsetDateTime.now();
 
@@ -186,7 +187,8 @@ public class TestSmartRunSetsPoller {
     when(runDao.getRuns(runsFiltersForGetRuns.capture())).thenReturn(List.of(run1));
 
     // When the smart runs poller is checked:
-    when(smartRunsPoller.updateRuns(List.of(run1))).thenReturn(List.of(run1));
+    when(smartRunsPoller.updateRuns(List.of(run1)))
+        .thenReturn(new SmartRunsPoller.UpdateRunsResult(List.of(run1), 1, true));
 
     // When we re-query for up-to-the-minute run status counts:
     ArgumentCaptor<RunDao.RunsFilters> runsFiltersForGetRunStatusCounts =

@@ -121,7 +121,8 @@ class TestRunsApiController {
 
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
-    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
+    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun))))
+        .thenReturn(new SmartRunsPoller.UpdateRunsResult(List.of(updatedRun), 1, true));
 
     MvcResult result = mockMvc.perform(get(API)).andExpect(status().isOk()).andReturn();
 
