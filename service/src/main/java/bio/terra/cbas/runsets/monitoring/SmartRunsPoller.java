@@ -19,10 +19,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
@@ -85,6 +86,7 @@ public class SmartRunsPoller {
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
 
+    ForkJoinPool customThreadPool = new ForkJoinPool(10);
     try {
       // Filter only updatable runs:
       Set<Run> updatableRuns =
@@ -92,59 +94,66 @@ public class SmartRunsPoller {
 
       increaseEventCounter("status update required", updatableRuns.size());
 
-      Set<Run> updatedRuns = new HashSet<>();
+      List<Run> updatedRuns;
 
-      for (Run r : runs) {
-        if (!tryUpdateRun(updatableRuns, updatedRuns, r)) break;
-      }
+      updatedRuns =
+          customThreadPool
+              .submit(
+                  () ->
+                      runs.parallelStream()
+                          .map(r -> updatableRuns.contains(r) ? tryUpdateRun(r) : r)
+                          .toList())
+              .get();
+
       successBoolean = true;
-      return List.copyOf(updatedRuns);
+      return updatedRuns;
+    } catch (ExecutionException | InterruptedException e) {
+      // The update operation was interrupted.
+      logger.warn("SmartRunsPoller update operation was interrupted.");
+      return runs;
     } finally {
+      customThreadPool.shutdown();
       recordMethodCompletion(startTimeNs, successBoolean);
     }
   }
 
-  private boolean tryUpdateRun(Set<Run> updatableRuns, Set<Run> updatedRuns, Run r) {
-    if (updatableRuns.contains(r)) {
-      // Get the new workflow summary:
-      long getStatusStartNanos = System.nanoTime();
-      boolean getStatusSuccess = false;
-      WorkflowQueryResult newWorkflowSummary;
-      try {
-        newWorkflowSummary = cromwellService.runSummary(r.engineId());
-      } catch (ApiException | IllegalArgumentException e) {
-        logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
-        updatedRuns.add(r);
-        return false;
-      } finally {
-        recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
-      }
-
-      CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
-      if (newWorkflowSummary != null) {
-        newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
-      }
-
-      OffsetDateTime engineChangedTimestamp = null;
-      if (newWorkflowSummary != null) {
-        engineChangedTimestamp =
-            Optional.ofNullable(newWorkflowSummary.getEnd())
-                .orElse(
-                    Optional.ofNullable(newWorkflowSummary.getStart())
-                        .orElse(newWorkflowSummary.getSubmission()));
-      }
-
-      try {
-        Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
-        updatedRuns.add(updatedRun);
-      } catch (Exception e) {
-        logger.warn("Unable to update run details for {} in database.", r.runId(), e);
-        updatedRuns.add(r);
-      }
-    } else {
-      updatedRuns.add(r);
+  private Run tryUpdateRun(Run r) {
+    logger.info("Beginning update poll for Run %s".formatted(r.runId()));
+    // Get the new workflow summary:
+    long getStatusStartNanos = System.nanoTime();
+    boolean getStatusSuccess = false;
+    WorkflowQueryResult newWorkflowSummary;
+    try {
+      newWorkflowSummary = cromwellService.runSummary(r.engineId());
+    } catch (ApiException | IllegalArgumentException e) {
+      logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
+      return r;
+    } finally {
+      recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
     }
-    return true;
+
+    CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+    if (newWorkflowSummary != null) {
+      newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
+    }
+
+    OffsetDateTime engineChangedTimestamp = null;
+    if (newWorkflowSummary != null) {
+      engineChangedTimestamp =
+          Optional.ofNullable(newWorkflowSummary.getEnd())
+              .orElse(
+                  Optional.ofNullable(newWorkflowSummary.getStart())
+                      .orElse(newWorkflowSummary.getSubmission()));
+    }
+
+    try {
+      Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
+      logger.info("Successfully completed update for Run %s".formatted(r.runId()));
+      return updatedRun;
+    } catch (Exception e) {
+      logger.warn("Unable to update run details for {} in database.", r.runId(), e);
+      return r;
+    }
   }
 
   private Run updateDatabaseRunStatus(
