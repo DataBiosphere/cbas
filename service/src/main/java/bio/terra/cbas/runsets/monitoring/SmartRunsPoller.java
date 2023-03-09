@@ -4,6 +4,7 @@ import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
+import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
@@ -98,6 +99,9 @@ public class SmartRunsPoller {
       PickedUpdatableRuns updatableRuns =
           pickUpdatableRuns(runs, cbasApiConfiguration.getMaxSmartPollRunUpdates());
 
+      logger.info(
+          "Attempting update of %d of %d updatable runs"
+              .formatted(updatableRuns.selectedRuns.size(), updatableRuns.totalUpdatable));
       increaseEventCounter("run updates required", updatableRuns.totalUpdatable);
 
       List<Run> updatedRuns =
@@ -112,6 +116,9 @@ public class SmartRunsPoller {
           updatableRuns.selectedRuns.size(),
           updatableRuns.selectedRuns.size() == updatableRuns.totalUpdatable);
     } finally {
+      logger.info(
+          "Status update operation completed in %f ms"
+              .formatted(MetricsUtil.sinceInMilliseconds(startTimeNs)));
       recordMethodCompletion(startTimeNs, successBoolean);
     }
   }

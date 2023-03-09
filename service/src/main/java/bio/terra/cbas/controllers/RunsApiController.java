@@ -48,7 +48,10 @@ public class RunsApiController implements RunsApi {
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
     SmartRunsPoller.UpdateRunsResult updatedRunsResult = smartPoller.updateRuns(queryResults);
 
-    List<RunLog> responseList = updatedRunsResult.updatedRuns().stream().map(this::runToRunLog).toList();
-    return new ResponseEntity<>(new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()), HttpStatus.OK);
+    List<RunLog> responseList =
+        updatedRunsResult.updatedRuns().stream().map(this::runToRunLog).toList();
+    return new ResponseEntity<>(
+        new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()),
+        HttpStatus.OK);
   }
 }
