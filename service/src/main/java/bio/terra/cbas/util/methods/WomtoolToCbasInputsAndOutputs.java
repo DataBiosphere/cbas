@@ -16,6 +16,7 @@ import bio.terra.cbas.model.WorkflowOutputDefinition;
 import cromwell.client.model.ToolInputParameter;
 import cromwell.client.model.ToolOutputParameter;
 import cromwell.client.model.ValueType;
+import cromwell.client.model.ValueTypeObjectFieldTypesInner;
 import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,8 @@ public final class WomtoolToCbasInputsAndOutputs {
 
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
+
+    List<ValueTypeObjectFieldTypesInner> structFields = valueType.getObjectFieldTypes();
 
     return switch (Objects.requireNonNull(valueType.getTypeName())) {
       case STRING -> new ParameterTypeDefinitionPrimitive()
@@ -64,6 +67,12 @@ public final class WomtoolToCbasInputsAndOutputs {
           .valueType(
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
+        //      case OBJECT -> valueType.getObjectFieldTypes()
+        //          new ParameterTypeDefinitionStruct()
+        //          .name(valueType.getTypeName().toString())
+        //          .fields(structFields.forEach(
+        //              field -> field.getFieldName()
+        //          ));
       default -> throw new WomtoolValueTypeNotFoundException(valueType);
     };
   }
