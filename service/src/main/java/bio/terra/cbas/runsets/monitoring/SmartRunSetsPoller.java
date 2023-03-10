@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
@@ -62,7 +63,7 @@ public class SmartRunSetsPoller {
       List<Run> updateableRuns =
           runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
 
-      smartRunsPoller.updateRuns(updateableRuns);
+      smartRunsPoller.updateRuns(updateableRuns, Optional.of(startTimeNs));
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
       if (newStatusAndCounts.status != rs.status()

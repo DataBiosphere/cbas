@@ -3,6 +3,7 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
+import static bio.terra.cbas.common.MetricsUtil.sinceInMilliseconds;
 
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
@@ -20,11 +21,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
+import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
@@ -90,53 +91,64 @@ public class SmartRunsPoller {
    * @return A new list containing up-to-date run information for all runs in the input
    */
   public UpdateRunsResult updateRuns(List<Run> runs) {
-    // For metrics:
-    long startTimeNs = System.nanoTime();
-    boolean successBoolean = false;
-
-    try {
-      // Filter only updatable runs:
-      PickedUpdatableRuns updatableRuns =
-          pickUpdatableRuns(runs, cbasApiConfiguration.getMaxSmartPollRunUpdates());
-
-      logger.info(
-          "Attempting update of %d of %d updatable runs"
-              .formatted(updatableRuns.selectedRuns.size(), updatableRuns.totalUpdatable));
-      increaseEventCounter("run updates required", updatableRuns.totalUpdatable);
-
-      List<Run> updatedRuns =
-          runs.stream()
-              .map(r -> updatableRuns.selectedRuns.contains(r) ? tryUpdateRun(r) : r)
-              .collect(Collectors.toList());
-
-      increaseEventCounter("run updates polled", updatableRuns.selectedRuns.size());
-      successBoolean = true;
-      return new UpdateRunsResult(
-          updatedRuns,
-          updatableRuns.selectedRuns.size(),
-          updatableRuns.selectedRuns.size() == updatableRuns.totalUpdatable);
-    } finally {
-      logger.info(
-          "Status update operation completed in %f ms"
-              .formatted(MetricsUtil.sinceInMilliseconds(startTimeNs)));
-      recordMethodCompletion(startTimeNs, successBoolean);
-    }
+    return updateRuns(runs, Optional.empty());
   }
 
-  protected record PickedUpdatableRuns(Set<Run> selectedRuns, int totalUpdatable) {}
+  /**
+   * Updates a list of runs by checking with the engine whether any non-terminal statuses have
+   * changed and if so, updating the database.
+   *
+   * @param runs The list of input runs to check for updates
+   * @return A new list containing up-to-date run information for all runs in the input
+   */
+  public UpdateRunsResult updateRuns(List<Run> runs, Optional<Long> outerPollOperationStartTime) {
+    // For metrics:
+    long startTimeNs = System.nanoTime();
 
-  protected static PickedUpdatableRuns pickUpdatableRuns(List<Run> runs, int limit) {
+    long pollOperationStartTime = outerPollOperationStartTime.orElse(startTimeNs);
 
-    List<Run> updatableRuns = runs.stream().filter(r -> r.status().nonTerminal()).toList();
+    boolean successBoolean = false;
 
-    // Now sort and limit by last polled timestamp, to select "least recently polled" workflows
-    // first:
-    return new PickedUpdatableRuns(
-        updatableRuns.stream()
-            .sorted(Comparator.comparing(Run::lastPolledTimestamp))
-            .limit(limit)
-            .collect(Collectors.toSet()),
-        updatableRuns.size());
+    AtomicInteger actualPolls = new AtomicInteger();
+    // Filter only updatable runs:
+    List<Run> updatableRuns =
+        runs.stream()
+            .filter(
+                r ->
+                    r.status().nonTerminal()
+                        && r.lastPolledTimestamp()
+                            .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(30))))
+            .toList();
+    increaseEventCounter("run updates required", updatableRuns.size());
+
+    try {
+      List<Run> updatedRuns =
+          runs.stream()
+              .map(
+                  r -> {
+                    if (updatableRuns.contains(r)
+                        && sinceInMilliseconds(pollOperationStartTime) < 3000) {
+                      actualPolls.getAndIncrement();
+                      return tryUpdateRun(r);
+                    } else {
+                      return r;
+                    }
+                  })
+              .collect(Collectors.toList());
+
+      increaseEventCounter("run updates polled", actualPolls.get());
+      successBoolean = true;
+      return new UpdateRunsResult(
+          updatedRuns, actualPolls.get(), updatableRuns.size() == actualPolls.get());
+    } finally {
+      logger.info(
+          "Status update operation completed in %f ms (polling %d of %d possible runs)"
+              .formatted(
+                  MetricsUtil.sinceInMilliseconds(startTimeNs),
+                  actualPolls.get(),
+                  updatableRuns.size()));
+      recordMethodCompletion(startTimeNs, successBoolean);
+    }
   }
 
   private Run tryUpdateRun(Run r) {
@@ -228,7 +240,10 @@ public class SmartRunsPoller {
             runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
         if (changes == 1) {
           updatableRun =
-              updatableRun.withStatus(updatedRunState).withLastModified(engineStatusChanged);
+              updatableRun
+                  .withStatus(updatedRunState)
+                  .withLastModified(engineStatusChanged)
+                  .withLastPolled(OffsetDateTime.now());
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",

@@ -29,6 +29,19 @@ public record Run(
     return runSet.runSetId();
   }
 
+  public Run copy() {
+    return new Run(
+        runId,
+        engineId,
+        runSet,
+        recordId,
+        submissionTimestamp,
+        status,
+        lastModifiedTimestamp,
+        lastPolledTimestamp,
+        errorMessages);
+  }
+
   public Run withStatus(CbasRunStatus newStatus) {
     return new Run(
         runId,
@@ -65,6 +78,19 @@ public record Run(
         status,
         newLastModifiedTimestamp,
         lastPolledTimestamp,
+        errorMessages);
+  }
+
+  public Run withLastPolled(OffsetDateTime newLastPolledTimestamp) {
+    return new Run(
+        runId,
+        engineId,
+        runSet,
+        recordId,
+        submissionTimestamp,
+        status,
+        lastModifiedTimestamp,
+        newLastPolledTimestamp,
         errorMessages);
   }
 }
