@@ -92,7 +92,11 @@ public class SmartRunSetsPoller {
       List<Run> updateableRuns =
           runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
 
-      smartRunsPoller.updateRuns(updateableRuns, Optional.of(limitedEndTime));
+      // Make sure neither the run set nor run time limit expire:
+      OffsetDateTime runPollerSpecificUpdateLimit = OffsetDateTime.now().plusSeconds(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds());
+      OffsetDateTime runPollUpdateEndTime = runPollerSpecificUpdateLimit.isBefore(limitedEndTime) ? runPollerSpecificUpdateLimit : limitedEndTime;
+
+      smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime));
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
       if (newStatusAndCounts.status != rs.status()
