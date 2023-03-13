@@ -48,8 +48,8 @@ cbas:
     runSetsMaximumRecordIds: 100
     maxWorkflowInputs: 100
     maxWorkflowOutputs: 40
-    maxSmartPollRunUpdates: 10
-    maxSmartPollRunSetUpdates: 10
+    maxSmartPollRunUpdateSeconds: 3
+    maxSmartPollRunSetUpdateSeconds: 6
 
 workflow-engines:
   cromwell:

@@ -7,6 +7,7 @@ import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.util.List;
 import java.util.UUID;
@@ -46,10 +47,10 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
-    SmartRunsPoller.UpdateRunsResult updatedRunsResult = smartPoller.updateRuns(queryResults);
+    UpdateResult<Run> updatedRunsResult = smartPoller.updateRuns(queryResults);
 
     List<RunLog> responseList =
-        updatedRunsResult.updatedRuns().stream().map(this::runToRunLog).toList();
+        updatedRunsResult.updatedList().stream().map(this::runToRunLog).toList();
     return new ResponseEntity<>(
         new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()),
         HttpStatus.OK);

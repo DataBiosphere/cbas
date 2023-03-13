@@ -39,6 +39,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
@@ -465,7 +466,8 @@ class TestRunSetsApiController {
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
-    when(smartRunSetsPoller.updateRunSets(response)).thenReturn(response);
+    when(smartRunSetsPoller.updateRunSets(response))
+        .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 2, 2, true));
 
     MvcResult result =
         mockMvc

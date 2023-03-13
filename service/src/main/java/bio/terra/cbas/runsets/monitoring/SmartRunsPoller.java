@@ -3,7 +3,6 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
-import static bio.terra.cbas.common.MetricsUtil.sinceInMilliseconds;
 
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
@@ -14,6 +13,8 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.outputs.OutputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -23,10 +24,9 @@ import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
@@ -44,9 +44,6 @@ public class SmartRunsPoller {
   private final CbasApiConfiguration cbasApiConfiguration;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunsPoller.class);
-
-  public static record UpdateRunsResult(
-      List<Run> updatedRuns, long polledCount, boolean fullyUpdated) {}
 
   public SmartRunsPoller(
       CromwellService cromwellService,
@@ -90,7 +87,7 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public UpdateRunsResult updateRuns(List<Run> runs) {
+  public UpdateResult<Run> updateRuns(List<Run> runs) {
     return updateRuns(runs, Optional.empty());
   }
 
@@ -101,57 +98,48 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public UpdateRunsResult updateRuns(List<Run> runs, Optional<Long> outerPollOperationStartTime) {
+  public UpdateResult<Run> updateRuns(List<Run> runs, Optional<OffsetDateTime> customEndTime) {
     // For metrics:
     long startTimeNs = System.nanoTime();
-
-    long pollOperationStartTime = outerPollOperationStartTime.orElse(startTimeNs);
-
     boolean successBoolean = false;
 
-    AtomicInteger actualPolls = new AtomicInteger();
-    // Filter only updatable runs:
-    List<Run> updatableRuns =
-        runs.stream()
-            .filter(
-                r ->
-                    r.status().nonTerminal()
-                        && r.lastPolledTimestamp()
-                            .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(30))))
-            .toList();
-    increaseEventCounter("run updates required", updatableRuns.size());
+    OffsetDateTime actualEndTime =
+        customEndTime.orElse(
+            OffsetDateTime.now()
+                .plusSeconds(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()));
 
     try {
-      List<Run> updatedRuns =
-          runs.stream()
-              .map(
-                  r -> {
-                    if (updatableRuns.contains(r)
-                        && sinceInMilliseconds(pollOperationStartTime) < 3000) {
-                      actualPolls.getAndIncrement();
-                      return tryUpdateRun(r);
-                    } else {
-                      return r;
-                    }
-                  })
-              .collect(Collectors.toList());
+      UpdateResult<Run> runUpdateResult =
+          TimeLimitedUpdater.update(
+              runs,
+              Run::runId,
+              r ->
+                  r.status().nonTerminal()
+                      && r.lastPolledTimestamp()
+                          .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(30))),
+              Comparator.comparing(Run::lastPolledTimestamp),
+              this::tryUpdateRun,
+              actualEndTime);
 
-      increaseEventCounter("run updates polled", actualPolls.get());
+      increaseEventCounter("run updates required", runUpdateResult.totalEligible());
+      increaseEventCounter("run updates polled", runUpdateResult.totalUpdated());
+
       successBoolean = true;
-      return new UpdateRunsResult(
-          updatedRuns, actualPolls.get(), updatableRuns.size() == actualPolls.get());
-    } finally {
       logger.info(
           "Status update operation completed in %f ms (polling %d of %d possible runs)"
               .formatted(
                   MetricsUtil.sinceInMilliseconds(startTimeNs),
-                  actualPolls.get(),
-                  updatableRuns.size()));
+                  runUpdateResult.totalUpdated(),
+                  runUpdateResult.totalEligible()));
+
+      return runUpdateResult;
+    } finally {
       recordMethodCompletion(startTimeNs, successBoolean);
     }
   }
 
   private Run tryUpdateRun(Run r) {
+    logger.info("Fetching update for run %s".formatted(r.runId()));
     // Get the new workflow summary:
     long getStatusStartNanos = System.nanoTime();
     boolean getStatusSuccess = false;

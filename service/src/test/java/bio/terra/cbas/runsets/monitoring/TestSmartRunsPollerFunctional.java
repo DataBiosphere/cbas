@@ -37,6 +37,7 @@ import cromwell.client.model.RunLog;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
@@ -53,7 +54,10 @@ public class TestSmartRunsPollerFunctional {
   private static final UUID runningRunId1 = UUID.randomUUID();
   private static final String runningRunEngineId1 = UUID.randomUUID().toString();
   private static final String runningRunEntityId1 = UUID.randomUUID().toString();
-  private static final OffsetDateTime runningRunStatusUpdateTime = OffsetDateTime.now();
+  // Set the last status update a few minutes ago to avoid tripping over the "recent poll
+  // ineligibility" requirement:
+  private static final OffsetDateTime runningRunStatusUpdateTime =
+      OffsetDateTime.now().minusMinutes(5);
   private static final UUID runningRunId2 = UUID.randomUUID();
   private static final String runningRunEngineId2 = UUID.randomUUID().toString();
   private static final String runningRunEntityId2 = UUID.randomUUID().toString();
@@ -80,7 +84,6 @@ public class TestSmartRunsPollerFunctional {
   private RunDao runsDao;
   private WdsService wdsService;
   private SmartRunsPoller smartRunsPoller;
-
   private CbasApiConfiguration cbasApiConfiguration;
 
   static String outputDefinition =
@@ -177,6 +180,7 @@ public class TestSmartRunsPollerFunctional {
     runsDao = mock(RunDao.class);
     wdsService = mock(WdsService.class);
     cbasApiConfiguration = mock(CbasApiConfiguration.class);
+    when(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()).thenReturn(1);
     smartRunsPoller =
         new SmartRunsPoller(
             cromwellService, runsDao, wdsService, objectMapper, cbasApiConfiguration);
@@ -196,17 +200,17 @@ public class TestSmartRunsPollerFunctional {
     verify(cromwellService, never()).runSummary(completedRunEngineId);
     verify(runsDao, never()).updateLastPolledTimestamp(runAlreadyCompleted.runId());
 
-    assertEquals(2, actual.updatedRuns().size());
+    assertEquals(2, actual.updatedList().size());
     assertEquals(
         RUNNING,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId1))
             .toList()
             .get(0)
             .status());
     assertEquals(
         COMPLETE,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(completedRunId))
             .toList()
             .get(0)
@@ -278,21 +282,130 @@ public class TestSmartRunsPollerFunctional {
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE), any());
 
-    assertEquals(2, actual.updatedRuns().size());
+    assertEquals(2, actual.updatedList().size());
     assertEquals(
         COMPLETE,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId1))
             .toList()
             .get(0)
             .status());
     assertEquals(
         COMPLETE,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(completedRunId))
             .toList()
             .get(0)
             .status());
+  }
+
+  @Test
+  void pollRunsInLeastRecentlyPolledOrder() throws Exception {
+    when(cromwellService.runSummary(runningRunEngineId1))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Running"));
+    when(cromwellService.runSummary(runningRunEngineId2))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId2).status("Running"));
+    when(cromwellService.runSummary(runningRunEngineId3))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId3).status("Running"));
+
+    var run1 = runToUpdate1.withLastPolled(OffsetDateTime.now().minusSeconds(1000));
+    var run2 = runToUpdate2.withLastPolled(OffsetDateTime.now().minusSeconds(500));
+    var run3 =
+        runToUpdate3.withLastPolled(OffsetDateTime.now().minusSeconds(100)).withStatus(RUNNING);
+
+    ArrayList<UUID> pollOrder = new ArrayList<>();
+
+    when(runsDao.updateLastPolledTimestamp(run1.runId()))
+        .thenAnswer(
+            i -> {
+              pollOrder.add(run1.runId());
+              return 1;
+            });
+    when(runsDao.updateLastPolledTimestamp(run2.runId()))
+        .thenAnswer(
+            i -> {
+              pollOrder.add(run2.runId());
+              return 1;
+            });
+    when(runsDao.updateLastPolledTimestamp(run3.runId()))
+        .thenAnswer(
+            i -> {
+              pollOrder.add(run3.runId());
+              return 1;
+            });
+
+    // Note: the runs are out of last-polled-order here:
+    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2));
+
+    verify(cromwellService).runSummary(runningRunEngineId1);
+    verify(cromwellService).runSummary(runningRunEngineId2);
+    verify(cromwellService).runSummary(runningRunEngineId3);
+    verify(runsDao).updateLastPolledTimestamp(runToUpdate1.runId());
+    verify(cromwellService, never()).runSummary(completedRunEngineId);
+    verify(runsDao, never()).updateLastPolledTimestamp(runAlreadyCompleted.runId());
+
+    assertEquals(
+        List.of(RUNNING, RUNNING, RUNNING),
+        actual.updatedList().stream().map(Run::status).toList());
+
+    assertEquals(pollOrder, List.of(run1.runId(), run2.runId(), run3.runId()));
+  }
+
+  @Test
+  void haltPollingAfterTimeLimit() throws Exception {
+
+    OffsetDateTime testStart = OffsetDateTime.now();
+
+    when(cromwellService.runSummary(runningRunEngineId1))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Running"));
+    when(cromwellService.runSummary(runningRunEngineId2))
+        .thenAnswer(
+            i -> {
+              Thread.sleep(1000); // The timeout is configured (via mock) to be 1 second
+              return new WorkflowQueryResult().id(runningRunEngineId2).status("Running");
+            });
+    when(cromwellService.runSummary(runningRunEngineId3))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId3).status("Running"));
+
+    var run1 = runToUpdate1.withLastPolled(OffsetDateTime.now().minusSeconds(1000));
+    var run2 = runToUpdate2.withLastPolled(OffsetDateTime.now().minusSeconds(500));
+    var run3 =
+        runToUpdate3.withLastPolled(OffsetDateTime.now().minusSeconds(100)).withStatus(RUNNING);
+
+    ArrayList<UUID> pollOrder = new ArrayList<>();
+
+    when(runsDao.updateLastPolledTimestamp(run1.runId()))
+        .thenAnswer(
+            i -> {
+              pollOrder.add(run1.runId());
+              return 1;
+            });
+    when(runsDao.updateLastPolledTimestamp(run2.runId()))
+        .thenAnswer(
+            i -> {
+              pollOrder.add(run2.runId());
+              return 1;
+            });
+
+    // Note: the runs are out of last-polled-order here:
+    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2));
+
+    // We poll for the first two summaries, but not the third:
+    verify(cromwellService).runSummary(runningRunEngineId1);
+    verify(cromwellService).runSummary(runningRunEngineId2);
+    verify(cromwellService, never()).runSummary(runningRunEngineId3);
+    // We update the first two polled timestamps, but not the third:
+    verify(runsDao).updateLastPolledTimestamp(run1.runId());
+    verify(runsDao).updateLastPolledTimestamp(run2.runId());
+    verify(runsDao, never()).updateLastPolledTimestamp(run3.runId());
+
+    // Run 3 is in the result set, and keeps its previous status:
+    assertEquals(
+        List.of(RUNNING, RUNNING, RUNNING),
+        actual.updatedList().stream().map(Run::status).toList());
+
+    // Run 3 was never polled for:
+    assertEquals(pollOrder, List.of(run1.runId(), run2.runId()));
   }
 
   @Test
@@ -354,24 +467,24 @@ public class TestSmartRunsPollerFunctional {
     // Make sure the already-completed workflow isn't re-updated:
     verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE), any());
 
-    assertEquals(3, actual.updatedRuns().size());
+    assertEquals(3, actual.updatedList().size());
     assertEquals(
         SYSTEM_ERROR,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId1))
             .toList()
             .get(0)
             .status());
     assertEquals(
         COMPLETE,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId2))
             .toList()
             .get(0)
             .status());
     assertEquals(
         COMPLETE,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(completedRunId))
             .toList()
             .get(0)
@@ -417,7 +530,7 @@ public class TestSmartRunsPollerFunctional {
 
     assertEquals(
         EXECUTOR_ERROR,
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId3))
             .toList()
             .get(0)
@@ -425,7 +538,7 @@ public class TestSmartRunsPollerFunctional {
 
     assertEquals(
         "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified)",
-        actual.updatedRuns().stream()
+        actual.updatedList().stream()
             .filter(r -> r.runId().equals(runningRunId3))
             .toList()
             .get(0)
