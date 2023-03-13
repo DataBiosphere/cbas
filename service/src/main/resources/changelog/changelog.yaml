@@ -68,3 +68,6 @@ databaseChangeLog:
   - include:
       file: changesets/20230224_sarscov2_nextstrain_change_table.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20230309_sarscov2_update_io_record_lookup_names.yaml
+      relativeToChangelogFile: true
