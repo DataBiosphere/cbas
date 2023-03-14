@@ -58,10 +58,7 @@ public class SmartRunSetsPoller {
           TimeLimitedUpdater.update(
               runSets,
               RunSet::runSetId,
-              rs ->
-                  rs.status().nonTerminal() && rs.lastPolledTimestamp() == null
-                      || rs.lastPolledTimestamp()
-                          .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(30))),
+              rs -> rs.status().nonTerminal(),
               Comparator.comparing(RunSet::lastPolledTimestamp),
               rs -> updateRunSet(rs, limitedEndTime),
               limitedEndTime);

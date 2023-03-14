@@ -48,6 +48,7 @@ cbas:
     runSetsMaximumRecordIds: 100
     maxWorkflowInputs: 100
     maxWorkflowOutputs: 40
+    minSecondsBetweenRunStatusPolls: 30
     maxSmartPollRunUpdateSeconds: 3
     maxSmartPollRunSetUpdateSeconds: 6
 

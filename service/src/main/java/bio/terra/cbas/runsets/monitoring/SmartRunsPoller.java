@@ -116,7 +116,7 @@ public class SmartRunsPoller {
               r ->
                   r.status().nonTerminal()
                       && r.lastPolledTimestamp()
-                          .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(30))),
+                          .isBefore(OffsetDateTime.now().minus(Duration.ofSeconds(cbasApiConfiguration.getMinSecondsBetweenRunStatusPolls()))),
               Comparator.comparing(Run::lastPolledTimestamp),
               this::tryUpdateRun,
               actualEndTime);
