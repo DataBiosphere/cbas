@@ -424,7 +424,7 @@ components:
           required: true
           example: record_field_foo_rating
     ParameterDefinitionObjectBuilder:
-      type: array
+      type: object
       allOf:
         - $ref: '#/components/schemas/ParameterDefinition'
       properties:

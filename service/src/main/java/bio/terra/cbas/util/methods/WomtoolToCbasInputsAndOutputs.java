@@ -10,7 +10,9 @@ import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
+import bio.terra.cbas.model.StructField;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import cromwell.client.model.ToolInputParameter;
@@ -31,7 +33,16 @@ public final class WomtoolToCbasInputsAndOutputs {
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
 
-    List<ValueTypeObjectFieldTypesInner> structFields = valueType.getObjectFieldTypes();
+    List<StructField> fields = new ArrayList<>();
+
+    // Map<String, ParameterTypeDefinition> structField = new HashMap<>();
+
+    //    for (ValueTypeObjectFieldTypesInner object :
+    // Objects.requireNonNull(valueType.getObjectFieldTypes())){
+    //
+    //      structFields.add(structField.put(object.getFieldName(), getParameterType((ValueType)
+    // valueType.getObjectFieldTypes())));
+    //    }
 
     return switch (Objects.requireNonNull(valueType.getTypeName())) {
       case STRING -> new ParameterTypeDefinitionPrimitive()
@@ -67,12 +78,20 @@ public final class WomtoolToCbasInputsAndOutputs {
           .valueType(
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
-        //      case OBJECT -> valueType.getObjectFieldTypes()
-        //          new ParameterTypeDefinitionStruct()
-        //          .name(valueType.getTypeName().toString())
-        //          .fields(structFields.forEach(
-        //              field -> field.getFieldName()
-        //          ));
+      case OBJECT -> {
+        for (ValueTypeObjectFieldTypesInner innerField :
+            Objects.requireNonNull(valueType.getObjectFieldTypes())) {
+          StructField structField = new StructField();
+          structField.fieldName(innerField.getFieldName());
+          structField.fieldType(
+              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
+          fields.add(structField);
+        }
+        yield new ParameterTypeDefinitionStruct()
+            .name(valueType.getTypeName().toString())
+            .fields(fields)
+            .type(ParameterTypeDefinition.TypeEnum.STRUCT);
+      }
       default -> throw new WomtoolValueTypeNotFoundException(valueType);
     };
   }
