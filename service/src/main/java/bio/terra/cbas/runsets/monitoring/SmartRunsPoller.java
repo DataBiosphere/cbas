@@ -4,13 +4,17 @@ import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
+import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.outputs.OutputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -18,12 +22,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
+import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
@@ -38,17 +41,21 @@ public class SmartRunsPoller {
   private final WdsService wdsService;
   private final ObjectMapper objectMapper;
 
+  private final CbasApiConfiguration cbasApiConfiguration;
+
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunsPoller.class);
 
   public SmartRunsPoller(
       CromwellService cromwellService,
       RunDao runDao,
       WdsService wdsService,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
     this.runDao = runDao;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
+    this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
   public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
@@ -80,71 +87,97 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public List<Run> updateRuns(List<Run> runs) {
+  public UpdateResult<Run> updateRuns(List<Run> runs) {
+    return updateRuns(runs, Optional.empty());
+  }
+
+  /**
+   * Updates a list of runs by checking with the engine whether any non-terminal statuses have
+   * changed and if so, updating the database.
+   *
+   * @param runs The list of input runs to check for updates
+   * @return A new list containing up-to-date run information for all runs in the input
+   */
+  public UpdateResult<Run> updateRuns(List<Run> runs, Optional<OffsetDateTime> customEndTime) {
     // For metrics:
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
 
+    OffsetDateTime actualEndTime =
+        customEndTime.orElse(
+            OffsetDateTime.now()
+                .plusSeconds(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()));
+
     try {
-      // Filter only updatable runs:
-      Set<Run> updatableRuns =
-          runs.stream().filter(r -> r.status().nonTerminal()).collect(Collectors.toSet());
+      UpdateResult<Run> runUpdateResult =
+          TimeLimitedUpdater.update(
+              runs,
+              Run::runId,
+              r ->
+                  r.status().nonTerminal()
+                      && r.lastPolledTimestamp()
+                          .isBefore(
+                              OffsetDateTime.now()
+                                  .minus(
+                                      Duration.ofSeconds(
+                                          cbasApiConfiguration
+                                              .getMinSecondsBetweenRunStatusPolls()))),
+              Comparator.comparing(Run::lastPolledTimestamp),
+              this::tryUpdateRun,
+              actualEndTime);
 
-      increaseEventCounter("status update required", updatableRuns.size());
+      increaseEventCounter("run updates required", runUpdateResult.totalEligible());
+      increaseEventCounter("run updates polled", runUpdateResult.totalUpdated());
 
-      Set<Run> updatedRuns = new HashSet<>();
-
-      for (Run r : runs) {
-        if (!tryUpdateRun(updatableRuns, updatedRuns, r)) break;
-      }
       successBoolean = true;
-      return List.copyOf(updatedRuns);
+      logger.info(
+          "Status update operation completed in %f ms (polling %d of %d possible runs)"
+              .formatted(
+                  MetricsUtil.sinceInMilliseconds(startTimeNs),
+                  runUpdateResult.totalUpdated(),
+                  runUpdateResult.totalEligible()));
+
+      return runUpdateResult;
     } finally {
       recordMethodCompletion(startTimeNs, successBoolean);
     }
   }
 
-  private boolean tryUpdateRun(Set<Run> updatableRuns, Set<Run> updatedRuns, Run r) {
-    if (updatableRuns.contains(r)) {
-      // Get the new workflow summary:
-      long getStatusStartNanos = System.nanoTime();
-      boolean getStatusSuccess = false;
-      WorkflowQueryResult newWorkflowSummary;
-      try {
-        newWorkflowSummary = cromwellService.runSummary(r.engineId());
-      } catch (ApiException | IllegalArgumentException e) {
-        logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
-        updatedRuns.add(r);
-        return false;
-      } finally {
-        recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
-      }
-
-      CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
-      if (newWorkflowSummary != null) {
-        newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
-      }
-
-      OffsetDateTime engineChangedTimestamp = null;
-      if (newWorkflowSummary != null) {
-        engineChangedTimestamp =
-            Optional.ofNullable(newWorkflowSummary.getEnd())
-                .orElse(
-                    Optional.ofNullable(newWorkflowSummary.getStart())
-                        .orElse(newWorkflowSummary.getSubmission()));
-      }
-
-      try {
-        Run updatedRun = updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
-        updatedRuns.add(updatedRun);
-      } catch (Exception e) {
-        logger.warn("Unable to update run details for {} in database.", r.runId(), e);
-        updatedRuns.add(r);
-      }
-    } else {
-      updatedRuns.add(r);
+  private Run tryUpdateRun(Run r) {
+    logger.info("Fetching update for run %s".formatted(r.runId()));
+    // Get the new workflow summary:
+    long getStatusStartNanos = System.nanoTime();
+    boolean getStatusSuccess = false;
+    WorkflowQueryResult newWorkflowSummary;
+    try {
+      newWorkflowSummary = cromwellService.runSummary(r.engineId());
+    } catch (ApiException | IllegalArgumentException e) {
+      logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
+      return r;
+    } finally {
+      recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
     }
-    return true;
+
+    CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+    if (newWorkflowSummary != null) {
+      newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
+    }
+
+    OffsetDateTime engineChangedTimestamp = null;
+    if (newWorkflowSummary != null) {
+      engineChangedTimestamp =
+          Optional.ofNullable(newWorkflowSummary.getEnd())
+              .orElse(
+                  Optional.ofNullable(newWorkflowSummary.getStart())
+                      .orElse(newWorkflowSummary.getSubmission()));
+    }
+
+    try {
+      return updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
+    } catch (Exception e) {
+      logger.warn("Unable to update run details for {} in database.", r.runId(), e);
+      return r;
+    }
   }
 
   private Run updateDatabaseRunStatus(
@@ -200,7 +233,10 @@ public class SmartRunsPoller {
             runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
         if (changes == 1) {
           updatableRun =
-              updatableRun.withStatus(updatedRunState).withLastModified(engineStatusChanged);
+              updatableRun
+                  .withStatus(updatedRunState)
+                  .withLastModified(engineStatusChanged)
+                  .withLastPolled(OffsetDateTime.now());
         } else {
           logger.warn(
               "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",

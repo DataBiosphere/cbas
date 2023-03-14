@@ -7,6 +7,7 @@ import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +39,7 @@ public class RunsApiController implements RunsApi {
         .workflowOutputs(run.runSet().outputDefinition())
         .submissionDate(DateUtils.convertToDate(run.submissionTimestamp()))
         .lastModifiedTimestamp(DateUtils.convertToDate(run.lastModifiedTimestamp()))
+        .lastPolledTimestamp(DateUtils.convertToDate(run.lastPolledTimestamp()))
         .errorMessages(run.errorMessages());
   }
 
@@ -45,9 +47,12 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
-    List<Run> updatedRunResults = smartPoller.updateRuns(queryResults);
+    UpdateResult<Run> updatedRunsResult = smartPoller.updateRuns(queryResults);
 
-    List<RunLog> responseList = updatedRunResults.stream().map(this::runToRunLog).toList();
-    return new ResponseEntity<>(new RunLogResponse().runs(responseList), HttpStatus.OK);
+    List<RunLog> responseList =
+        updatedRunsResult.updatedList().stream().map(this::runToRunLog).toList();
+    return new ResponseEntity<>(
+        new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()),
+        HttpStatus.OK);
   }
 }

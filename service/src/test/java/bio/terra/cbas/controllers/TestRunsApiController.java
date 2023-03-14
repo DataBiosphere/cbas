@@ -19,6 +19,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
@@ -121,7 +122,8 @@ class TestRunsApiController {
 
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
-    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)))).thenReturn(List.of(updatedRun));
+    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun))))
+        .thenReturn(new UpdateResult<>(List.of(updatedRun), 1, 1, true));
 
     MvcResult result = mockMvc.perform(get(API)).andExpect(status().isOk()).andReturn();
 

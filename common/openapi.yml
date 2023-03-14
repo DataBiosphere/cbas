@@ -626,6 +626,9 @@ components:
         last_modified_timestamp:
           type: string
           format: date-time
+        last_polled_timestamp:
+          type: string
+          format: date-time
         error_messages:
           type: string
           required: false
@@ -639,6 +642,8 @@ components:
     RunLogResponse:
       type: object
       properties:
+        fully_updated:
+          type: boolean
         runs:
           type: array
           items:
@@ -660,6 +665,8 @@ components:
     RunSetListResponse:
       type: object
       properties:
+        fully_updated:
+          type: boolean
         run_sets:
           type: array
           items:

@@ -3,18 +3,24 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 
+import bio.terra.cbas.common.MetricsUtil;
+import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,37 +29,57 @@ public class SmartRunSetsPoller {
   private final SmartRunsPoller smartRunsPoller;
   private final RunDao runDao;
   private final RunSetDao runSetDao;
+  private final CbasApiConfiguration cbasApiConfiguration;
 
-  public SmartRunSetsPoller(SmartRunsPoller smartRunsPoller, RunSetDao runSetDao, RunDao runDao) {
+  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
+
+  public SmartRunSetsPoller(
+      SmartRunsPoller smartRunsPoller,
+      RunSetDao runSetDao,
+      RunDao runDao,
+      CbasApiConfiguration cbasApiConfiguration) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.smartRunsPoller = smartRunsPoller;
+    this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
-  public List<RunSet> updateRunSets(List<RunSet> runSets) {
+  public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets) {
     // For metrics:
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
 
+    OffsetDateTime limitedEndTime =
+        OffsetDateTime.now().plusSeconds(cbasApiConfiguration.getMaxSmartPollRunSetUpdateSeconds());
+
     try {
-      var dividedByUpdateNeeded =
-          runSets.stream().collect(Collectors.partitioningBy(r -> r.status().nonTerminal()));
+      TimeLimitedUpdater.UpdateResult<RunSet> runSetUpdateResult =
+          TimeLimitedUpdater.update(
+              runSets,
+              RunSet::runSetId,
+              rs -> rs.status().nonTerminal(),
+              Comparator.comparing(RunSet::lastPolledTimestamp),
+              rs -> updateRunSet(rs, limitedEndTime),
+              limitedEndTime);
 
-      increaseEventCounter("run set status updated", dividedByUpdateNeeded.get(true).size());
+      increaseEventCounter("run set updates required", runSetUpdateResult.totalEligible());
+      increaseEventCounter("run set updates polled", runSetUpdateResult.totalUpdated());
 
-      List<RunSet> result =
-          Stream.concat(
-                  dividedByUpdateNeeded.get(false).stream(),
-                  dividedByUpdateNeeded.get(true).stream().map(this::updateRunSet))
-              .toList();
       successBoolean = true;
-      return result;
+      logger.info(
+          "Run set status update operation completed in %f ms (polling %d of %d possible run sets)"
+              .formatted(
+                  MetricsUtil.sinceInMilliseconds(startTimeNs),
+                  runSetUpdateResult.totalUpdated(),
+                  runSetUpdateResult.totalEligible()));
+
+      return runSetUpdateResult;
     } finally {
       recordMethodCompletion(startTimeNs, successBoolean);
     }
   }
 
-  private RunSet updateRunSet(RunSet rs) {
+  private RunSet updateRunSet(RunSet rs, OffsetDateTime limitedEndTime) {
 
     // For metrics:
     long startTimeNs = System.nanoTime();
@@ -62,7 +88,15 @@ public class SmartRunSetsPoller {
       List<Run> updateableRuns =
           runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
 
-      smartRunsPoller.updateRuns(updateableRuns);
+      // Make sure neither the run set nor run time limit expire:
+      OffsetDateTime runPollerSpecificUpdateLimit =
+          OffsetDateTime.now().plusSeconds(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds());
+      OffsetDateTime runPollUpdateEndTime =
+          runPollerSpecificUpdateLimit.isBefore(limitedEndTime)
+              ? runPollerSpecificUpdateLimit
+              : limitedEndTime;
+
+      smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime));
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
       if (newStatusAndCounts.status != rs.status()

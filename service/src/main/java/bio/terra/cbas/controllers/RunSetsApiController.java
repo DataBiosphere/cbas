@@ -32,6 +32,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
@@ -110,23 +111,26 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    List<RunSet> updatedRunSets;
     RunSetListResponse response;
 
+    List<RunSet> filteredRunSet;
+
     if (methodId != null) {
-      List<RunSet> filteredRunSet =
-          Collections.singletonList(runSetDao.getRunSetWithMethodId(methodId));
-      updatedRunSets = smartRunSetsPoller.updateRunSets(filteredRunSet);
-      List<RunSetDetailsResponse> filteredRunSetDetails =
-          updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
-      response = new RunSetListResponse().runSets(filteredRunSetDetails);
+      filteredRunSet = Collections.singletonList(runSetDao.getRunSetWithMethodId(methodId));
     } else {
-      List<RunSet> runSets = runSetDao.getRunSets(pageSize, false);
-      updatedRunSets = smartRunSetsPoller.updateRunSets(runSets);
-      List<RunSetDetailsResponse> runSetDetails =
-          updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
-      response = new RunSetListResponse().runSets(runSetDetails);
+      filteredRunSet = runSetDao.getRunSets(pageSize, false);
     }
+
+    TimeLimitedUpdater.UpdateResult<RunSet> runSetUpdateResult =
+        smartRunSetsPoller.updateRunSets(filteredRunSet);
+    List<RunSet> updatedRunSets = runSetUpdateResult.updatedList();
+    List<RunSetDetailsResponse> filteredRunSetDetails =
+        updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
+    response =
+        new RunSetListResponse()
+            .runSets(filteredRunSetDetails)
+            .fullyUpdated(runSetUpdateResult.fullyUpdated());
+
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
