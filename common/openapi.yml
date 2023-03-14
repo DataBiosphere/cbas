@@ -665,6 +665,8 @@ components:
     RunSetListResponse:
       type: object
       properties:
+        fully_updated:
+          type: boolean
         run_sets:
           type: array
           items:

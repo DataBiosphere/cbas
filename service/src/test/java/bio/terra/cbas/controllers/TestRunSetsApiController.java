@@ -482,6 +482,7 @@ class TestRunSetsApiController {
         objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
 
     assertEquals(2, parsedResponse.getRunSets().size());
+    assertEquals(true, parsedResponse.isFullyUpdated());
 
     RunSetDetailsResponse runSetDetails1 = parsedResponse.getRunSets().get(0);
     RunSetDetailsResponse runSetDetails2 = parsedResponse.getRunSets().get(1);
