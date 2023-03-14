@@ -76,4 +76,9 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: changesets/20230323_add_unique_constraint_to_methods_columns.yaml
+  - include:
+      file: changesets/20230310-DONT-COMMIT-test-struct.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/20230314-DONT-COMMIT-struct-workflow-test.yaml
       relativeToChangelogFile: true
