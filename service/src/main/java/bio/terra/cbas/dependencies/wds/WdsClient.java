@@ -15,7 +15,7 @@ public class WdsClient {
   }
 
   private ApiClient getApiClient() {
-    return new ApiClient().setBasePath(wdsServerConfiguration.baseUri());
+    return new ApiClient().setBasePath(wdsServerConfiguration.getWdsProxyUrlRoot());
   }
 
   RecordsApi recordsApi() {

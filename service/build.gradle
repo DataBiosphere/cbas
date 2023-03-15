@@ -29,6 +29,10 @@ dependencies {
     implementation 'javax.ws.rs:javax.ws.rs-api:2.1.1'
     implementation 'org.postgresql:postgresql:42.3.3'
 
+    // azure dependencies
+    implementation 'com.azure:azure-core-management:1.10.2'
+    implementation 'com.azure:azure-identity:1.4.6'
+
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
     liquibaseRuntime 'info.picocli:picocli:4.6.1'
     liquibaseRuntime 'org.postgresql:postgresql:42.3.3'

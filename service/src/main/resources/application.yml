@@ -63,6 +63,10 @@ wds:
   instanceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   apiV: "v0.2"
 
+leonardo:
+  baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
+  wdsAppTypeName: 'CROMWELL'
+
 terra.common:
   tracing:
     stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}

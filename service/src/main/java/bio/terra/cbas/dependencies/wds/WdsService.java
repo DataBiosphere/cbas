@@ -21,8 +21,8 @@ public class WdsService {
     return wdsClient
         .recordsApi()
         .getRecord(
-            wdsServerConfiguration.instanceId(),
-            wdsServerConfiguration.apiV(),
+            wdsServerConfiguration.getInstanceId(),
+            wdsServerConfiguration.getApiV(),
             recordType,
             recordId);
   }
@@ -32,6 +32,10 @@ public class WdsService {
     return wdsClient
         .recordsApi()
         .updateRecord(
-            request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
+            request,
+            wdsServerConfiguration.getInstanceId(),
+            wdsServerConfiguration.getApiV(),
+            type,
+            id);
   }
 }
