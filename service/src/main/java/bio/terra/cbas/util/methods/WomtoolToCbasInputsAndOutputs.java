@@ -35,15 +35,6 @@ public final class WomtoolToCbasInputsAndOutputs {
 
     List<StructField> fields = new ArrayList<>();
 
-    // Map<String, ParameterTypeDefinition> structField = new HashMap<>();
-
-    //    for (ValueTypeObjectFieldTypesInner object :
-    // Objects.requireNonNull(valueType.getObjectFieldTypes())){
-    //
-    //      structFields.add(structField.put(object.getFieldName(), getParameterType((ValueType)
-    // valueType.getObjectFieldTypes())));
-    //    }
-
     return switch (Objects.requireNonNull(valueType.getTypeName())) {
       case STRING -> new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.STRING)
@@ -100,6 +91,7 @@ public final class WomtoolToCbasInputsAndOutputs {
       throws WomtoolValueTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
+    List<StructField> fields = new ArrayList<>();
 
     for (ToolInputParameter input : womInputs.getInputs()) {
       WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
@@ -108,7 +100,24 @@ public final class WomtoolToCbasInputsAndOutputs {
       workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
 
       // Input type
-      workflowInputDefinition.inputType(getParameterType(input.getValueType()));
+      if (input.getValueType().getTypeName() == ValueType.TypeNameEnum.OBJECT) {
+        for (ValueTypeObjectFieldTypesInner innerField :
+            Objects.requireNonNull(input.getValueType().getObjectFieldTypes())) {
+          StructField structField = new StructField();
+          structField.fieldName(innerField.getFieldName());
+          structField.fieldType(
+              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
+          fields.add(structField);
+        }
+
+        workflowInputDefinition.inputType(
+            new ParameterTypeDefinitionStruct()
+                .name(input.getTypeDisplayName())
+                .fields(fields)
+                .type(ParameterTypeDefinition.TypeEnum.STRUCT));
+      } else {
+        workflowInputDefinition.inputType(getParameterType(input.getValueType()));
+      }
 
       // Source
       workflowInputDefinition.source(
