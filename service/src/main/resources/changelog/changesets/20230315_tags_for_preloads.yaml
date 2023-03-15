@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: "Update preloads to use tagged workflow URLs"
+      author: cjllanwarne
+      changes:
+        - update:
+            tableName: method_version
+            where: method_version_id='60000000-0000-0000-0000-000000000006'
+            columns:
+              - column:
+                  - name: method_version_name
+                  - value: v2.1.33.16
+              - column:
+                  name: method_version_url
+                  value: https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/sarscov2_nextstrain.wdl
+        - update:
+            tableName: method_version
+            where: method_version_id='50000000-0000-0000-0000-000000000005'
+            columns:
+              - column:
+                  - name: method_version_name
+                  - value: v2.1.33.16
+              - column:
+                  name: method_version_url
+                  value: https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/assemble_refbased.wdl
+        - update:
+            tableName: method_version
+            where: method_version_id='80000000-0000-0000-0000-000000000008'
+            columns:
+              - column:
+                  - name: method_version_name
+                  - value: v2.1.33.16
+              - column:
+                  name: method_version_url
+                  value: https://raw.githubusercontent.com/broadinstitute/viral-pipelines/v2.1.33.16/pipes/WDL/workflows/fetch_sra_to_bam.wdl
