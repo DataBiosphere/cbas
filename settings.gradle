@@ -1,4 +1,4 @@
 rootProject.name = 'cbas'
 include('service', 'integration', 'client')
 
-gradle.ext.releaseVersion = '0.0.102'
+gradle.ext.releaseVersion = '0.0.103'
