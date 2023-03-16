@@ -93,4 +93,17 @@ public record Run(
         newLastPolledTimestamp,
         errorMessages);
   }
+
+  public Run withErrorMessages(String newErrorMessages) {
+    return new Run(
+        runId,
+        engineId,
+        runSet,
+        recordId,
+        submissionTimestamp,
+        status,
+        lastModifiedTimestamp,
+        lastPolledTimestamp,
+        newErrorMessages);
+  }
 }

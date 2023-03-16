@@ -300,6 +300,90 @@ public class TestSmartRunsPollerFunctional {
   }
 
   @Test
+  void updatingOutputFails_UpdatingDataTable() throws Exception {
+    when(cromwellService.runSummary(runningRunEngineId1))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Succeeded"));
+
+    String runLogValue =
+        """
+        {
+            "outputs": {
+              "wf_hello.hello.salutation": "Hello batch!"
+            },
+            "request": {
+              "tags": {},
+              "workflow_engine_parameters": {},
+              "workflow_params": {
+                "wf_hello.hello.addressee": "batch"
+              },
+              "workflow_type": "None supplied",
+              "workflow_type_version": "None supplied"
+            },
+            "run_id": "c38181fd-e4df-4fa2-b2ba-a71090b6d97c",
+            "run_log": {
+              "end_time": "2022-10-04T15:54:49.142Z",
+              "name": "wf_hello",
+              "start_time": "2022-10-04T15:54:32.280Z"
+            },
+            "state": "COMPLETE",
+            "task_logs": [
+              {
+                "end_time": "2022-10-04T15:54:47.411Z",
+                "exit_code": 0,
+                "name": "wf_hello.hello",
+                "start_time": "2022-10-04T15:54:33.837Z",
+                "stderr": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stderr",
+                "stdout": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stdout"
+              }
+            ]
+          }
+        """;
+
+    RecordAttributes mockAttributes = new RecordAttributes();
+    mockAttributes.put("foo_name", "Hello batch!");
+    RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+    RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
+    when(cromwellService.getOutputs(runningRunEngineId1)).thenReturn(parseRunLog.getOutputs());
+    when(wdsService.updateRecord(
+            mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId()))
+        .thenThrow(new org.databiosphere.workspacedata.client.ApiException("Bad WDS update"));
+    when(runsDao.updateRunStatusWithError(eq(runningRunId1), eq(SYSTEM_ERROR), any(), any()))
+        .thenReturn(1);
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
+
+    verify(cromwellService).runSummary(runningRunEngineId1);
+    String expectedErrorMessage =
+        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Bad WDS update"
+            .formatted(runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId());
+    verify(runsDao)
+        .updateRunStatusWithError(
+            eq(runToUpdate1.runId()),
+            eq(SYSTEM_ERROR),
+            any(),
+            eq(expectedErrorMessage)); // (verify that error messages are recorded)
+    verify(wdsService)
+        .updateRecord(mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
+
+    assertEquals(2, actual.updatedList().size());
+    assertEquals(
+        SYSTEM_ERROR,
+        actual.updatedList().stream()
+            .filter(r -> r.runId().equals(runningRunId1))
+            .toList()
+            .get(0)
+            .status());
+    assertEquals(
+        expectedErrorMessage,
+        actual.updatedList().stream()
+            .filter(r -> r.runId().equals(runningRunId1))
+            .toList()
+            .get(0)
+            .errorMessages());
+  }
+
+  @Test
   void pollRunsInLeastRecentlyPolledOrder() throws Exception {
     when(cromwellService.runSummary(runningRunEngineId1))
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Running"));
@@ -409,7 +493,7 @@ public class TestSmartRunsPollerFunctional {
   }
 
   @Test
-  void updatingOutputFails() throws Exception {
+  void updatingOutputFails_InputMissing() throws Exception {
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
 
@@ -446,7 +530,8 @@ public class TestSmartRunsPollerFunctional {
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Succeeded"));
     when(cromwellService.runSummary(runningRunEngineId2))
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId2).status("Succeeded"));
-    when(runsDao.updateRunStatus(eq(runToUpdate1.runId()), eq(SYSTEM_ERROR), any())).thenReturn(1);
+    when(runsDao.updateRunStatusWithError(eq(runToUpdate1.runId()), eq(SYSTEM_ERROR), any(), any()))
+        .thenReturn(1);
     when(runsDao.updateRunStatus(eq(runToUpdate2.runId()), eq(COMPLETE), any())).thenReturn(1);
 
     var actual =
@@ -454,7 +539,15 @@ public class TestSmartRunsPollerFunctional {
 
     // verify that Run is marked as Failed as attaching outputs failed
     verify(cromwellService).runSummary(runningRunEngineId1);
-    verify(runsDao).updateRunStatus(eq(runToUpdate1.runId()), eq(SYSTEM_ERROR), any());
+    verify(runsDao)
+        .updateRunStatusWithError(
+            eq(runToUpdate1.runId()),
+            eq(SYSTEM_ERROR),
+            any(),
+            eq(
+                "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Output wf_hello.hello.salutation not found in workflow outputs."
+                    .formatted(
+                        runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId())));
     verify(wdsService, never())
         .updateRecord(mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
 
@@ -518,15 +611,16 @@ public class TestSmartRunsPollerFunctional {
     when(cromwellService.runSummary(runningRunEngineId3))
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId3).status("Failed"));
     when(cromwellService.getRunErrors(runToUpdate3)).thenReturn(cromwellErrorMessage);
-    when(runsDao.updateErrorMessage(runToUpdate3.runId(), cromwellErrorMessage)).thenReturn(1);
-    when(runsDao.updateRunStatus(eq(runToUpdate3.runId()), eq(EXECUTOR_ERROR), any()))
+    when(runsDao.updateRunStatusWithError(
+            eq(runToUpdate3.runId()), eq(EXECUTOR_ERROR), any(), any()))
         .thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
 
     verify(cromwellService).runSummary(runningRunEngineId3);
-    verify(runsDao).updateRunStatus(eq(runToUpdate3.runId()), eq(EXECUTOR_ERROR), any());
-    verify(runsDao).updateErrorMessage(runToUpdate3.runId(), cromwellErrorMessage);
+    verify(runsDao)
+        .updateRunStatusWithError(
+            eq(runToUpdate3.runId()), eq(EXECUTOR_ERROR), any(), eq(cromwellErrorMessage));
 
     assertEquals(
         EXECUTOR_ERROR,
