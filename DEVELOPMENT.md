@@ -63,13 +63,14 @@ CREATE DATABASE wds;
 ```
 
 Start a WDS container with the following command:
+Replace [YOUR_USERNAME] with something like mspector
 
 ```
 docker run \
   --name "WDS_6786552" \
   -e WDS_DB_HOST='host.docker.internal' \
-  -e WDS_DB_USER='mspector' \
-  -p 8001:8080 us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:6786552
+  -e WDS_DB_USER='[YOUR_USERNAME]' \
+  -p 8001:8080 us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:d8ad0a4
 ```
 
 A few notes:
