@@ -30,12 +30,12 @@ public final class WomtoolToCbasInputsAndOutputs {
     throw new UnsupportedOperationException("Cannot be instantiated");
   }
 
-  public static ParameterTypeDefinition getParameterType(ValueType valueType)
+  public static ParameterTypeDefinition getParameterType(ValueType input, String typeDisplayName)
       throws WomtoolValueTypeNotFoundException {
 
     List<StructField> fields = new ArrayList<>();
 
-    return switch (Objects.requireNonNull(valueType.getTypeName())) {
+    return switch (Objects.requireNonNull(input.getValueType().getTypeName())) {
       case STRING -> new ParameterTypeDefinitionPrimitive()
           .primitiveType(PrimitiveParameterValueType.STRING)
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
@@ -53,37 +53,37 @@ public final class WomtoolToCbasInputsAndOutputs {
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
       case OPTIONAL -> new ParameterTypeDefinitionOptional()
           .optionalType(
-              getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
+              getParameterType(Objects.requireNonNull(input))
                   .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
       case ARRAY -> new ParameterTypeDefinitionArray()
-          .nonEmpty(valueType.getNonEmpty())
-          .arrayType(getParameterType(Objects.requireNonNull(valueType.getArrayType())))
+          .nonEmpty(input.getValueType().getNonEmpty())
+          .arrayType(getParameterType(Objects.requireNonNull(input)))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
       case MAP -> new ParameterTypeDefinitionMap()
           .keyType(
               PrimitiveParameterValueType.fromValue(
                   Objects.requireNonNull(
-                          Objects.requireNonNull(valueType.getMapType()).getKeyType().getTypeName())
+                          Objects.requireNonNull(input.get.getMapType()).getKeyType().getTypeName())
                       .toString()))
           .valueType(
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
       case OBJECT -> {
         for (ValueTypeObjectFieldTypesInner innerField :
-            Objects.requireNonNull(valueType.getObjectFieldTypes())) {
+            Objects.requireNonNull(input.getValueType().getObjectFieldTypes())) {
           StructField structField = new StructField();
           structField.fieldName(innerField.getFieldName());
           structField.fieldType(
-              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
+              getParameterType(input));
           fields.add(structField);
         }
         yield new ParameterTypeDefinitionStruct()
-            .name(valueType.getTypeName().toString())
+            .name(typeDisplayName)
             .fields(fields)
             .type(ParameterTypeDefinition.TypeEnum.STRUCT);
       }
-      default -> throw new WomtoolValueTypeNotFoundException(valueType);
+      default -> throw new WomtoolValueTypeNotFoundException(input.getValueType());
     };
   }
 
@@ -91,7 +91,7 @@ public final class WomtoolToCbasInputsAndOutputs {
       throws WomtoolValueTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
-    List<StructField> fields = new ArrayList<>();
+    // List<StructField> fields = new ArrayList<>();
 
     for (ToolInputParameter input : womInputs.getInputs()) {
       WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
@@ -100,24 +100,7 @@ public final class WomtoolToCbasInputsAndOutputs {
       workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
 
       // Input type
-      if (input.getValueType().getTypeName() == ValueType.TypeNameEnum.OBJECT) {
-        for (ValueTypeObjectFieldTypesInner innerField :
-            Objects.requireNonNull(input.getValueType().getObjectFieldTypes())) {
-          StructField structField = new StructField();
-          structField.fieldName(innerField.getFieldName());
-          structField.fieldType(
-              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
-          fields.add(structField);
-        }
-
-        workflowInputDefinition.inputType(
-            new ParameterTypeDefinitionStruct()
-                .name(input.getTypeDisplayName())
-                .fields(fields)
-                .type(ParameterTypeDefinition.TypeEnum.STRUCT));
-      } else {
-        workflowInputDefinition.inputType(getParameterType(input.getValueType()));
-      }
+        workflowInputDefinition.inputType(getParameterType(input));
 
       // Source
       workflowInputDefinition.source(
@@ -144,7 +127,7 @@ public final class WomtoolToCbasInputsAndOutputs {
       workflowOutputDefinition.outputName("%s.%s".formatted(workflowName, output.getName()));
 
       // ValueType
-      workflowOutputDefinition.outputType(getParameterType(output.getValueType()));
+      workflowOutputDefinition.outputType(getParameterType(output.getValueType(), null, output));
 
       // Destination
       workflowOutputDefinition.destination(
