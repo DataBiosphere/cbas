@@ -46,7 +46,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
-  private final MethodDao methodDao;
+  private static MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
 
@@ -202,6 +202,7 @@ public class MethodsApiController implements MethodsApi {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
+    String methodSource = methodRequest.getMethodSource().toString();
     List<String> errors = new ArrayList<>();
 
     if (methodName == null || methodName.trim().isEmpty()) {
@@ -237,6 +238,12 @@ public class MethodsApiController implements MethodsApi {
       } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
         errors.add("method_url is invalid. Reason: " + e.getMessage());
       }
+    }
+
+    int methodDbQuery =
+        methodDao.checkForExistingMethod(methodName, methodUrl, methodVersion, methodSource);
+    if (methodDbQuery != 0) {
+      errors.add("Method %s already exists. Please select a new method.".formatted(methodName));
     }
 
     return errors;
