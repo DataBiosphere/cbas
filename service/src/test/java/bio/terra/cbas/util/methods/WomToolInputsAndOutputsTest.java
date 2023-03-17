@@ -214,42 +214,29 @@ class WomToolInputsTest {
     String valueType =
         """
         {
-          "valid": true,
-          "errors": [],
-          "validWorkflow": true,
-          "name": "Sample",
-          "inputs": [
-            {
-               "name": "settings",
-               "valueType": {
-                 "typeName": "Object",
-                 "objectFieldTypes": [
-                   {
-                     "fieldName": "foo",
-                     "fieldType": {
-                       "typeName": "Int"
-                     }
-                   },
-                   {
-                     "fieldName": "bar",
-                     "fieldType": {
-                       "typeName": "Int"
-                     }
-                   }
-                 ]
-               },
-               "typeDisplayName": "StructName",
-               "optional": false,
-               "default": null
-            }
-          ]
+           "typeName": "Object",
+           "objectFieldTypes": [
+             {
+               "fieldName": "foo",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             },
+             {
+               "fieldName": "bar",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             }
+           ]
         }
         """;
 
     Gson object = new Gson();
-    WorkflowDescription womtoolString = object.fromJson(valueType, WorkflowDescription.class);
+    ValueType womtoolString = object.fromJson(valueType, ValueType.class);
 
-    List<WorkflowInputDefinition> cbasParameterTypeDef = new ArrayList<>();
+    ParameterTypeDefinitionStruct cbasParameterTypeDef = new ParameterTypeDefinitionStruct();
+
     List<StructField> field =
         new ArrayList<>(
             Arrays.asList(
@@ -266,19 +253,9 @@ class WomToolInputsTest {
                             .primitiveType(PrimitiveParameterValueType.INT)
                             .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))));
 
-    cbasParameterTypeDef.add(
-        new WorkflowInputDefinition()
-            .inputName("Sample.settings")
-            .inputType(
-                new ParameterTypeDefinitionStruct()
-                    .name("StructName")
-                    .fields(field)
-                    .type(ParameterTypeDefinition.TypeEnum.STRUCT))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE)));
-    assertEquals(cbasParameterTypeDef, womToCbasInputBuilder(womtoolString));
+    cbasParameterTypeDef.name("Struct").fields(field).type(ParameterTypeDefinition.TypeEnum.STRUCT);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
 
   /*
