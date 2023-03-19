@@ -202,7 +202,8 @@ public class MethodsApiController implements MethodsApi {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
-    String methodSource = methodRequest.getMethodSource().toString();
+    // Using the String.valueOf method here as opposed to .toString() for tests to pass.
+    String methodSource = String.valueOf(methodRequest.getMethodSource());
     List<String> errors = new ArrayList<>();
 
     if (methodName == null || methodName.trim().isEmpty()) {
@@ -241,7 +242,7 @@ public class MethodsApiController implements MethodsApi {
     }
 
     int methodDbQuery =
-        methodDao.checkForExistingMethod(methodName, methodUrl, methodVersion, methodSource);
+        methodDao.getNumberOfMethods(methodName, methodUrl, methodVersion, methodSource);
     if (methodDbQuery != 0) {
       errors.add("Method %s already exists. Please select a new method.".formatted(methodName));
     }

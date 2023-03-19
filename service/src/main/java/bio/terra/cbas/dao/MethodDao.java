@@ -96,27 +96,27 @@ public class MethodDao {
                 "method_id", runSet.methodVersion().method().methodId())));
   }
 
-  public int checkForExistingMethod(
+  public int getNumberOfMethods(
       String methodName, String methodUrl, String methodVersion, String methodSource) {
 
     String sql =
-        "SELECT method.method_id, method.name, method.method_source, method.created, method.description, method.last_run_set_id FROM method INNER JOIN method_version "
+        "SELECT COUNT(*) FROM method INNER JOIN method_version "
             + "ON method.method_id = method_version.method_id "
             + "WHERE method.name = :name "
             + "AND method_version.method_version_url = :methodVersionUrl "
             + "AND method_version.method_version_name = :methodVersionName "
             + "AND method.method_source = :methodSource";
 
-    return jdbcTemplate
-        .query(
-            sql,
-            new MapSqlParameterSource(
-                Map.of(
-                    "name", methodName,
-                    "methodVersionUrl", methodUrl,
-                    "methodVersionName", methodVersion,
-                    "methodSource", methodSource)),
-            new MethodMapper())
-        .size();
+    MapSqlParameterSource params =
+        new MapSqlParameterSource(
+            Map.of(
+                "name", methodName,
+                "methodVersionUrl", methodUrl,
+                "methodVersionName", methodVersion,
+                "methodSource", methodSource));
+
+    Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
+
+    return count;
   }
 }

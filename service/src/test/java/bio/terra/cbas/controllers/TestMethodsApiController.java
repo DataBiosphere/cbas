@@ -23,6 +23,7 @@ import bio.terra.cbas.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,16 +63,12 @@ class TestMethodsApiController {
   // These answers are always the same, only the business logic that chooses them and interprets
   // the results should change:
   private void initMocks() {
-    when(methodDao.getMethods())
-        .thenReturn(List.of(neverRunMethod1, neverRunMethod2, previouslyRunMethod2));
+    when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
     when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
-    when(methodDao.getMethod(neverRunMethod2.methodId())).thenReturn(neverRunMethod2);
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
-    when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod2))
-        .thenReturn(List.of(method1Version3));
     when(methodVersionDao.getMethodVersionsForMethod(previouslyRunMethod2))
         .thenReturn(List.of(method2Version1, method2Version2));
 
@@ -79,8 +76,6 @@ class TestMethodsApiController {
         .thenReturn(method1Version1);
     when(methodVersionDao.getMethodVersion(method1Version2.methodVersionId()))
         .thenReturn(method1Version2);
-    when(methodVersionDao.getMethodVersion(method1Version3.methodVersionId()))
-        .thenReturn(method1Version3);
     when(methodVersionDao.getMethodVersion(method2Version1.methodVersionId()))
         .thenReturn(method2Version1);
     when(methodVersionDao.getMethodVersion(method2Version2.methodVersionId()))
@@ -342,58 +337,29 @@ class TestMethodsApiController {
   }
 
   @Test
-  void returnErrorForExistingMethod() throws Exception {
+  void requestValidationForDuplicateMethod() {
     initMocks();
-    // MvcResult result = mockMvc.perform(get(API)).andExpect(status().isOk()).andReturn();
 
-    Method duplicateMethod =
-        new Method(
-            neverRunMethod2.methodId(),
-            "method1.1",
-            "method one point one",
-            neverRunMethod2.created(),
-            neverRunMethod2.lastRunSetId(),
-            "GitHub");
+    PostMethodRequest duplicateMethodRequest = new PostMethodRequest();
 
-    MethodVersion duplicateMethodVersion =
-        new MethodVersion(
-            method1Version3.methodVersionId(),
-            duplicateMethod,
-            "v1",
-            "method one point one",
-            method1Version3.created(),
-            method1Version3.lastRunSetId(),
-            validWorkflow);
+    duplicateMethodRequest.methodName("method1");
+    duplicateMethodRequest.methodDescription("method one");
+    duplicateMethodRequest.methodUrl(validWorkflow);
+    duplicateMethodRequest.methodVersion("v1");
+    duplicateMethodRequest.methodSource(PostMethodRequest.MethodSourceEnum.GITHUB);
 
-    String expectedError = "Method method1 already exists. Please select a new method.";
+    List<String> expectedErrors =
+        new ArrayList<>(List.of("Method method1 already exists. Please select a new method."));
 
-    PostMethodRequest postMethodRequest =
-        objectMapper.readValue(duplicatePostRequestTemplate, PostMethodRequest.class);
-
-    // when(cromwellService.describeWorkflow(validWorkflow)).thenReturn(workflowDescForValidWorkflow);
-
-    when()
-    when(methodDao.checkForExistingMethod(
-            postMethodRequest.getMethodName(),
-            postMethodRequest.getMethodVersion(),
-            postMethodRequest.getMethodUrl(),
-            postMethodRequest.getMethodSource().toString()))
+    when(methodDao.getNumberOfMethods(
+            duplicateMethodRequest.getMethodName(),
+            duplicateMethodRequest.getMethodUrl(),
+            duplicateMethodRequest.getMethodVersion(),
+            duplicateMethodRequest.getMethodSource().toString()))
         .thenReturn(1);
 
-    MvcResult response =
-        mockMvc
-            .perform(
-                post(API)
-                    .content(duplicatePostRequestTemplate)
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().is4xxClientError())
-            .andReturn();
-
-    PostMethodResponse postMethodResponse =
-        objectMapper.readValue(
-            response.getResponse().getContentAsString(), PostMethodResponse.class);
-
-    assertEquals(expectedError, postMethodResponse.getError());
+    List<String> actualErrors = MethodsApiController.validateMethod(duplicateMethodRequest);
+    assertEquals(expectedErrors.get(0), actualErrors.get(0));
   }
 
   private static final Method neverRunMethod1 =
@@ -404,15 +370,6 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "method 1 source");
-
-  private static final Method neverRunMethod2 =
-      new Method(
-          UUID.randomUUID(),
-          "method1.1",
-          "method one point one",
-          OffsetDateTime.now(),
-          null,
-          "Github");
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -440,16 +397,6 @@ class TestMethodsApiController {
       "https://raw.githubusercontent.com/abc/invalidWorkflow.wdl";
   private static final String validWorkflow =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
-
-  private static final MethodVersion method1Version3 =
-      new MethodVersion(
-          UUID.randomUUID(),
-          neverRunMethod2,
-          "v1",
-          "method one point one",
-          OffsetDateTime.now(),
-          null,
-          validWorkflow);
 
   private static final Method previouslyRunMethod2 =
       new Method(
@@ -540,17 +487,6 @@ class TestMethodsApiController {
         "method_source":"GitHub",
         "method_version":"develop",
         "method_url": "%s"
-      }
-      """;
-
-  private final String duplicatePostRequestTemplate =
-      """
-      {
-        "method_name": "method1.1",
-        "method_description": "method one point one",
-        "method_source":"GitHub",
-        "method_version":"v1",
-        "method_url": "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl"
       }
       """;
 
