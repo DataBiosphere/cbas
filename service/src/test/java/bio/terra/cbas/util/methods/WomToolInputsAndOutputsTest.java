@@ -132,19 +132,11 @@ class WomToolInputsTest {
             "typeName": "Pair"
           }
         """;
-    String valueType2 = """
-          {
-            "typeName": "Pair"
-          }
-        """;
 
     Gson object = new Gson();
     ValueType womtoolString1 = object.fromJson(valueType1, ValueType.class);
-    ValueType womtoolString2 = object.fromJson(valueType2, ValueType.class);
 
     assertThrows(WomtoolValueTypeNotFoundException.class, () -> getParameterType(womtoolString1));
-
-    assertThrows(WomtoolValueTypeNotFoundException.class, () -> getParameterType(womtoolString2));
   }
 
   @Test
