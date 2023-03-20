@@ -351,7 +351,7 @@ class TestMethodsApiController {
     List<String> expectedErrors =
         new ArrayList<>(List.of("Method method1 already exists. Please select a new method."));
 
-    when(methodDao.getNumberOfMethods(
+    when(methodDao.countMethods(
             duplicateMethodRequest.getMethodName(),
             duplicateMethodRequest.getMethodUrl(),
             duplicateMethodRequest.getMethodVersion(),

@@ -96,7 +96,7 @@ public class MethodDao {
                 "method_id", runSet.methodVersion().method().methodId())));
   }
 
-  public int getNumberOfMethods(
+  public int countMethods(
       String methodName, String methodUrl, String methodVersion, String methodSource) {
 
     String sql =
@@ -115,8 +115,6 @@ public class MethodDao {
                 "methodVersionName", methodVersion,
                 "methodSource", methodSource));
 
-    Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
-
-    return count;
+    return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 }

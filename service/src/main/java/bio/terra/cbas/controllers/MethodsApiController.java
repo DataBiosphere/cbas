@@ -46,7 +46,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
-  private static MethodDao methodDao;
+  private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
 
@@ -241,8 +241,7 @@ public class MethodsApiController implements MethodsApi {
       }
     }
 
-    int methodDbQuery =
-        methodDao.getNumberOfMethods(methodName, methodUrl, methodVersion, methodSource);
+    int methodDbQuery = methodDao.countMethods(methodName, methodUrl, methodVersion, methodSource);
     if (methodDbQuery != 0) {
       errors.add("Method %s already exists. Please select a new method.".formatted(methodName));
     }
