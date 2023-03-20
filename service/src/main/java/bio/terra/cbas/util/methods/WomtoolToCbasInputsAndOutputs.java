@@ -74,7 +74,8 @@ public final class WomtoolToCbasInputsAndOutputs {
             Objects.requireNonNull(valueType.getObjectFieldTypes())) {
           StructField structField = new StructField();
           structField.fieldName(innerField.getFieldName());
-          structField.fieldType(getParameterType(valueType));
+          structField.fieldType(
+              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
           fields.add(structField);
         }
         yield new ParameterTypeDefinitionStruct()

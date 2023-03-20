@@ -208,56 +208,6 @@ class WomToolInputsTest {
     assertEquals(cbasOutputDef, womToCbasOutputBuilder(womtoolDescription));
   }
 
-  @Test
-  void test_struct_type() throws WomtoolValueTypeNotFoundException {
-
-    String valueType =
-        """
-        {
-           "typeName": "Object",
-           "objectFieldTypes": [
-             {
-               "fieldName": "foo",
-               "fieldType": {
-                 "typeName": "Int"
-               }
-             },
-             {
-               "fieldName": "bar",
-               "fieldType": {
-                 "typeName": "Int"
-               }
-             }
-           ]
-        }
-        """;
-
-    Gson object = new Gson();
-    ValueType womtoolString = object.fromJson(valueType, ValueType.class);
-
-    ParameterTypeDefinitionStruct cbasParameterTypeDef = new ParameterTypeDefinitionStruct();
-
-    List<StructField> field =
-        new ArrayList<>(
-            Arrays.asList(
-                new StructField()
-                    .fieldName("foo")
-                    .fieldType(
-                        new ParameterTypeDefinitionPrimitive()
-                            .primitiveType(PrimitiveParameterValueType.INT)
-                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE)),
-                new StructField()
-                    .fieldName("bar")
-                    .fieldType(
-                        new ParameterTypeDefinitionPrimitive()
-                            .primitiveType(PrimitiveParameterValueType.INT)
-                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))));
-
-    cbasParameterTypeDef.name("Struct").fields(field).type(ParameterTypeDefinition.TypeEnum.STRUCT);
-
-    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
-  }
-
   /*
    * Testing the getParameterType() function
    */
@@ -574,6 +524,56 @@ class WomToolInputsTest {
                         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
                 .type(ParameterTypeDefinition.TypeEnum.MAP))
         .type(ParameterTypeDefinition.TypeEnum.ARRAY);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
+  }
+
+  @Test
+  void test_struct_type() throws WomtoolValueTypeNotFoundException {
+
+    String valueType =
+        """
+        {
+           "typeName": "Object",
+           "objectFieldTypes": [
+             {
+               "fieldName": "foo",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             },
+             {
+               "fieldName": "bar",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             }
+           ]
+        }
+        """;
+
+    Gson object = new Gson();
+    ValueType womtoolString = object.fromJson(valueType, ValueType.class);
+
+    ParameterTypeDefinitionStruct cbasParameterTypeDef = new ParameterTypeDefinitionStruct();
+
+    List<StructField> field =
+        new ArrayList<>(
+            Arrays.asList(
+                new StructField()
+                    .fieldName("foo")
+                    .fieldType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE)),
+                new StructField()
+                    .fieldName("bar")
+                    .fieldType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))));
+
+    cbasParameterTypeDef.name("Struct").fields(field).type(ParameterTypeDefinition.TypeEnum.STRUCT);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
