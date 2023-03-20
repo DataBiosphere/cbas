@@ -53,12 +53,12 @@ public final class WomtoolToCbasInputsAndOutputs {
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
       case OPTIONAL -> new ParameterTypeDefinitionOptional()
           .optionalType(
-              getParameterType(Objects.requireNonNull(valueType))
+              getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
                   .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
       case ARRAY -> new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
-          .arrayType(getParameterType(Objects.requireNonNull(valueType)))
+          .arrayType(getParameterType(Objects.requireNonNull(valueType.getArrayType())))
           .type(ParameterTypeDefinition.TypeEnum.ARRAY);
       case MAP -> new ParameterTypeDefinitionMap()
           .keyType(
