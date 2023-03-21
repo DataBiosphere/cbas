@@ -17,7 +17,6 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -337,29 +336,39 @@ class TestMethodsApiController {
   }
 
   @Test
-  void requestValidationForDuplicateMethod() {
+  void requestValidationForDuplicateMethod() throws Exception {
     initMocks();
 
-    PostMethodRequest duplicateMethodRequest = new PostMethodRequest();
-
-    duplicateMethodRequest.methodName("method1");
-    duplicateMethodRequest.methodDescription("method one");
-    duplicateMethodRequest.methodUrl(validWorkflow);
-    duplicateMethodRequest.methodVersion("v1");
-    duplicateMethodRequest.methodSource(PostMethodRequest.MethodSourceEnum.GITHUB);
+    String duplicateMethodRequest =
+        """
+      {
+        "method_name": "method1",
+        "method_description": "method one",
+        "method_source":"GitHub",
+        "method_version":"v1",
+        "method_url": "%s"
+      }
+      """
+            .formatted(validWorkflow);
 
     List<String> expectedErrors =
-        new ArrayList<>(List.of("Method method1 already exists. Please select a new method."));
+        new ArrayList<>(
+            List.of(
+                "Bad user request. Error(s): Method method1 already exists. Please select a new method."));
 
-    when(methodDao.countMethods(
-            duplicateMethodRequest.getMethodName(),
-            duplicateMethodRequest.getMethodUrl(),
-            duplicateMethodRequest.getMethodVersion(),
-            duplicateMethodRequest.getMethodSource().toString()))
-        .thenReturn(1);
+    when(methodDao.countMethods("method1", validWorkflow, "v1", "GitHub")).thenReturn(1);
 
-    List<String> actualErrors = MethodsApiController.validateMethod(duplicateMethodRequest);
-    assertEquals(expectedErrors.get(0), actualErrors.get(0));
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(duplicateMethodRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertEquals(expectedErrors.get(0), postMethodResponse.getError());
   }
 
   private static final Method neverRunMethod1 =
