@@ -6,6 +6,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
@@ -230,13 +231,22 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     AbortRunSetResponse aborted = new AbortRunSetResponse();
-    List<UUID> dummyRunsList = new ArrayList<>();
-
-    dummyRunsList.add(UUID.randomUUID());
-    dummyRunsList.add(UUID.randomUUID());
-
     aborted.runSetId(runSetId);
-    aborted.runs(dummyRunsList);
+
+    List<Run> runningWorkflows =
+        runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
+    List<String> submittedAbortWorkflows = new ArrayList<>();
+
+    try {
+      for (Run run : runningWorkflows) {
+        cromwellService.submitAbortWorkflow(run);
+        submittedAbortWorkflows.add(run.engineId());
+      }
+      aborted.runs(submittedAbortWorkflows);
+    } catch (cromwell.client.ApiException e) {
+      log.error("Unable to cancel run set %s".formatted(runSetId), e);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }

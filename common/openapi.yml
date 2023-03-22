@@ -748,7 +748,6 @@ components:
           type: array
           items:
             type: string
-            format: uuid
 
     ErrorReport:
       type: object
