@@ -737,13 +737,15 @@ components:
 
     AbortRunSetResponse:
       type: object
-      required: [ run_set_id, runs ]
+      required: [ run_set_id, state, runs ]
       properties:
         run_set_id:
           type:
             string
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
+        state:
+          $ref: '#/components/schemas/RunSetState'
         runs:
           type: array
           items:
