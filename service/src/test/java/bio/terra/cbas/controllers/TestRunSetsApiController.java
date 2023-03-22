@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
+import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +28,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
@@ -45,6 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -498,6 +502,86 @@ class TestRunSetsApiController {
     assertEquals(0, runSetDetails2.getErrorCount());
     assertEquals(
         CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.RUNNING), runSetDetails2.getState());
+  }
+
+  @Test
+  void testRunSetAbort() throws Exception {
+    RunSet returnedRunSet1 =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO");
+
+    Run run1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1,
+            "RECORDID1",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    Run run2 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1,
+            "RECORDID2",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+
+    List<Run> runs = new ArrayList<>();
+    runs.add(run1);
+    runs.add(run2);
+
+    List<RunSet> response = List.of(returnedRunSet1);
+    when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
+    when(runDao.getRuns(new RunDao.RunsFilters(returnedRunSet1.runSetId(), NON_TERMINAL_STATES)))
+        .thenReturn(runs);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API)
+                    .content(returnedRunSet1.runSetId().toString())
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    AbortRunSetResponse parsedResponse =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), AbortRunSetResponse.class);
+
+    System.out.println(parsedResponse.getRuns());
   }
 }
 
