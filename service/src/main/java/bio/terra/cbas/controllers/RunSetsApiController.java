@@ -19,6 +19,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
@@ -224,6 +225,20 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
+    AbortRunSetResponse aborted = new AbortRunSetResponse();
+    List<UUID> dummyRunsList = new ArrayList<>();
+
+    dummyRunsList.add(UUID.randomUUID());
+    dummyRunsList.add(UUID.randomUUID());
+
+    aborted.runSetId(runSetId);
+    aborted.runs(dummyRunsList);
+
+    return new ResponseEntity<>(aborted, HttpStatus.OK);
   }
 
   public static void captureRequestMetrics(RunSetRequest request) {
