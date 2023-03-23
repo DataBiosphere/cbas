@@ -249,6 +249,24 @@ components:
             - F0011111-1111-1111-1111-111111111111
       description: The set of WDS records to use when constructing the inputs.
 
+    MethodInputMapping:
+      type: object
+      properties:
+        input_name:
+          type: string
+          example: workflow_input_foo_rating
+        source:
+          $ref: '#/components/schemas/ParameterDefinition'
+
+    MethodOutputMapping:
+      type: object
+      properties:
+        output_name:
+          type: string
+          example: workflow_output_foo_rating
+        destination:
+          $ref: '#/components/schemas/OutputDestination'
+
     WorkflowInputDefinition:
       type: object
       properties:
@@ -516,6 +534,16 @@ components:
         method_url:
           type: string
           format: uri
+        method_input_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodInputMapping'
+          description: Input mapping configuration
+        method_output_mappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MethodOutputMapping'
+          description: Output mapping configuration
 
     PostMethodResponse:
       type: object
