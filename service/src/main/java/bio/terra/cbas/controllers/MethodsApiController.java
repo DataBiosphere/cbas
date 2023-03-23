@@ -241,10 +241,12 @@ public class MethodsApiController implements MethodsApi {
       }
     }
 
-    int methodDbQuery = methodDao.countMethods(methodName, methodUrl, methodVersion, methodSource);
-    if (methodDbQuery != 0) {
-      errors.add("Method %s already exists. Please select a new method.".formatted(methodName));
-    }
+    //    int methodDbQuery = methodDao.countMethods(methodName, methodUrl, methodVersion,
+    // methodSource);
+    //    if (methodDbQuery != 0) {
+    //      errors.add("Method %s already exists. Please select a new
+    // method.".formatted(methodName));
+    //    }
 
     return errors;
   }

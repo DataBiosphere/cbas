@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+    id: "addUniqueConstraint to Method and MethodVersion table"
+    author: kpierre
+    changes:
+      - addUniqueConstraint:
+          tableName: method
+          columnNames: name, source
+          constraintName: no_duplicate_methods
+#  - addUniqueConstraint:
+#      tableName: method
+#      columnNames: name, source
+#      constraintName: no_duplicate_methods
+#       - addUniqueConstraint:
+#          tableName: methodVersion
+#          columnNames: method_version_name, method_version_url
+#          constraintName: no_duplicate_methods
+
