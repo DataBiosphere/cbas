@@ -356,7 +356,7 @@ class TestMethodsApiController {
             List.of(
                 "Bad user request. Error(s): Method method1 already exists. Please select a new method."));
 
-    when(methodDao.countMethods("method1", validWorkflow, "v1", "GitHub")).thenReturn(1);
+    when(methodDao.countMethods("method1", "v1")).thenReturn(1);
 
     MvcResult response =
         mockMvc
