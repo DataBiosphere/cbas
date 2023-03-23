@@ -1,6 +1,7 @@
 package bio.terra.cbas.util.methods;
 
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
+import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
@@ -19,7 +20,9 @@ import cromwell.client.model.ValueType;
 import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class WomtoolToCbasInputsAndOutputs {
 
@@ -68,25 +71,47 @@ public final class WomtoolToCbasInputsAndOutputs {
     };
   }
 
-  public static List<WorkflowInputDefinition> womToCbasInputBuilder(WorkflowDescription womInputs)
+  public static ParameterDefinition getSource(
+      String inputName,
+      String defaultValue,
+      Map<String, ParameterDefinition> methodInputMappingMap) {
+    if (methodInputMappingMap.containsKey(inputName)) {
+      return methodInputMappingMap.get(inputName);
+    } else {
+      return new ParameterDefinitionLiteralValue()
+          .parameterValue(defaultValue)
+          .type(ParameterDefinition.TypeEnum.NONE);
+    }
+  }
+
+  public static List<WorkflowInputDefinition> womToCbasInputBuilder(
+      WorkflowDescription womInputs, List<MethodInputMapping> methodInputMappings)
       throws WomtoolValueTypeNotFoundException {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
 
+    //    Map<String, ParameterDefinition> methodInputMappingMap = new HashMap<>();
+    //    methodInputMappings.forEach(i -> methodInputMappingMap.put(i.getInputName(),
+    // i.getSource()));
+
+    Map<String, ParameterDefinition> methodInputMappingMap =
+        methodInputMappings.stream()
+            .collect(
+                Collectors.toMap(MethodInputMapping::getInputName, MethodInputMapping::getSource));
+
     for (ToolInputParameter input : womInputs.getInputs()) {
       WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
+      String inputName = "%s.%s".formatted(workflowName, input.getName());
 
       // Name
-      workflowInputDefinition.inputName("%s.%s".formatted(workflowName, input.getName()));
+      workflowInputDefinition.inputName(inputName);
 
       // Input type
       workflowInputDefinition.inputType(getParameterType(input.getValueType()));
 
       // Source
       workflowInputDefinition.source(
-          new ParameterDefinitionLiteralValue()
-              .parameterValue(input.getDefault())
-              .type(ParameterDefinition.TypeEnum.NONE));
+          getSource(inputName, input.getDefault(), methodInputMappingMap));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }
