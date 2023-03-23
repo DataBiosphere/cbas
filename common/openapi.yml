@@ -137,6 +137,26 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+  /api/batch/v1/run_sets/abort:
+    post:
+      tags: [ run_sets ]
+      summary: Abort a running run_set
+      operationId: abortRunSet
+      parameters:
+        - in: query
+          name: run_set_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Run set to be aborted
+      responses:
+        '200':
+          $ref: '#/components/responses/AbortRunSetResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
 components:
   requestBodies:
@@ -209,6 +229,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorReport'
+    AbortRunSetResponse:
+      description: Response for aborting a run set
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AbortRunSetResponse'
+
 
   schemas:
     RunSetRequest:
@@ -707,6 +734,24 @@ components:
           type: string
         output_definition:
           type: string
+
+    AbortRunSetResponse:
+      type: object
+      required: [ run_set_id, state, runs ]
+      properties:
+        run_set_id:
+          type:
+            string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
+        state:
+          $ref: '#/components/schemas/RunSetState'
+        runs:
+          type: array
+          items:
+            type: string
+            format: uuid
+
     ErrorReport:
       type: object
       required: [ message, status_code, causes]

@@ -82,6 +82,30 @@ public class RunDao {
                 currentTimestamp)));
   }
 
+  public int updateRunStatusWithError(
+      UUID runId,
+      CbasRunStatus newStatus,
+      OffsetDateTime lastModifiedTimestamp,
+      String updatedErrorMessage) {
+    OffsetDateTime currentTimestamp = DateUtils.currentTimeInUTC();
+    String sql =
+        "UPDATE run SET status = :status, last_modified_timestamp = :last_modified_timestamp, last_polled_timestamp = :last_polled_timestamp, error_messages = :error_messages WHERE run_id = :run_id";
+    return jdbcTemplate.update(
+        sql,
+        new MapSqlParameterSource(
+            Map.of(
+                Run.RUN_ID_COL,
+                runId,
+                Run.STATUS_COL,
+                newStatus.toString(),
+                Run.LAST_MODIFIED_TIMESTAMP_COL,
+                lastModifiedTimestamp,
+                Run.LAST_POLLED_TIMESTAMP_COL,
+                currentTimestamp,
+                Run.ERROR_MESSAGES_COL,
+                updatedErrorMessage)));
+  }
+
   public int updateLastPolledTimestamp(UUID runID) {
     String sql =
         "UPDATE run SET last_polled_timestamp = :last_polled_timestamp WHERE run_id = :run_id";

@@ -24,6 +24,7 @@ import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -188,6 +189,8 @@ public class SmartRunsPoller {
     try {
       var updatedRunState = status;
       if (updatableRun.status() != updatedRunState) {
+        ArrayList<String> errors = new ArrayList<>();
+
         if (updatedRunState == CbasRunStatus.COMPLETE) {
           try {
             // we only write back output attributes to WDS if output definition is not empty. This
@@ -197,13 +200,16 @@ public class SmartRunsPoller {
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
-            // TODO: When epic WM-1433 is being worked on, add error message in database stating
-            //  updating output attributes failed for this particular Run.
-            logger.error(
-                "Error while updating attributes for record {} from run {}.",
-                updatableRun.recordId(),
-                updatableRun.runId(),
-                e);
+
+            String errorMessage =
+                "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
+                    .formatted(
+                        updatableRun.recordId(),
+                        updatableRun.runId(),
+                        updatableRun.engineId(),
+                        e.getMessage());
+            logger.error(errorMessage, e);
+            errors.add(errorMessage);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
         } else if (updatedRunState.inErrorState()) {
@@ -211,26 +217,36 @@ public class SmartRunsPoller {
             // Retrieve error from Cromwell
             String message = cromwellService.getRunErrors(updatableRun);
             if (!message.isEmpty()) {
-              var updatedRun = runDao.updateErrorMessage(updatableRun.runId(), message);
-              if (updatedRun == 1) {
-                updatableRun = updatableRun.withErrorMessage(message);
-              }
+              errors.add(message);
             }
           } catch (Exception e) {
-            logger.error(
-                "Error fetching Cromwell-level error from Cromwell for run {}.",
-                updatableRun.runId(),
-                e);
+            String errorMessage =
+                "Error fetching Cromwell-level error from Cromwell for run %s"
+                    .formatted(updatableRun.runId());
+            logger.error(errorMessage, e);
+            errors.add(errorMessage);
           }
         }
         logger.info(
-            "Updating status of Run {} (engine ID {}) from {} to {}",
+            "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
             updatableRun.runId(),
             updatableRun.engineId(),
             updatableRun.status(),
-            updatedRunState);
-        var changes =
-            runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
+            updatedRunState,
+            errors.size());
+        int changes;
+        if (errors.isEmpty()) {
+          changes =
+              runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
+        } else {
+          updatableRun = updatableRun.withErrorMessages(String.join(", ", errors));
+          changes =
+              runDao.updateRunStatusWithError(
+                  updatableRun.runId(),
+                  updatedRunState,
+                  engineStatusChanged,
+                  updatableRun.errorMessages());
+        }
         if (changes == 1) {
           updatableRun =
               updatableRun
