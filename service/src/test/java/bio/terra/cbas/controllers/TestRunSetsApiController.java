@@ -572,7 +572,7 @@ class TestRunSetsApiController {
         mockMvc
             .perform(
                 post(API)
-                    .content(returnedRunSet1.runSetId().toString())
+                    .content(returnedRunSet1.runSetId())
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn();
