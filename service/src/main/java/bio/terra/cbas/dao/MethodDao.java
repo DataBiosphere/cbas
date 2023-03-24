@@ -95,4 +95,21 @@ public class MethodDao {
                 "run_set_id", runSet.runSetId(),
                 "method_id", runSet.methodVersion().method().methodId())));
   }
+
+  public int countMethods(String methodName, String methodVersion) {
+
+    String sql =
+        "SELECT COUNT(*) FROM method INNER JOIN method_version "
+            + "ON method.method_id = method_version.method_id "
+            + "WHERE method.name = :name "
+            + "AND method_version.method_version_name = :methodVersionName ";
+
+    MapSqlParameterSource params =
+        new MapSqlParameterSource(
+            Map.of(
+                "name", methodName,
+                "methodVersionName", methodVersion));
+
+    return jdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
 }

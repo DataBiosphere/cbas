@@ -22,6 +22,7 @@ import bio.terra.cbas.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -332,6 +333,42 @@ class TestMethodsApiController {
     assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
+  }
+
+  @Test
+  void requestValidationForDuplicateMethod() throws Exception {
+    initMocks();
+
+    String duplicateMethodRequest =
+        """
+      {
+        "method_name": "method1",
+        "method_description": "method one",
+        "method_source":"GitHub",
+        "method_version":"v1",
+        "method_url": "%s"
+      }
+      """
+            .formatted(validWorkflow);
+
+    List<String> expectedErrors =
+        new ArrayList<>(
+            List.of(
+                "Bad user request. Error(s): Method method1 already exists. Please select a new method."));
+
+    when(methodDao.countMethods("method1", "v1")).thenReturn(1);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(duplicateMethodRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertEquals(expectedErrors.get(0), postMethodResponse.getError());
   }
 
   private static final Method neverRunMethod1 =

@@ -4,13 +4,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bio.terra.cbas.dao.MethodDao;
+import bio.terra.cbas.dao.MethodVersionDao;
+import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
 
+@WebMvcTest
+@ContextConfiguration(classes = MethodsApiController.class)
 class TestMethodsApiControllerUnits {
+
+  private static final String API = "/api/batch/v1/methods";
+  @MockBean private MethodsApiController methodsApiController;
+
+  @Autowired private MockMvc mockMvc;
+  @Autowired private ObjectMapper objectMapper;
+  @MockBean private CromwellService cromwellService;
+
+  // These mock beans are supplied to the RunSetApiController at construction time (and get used
+  // later):
+  @MockBean private MethodDao methodDao;
+  @MockBean private MethodVersionDao methodVersionDao;
+  @MockBean private RunSetDao runSetDao;
+
+  @BeforeEach
+  void instantiateMethodsController() {
+    methodsApiController =
+        new MethodsApiController(
+            cromwellService, methodDao, methodVersionDao, runSetDao, objectMapper);
+  }
 
   @Test
   void requestValidationForNullRequest() {
@@ -23,13 +56,14 @@ class TestMethodsApiControllerUnits {
                 "method_version is required",
                 "method_url is required"));
 
-    List<String> actualErrors = MethodsApiController.validateMethod(invalidPostRequest);
+    List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());
     assertIterableEquals(expectedErrors, actualErrors);
   }
 
   @Test
   void requestValidationForEmptyRequest() {
+
     PostMethodRequest invalidPostRequest = new PostMethodRequest();
     invalidPostRequest.setMethodName("");
     invalidPostRequest.setMethodDescription("this field is optional");
@@ -41,7 +75,7 @@ class TestMethodsApiControllerUnits {
             List.of(
                 "method_name is required", "method_version is required", "method_url is required"));
 
-    List<String> actualErrors = MethodsApiController.validateMethod(invalidPostRequest);
+    List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());
     assertIterableEquals(expectedErrors, actualErrors);
   }
@@ -58,7 +92,7 @@ class TestMethodsApiControllerUnits {
         new ArrayList<>(
             List.of("method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]"));
 
-    List<String> actualErrors = MethodsApiController.validateMethod(invalidPostRequest);
+    List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());
     assertIterableEquals(expectedErrors, actualErrors);
   }
@@ -74,7 +108,7 @@ class TestMethodsApiControllerUnits {
     List<String> expectedErrors =
         new ArrayList<>(List.of("method_url is invalid. URL doesn't match pattern format"));
 
-    List<String> actualErrors = MethodsApiController.validateMethod(invalidPostRequest);
+    List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());
     assertIterableEquals(expectedErrors, actualErrors);
   }
@@ -89,6 +123,6 @@ class TestMethodsApiControllerUnits {
     validPostRequest.setMethodUrl(
         "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl");
 
-    assertTrue(MethodsApiController.validateMethod(validPostRequest).isEmpty());
+    assertTrue(methodsApiController.validateMethod(validPostRequest).isEmpty());
   }
 }

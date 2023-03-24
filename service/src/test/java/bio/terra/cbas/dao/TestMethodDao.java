@@ -31,7 +31,7 @@ class TestMethodDao {
           methodId1, methodName, methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
   Method method2 =
       new Method(
-          methodId2, methodName, methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
+          methodId2, "test method 2", methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
 
   @BeforeAll
   void setUp() {
@@ -70,7 +70,6 @@ class TestMethodDao {
   @Test
   void retrievesAllMethods() {
     List<Method> allMethods = methodDao.getMethods();
-
     assertEquals(5, allMethods.size()); // because database has 3 pre-staged workflows
 
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method1.methodId())));
