@@ -12,12 +12,15 @@ import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
+import bio.terra.cbas.model.StructField;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import cromwell.client.model.ToolInputParameter;
 import cromwell.client.model.ToolOutputParameter;
 import cromwell.client.model.ValueType;
+import cromwell.client.model.ValueTypeObjectFieldTypesInner;
 import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +37,8 @@ public final class WomtoolToCbasInputsAndOutputs {
 
   public static ParameterTypeDefinition getParameterType(ValueType valueType)
       throws WomtoolValueTypeNotFoundException {
+
+    List<StructField> fields = new ArrayList<>();
 
     return switch (Objects.requireNonNull(valueType.getTypeName())) {
       case STRING -> new ParameterTypeDefinitionPrimitive()
@@ -69,6 +74,20 @@ public final class WomtoolToCbasInputsAndOutputs {
           .valueType(
               getParameterType(Objects.requireNonNull(valueType.getMapType()).getValueType()))
           .type(ParameterTypeDefinition.TypeEnum.MAP);
+      case OBJECT -> {
+        for (ValueTypeObjectFieldTypesInner innerField :
+            Objects.requireNonNull(valueType.getObjectFieldTypes())) {
+          StructField structField = new StructField();
+          structField.fieldName(innerField.getFieldName());
+          structField.fieldType(
+              getParameterType(Objects.requireNonNull(innerField.getFieldType())));
+          fields.add(structField);
+        }
+        yield new ParameterTypeDefinitionStruct()
+            .name("Struct")
+            .fields(fields)
+            .type(ParameterTypeDefinition.TypeEnum.STRUCT);
+      }
       default -> throw new WomtoolValueTypeNotFoundException(valueType);
     };
   }

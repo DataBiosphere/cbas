@@ -222,7 +222,7 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
-  public static List<String> validateMethod(PostMethodRequest methodRequest) {
+  public List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
@@ -261,6 +261,11 @@ public class MethodsApiController implements MethodsApi {
       } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
         errors.add("method_url is invalid. Reason: " + e.getMessage());
       }
+    }
+
+    int methodDbQuery = methodDao.countMethods(methodName, methodVersion);
+    if (methodDbQuery != 0) {
+      errors.add("Method %s already exists. Please select a new method.".formatted(methodName));
     }
 
     return errors;
