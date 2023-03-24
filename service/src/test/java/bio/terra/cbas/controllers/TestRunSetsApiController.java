@@ -19,6 +19,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -73,6 +74,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
+  private static final String API_ABORT = "/api/batch/v1/run_sets/abort";
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
   private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
@@ -506,7 +508,7 @@ class TestRunSetsApiController {
 
   @Test
   void testRunSetAbort() throws Exception {
-    RunSet returnedRunSet1 =
+    RunSet returnedRunSet1Running =
         new RunSet(
             UUID.randomUUID(),
             new MethodVersion(
@@ -536,11 +538,13 @@ class TestRunSetsApiController {
             "outputDefinition",
             "FOO");
 
+    when(runSetDao.createRunSet(returnedRunSet1Running)).thenReturn(1);
+
     Run run1 =
         new Run(
             UUID.randomUUID(),
             UUID.randomUUID().toString(),
-            returnedRunSet1,
+            returnedRunSet1Running,
             "RECORDID1",
             OffsetDateTime.now(),
             RUNNING,
@@ -551,29 +555,30 @@ class TestRunSetsApiController {
         new Run(
             UUID.randomUUID(),
             UUID.randomUUID().toString(),
-            returnedRunSet1,
+            returnedRunSet1Running,
             "RECORDID2",
             OffsetDateTime.now(),
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             null);
+    when(runDao.createRun(run1)).thenReturn(1);
+    when(runDao.createRun(run2)).thenReturn(1);
 
     List<Run> runs = new ArrayList<>();
     runs.add(run1);
     runs.add(run2);
 
-    List<RunSet> response = List.of(returnedRunSet1);
+    List<RunSet> response = List.of(returnedRunSet1Running);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
-    when(runDao.getRuns(new RunDao.RunsFilters(returnedRunSet1.runSetId(), NON_TERMINAL_STATES)))
+    when(runDao.getRuns(
+            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
         .thenReturn(runs);
 
     MvcResult result =
         mockMvc
             .perform(
-                post(API)
-                    .content(returnedRunSet1.runSetId())
-                    .contentType(MediaType.APPLICATION_JSON))
+                post(API_ABORT).param("run_set_id", returnedRunSet1Running.runSetId().toString()))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -581,7 +586,8 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             result.getResponse().getContentAsString(), AbortRunSetResponse.class);
 
-    System.out.println(parsedResponse.getRuns());
+    assertEquals(parsedResponse.getRuns().size(), 2);
+    assertEquals(parsedResponse.getRunSetId(), returnedRunSet1Running.runSetId());
   }
 }
 

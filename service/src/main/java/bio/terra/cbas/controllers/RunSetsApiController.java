@@ -237,16 +237,15 @@ public class RunSetsApiController implements RunSetsApi {
         runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
     List<String> submittedAbortWorkflows = new ArrayList<>();
 
-    try {
-      for (Run run : runningWorkflows) {
+    for (Run run : runningWorkflows) {
+      try {
         cromwellService.submitAbortWorkflow(run);
         submittedAbortWorkflows.add(run.engineId());
+      } catch (cromwell.client.ApiException e) {
+        log.error("Unable to abort workflow %s".formatted(run.engineId()), e);
       }
-      aborted.runs(submittedAbortWorkflows);
-    } catch (cromwell.client.ApiException e) {
-      log.error("Unable to cancel run set %s".formatted(runSetId), e);
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    aborted.runs(submittedAbortWorkflows);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }
