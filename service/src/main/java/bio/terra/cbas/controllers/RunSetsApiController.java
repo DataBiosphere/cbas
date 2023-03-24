@@ -4,6 +4,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
+import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
@@ -231,7 +232,6 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     AbortRunSetResponse aborted = new AbortRunSetResponse();
-    aborted.runSetId(runSetId);
 
     List<Run> runningWorkflows =
         runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
@@ -245,6 +245,9 @@ public class RunSetsApiController implements RunSetsApi {
         log.error("Unable to abort workflow %s".formatted(run.engineId()), e);
       }
     }
+
+    aborted.runSetId(runSetId);
+    aborted.state(CANCELING);
     aborted.runs(submittedAbortWorkflows);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
