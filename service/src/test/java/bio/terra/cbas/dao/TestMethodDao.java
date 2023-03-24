@@ -70,8 +70,6 @@ class TestMethodDao {
   @Test
   void retrievesAllMethods() {
     List<Method> allMethods = methodDao.getMethods();
-    System.out.println(allMethods);
-
     assertEquals(5, allMethods.size()); // because database has 3 pre-staged workflows
 
     assertTrue(allMethods.stream().anyMatch(m -> m.methodId().equals(method1.methodId())));
