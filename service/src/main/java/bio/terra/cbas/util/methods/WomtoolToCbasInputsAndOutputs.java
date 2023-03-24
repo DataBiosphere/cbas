@@ -2,6 +2,7 @@ package bio.terra.cbas.util.methods;
 
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.model.MethodInputMapping;
+import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class WomtoolToCbasInputsAndOutputs {
@@ -90,28 +92,24 @@ public final class WomtoolToCbasInputsAndOutputs {
     List<WorkflowInputDefinition> cbasInputDefinition = new ArrayList<>();
     String workflowName = womInputs.getName();
 
-    //    Map<String, ParameterDefinition> methodInputMappingMap = new HashMap<>();
-    //    methodInputMappings.forEach(i -> methodInputMappingMap.put(i.getInputName(),
-    // i.getSource()));
-
-    Map<String, ParameterDefinition> methodInputMappingMap =
-        methodInputMappings.stream()
+    Map<String, ParameterDefinition> methodInputMappingAsMap =
+        Optional.ofNullable(methodInputMappings).orElse(List.of()).stream()
             .collect(
                 Collectors.toMap(MethodInputMapping::getInputName, MethodInputMapping::getSource));
 
     for (ToolInputParameter input : womInputs.getInputs()) {
       WorkflowInputDefinition workflowInputDefinition = new WorkflowInputDefinition();
-      String inputName = "%s.%s".formatted(workflowName, input.getName());
+      String workflowInputName = "%s.%s".formatted(workflowName, input.getName());
 
       // Name
-      workflowInputDefinition.inputName(inputName);
+      workflowInputDefinition.inputName(workflowInputName);
 
       // Input type
       workflowInputDefinition.inputType(getParameterType(input.getValueType()));
 
       // Source
       workflowInputDefinition.source(
-          getSource(inputName, input.getDefault(), methodInputMappingMap));
+          getSource(workflowInputName, input.getDefault(), methodInputMappingAsMap));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }
@@ -119,24 +117,41 @@ public final class WomtoolToCbasInputsAndOutputs {
     return cbasInputDefinition;
   }
 
+  public static OutputDestination getDestination(
+      String outputName, Map<String, OutputDestination> methodOutputMappingMap) {
+    if (methodOutputMappingMap.containsKey(outputName)) {
+      return methodOutputMappingMap.get(outputName);
+    } else {
+      return new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE);
+    }
+  }
+
   // Outputs
   public static List<WorkflowOutputDefinition> womToCbasOutputBuilder(
-      WorkflowDescription womOutputs) throws WomtoolValueTypeNotFoundException {
+      WorkflowDescription womOutputs, List<MethodOutputMapping> methodOutputMappings)
+      throws WomtoolValueTypeNotFoundException {
     List<WorkflowOutputDefinition> cbasOutputs = new ArrayList<>();
+    String workflowName = womOutputs.getName();
+
+    Map<String, OutputDestination> methodOutputMappingAsMap =
+        Optional.ofNullable(methodOutputMappings).orElse(List.of()).stream()
+            .collect(
+                Collectors.toMap(
+                    MethodOutputMapping::getOutputName, MethodOutputMapping::getDestination));
 
     for (ToolOutputParameter output : womOutputs.getOutputs()) {
       WorkflowOutputDefinition workflowOutputDefinition = new WorkflowOutputDefinition();
+      String workflowOutputName = "%s.%s".formatted(workflowName, output.getName());
 
       // Name
-      String workflowName = womOutputs.getName();
-      workflowOutputDefinition.outputName("%s.%s".formatted(workflowName, output.getName()));
+      workflowOutputDefinition.outputName(workflowOutputName);
 
       // ValueType
       workflowOutputDefinition.outputType(getParameterType(output.getValueType()));
 
       // Destination
       workflowOutputDefinition.destination(
-          new OutputDestinationNone().type(OutputDestination.TypeEnum.NONE));
+          getDestination(workflowOutputName, methodOutputMappingAsMap));
 
       cbasOutputs.add(workflowOutputDefinition);
     }
