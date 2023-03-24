@@ -202,8 +202,6 @@ public class MethodsApiController implements MethodsApi {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
     String methodUrl = methodRequest.getMethodUrl();
-    // Using the String.valueOf method here as opposed to .toString() for tests to pass.
-    String methodSource = String.valueOf(methodRequest.getMethodSource());
     List<String> errors = new ArrayList<>();
 
     if (methodName == null || methodName.trim().isEmpty()) {
