@@ -4,6 +4,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
+import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
@@ -246,6 +247,7 @@ public class RunSetsApiController implements RunSetsApi {
       }
     }
     aborted.runs(submittedAbortWorkflows);
+    aborted.state(CANCELING);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }
