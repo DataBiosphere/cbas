@@ -16,7 +16,9 @@ import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
 import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
+import bio.terra.cbas.model.StructField;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.google.gson.Gson;
@@ -25,6 +27,7 @@ import cromwell.client.model.ToolOutputParameter;
 import cromwell.client.model.ValueType;
 import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -129,19 +132,11 @@ class WomToolInputsTest {
             "typeName": "Pair"
           }
         """;
-    String valueType2 = """
-          {
-            "typeName": "Pair"
-          }
-        """;
 
     Gson object = new Gson();
     ValueType womtoolString1 = object.fromJson(valueType1, ValueType.class);
-    ValueType womtoolString2 = object.fromJson(valueType2, ValueType.class);
 
     assertThrows(WomtoolValueTypeNotFoundException.class, () -> getParameterType(womtoolString1));
-
-    assertThrows(WomtoolValueTypeNotFoundException.class, () -> getParameterType(womtoolString2));
   }
 
   @Test
@@ -521,6 +516,56 @@ class WomToolInputsTest {
                         .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
                 .type(ParameterTypeDefinition.TypeEnum.MAP))
         .type(ParameterTypeDefinition.TypeEnum.ARRAY);
+
+    assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
+  }
+
+  @Test
+  void test_struct_type() throws WomtoolValueTypeNotFoundException {
+
+    String valueType =
+        """
+        {
+           "typeName": "Object",
+           "objectFieldTypes": [
+             {
+               "fieldName": "foo",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             },
+             {
+               "fieldName": "bar",
+               "fieldType": {
+                 "typeName": "Int"
+               }
+             }
+           ]
+        }
+        """;
+
+    Gson object = new Gson();
+    ValueType womtoolString = object.fromJson(valueType, ValueType.class);
+
+    ParameterTypeDefinitionStruct cbasParameterTypeDef = new ParameterTypeDefinitionStruct();
+
+    List<StructField> field =
+        new ArrayList<>(
+            Arrays.asList(
+                new StructField()
+                    .fieldName("foo")
+                    .fieldType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE)),
+                new StructField()
+                    .fieldName("bar")
+                    .fieldType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))));
+
+    cbasParameterTypeDef.name("Struct").fields(field).type(ParameterTypeDefinition.TypeEnum.STRUCT);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
   }
