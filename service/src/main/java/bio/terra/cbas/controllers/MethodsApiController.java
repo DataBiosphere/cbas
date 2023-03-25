@@ -114,9 +114,7 @@ public class MethodsApiController implements MethodsApi {
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
         String invalidMappingError =
-            String.format(
-                "Bad user request. Method '%s' is invalid. Error(s): %s",
-                postMethodRequest.getMethodUrl(), String.join(" ", invalidMappingErrors));
+            String.format("Bad user request. Error(s): %s", String.join(" ", invalidMappingErrors));
         log.warn(invalidMappingError);
         recordMethodCreationCompletion(
             methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
@@ -271,7 +269,7 @@ public class MethodsApiController implements MethodsApi {
     return errors;
   }
 
-  public static List<String> validateMethodMappings(
+  public List<String> validateMethodMappings(
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings) {

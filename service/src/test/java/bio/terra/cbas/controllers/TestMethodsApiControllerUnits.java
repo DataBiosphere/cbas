@@ -8,9 +8,15 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.MethodInputMapping;
+import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.model.WorkflowDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +30,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest
 @ContextConfiguration(classes = MethodsApiController.class)
 class TestMethodsApiControllerUnits {
-
-  private static final String API = "/api/batch/v1/methods";
+  private static final ObjectMapper objectMapper =
+      new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   @MockBean private MethodsApiController methodsApiController;
 
   @Autowired private MockMvc mockMvc;
-  @Autowired private ObjectMapper objectMapper;
   @MockBean private CromwellService cromwellService;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
@@ -37,6 +42,114 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+
+  String workflowDescriptionString =
+      """
+      {
+        "valid": true,
+        "errors": [],
+        "validWorkflow": true,
+        "name": "hello_world",
+        "inputs": [
+          {
+            "name": "foo",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String",
+            "optional": false,
+            "default": null
+          },
+          {
+            "name": "bar",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String",
+            "optional": true,
+            "default": "hello"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "foo_rating",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String"
+          },
+          {
+            "name": "bar_rating",
+            "valueType": {
+              "typeName": "STRING"
+            },
+            "typeDisplayName": "String"
+          }
+        ],
+        "isRunnableWorkflow": true
+      }
+      """;
+  String validInputMappingString =
+      """
+      [
+        {
+          "input_name": "hello_world.foo",
+          "source": {
+            "type": "record_lookup",
+            "record_attribute": "foo_id"
+          }
+        }
+      ]
+      """;
+  String invalidInputMappingString =
+      """
+      [
+        {
+          "input_name": "hello_world.wrong_foo",
+          "source": {
+            "type": "record_lookup",
+            "record_attribute": "foo_id"
+          }
+        }
+      ]
+      """;
+  String validOutputMappingString =
+      """
+      [
+        {
+          "output_name": "hello_world.foo_rating",
+          "destination": {
+            "type": "record_update",
+            "record_attribute": "foo_rating"
+          }
+        }
+      ]
+      """;
+  String invalidOutputMappingString =
+      """
+      [
+        {
+          "output_name": "hello_world.wrong_foo_rating",
+          "destination": {
+            "type": "record_update",
+            "record_attribute": "foo_rating"
+          }
+        }
+      ]
+      """;
+
+  WorkflowDescription workflowDescription =
+      objectMapper.readValue(workflowDescriptionString, new TypeReference<>() {});
+  List<MethodInputMapping> validInputMappings =
+      objectMapper.readValue(validInputMappingString, new TypeReference<>() {});
+  List<MethodInputMapping> inValidInputMappings =
+      objectMapper.readValue(invalidInputMappingString, new TypeReference<>() {});
+  List<MethodOutputMapping> validOutputMappings =
+      objectMapper.readValue(validOutputMappingString, new TypeReference<>() {});
+  List<MethodOutputMapping> inValidOutputMappings =
+      objectMapper.readValue(invalidOutputMappingString, new TypeReference<>() {});
+
+  TestMethodsApiControllerUnits() throws JsonProcessingException {}
 
   @BeforeEach
   void instantiateMethodsController() {
@@ -124,5 +237,50 @@ class TestMethodsApiControllerUnits {
         "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl");
 
     assertTrue(methodsApiController.validateMethod(validPostRequest).isEmpty());
+  }
+
+  @Test
+  void methodMappingValidationForIncorrectInputMapping() {
+    List<String> expectedErrors =
+        new ArrayList<>(
+            List.of(
+                "Invalid input mappings. '[hello_world.wrong_foo]' not found in workflow inputs."));
+    assertEquals(
+        expectedErrors,
+        methodsApiController.validateMethodMappings(
+            workflowDescription, inValidInputMappings, new ArrayList<>()));
+  }
+
+  @Test
+  void methodMappingValidationForIncorrectOutputMapping() {
+    List<String> expectedErrors =
+        new ArrayList<>(
+            List.of(
+                "Invalid output mappings. '[hello_world.wrong_foo_rating]' not found in workflow outputs."));
+    assertEquals(
+        expectedErrors,
+        methodsApiController.validateMethodMappings(
+            workflowDescription, new ArrayList<>(), inValidOutputMappings));
+  }
+
+  @Test
+  void methodMappingValidationForIncorrectMappings() {
+    List<String> expectedErrors =
+        new ArrayList<>(
+            List.of(
+                "Invalid input mappings. '[hello_world.wrong_foo]' not found in workflow inputs.",
+                "Invalid output mappings. '[hello_world.wrong_foo_rating]' not found in workflow outputs."));
+    assertEquals(
+        expectedErrors,
+        methodsApiController.validateMethodMappings(
+            workflowDescription, inValidInputMappings, inValidOutputMappings));
+  }
+
+  @Test
+  void methodValidationForCorrectMappings() {
+    List<String> actualErrors =
+        methodsApiController.validateMethodMappings(
+            workflowDescription, validInputMappings, validOutputMappings);
+    assertEquals(0, actualErrors.size());
   }
 }
