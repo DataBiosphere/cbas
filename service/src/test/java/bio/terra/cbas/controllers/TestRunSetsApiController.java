@@ -586,7 +586,7 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             result.getResponse().getContentAsString(), AbortRunSetResponse.class);
 
-    assertEquals(parsedResponse.getRuns().size(), 2);
+    assertEquals(2, parsedResponse.getRuns().size());
     assertEquals(parsedResponse.getRunSetId(), returnedRunSet1Running.runSetId());
   }
 }
