@@ -289,9 +289,6 @@ public class MethodsApiController implements MethodsApi {
           invalidInputMappings.add(inputMapping.getInputName());
         }
       }
-
-      // invalidInputMappings.addAll(methodInputMappings.stream().map(MethodInputMapping::getInputName).filter(inputName -> !workflowInputNames.contains(inputName)).toList());
-
     }
 
     // generate list of output names from output method mappings that are invalid
@@ -305,8 +302,6 @@ public class MethodsApiController implements MethodsApi {
           invalidOutputMappings.add(outputMapping.getOutputName());
         }
       }
-
-      // invalidOutputMappings.addAll(methodOutputMappings.stream().map(MethodOutputMapping::getOutputName).filter(outputName -> !workflowOutputNames.contains(outputName)).toList());
     }
 
     if (!invalidInputMappings.isEmpty()) {
