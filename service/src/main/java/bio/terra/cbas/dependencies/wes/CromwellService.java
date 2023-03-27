@@ -124,7 +124,7 @@ public class CromwellService {
     }
   }
 
-  public RunId submitAbortWorkflow(Run run) throws ApiException {
-    return cromwellClient.wesAPI().cancelRun(run.engineId());
+  public void cancelRun(Run run) throws ApiException {
+    cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 }

@@ -232,19 +232,31 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     AbortRunSetResponse aborted = new AbortRunSetResponse();
+    List<String> errors = new ArrayList<>();
+
     aborted.runSetId(runSetId);
 
+    // Get a list of workflows able to be canceled
     List<Run> runningWorkflows =
         runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
-    List<String> submittedAbortWorkflows = new ArrayList<>();
+    List<UUID> submittedAbortWorkflows = new ArrayList<>();
 
     for (Run run : runningWorkflows) {
+      // Trying inside the for-loop in case a single run fails to be updated
       try {
         cromwellService.cancelRun(run);
-        submittedAbortWorkflows.add(run.engineId());
+        submittedAbortWorkflows.add(UUID.fromString(run.engineId()));
       } catch (cromwell.client.ApiException e) {
-        log.error("Unable to abort workflow %s".formatted(run.engineId()), e);
+        String msg = "Unable to abort workflow %s.".formatted(run.engineId());
+        log.error(msg, e);
+        errors.add(msg);
+        // Add the error message against the run
+        run.withErrorMessage(msg);
       }
+    }
+
+    if (errors.size() > 0) {
+      aborted.errors(errors);
     }
 
     aborted.runSetId(runSetId);
