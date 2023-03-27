@@ -255,7 +255,7 @@ public class RunSetsApiController implements RunSetsApi {
       }
     }
 
-    if (errors.size() > 0) {
+    if (errors.isEmpty()) {
       aborted.errors(errors);
     }
 
