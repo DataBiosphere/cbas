@@ -15,6 +15,7 @@ import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.OutputDestinationRecordUpdate;
 import bio.terra.cbas.model.ParameterDefinition;
+import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
@@ -90,37 +91,49 @@ class TestWomtoolToCbasInputsAndOutputs {
    * Testing the womToCbasInputBuilder() function
    * */
   @Test
-  void test_multiple_string_inputs() throws WomtoolValueTypeNotFoundException {
+  void test_multiple_inputs() throws WomtoolValueTypeNotFoundException {
     String womtoolStringInputs =
         """
-        {
-          "valid": true,
-          "errors": [],
-          "validWorkflow": true,
-          "name": "test",
-          "inputs": [
             {
-              "name": "hello",
-              "valueType": {
-                "typeName": "String"
-              },
-              "typeDisplayName": "String",
-              "optional": true,
-              "default": "Workflow Management"
-            },
-            {
-              "name": "foo",
-              "valueType": {
-                "typeName": "String"
-              },
-              "typeDisplayName": "String",
-              "optional": true,
-              "default": null
-            }
-          ],
-          "outputs": []
-         }
-        """;
+              "valid": true,
+              "errors": [],
+              "validWorkflow": true,
+              "name": "test",
+              "inputs": [
+                {
+                  "name": "hello",
+                  "valueType": {
+                    "typeName": "String"
+                  },
+                  "typeDisplayName": "String",
+                  "optional": false,
+                  "default": "Workflow Management"
+                },
+                {
+                  "name": "foo",
+                  "valueType": {
+                    "typeName": "String"
+                  },
+                  "typeDisplayName": "String",
+                  "optional": true,
+                  "default": null
+                },
+                {
+                  "name": "bar",
+                  "valueType": {
+                    "typeName": "Optional",
+                    "optionalType": {
+                      "typeName": "Int"
+                    }
+                  },
+                  "typeDisplayName": "Int?",
+                  "optional": true,
+                  "default": null
+                }
+              ],
+              "outputs": []
+             }
+            """;
 
     Gson object = new Gson();
     WorkflowDescription womtoolDescription =
@@ -133,24 +146,33 @@ class TestWomtoolToCbasInputsAndOutputs {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue("Workflow Management")
-                    .type(ParameterDefinition.TypeEnum.NONE));
+            .source(new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE));
     WorkflowInputDefinition input2 =
         new WorkflowInputDefinition()
             .inputName("test.foo")
             .inputType(
-                new ParameterTypeDefinitionPrimitive()
-                    .primitiveType(PrimitiveParameterValueType.STRING)
-                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE));
+                new ParameterTypeDefinitionOptional()
+                    .optionalType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.STRING)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                    .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+            .source(new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE));
+    WorkflowInputDefinition input3 =
+        new WorkflowInputDefinition()
+            .inputName("test.bar")
+            .inputType(
+                new ParameterTypeDefinitionOptional()
+                    .optionalType(
+                        new ParameterTypeDefinitionPrimitive()
+                            .primitiveType(PrimitiveParameterValueType.INT)
+                            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+                    .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+            .source(new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(input1);
     cbasInputDef.add(input2);
+    cbasInputDef.add(input3);
 
     assertEquals(cbasInputDef, womToCbasInputBuilder(womtoolDescription, new ArrayList<>()));
   }
@@ -575,7 +597,7 @@ class TestWomtoolToCbasInputsAndOutputs {
         .optionalType(
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.STRING)
-                .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+                .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
         .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
 
     assertEquals(cbasParameterTypeDef, getParameterType(womtoolString));
@@ -794,4 +816,9 @@ class TestWomtoolToCbasInputsAndOutputs {
         defaultDestinationDefinition,
         getDestination("hello_world.output_name_1", methodOutputMappingAsMap));
   }
+
+  //  @Test
+  //  void getInputTypeForInputWithOptionalTrue() {
+  //
+  //  }
 }
