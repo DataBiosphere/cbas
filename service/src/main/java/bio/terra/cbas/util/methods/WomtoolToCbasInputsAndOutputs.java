@@ -102,9 +102,7 @@ public final class WomtoolToCbasInputsAndOutputs {
   }
 
   public static ParameterDefinition getSource(
-      String inputName,
-      String defaultValue,
-      Map<String, ParameterDefinition> methodInputMappingMap) {
+      String inputName, Map<String, ParameterDefinition> methodInputMappingMap) {
     if (methodInputMappingMap.containsKey(inputName)) {
       return methodInputMappingMap.get(inputName);
     } else {
@@ -134,8 +132,7 @@ public final class WomtoolToCbasInputsAndOutputs {
       workflowInputDefinition.inputType(getInputType(input.getOptional(), input.getValueType()));
 
       // Source
-      workflowInputDefinition.source(
-          getSource(workflowInputName, input.getDefault(), methodInputMappingAsMap));
+      workflowInputDefinition.source(getSource(workflowInputName, methodInputMappingAsMap));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }

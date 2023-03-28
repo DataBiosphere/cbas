@@ -1,6 +1,7 @@
 package bio.terra.cbas.util.methods;
 
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getDestination;
+import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getInputType;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getParameterType;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.getSource;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
@@ -15,8 +16,8 @@ import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.OutputDestinationRecordUpdate;
 import bio.terra.cbas.model.ParameterDefinition;
-import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
+import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
@@ -193,7 +194,7 @@ class TestWomtoolToCbasInputsAndOutputs {
                 "typeName": "STRING"
               },
               "typeDisplayName": "String",
-              "optional": true,
+              "optional": false,
               "default": "Hello World"
             },
             {
@@ -202,7 +203,7 @@ class TestWomtoolToCbasInputsAndOutputs {
                 "typeName": "STRING"
               },
               "typeDisplayName": "String",
-              "optional": true,
+              "optional": false,
               "default": null
             }
           ],
@@ -242,10 +243,7 @@ class TestWomtoolToCbasInputsAndOutputs {
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.STRING)
                     .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
-            .source(
-                new ParameterDefinitionLiteralValue()
-                    .parameterValue(null)
-                    .type(ParameterDefinition.TypeEnum.NONE));
+            .source(new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE));
 
     cbasInputDef.add(input1);
     cbasInputDef.add(input2);
@@ -780,7 +778,7 @@ class TestWomtoolToCbasInputsAndOutputs {
 
     assertEquals(
         recordLookUpParameterDefinition,
-        getSource("hello_world.input_name_1", "default_value", methodInputMappingAsMap));
+        getSource("hello_world.input_name_1", methodInputMappingAsMap));
   }
 
   @Test
@@ -789,13 +787,9 @@ class TestWomtoolToCbasInputsAndOutputs {
     methodInputMappingAsMap.put("hello_world.input_name_1", recordLookUpParameterDefinition);
 
     ParameterDefinition defaultSource =
-        new ParameterDefinitionLiteralValue()
-            .parameterValue("default_value")
-            .type(ParameterDefinition.TypeEnum.NONE);
+        new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE);
 
-    assertEquals(
-        defaultSource,
-        getSource("hello_world.input_name_2", "default_value", methodInputMappingAsMap));
+    assertEquals(defaultSource, getSource("hello_world.input_name_2", methodInputMappingAsMap));
   }
 
   @Test
@@ -817,8 +811,66 @@ class TestWomtoolToCbasInputsAndOutputs {
         getDestination("hello_world.output_name_1", methodOutputMappingAsMap));
   }
 
-  //  @Test
-  //  void getInputTypeForInputWithOptionalTrue() {
-  //
-  //  }
+  @Test
+  void getInputTypeForInputWithOptionalTrue() throws Exception {
+    String inputTypeAsString =
+        """
+          {
+            "typeName": "INT"
+          }
+          """;
+    ValueType inputType = objectMapper.readValue(inputTypeAsString, new TypeReference<>() {});
+
+    ParameterTypeDefinition expectedParamType =
+        new ParameterTypeDefinitionOptional()
+            .optionalType(
+                new ParameterTypeDefinitionPrimitive()
+                    .primitiveType(PrimitiveParameterValueType.INT)
+                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
+
+    assertEquals(expectedParamType, getInputType(true, inputType));
+  }
+
+  @Test
+  void getInputTypeForInputWithOptionalFalse() throws Exception {
+    String inputTypeAsString =
+        """
+          {
+            "typeName": "INT"
+          }
+          """;
+    ValueType inputType = objectMapper.readValue(inputTypeAsString, new TypeReference<>() {});
+
+    ParameterTypeDefinition expectedParamType =
+        new ParameterTypeDefinitionPrimitive()
+            .primitiveType(PrimitiveParameterValueType.INT)
+            .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
+
+    assertEquals(expectedParamType, getInputType(false, inputType));
+  }
+
+  @Test
+  void getInputTypeForOptionalInputWithOptionalTrue() throws Exception {
+    String inputTypeAsString =
+        """
+          {
+           "typeName": "OPTIONAL",
+           "optionalType": {
+             "typeName": "INT"
+           }
+        }
+          """;
+    ValueType inputType = objectMapper.readValue(inputTypeAsString, new TypeReference<>() {});
+
+    ParameterTypeDefinition expectedParamType =
+        new ParameterTypeDefinitionOptional()
+            .optionalType(
+                new ParameterTypeDefinitionPrimitive()
+                    .primitiveType(PrimitiveParameterValueType.INT)
+                    .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
+            .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
+
+    assertEquals(expectedParamType, getInputType(true, inputType));
+  }
 }
