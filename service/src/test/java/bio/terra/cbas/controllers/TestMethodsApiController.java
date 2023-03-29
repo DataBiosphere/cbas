@@ -256,6 +256,57 @@ class TestMethodsApiController {
   }
 
   @Test
+  void returnErrorForInvalidMethodMappingsInPostRequest() throws Exception {
+    initMocks();
+    String invalidInputMapping =
+        """
+        [ {
+          "input_name" : "wf_hello.hello.missing_addressee",
+          "source" : {
+            "type" : "record_lookup",
+            "record_attribute": "addressee"
+          }
+        } ]
+        """
+            .trim();
+    String invalidOutputMapping =
+        """
+        [ {
+          "output_name" : "wf_hello.hello.missing_salutation",
+          "destination" : {
+            "type" : "record_update",
+            "record_attribute": "salutation"
+          }
+        } ]
+        """
+            .trim();
+    String expectedError =
+        "Bad user request. Error(s): Invalid input mappings. '[wf_hello.hello.missing_addressee]' not found in workflow inputs. Invalid output mappings. '[wf_hello.hello.missing_salutation]' not found in workflow outputs.";
+
+    String methodRequest =
+        postRequestTemplateWithMappings.formatted(
+            validWorkflow, invalidInputMapping, invalidOutputMapping);
+
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(cromwellService.describeWorkflow(validWorkflow)).thenReturn(workflowDescForValidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(methodRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(postMethodResponse.getMethodId());
+    assertNull(postMethodResponse.getRunSetId());
+    assertEquals(expectedError, postMethodResponse.getError());
+  }
+
+  @Test
   void validPostRequest() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted(validWorkflow);
 
@@ -332,6 +383,100 @@ class TestMethodsApiController {
         newRunSetCaptor.getValue().description());
     assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
+    assertTrue(newRunSetCaptor.getValue().isTemplate());
+  }
+
+  @Test
+  void validMethodMappingPostRequest() throws Exception {
+    initMocks();
+    String validInputMapping =
+        """
+        [ {
+          "input_name" : "wf_hello.hello.addressee",
+          "source" : {
+            "type" : "record_lookup",
+            "record_attribute" : "addressee"
+          }
+        } ]
+        """
+            .trim();
+    String validOutputMapping =
+        """
+        [ {
+          "output_name" : "wf_hello.hello.salutation",
+          "destination" : {
+            "type" : "record_update",
+            "record_attribute" : "salutation"
+          }
+        } ]
+        """
+            .trim();
+    String expectedInputDefinition =
+        """
+        [ {
+          "input_name" : "wf_hello.hello.addressee",
+          "input_type" : {
+            "type" : "primitive",
+            "primitive_type" : "String"
+          },
+          "source" : {
+            "type" : "record_lookup",
+            "record_attribute" : "addressee"
+          }
+        } ]
+        """
+            .trim();
+    String expectedOutputDefinition =
+        """
+        [ {
+          "output_name" : "wf_hello.hello.salutation",
+          "output_type" : {
+            "type" : "primitive",
+            "primitive_type" : "String"
+          },
+          "destination" : {
+            "type" : "record_update",
+            "record_attribute" : "salutation"
+          }
+        } ]
+        """
+            .trim();
+    String validWorkflowRequest =
+        postRequestTemplateWithMappings.formatted(
+            validWorkflow, validInputMapping, validOutputMapping);
+
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(cromwellService.describeWorkflow(validWorkflow)).thenReturn(workflowDescForValidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    ArgumentCaptor<Method> newMethodCaptor = ArgumentCaptor.forClass(Method.class);
+    verify(methodDao).createMethod(newMethodCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newMethodCaptor.getValue().methodId());
+
+    ArgumentCaptor<MethodVersion> newMethodVersionCaptor =
+        ArgumentCaptor.forClass(MethodVersion.class);
+    verify(methodVersionDao).createMethodVersion(newMethodVersionCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newMethodVersionCaptor.getValue().getMethodId());
+
+    // in this test we focus on only verifying that the input and output definitions have the method
+    // mappings that were passed in the request
+    UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
+    ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(runSetDao).createRunSet(newRunSetCaptor.capture());
+    assertEquals(postMethodResponse.getRunSetId(), newRunSetCaptor.getValue().runSetId());
+    assertEquals(methodVersionId, newRunSetCaptor.getValue().getMethodVersionId());
+    assertEquals(expectedInputDefinition, newRunSetCaptor.getValue().inputDefinition());
+    assertEquals(expectedOutputDefinition, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
   }
 
@@ -496,6 +641,19 @@ class TestMethodsApiController {
         "method_source":"GitHub",
         "method_version":"develop",
         "method_url": "%s"
+      }
+      """;
+
+  private final String postRequestTemplateWithMappings =
+      """
+      {
+        "method_name": "test workflow",
+        "method_description": "test method description",
+        "method_source":"GitHub",
+        "method_version":"develop",
+        "method_url": "%s",
+        "method_input_mappings": %s,
+        "method_output_mappings": %s
       }
       """;
 

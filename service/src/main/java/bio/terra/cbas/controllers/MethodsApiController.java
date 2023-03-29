@@ -12,8 +12,10 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
+import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
+import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodResponse;
@@ -88,10 +90,6 @@ public class MethodsApiController implements MethodsApi {
     try {
       workflowDescription = cromwellService.describeWorkflow(postMethodRequest.getMethodUrl());
 
-      List<WorkflowInputDefinition> inputs = womToCbasInputBuilder(workflowDescription);
-
-      List<WorkflowOutputDefinition> outputs = womToCbasOutputBuilder(workflowDescription);
-
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
@@ -106,6 +104,30 @@ public class MethodsApiController implements MethodsApi {
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMethodErrors), HttpStatus.BAD_REQUEST);
       }
+
+      // validate that passed input and output mappings exist in workflow
+      List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
+      List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
+      List<String> invalidMappingErrors =
+          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+
+      // return 400 if input and/or output mappings is invalid
+      if (!invalidMappingErrors.isEmpty()) {
+        String invalidMappingError =
+            String.format("Bad user request. Error(s): %s", String.join(" ", invalidMappingErrors));
+        log.warn(invalidMappingError);
+        recordMethodCreationCompletion(
+            methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
+
+        return new ResponseEntity<>(
+            new PostMethodResponse().error(invalidMappingError), HttpStatus.BAD_REQUEST);
+      }
+
+      // convert WomTool inputs and outputs schema to CBAS input and output definition
+      List<WorkflowInputDefinition> inputs =
+          womToCbasInputBuilder(workflowDescription, methodInputMappings);
+      List<WorkflowOutputDefinition> outputs =
+          womToCbasOutputBuilder(workflowDescription, methodOutputMappings);
 
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
@@ -245,6 +267,56 @@ public class MethodsApiController implements MethodsApi {
     }
 
     return errors;
+  }
+
+  public List<String> validateMethodMappings(
+      WorkflowDescription workflowDescription,
+      List<MethodInputMapping> methodInputMappings,
+      List<MethodOutputMapping> methodOutputMappings) {
+    List<String> invalidInputMappings = new ArrayList<>();
+    List<String> invalidOutputMappings = new ArrayList<>();
+    List<String> invalidMappingErrors = new ArrayList<>();
+    String workflowName = workflowDescription.getName();
+
+    // generate list of input names from input method mappings that are invalid
+    if (methodInputMappings != null) {
+      List<String> workflowInputNames =
+          workflowDescription.getInputs().stream()
+              .map(i -> "%s.%s".formatted(workflowName, i.getName()))
+              .toList();
+      for (MethodInputMapping inputMapping : methodInputMappings) {
+        if (!workflowInputNames.contains(inputMapping.getInputName())) {
+          invalidInputMappings.add(inputMapping.getInputName());
+        }
+      }
+    }
+
+    // generate list of output names from output method mappings that are invalid
+    if (methodOutputMappings != null) {
+      List<String> workflowOutputNames =
+          workflowDescription.getOutputs().stream()
+              .map(o -> "%s.%s".formatted(workflowName, o.getName()))
+              .toList();
+      for (MethodOutputMapping outputMapping : methodOutputMappings) {
+        if (!workflowOutputNames.contains(outputMapping.getOutputName())) {
+          invalidOutputMappings.add(outputMapping.getOutputName());
+        }
+      }
+    }
+
+    if (!invalidInputMappings.isEmpty()) {
+      invalidMappingErrors.add(
+          "Invalid input mappings. '[%s]' not found in workflow inputs."
+              .formatted(String.join(",", invalidInputMappings)));
+    }
+
+    if (!invalidOutputMappings.isEmpty()) {
+      invalidMappingErrors.add(
+          "Invalid output mappings. '[%s]' not found in workflow outputs."
+              .formatted(String.join(",", invalidOutputMappings)));
+    }
+
+    return invalidMappingErrors;
   }
 
   private void addLastRunDetails(List<MethodDetails> methodDetails) {
