@@ -6,7 +6,7 @@ import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.OutputDestinationNone;
 import bio.terra.cbas.model.ParameterDefinition;
-import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
+import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
 import bio.terra.cbas.model.ParameterTypeDefinitionMap;
@@ -57,9 +57,7 @@ public final class WomtoolToCbasInputsAndOutputs {
           .primitiveType(PrimitiveParameterValueType.FLOAT)
           .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE);
       case OPTIONAL -> new ParameterTypeDefinitionOptional()
-          .optionalType(
-              getParameterType(Objects.requireNonNull(valueType.getOptionalType()))
-                  .type(ParameterTypeDefinition.TypeEnum.OPTIONAL))
+          .optionalType(getParameterType(Objects.requireNonNull(valueType.getOptionalType())))
           .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
       case ARRAY -> new ParameterTypeDefinitionArray()
           .nonEmpty(valueType.getNonEmpty())
@@ -92,16 +90,23 @@ public final class WomtoolToCbasInputsAndOutputs {
     };
   }
 
+  public static ParameterTypeDefinition getInputType(boolean isOptional, ValueType inputValueType)
+      throws WomtoolValueTypeNotFoundException {
+    if (isOptional && inputValueType.getTypeName() != ValueType.TypeNameEnum.OPTIONAL) {
+      return new ParameterTypeDefinitionOptional()
+          .optionalType(getParameterType(Objects.requireNonNull(inputValueType)))
+          .type(ParameterTypeDefinition.TypeEnum.OPTIONAL);
+    } else {
+      return getParameterType(inputValueType);
+    }
+  }
+
   public static ParameterDefinition getSource(
-      String inputName,
-      String defaultValue,
-      Map<String, ParameterDefinition> methodInputMappingMap) {
+      String inputName, Map<String, ParameterDefinition> methodInputMappingMap) {
     if (methodInputMappingMap.containsKey(inputName)) {
       return methodInputMappingMap.get(inputName);
     } else {
-      return new ParameterDefinitionLiteralValue()
-          .parameterValue(defaultValue)
-          .type(ParameterDefinition.TypeEnum.NONE);
+      return new ParameterDefinitionNone().type(ParameterDefinition.TypeEnum.NONE);
     }
   }
 
@@ -124,11 +129,10 @@ public final class WomtoolToCbasInputsAndOutputs {
       workflowInputDefinition.inputName(workflowInputName);
 
       // Input type
-      workflowInputDefinition.inputType(getParameterType(input.getValueType()));
+      workflowInputDefinition.inputType(getInputType(input.getOptional(), input.getValueType()));
 
       // Source
-      workflowInputDefinition.source(
-          getSource(workflowInputName, input.getDefault(), methodInputMappingAsMap));
+      workflowInputDefinition.source(getSource(workflowInputName, methodInputMappingAsMap));
 
       cbasInputDefinition.add(workflowInputDefinition);
     }
