@@ -255,7 +255,7 @@ public class RunSetsApiController implements RunSetsApi {
       // Trying inside the for-loop in case a single run fails to be updated
       try {
         cromwellService.cancelRun(run);
-        submittedAbortWorkflows.add(UUID.fromString(run.engineId()));
+        submittedAbortWorkflows.add(run.runId());
         // Update each run to have a 'canceling' run state
         runDao.updateRunStatus(run.runId(), CbasRunStatus.CANCELING, OffsetDateTime.now());
       } catch (cromwell.client.ApiException e) {
@@ -271,7 +271,6 @@ public class RunSetsApiController implements RunSetsApi {
       aborted.errors(errors);
     }
 
-    aborted.runSetId(runSetId);
     aborted.state(CANCELING);
     aborted.runs(submittedAbortWorkflows);
 

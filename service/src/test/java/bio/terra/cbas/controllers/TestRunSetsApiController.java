@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.CANCELING;
 import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
@@ -19,7 +20,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -532,13 +532,11 @@ class TestRunSetsApiController {
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            5,
-            1,
+            2,
+            0,
             "inputdefinition",
             "outputDefinition",
             "FOO");
-
-    when(runSetDao.createRunSet(returnedRunSet1Running)).thenReturn(1);
 
     Run run1 =
         new Run(
@@ -569,11 +567,21 @@ class TestRunSetsApiController {
     runs.add(run1);
     runs.add(run2);
 
-    List<RunSet> response = List.of(returnedRunSet1Running);
-    when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
+    when(runSetDao.getRunSet(eq(returnedRunSet1Running.runSetId())))
+        .thenReturn(returnedRunSet1Running);
     when(runDao.getRuns(
             new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
         .thenReturn(runs);
+
+    when(runSetDao.updateStateAndRunDetails(
+            eq(returnedRunSet1Running.runSetId()),
+            eq(CbasRunSetStatus.CANCELING),
+            eq(2),
+            eq(0),
+            any()))
+        .thenReturn(1);
+
+    when(runDao.getRuns(any())).thenReturn(runs);
 
     MvcResult result =
         mockMvc
@@ -582,12 +590,26 @@ class TestRunSetsApiController {
             .andExpect(status().isOk())
             .andReturn();
 
+    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
+    verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture());
+    List<Run> capturedRuns = newRunCaptor.getAllValues();
+    assertEquals(2, capturedRuns.size());
+    assertEquals(run1.runId(), capturedRuns.get(0).runId());
+    assertEquals(run1.status(), capturedRuns.get(0).status());
+    assertEquals(run1.engineId(), capturedRuns.get(0).engineId());
+
+    assertEquals(run2.runId(), capturedRuns.get(1).runId());
+    assertEquals(run2.status(), capturedRuns.get(1).status());
+    assertEquals(run2.engineId(), capturedRuns.get(1).engineId());
+
     AbortRunSetResponse parsedResponse =
         objectMapper.readValue(
             result.getResponse().getContentAsString(), AbortRunSetResponse.class);
 
     assertEquals(2, parsedResponse.getRuns().size());
-    assertEquals(parsedResponse.getRunSetId(), returnedRunSet1Running.runSetId());
+    assertEquals(returnedRunSet1Running.runSetId(), parsedResponse.getRunSetId());
+    assertEquals(0, parsedResponse.getErrors().size());
+    assertEquals(CANCELING.toString(), parsedResponse.getState().toString());
   }
 }
 
