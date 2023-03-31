@@ -88,8 +88,10 @@ class TestRunSetsApiControllerPacts {
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private MethodDao methodDao;
+  @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
+  @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -108,55 +110,92 @@ class TestRunSetsApiControllerPacts {
 
   @State({"one_runset_complete"})
   public void runSetsData() throws Exception {
+    Method myMethod =
+        new Method(
+            UUID.randomUUID(),
+            "myMethod name",
+            "myMethod description",
+            OffsetDateTime.now(),
+            UUID.randomUUID(),
+            "myMethod source");
+    MethodVersion myMethodVersion =
+        new MethodVersion(
+            UUID.randomUUID(),
+            myMethod,
+            "myMethodVersion name",
+            "myMethodVersion description",
+            OffsetDateTime.now(),
+            UUID.randomUUID(),
+            "http://myMethodVersionUrl.com");
     RunSet runSetError =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            myMethodVersion,
+            "runSetError",
+            "a run set with error status",
+            false,
             CbasRunSetStatus.ERROR,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            5,
-            1);
+            1,
+            1,
+            "my input definition string",
+            "my output definition string",
+            "myRecordType");
 
     RunSet runSetComplete =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            myMethodVersion,
+            "runSetError",
+            "a run set with error status",
+            false,
             CbasRunSetStatus.COMPLETE,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            5,
-            1);
+            1,
+            1,
+            "my input definition string",
+            "my output definition string",
+            "myRecordType");
 
     RunSet runSetUnknown =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            myMethodVersion,
+            "runSetError",
+            "a run set with error status",
+            false,
             CbasRunSetStatus.UNKNOWN,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            5,
-            1);
+            1,
+            1,
+            "my input definition string",
+            "my output definition string",
+            "myRecordType");
 
     RunSet runSetRunning =
         new RunSet(
             UUID.randomUUID(),
-            new Method(
-                UUID.randomUUID(), "methodurl", "inputdefinition", "outputDefinition", "FOO"),
+            myMethodVersion,
+            "runSetError",
+            "a run set with error status",
+            false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            5,
-            1);
+            1,
+            1,
+            "my input definition string",
+            "my output definition string",
+            "myRecordType");
 
-    when(runSetDao.getRunSets())
+    when(runSetDao.getRunSets(1, false))
         .thenReturn(List.of(runSetError, runSetComplete, runSetUnknown, runSetRunning));
   }
 }
