@@ -608,7 +608,7 @@ class TestRunSetsApiController {
 
     assertEquals(2, parsedResponse.getRuns().size());
     assertEquals(returnedRunSet1Running.runSetId(), parsedResponse.getRunSetId());
-    assertEquals(0, parsedResponse.getErrors().size());
+    assertNull(parsedResponse.getErrors());
     assertEquals(CANCELING.toString(), parsedResponse.getState().toString());
   }
 }
