@@ -108,16 +108,17 @@ class TestRunSetsApiControllerPacts {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State({"one_runset_complete"})
+  @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
   public void runSetsData() throws Exception {
     Method myMethod =
         new Method(
-            UUID.randomUUID(),
+            UUID.fromString("00000000-0000-0000-0000-000000000009"),
             "myMethod name",
             "myMethod description",
             OffsetDateTime.now(),
-            UUID.randomUUID(),
+            UUID.fromString("90000000-0000-0000-0000-000000000009"),
             "myMethod source");
+
     MethodVersion myMethodVersion =
         new MethodVersion(
             UUID.randomUUID(),
@@ -195,8 +196,12 @@ class TestRunSetsApiControllerPacts {
             "my output definition string",
             "myRecordType");
 
-    when(runSetDao.getRunSets(1, false))
-        .thenReturn(List.of(runSetError, runSetComplete, runSetUnknown, runSetRunning));
+    List<RunSet> response = List.of(runSetError, runSetComplete, runSetUnknown, runSetRunning);
+
+    when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
+
+    when(smartRunSetsPoller.updateRunSets(response))
+        .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 4, 4, true));
   }
 }
 
