@@ -569,8 +569,7 @@ class TestRunSetsApiController {
     runs.add(run1);
     runs.add(run2);
 
-    when(runSetDao.getRunSet(eq(returnedRunSet1Running.runSetId())))
-        .thenReturn(returnedRunSet1Running);
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
     when(runDao.getRuns(
             new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
         .thenReturn(runs);
@@ -616,13 +615,6 @@ class TestRunSetsApiController {
 
   @Test
   void oneFailedOneSucceededRun() throws Exception {
-    //    It would be great to add another test case where abort request for 1 run fails and the
-    // other one succeeds.
-    //    We should verify in that test case that
-    //
-    //        the status of that particular run whose abort request failed was not Canceling
-    //    and error message returned back in the request is as expected
-
     RunSet returnedRunSet1Running =
         new RunSet(
             UUID.randomUUID(),
@@ -682,8 +674,7 @@ class TestRunSetsApiController {
     runs.add(run1);
     runs.add(run2);
 
-    when(runSetDao.getRunSet(eq(returnedRunSet1Running.runSetId())))
-        .thenReturn(returnedRunSet1Running);
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
     when(runDao.getRuns(
             new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
         .thenReturn(runs);
@@ -699,7 +690,7 @@ class TestRunSetsApiController {
             new cromwell.client.ApiException(
                 "Unable to abort workflow %s.".formatted(run2.runId())))
         .when(cromwellService)
-        .cancelRun(eq(run2));
+        .cancelRun(run2);
 
     MvcResult result =
         mockMvc
@@ -717,7 +708,7 @@ class TestRunSetsApiController {
         "Run set canceled with errors: [Unable to abort workflow %s.]".formatted(run2.runId()),
         parsedResponse.getErrors());
     assertEquals(1, parsedResponse.getRuns().size());
-    assertNotSame(run2.status(), CANCELING);
+    assertNotSame(CANCELING, run2.status());
   }
 }
 
