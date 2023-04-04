@@ -41,7 +41,6 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
