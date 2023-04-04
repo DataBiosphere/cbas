@@ -259,7 +259,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Update each run to have a 'canceling' run state
         runDao.updateRunStatus(run.runId(), CbasRunStatus.CANCELING, OffsetDateTime.now());
       } catch (cromwell.client.ApiException e) {
-        String msg = "Unable to abort workflow %s.".formatted(run.engineId());
+        String msg = "Unable to abort workflow %s.".formatted(run.runId());
         log.error(msg, e);
         errors.add(msg);
         // Add the error message against the run
@@ -268,7 +268,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     if (!errors.isEmpty()) {
-      aborted.errors("Run set canceled with errors");
+      aborted.errors("Run set canceled with errors: %s".formatted(errors));
     }
 
     aborted.state(CANCELING);

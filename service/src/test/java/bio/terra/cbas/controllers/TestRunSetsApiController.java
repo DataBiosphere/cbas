@@ -10,9 +10,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,6 +41,7 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -610,6 +613,112 @@ class TestRunSetsApiController {
     assertEquals(returnedRunSet1Running.runSetId(), parsedResponse.getRunSetId());
     assertNull(parsedResponse.getErrors());
     assertEquals(CANCELING.toString(), parsedResponse.getState().toString());
+  }
+
+  @Test
+  void oneFailedOneSucceededRun() throws Exception {
+    //    It would be great to add another test case where abort request for 1 run fails and the
+    // other one succeeds.
+    //    We should verify in that test case that
+    //
+    //        the status of that particular run whose abort request failed was not Canceling
+    //    and error message returned back in the request is as expected
+
+    RunSet returnedRunSet1Running =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            2,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO");
+
+    Run run1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID1",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    Run run2 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID2",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    when(runDao.createRun(run1)).thenReturn(1);
+    when(runDao.createRun(run2)).thenReturn(1);
+
+    List<Run> runs = new ArrayList<>();
+    runs.add(run1);
+    runs.add(run2);
+
+    when(runSetDao.getRunSet(eq(returnedRunSet1Running.runSetId())))
+        .thenReturn(returnedRunSet1Running);
+    when(runDao.getRuns(
+            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
+        .thenReturn(runs);
+    when(runSetDao.updateStateAndRunDetails(
+            eq(returnedRunSet1Running.runSetId()),
+            eq(CbasRunSetStatus.CANCELING),
+            eq(2),
+            eq(0),
+            any()))
+        .thenReturn(1);
+
+    doThrow(
+            new cromwell.client.ApiException(
+                "Unable to abort workflow %s.".formatted(run2.runId())))
+        .when(cromwellService)
+        .cancelRun(eq(run2));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_ABORT).param("run_set_id", returnedRunSet1Running.runSetId().toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    AbortRunSetResponse parsedResponse =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), AbortRunSetResponse.class);
+
+    assertFalse(parsedResponse.getErrors().isEmpty());
+    assertEquals(
+        "Run set canceled with errors: [Unable to abort workflow %s.]".formatted(run2.runId()),
+        parsedResponse.getErrors());
+    assertEquals(1, parsedResponse.getRuns().size());
+    assertNotSame(run2.status(), CANCELING);
   }
 }
 
