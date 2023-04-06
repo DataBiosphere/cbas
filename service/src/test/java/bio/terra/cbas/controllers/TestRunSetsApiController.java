@@ -1,5 +1,8 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.models.CbasRunStatus.CANCELING;
+import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
+import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -7,9 +10,11 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +31,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
@@ -45,6 +51,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +76,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
+  private static final String API_ABORT = "/api/batch/v1/run_sets/abort";
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
   private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
@@ -498,6 +506,209 @@ class TestRunSetsApiController {
     assertEquals(0, runSetDetails2.getErrorCount());
     assertEquals(
         CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.RUNNING), runSetDetails2.getState());
+  }
+
+  @Test
+  void testRunSetAbort() throws Exception {
+    RunSet returnedRunSet1Running =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            2,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO");
+
+    Run run1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID1",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    Run run2 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID2",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    when(runDao.createRun(run1)).thenReturn(1);
+    when(runDao.createRun(run2)).thenReturn(1);
+
+    List<Run> runs = new ArrayList<>();
+    runs.add(run1);
+    runs.add(run2);
+
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
+    when(runDao.getRuns(
+            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
+        .thenReturn(runs);
+
+    when(runSetDao.updateStateAndRunDetails(
+            eq(returnedRunSet1Running.runSetId()),
+            eq(CbasRunSetStatus.CANCELING),
+            eq(2),
+            eq(0),
+            any()))
+        .thenReturn(1);
+
+    when(runDao.getRuns(any())).thenReturn(runs);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_ABORT).param("run_set_id", returnedRunSet1Running.runSetId().toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
+    verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture());
+    List<Run> capturedRuns = newRunCaptor.getAllValues();
+    assertEquals(2, capturedRuns.size());
+    assertEquals(run1.runId(), capturedRuns.get(0).runId());
+    assertEquals(run1.status(), capturedRuns.get(0).status());
+    assertEquals(run1.engineId(), capturedRuns.get(0).engineId());
+
+    assertEquals(run2.runId(), capturedRuns.get(1).runId());
+    assertEquals(run2.status(), capturedRuns.get(1).status());
+    assertEquals(run2.engineId(), capturedRuns.get(1).engineId());
+
+    AbortRunSetResponse parsedResponse =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), AbortRunSetResponse.class);
+
+    assertEquals(2, parsedResponse.getRuns().size());
+    assertEquals(returnedRunSet1Running.runSetId(), parsedResponse.getRunSetId());
+    assertNull(parsedResponse.getErrors());
+    assertEquals(CANCELING.toString(), parsedResponse.getState().toString());
+  }
+
+  @Test
+  void oneFailedOneSucceededRun() throws Exception {
+    RunSet returnedRunSet1Running =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            2,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO");
+
+    Run run1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID1",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    Run run2 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet1Running,
+            "RECORDID2",
+            OffsetDateTime.now(),
+            RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    when(runDao.createRun(run1)).thenReturn(1);
+    when(runDao.createRun(run2)).thenReturn(1);
+
+    List<Run> runs = new ArrayList<>();
+    runs.add(run1);
+    runs.add(run2);
+
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
+    when(runDao.getRuns(
+            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
+        .thenReturn(runs);
+    when(runSetDao.updateStateAndRunDetails(
+            eq(returnedRunSet1Running.runSetId()),
+            eq(CbasRunSetStatus.CANCELING),
+            eq(2),
+            eq(0),
+            any()))
+        .thenReturn(1);
+
+    doThrow(
+            new cromwell.client.ApiException(
+                "Unable to abort workflow %s.".formatted(run2.runId())))
+        .when(cromwellService)
+        .cancelRun(run2);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_ABORT).param("run_set_id", returnedRunSet1Running.runSetId().toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    AbortRunSetResponse parsedResponse =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), AbortRunSetResponse.class);
+
+    assertFalse(parsedResponse.getErrors().isEmpty());
+    assertEquals(
+        "Run set canceled with errors. Unable to abort workflow(s): [%s]".formatted(run2.runId()),
+        parsedResponse.getErrors());
+    assertEquals(1, parsedResponse.getRuns().size());
+    assertNotSame(CANCELING, run2.status());
   }
 }
 

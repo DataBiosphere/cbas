@@ -7,6 +7,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
@@ -231,14 +232,48 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     AbortRunSetResponse aborted = new AbortRunSetResponse();
-    List<UUID> dummyRunsList = new ArrayList<>();
+    List<String> failedRunIds = new ArrayList<>();
 
-    dummyRunsList.add(UUID.randomUUID());
-    dummyRunsList.add(UUID.randomUUID());
+    // Get the run set associated with runSetId
+    RunSet runSet = runSetDao.getRunSet(runSetId);
+    // Update the run set to have a canceling state
+    runSetDao.updateStateAndRunDetails(
+        runSetId,
+        CbasRunSetStatus.CANCELING,
+        runSet.runCount(),
+        runSet.errorCount(),
+        OffsetDateTime.now());
 
     aborted.runSetId(runSetId);
+
+    // Get a list of workflows able to be canceled
+    List<Run> runningWorkflows =
+        runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
+    List<UUID> submittedAbortWorkflows = new ArrayList<>();
+
+    for (Run run : runningWorkflows) {
+      // Trying inside the for-loop in case a single run fails to be updated
+      try {
+        cromwellService.cancelRun(run);
+        submittedAbortWorkflows.add(run.runId());
+        // Update each run to have a 'canceling' run state
+        runDao.updateRunStatus(run.runId(), CbasRunStatus.CANCELING, OffsetDateTime.now());
+      } catch (cromwell.client.ApiException e) {
+        String msg = "Unable to abort workflow %s.".formatted(run.runId());
+        log.error(msg, e);
+        failedRunIds.add(run.runId().toString());
+        // Add the error message against the run
+        run.withErrorMessage(msg);
+      }
+    }
+
+    if (!failedRunIds.isEmpty()) {
+      aborted.errors(
+          "Run set canceled with errors. Unable to abort workflow(s): %s".formatted(failedRunIds));
+    }
+
     aborted.state(CANCELING);
-    aborted.runs(dummyRunsList);
+    aborted.runs(submittedAbortWorkflows);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }

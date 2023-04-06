@@ -123,4 +123,8 @@ public class CromwellService {
       return result;
     }
   }
+
+  public void cancelRun(Run run) throws ApiException {
+    cromwellClient.wesAPI().cancelRun(run.engineId());
+  }
 }
