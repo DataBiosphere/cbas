@@ -705,7 +705,7 @@ class TestRunSetsApiController {
 
     assertFalse(parsedResponse.getErrors().isEmpty());
     assertEquals(
-        "Run set canceled with errors: [Unable to abort workflow %s.]".formatted(run2.runId()),
+        "Run set canceled with errors. Unable to abort workflow(s): [%s]".formatted(run2.runId()),
         parsedResponse.getErrors());
     assertEquals(1, parsedResponse.getRuns().size());
     assertNotSame(CANCELING, run2.status());
