@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.wds;
 
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
@@ -17,7 +18,8 @@ public class WdsService {
     this.wdsServerConfiguration = wdsServerConfiguration;
   }
 
-  public RecordResponse getRecord(String recordType, String recordId) throws ApiException {
+  public RecordResponse getRecord(String recordType, String recordId)
+      throws ApiException, DependencyNotAvailableException {
     return wdsClient
         .recordsApi()
         .getRecord(
@@ -28,7 +30,7 @@ public class WdsService {
   }
 
   public RecordResponse updateRecord(RecordRequest request, String type, String id)
-      throws ApiException {
+      throws ApiException, DependencyNotAvailableException {
     return wdsClient
         .recordsApi()
         .updateRecord(

@@ -1,6 +1,7 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.dependencies.common.AzureCredentials;
+import java.util.Optional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,18 +9,17 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "wds")
 public class WdsServerConfiguration {
 
-  private String baseUri;
+  private Optional<String> baseUri;
   private String healthcheckEndpoint;
   private String instanceId;
   private String apiV;
-  private String wdsProxyUrlRoot;
 
-  public String getBaseUri() {
+  public Optional<String> getBaseUri() {
     return baseUri;
   }
 
   public void setBaseUri(String baseUri) {
-    this.baseUri = baseUri;
+    this.baseUri = Optional.ofNullable(baseUri);
   }
 
   public String getHealthcheckEndpoint() {
@@ -38,30 +38,17 @@ public class WdsServerConfiguration {
     this.instanceId = instanceId;
   }
 
+  public WdsServerConfiguration instanceId(String instanceId) {
+    this.instanceId = instanceId;
+    return this;
+  }
+
   public String getApiV() {
     return apiV;
   }
 
   public void setApiV(String apiV) {
     this.apiV = apiV;
-  }
-
-  public String getWdsProxyUrlRoot() {
-    return wdsProxyUrlRoot;
-  }
-
-  private void loadWdsProxyUrlRoot() {
-    // if value for `wds.baseUri` is passed, use that as WDS proxy url root otherwise ping Leo to
-    // figure out the proxy url. This way
-    //  - for local setup we can connect to local WDS setup and
-    //  - until we ready to decouple CBAS and WDS in prod, CBAS can keep using the value passed in
-    //    config as proxy url. When we want to decouple these apps, remove `wds.baseUri` from
-    //    cromwhelm config and CBAS will ping Leo to get proxy url
-    if (baseUri != null) this.wdsProxyUrlRoot = baseUri;
-    else {
-      // call Leo to get apps details
-      // call resolveWdsApps to get wds url
-    }
   }
 
   public String healthcheckUri() {

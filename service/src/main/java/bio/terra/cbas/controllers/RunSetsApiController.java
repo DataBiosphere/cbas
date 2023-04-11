@@ -13,6 +13,7 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -375,6 +376,9 @@ public class RunSetsApiController implements RunSetsApi {
       } catch (ApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, getErrorMessage(e));
+      } catch (DependencyNotAvailableException e) {
+        log.warn("Record lookup for Record ID {} failed.", recordId, e);
+        recordIdsWithError.put(recordId, e.getMessage());
       }
     }
 
