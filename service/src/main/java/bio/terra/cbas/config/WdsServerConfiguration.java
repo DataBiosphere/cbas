@@ -1,6 +1,5 @@
 package bio.terra.cbas.config;
 
-import bio.terra.cbas.dependencies.common.AzureCredentials;
 import java.util.Optional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -51,16 +50,7 @@ public class WdsServerConfiguration {
     this.apiV = apiV;
   }
 
-  public String healthcheckUri() {
-    System.out.printf("WDS baseUri: %s%n", this.baseUri);
-
-    try {
-      String token = new AzureCredentials().getAccessToken();
-      System.out.printf("AzureCredentials: %s%n", token);
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-    }
-
+  public String healthcheckUri(String baseUri) {
     return "%s/%s".formatted(this.baseUri, this.healthcheckEndpoint);
   }
 }

@@ -3,6 +3,7 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.stereotype.Component;
@@ -31,5 +32,9 @@ public class WdsClient {
 
   RecordsApi recordsApi() throws DependencyNotAvailableException {
     return new RecordsApi(getApiClient());
+  }
+
+  GeneralWdsInformationApi generalWdsInformationApi() throws DependencyNotAvailableException {
+    return new GeneralWdsInformationApi(getApiClient());
   }
 }

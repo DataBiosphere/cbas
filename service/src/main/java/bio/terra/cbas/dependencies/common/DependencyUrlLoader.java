@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.common;
 
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
@@ -33,7 +34,7 @@ public final class DependencyUrlLoader {
               try {
                 List<ListAppResponse> allApps = leonardoService.getApps();
                 return appUtils.findUrlForWds(allApps);
-              } catch (ApiException e) {
+              } catch (ApiException | AzureAccessTokenException e) {
                 throw new DependencyNotAvailableException(
                     "WDS", "Failed to poll Leonardo for URL", e);
               }
