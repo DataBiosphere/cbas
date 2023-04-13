@@ -72,7 +72,7 @@ credentials:
     tokenAcquisitionTimeoutMillis: 5 seconds
     tokenCacheTtl: 300 seconds
     # For local testing, you can supply a manual token override to avoid token acquisition logic:
-    manualTokenOverride: "<...>"
+#    manualTokenOverride: "..."
 
 
 terra.common:

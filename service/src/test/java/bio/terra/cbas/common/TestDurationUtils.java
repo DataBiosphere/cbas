@@ -51,6 +51,7 @@ public class TestDurationUtils {
     assertEquals(Duration.ofHours(2), DurationUtils.durationFromString("2 hours"));
     assertEquals(Duration.ofDays(3), DurationUtils.durationFromString("3 days"));
     assertEquals(Duration.ofMillis(1234), DurationUtils.durationFromString("1.234 seconds"));
+    assertEquals(Duration.ofMillis(1234), DurationUtils.durationFromString("1.234 SECONDS"));
   }
 
   @Test

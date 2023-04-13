@@ -40,7 +40,7 @@ public final class DurationUtils {
 
   public static Duration durationFromString(String input) {
     if (input == null || !isValidDurationString(input)) {
-      throw new IllegalArgumentException("Invalid input: " + input);
+      throw new IllegalArgumentException("Invalid duration string: " + input);
     }
 
     Matcher matcher = DURATION_PATTERN.matcher(input);

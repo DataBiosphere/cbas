@@ -4,11 +4,9 @@ import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheckable;
-import java.util.Objects;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
-import org.databiosphere.workspacedata.model.StatusResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,12 +45,10 @@ public class WdsService implements HealthCheckable {
 
   @Override
   public HealthCheckResult checkHealth() {
-
     try {
-      StatusResponse result = wdsClient.generalWdsInformationApi().statusGet();
+      var result = wdsClient.generalWdsInformationApi().versionGet();
       return new HealthCheckResult(
-          Objects.equals(result.getStatus(), "UP"),
-          "WDS state is %s".formatted(result.getStatus()));
+          true, "WDS version is %s".formatted(result.getBuild().getVersion()));
     } catch (DependencyNotAvailableException | ApiException | AzureAccessTokenException e) {
       return new HealthCheckResult(false, e.getMessage());
     }
