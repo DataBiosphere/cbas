@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.common;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException.NullAzureAccessTokenException;
+import bio.terra.cbas.config.AzureCredentialConfig;
 import com.azure.core.credential.AccessToken;
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.core.management.AzureEnvironment;
@@ -11,17 +12,14 @@ import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /** Strategy for obtaining an access token in an environment with available Azure identity */
 @Component
 public final class CredentialLoader {
-  final Duration tokenAcquisitionTimeout = Duration.ofSeconds(5);
 
   AzureProfile azureProfile = new AzureProfile(AzureEnvironment.AZURE);
   String tokenScope = "https://management.azure.com/.default";
@@ -32,7 +30,11 @@ public final class CredentialLoader {
 
   private final LoadingCache<CredentialType, String> cache;
 
-  public CredentialLoader() {
+  private final AzureCredentialConfig azureCredentialConfig;
+
+  public CredentialLoader(AzureCredentialConfig azureCredentialConfig) {
+
+    this.azureCredentialConfig = azureCredentialConfig;
     CacheLoader<CredentialType, String> loader =
         new CacheLoader<>() {
           @NotNull
@@ -46,7 +48,10 @@ public final class CredentialLoader {
           }
         };
 
-    cache = CacheBuilder.newBuilder().expireAfterWrite(300, TimeUnit.SECONDS).build(loader);
+    cache =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(azureCredentialConfig.getTokenCacheTtl())
+            .build(loader);
   }
 
   private TokenRequestContext tokenRequestContext() {
@@ -61,19 +66,26 @@ public final class CredentialLoader {
   }
 
   private String fetchAzureAccessToken() throws AzureAccessTokenException {
-    DefaultAzureCredential credentials = defaultCredentialBuilder().build();
 
-    try {
-      AccessToken tokenObject =
-          credentials.getToken(tokenRequestContext()).block(tokenAcquisitionTimeout);
-      if (tokenObject == null) {
-        throw new NullAzureAccessTokenException();
-      } else {
-        return tokenObject.getToken();
+    if (azureCredentialConfig.getManualTokenOverride().isPresent()) {
+      return azureCredentialConfig.getManualTokenOverride().get();
+    } else {
+      DefaultAzureCredential credentials = defaultCredentialBuilder().build();
+
+      try {
+        AccessToken tokenObject =
+            credentials
+                .getToken(tokenRequestContext())
+                .block(azureCredentialConfig.getTokenAcquisitionTimeout());
+        if (tokenObject == null) {
+          throw new NullAzureAccessTokenException();
+        } else {
+          return tokenObject.getToken();
+        }
+      } catch (RuntimeException e) {
+        throw new AzureAccessTokenException(
+            "Failed to refresh access token: %s".formatted(e.getMessage()));
       }
-    } catch (RuntimeException e) {
-      throw new AzureAccessTokenException(
-          "Failed to refresh access token: %s".formatted(e.getMessage()));
     }
   }
 

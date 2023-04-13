@@ -67,6 +67,14 @@ leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
   wdsAppTypeName: 'CROMWELL'
 
+credentials:
+  azure:
+    tokenAcquisitionTimeoutMillis: 5 seconds
+    tokenCacheTtl: 300 seconds
+    # For local testing, you can supply a manual token override to avoid token acquisition logic:
+    manualTokenOverride: "<...>"
+
+
 terra.common:
   tracing:
     stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}

@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.PublicApi;
 import bio.terra.cbas.dependencies.common.HealthCheckable;
+import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.SystemStatus;
@@ -19,17 +20,26 @@ public class PublicApiController implements PublicApi {
 
   private final WdsService wdsService;
   private final CromwellService cromwellService;
+  private final LeonardoService leonardoService;
 
   @Autowired
-  public PublicApiController(CromwellService cromwellService, WdsService wdsService) {
+  public PublicApiController(
+      CromwellService cromwellService, WdsService wdsService, LeonardoService leonardoService) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
+    this.leonardoService = leonardoService;
   }
 
   @Override
   public ResponseEntity<SystemStatus> getStatus() {
+    Map<String, HealthCheckable> healthCheckableSystems =
+        Map.of(
+            "cromwell", cromwellService,
+            "wds", wdsService,
+            "leonardo", leonardoService);
+
     Map<String, HealthCheckable.HealthCheckResult> checkResults =
-        Map.of("cromwell", cromwellService, "wds", wdsService).entrySet().stream()
+        healthCheckableSystems.entrySet().stream()
             .map(
                 serviceToCheckEntry -> {
                   String serviceName = serviceToCheckEntry.getKey();

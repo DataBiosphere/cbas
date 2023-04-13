@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.wds;
 
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheckable;
@@ -22,7 +23,7 @@ public class WdsService implements HealthCheckable {
   }
 
   public RecordResponse getRecord(String recordType, String recordId)
-      throws ApiException, DependencyNotAvailableException {
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     return wdsClient
         .recordsApi()
         .getRecord(
@@ -33,7 +34,7 @@ public class WdsService implements HealthCheckable {
   }
 
   public RecordResponse updateRecord(RecordRequest request, String type, String id)
-      throws ApiException, DependencyNotAvailableException {
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     return wdsClient
         .recordsApi()
         .updateRecord(
@@ -52,7 +53,7 @@ public class WdsService implements HealthCheckable {
       return new HealthCheckResult(
           Objects.equals(result.getStatus(), "UP"),
           "WDS state is %s".formatted(result.getStatus()));
-    } catch (DependencyNotAvailableException | ApiException e) {
+    } catch (DependencyNotAvailableException | ApiException | AzureAccessTokenException e) {
       return new HealthCheckResult(false, e.getMessage());
     }
   }
