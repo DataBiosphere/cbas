@@ -83,8 +83,7 @@ public final class CredentialLoader {
           return tokenObject.getToken();
         }
       } catch (RuntimeException e) {
-        throw new AzureAccessTokenException(
-            "Failed to refresh access token: %s".formatted(e.getMessage()));
+        throw new AzureAccessTokenException("Failed to refresh access token.", e);
       }
     }
   }

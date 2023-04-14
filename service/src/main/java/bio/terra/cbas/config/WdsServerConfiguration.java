@@ -8,17 +8,17 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "wds")
 public class WdsServerConfiguration {
 
-  private Optional<String> baseUri;
+  private String baseUri;
   private String healthcheckEndpoint;
   private String instanceId;
   private String apiV;
 
   public Optional<String> getBaseUri() {
-    return baseUri;
+    return Optional.ofNullable(baseUri);
   }
 
   public void setBaseUri(String baseUri) {
-    this.baseUri = Optional.ofNullable(baseUri);
+    this.baseUri = baseUri;
   }
 
   public String getHealthcheckEndpoint() {
@@ -48,9 +48,5 @@ public class WdsServerConfiguration {
 
   public void setApiV(String apiV) {
     this.apiV = apiV;
-  }
-
-  public String healthcheckUri(String baseUri) {
-    return "%s/%s".formatted(this.baseUri, this.healthcheckEndpoint);
   }
 }

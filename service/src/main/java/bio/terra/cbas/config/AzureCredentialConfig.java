@@ -12,9 +12,10 @@ public class AzureCredentialConfig {
 
   private Duration tokenAcquisitionTimeout;
   private Duration tokenCacheTtl;
-  private Optional<String> manualTokenOverride;
+  private String manualTokenOverride;
 
   public Duration getTokenAcquisitionTimeout() {
+    System.out.println("Using token acquisition timeout: " + tokenAcquisitionTimeout.toString());
     return tokenAcquisitionTimeout;
   }
 
@@ -31,10 +32,10 @@ public class AzureCredentialConfig {
   }
 
   public Optional<String> getManualTokenOverride() {
-    return manualTokenOverride;
+    return Optional.ofNullable(manualTokenOverride);
   }
 
   public void setManualTokenOverride(String manualTokenOverride) {
-    this.manualTokenOverride = Optional.of(manualTokenOverride);
+    this.manualTokenOverride = manualTokenOverride;
   }
 }
