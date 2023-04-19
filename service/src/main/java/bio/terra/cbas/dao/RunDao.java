@@ -103,7 +103,7 @@ public class RunDao {
                 Run.LAST_POLLED_TIMESTAMP_COL,
                 currentTimestamp,
                 Run.ERROR_MESSAGES_COL,
-                updatedErrorMessage)));
+                updatedErrorMessage.substring(0, 999))));
   }
 
   public int updateLastPolledTimestamp(UUID runID) {

@@ -36,11 +36,8 @@ public class WdsClient {
       uri = dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL);
     }
 
-    System.out.printf("Using WDS URI: %s%n", uri);
-
     return new ApiClient()
         .setBasePath(uri)
-        .setDebugging(true)
         .addDefaultHeader(
             "Authorization",
             "Bearer %s"
