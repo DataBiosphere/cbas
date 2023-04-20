@@ -14,7 +14,7 @@ import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class AppUtils {
+public class AppUtils {
 
   private final LeonardoServerConfiguration leonardoServerConfiguration;
   private final WdsServerConfiguration wdsServerConfiguration;

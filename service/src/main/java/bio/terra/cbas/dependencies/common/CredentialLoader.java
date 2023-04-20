@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 /** Strategy for obtaining an access token in an environment with available Azure identity */
 @Component
-public final class CredentialLoader {
+public class CredentialLoader {
 
   AzureProfile azureProfile = new AzureProfile(AzureEnvironment.AZURE);
   String tokenScope = "https://management.azure.com/.default";
@@ -65,7 +65,7 @@ public final class CredentialLoader {
         .authorityHost(azureProfile.getEnvironment().getActiveDirectoryEndpoint());
   }
 
-  private String fetchAzureAccessToken() throws AzureAccessTokenException {
+  String fetchAzureAccessToken() throws AzureAccessTokenException {
 
     if (azureCredentialConfig.getManualTokenOverride().isPresent()) {
       return azureCredentialConfig.getManualTokenOverride().get();

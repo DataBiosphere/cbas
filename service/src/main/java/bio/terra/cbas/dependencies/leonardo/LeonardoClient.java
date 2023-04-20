@@ -20,7 +20,7 @@ public class LeonardoClient {
 
   public ApiClient getApiClient() throws AzureAccessTokenException {
     return new ApiClient()
-        .setBasePath(leonardoServerConfiguration.baseUri())
+        .setBasePath(leonardoServerConfiguration.getBaseUri())
         .addDefaultHeader(
             "Authorization",
             "Bearer %s"

@@ -20,12 +20,16 @@ public class TestAppUtils {
   private final String workspaceId = UUID.randomUUID().toString();
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
-      new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"));
+      new LeonardoServerConfiguration()
+          .baseUri("baseuri")
+          .wdsAppTypeNames(List.of("WDS", "CROMWELL"));
+
   private final WdsServerConfiguration wdsServerConfiguration =
       new WdsServerConfiguration().instanceId(workspaceId);
 
   private final ListAppResponse combinedWdsInCromwellApp;
   private final ListAppResponse otherNamedCromwellApp;
+  private final ListAppResponse galaxyApp;
   private final ListAppResponse otherNamedCromwellAppOlder;
   private final ListAppResponse otherNamedCromwellAppProvisioning;
   private final ListAppResponse separatedWdsApp;
@@ -56,6 +60,15 @@ public class TestAppUtils {
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
     assertEquals(anticipatedWdsUrl("wds"), au.findUrlForWds(apps));
+  }
+
+  @Test
+  void notChooseGalaxyApp() throws Exception {
+    List<ListAppResponse> apps =
+        new java.util.ArrayList<>(List.of(otherNamedCromwellApp, galaxyApp));
+    // Shuffle to make sure the initial ordering isn't relevant:
+    Collections.shuffle(apps);
+    assertEquals(anticipatedWdsUrl("app1"), au.findUrlForWds(apps));
   }
 
   @Test
@@ -175,6 +188,40 @@ public class TestAppUtils {
             },
             "appName": "app1-${workspaceId}",
             "appType": "CROMWELL",
+            "diskName": null,
+            "auditInfo": {
+                "creator": "me@broadinstitute.org",
+                "createdDate": "2023-02-09T16:01:36.660590Z",
+                "destroyedDate": null,
+                "dateAccessed": "2023-02-09T16:01:36.660590Z"
+            },
+            "accessScope": null,
+            "labels": {}
+        }""",
+                Map.of("workspaceId", workspaceId)));
+
+    galaxyApp =
+        ListAppResponse.fromJson(
+            StringSubstitutor.replace(
+                """
+        {
+            "workspaceId": "${workspaceId}",
+            "cloudContext": {
+                "cloudProvider": "AZURE",
+                "cloudResource": "blah-blah-blah"
+            },
+            "kubernetesRuntimeConfig": {
+                "numNodes": 1,
+                "machineType": "Standard_A2_v2",
+                "autoscalingEnabled": false
+            },
+            "errors": [],
+            "status": "RUNNING",
+            "proxyUrls": {
+                "blah": "blah blah"
+            },
+            "appName": "galaxy-${workspaceId}",
+            "appType": "GALAXY",
             "diskName": null,
             "auditInfo": {
                 "creator": "me@broadinstitute.org",

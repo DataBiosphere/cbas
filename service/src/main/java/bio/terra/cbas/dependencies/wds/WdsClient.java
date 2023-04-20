@@ -27,7 +27,7 @@ public class WdsClient {
     this.credentialLoader = credentialLoader;
   }
 
-  private ApiClient getApiClient()
+  protected ApiClient getApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri;
     if (wdsServerConfiguration.getBaseUri().isPresent()) {

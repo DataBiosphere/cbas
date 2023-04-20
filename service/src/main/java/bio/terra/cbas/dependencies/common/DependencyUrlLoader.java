@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.common;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import com.google.common.cache.CacheBuilder;
@@ -15,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public final class DependencyUrlLoader {
+public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
     WDS_URL
@@ -23,7 +24,16 @@ public final class DependencyUrlLoader {
 
   private final LoadingCache<DependencyUrlType, String> cache;
 
-  private DependencyUrlLoader(LeonardoService leonardoService, AppUtils appUtils) {
+  private final LeonardoService leonardoService;
+  private final AppUtils appUtils;
+
+  public DependencyUrlLoader(
+      LeonardoService leonardoService,
+      AppUtils appUtils,
+      LeonardoServerConfiguration leonardoServerConfiguration) {
+    this.leonardoService = leonardoService;
+    this.appUtils = appUtils;
+
     CacheLoader<DependencyUrlType, String> loader =
         new CacheLoader<>() {
           @NotNull
@@ -31,20 +41,26 @@ public final class DependencyUrlLoader {
           public String load(@NotNull DependencyUrlType key)
               throws DependencyNotAvailableException {
             if (key == DependencyUrlType.WDS_URL) {
-              try {
-                List<ListAppResponse> allApps = leonardoService.getApps();
-                return appUtils.findUrlForWds(allApps);
-              } catch (ApiException | AzureAccessTokenException e) {
-                throw new DependencyNotAvailableException(
-                    "WDS", "Failed to poll Leonardo for URL", e);
-              }
+              return fetchWdsUrl();
             }
             throw new DependencyNotAvailableException(
                 key.toString(), "Unknown dependency URL type");
           }
         };
 
-    cache = CacheBuilder.newBuilder().build(loader);
+    cache =
+        CacheBuilder.newBuilder()
+            .expireAfterWrite(leonardoServerConfiguration.getDependencyUrlCacheTtl())
+            .build(loader);
+  }
+
+  private String fetchWdsUrl() throws DependencyNotAvailableException {
+    try {
+      List<ListAppResponse> allApps = leonardoService.getApps();
+      return appUtils.findUrlForWds(allApps);
+    } catch (ApiException | AzureAccessTokenException e) {
+      throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
+    }
   }
 
   public String loadDependencyUrl(DependencyUrlType urlType)
