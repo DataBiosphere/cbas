@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
@@ -23,9 +24,12 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,20 +69,89 @@ class VerifyPactsRunSetsApiController {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
-  public void runSetsData() throws Exception {
+  // TODO: rename this state and this function after basic functionality is implemented
+  @State({"post run sets"})
+  public void postRunSets() throws Exception {
+    System.out.println("####### POST RUN_SETS STATE FUNCTION HAS BEEN CALLED #######");
+    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+
+    RecordResponse myRecordResponse = new RecordResponse();
+    myRecordResponse.setId("FOO1");
+    myRecordResponse.setType("FOO");
+
+    RecordAttributes myRecordAttributes = new RecordAttributes();
+    myRecordAttributes.put("foo_rating", 10);
+    myRecordAttributes.put("bar_string", "this is my bar_string");
+
+    myRecordResponse.setAttributes(myRecordAttributes);
+
+    when(wdsService.getRecord(any(), any())).thenReturn(myRecordResponse);
+
     Method myMethod =
         new Method(
             UUID.fromString("00000000-0000-0000-0000-000000000009"),
             "myMethod name",
             "myMethod description",
             OffsetDateTime.now(),
-            UUID.fromString("90000000-0000-0000-0000-000000000009"),
+            methodVersionUUID,
             "myMethod source");
 
     MethodVersion myMethodVersion =
         new MethodVersion(
+            methodVersionUUID,
+            myMethod,
+            "myMethodVersion name",
+            "myMethodVersion description",
+            OffsetDateTime.now(),
             UUID.randomUUID(),
+            "http://myMethodVersionUrl.com");
+
+    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
+
+    RunSet targetRunSet =
+        new RunSet(
+            UUID.randomUUID(),
+            myMethodVersion,
+            "a run set with methodVersion",
+            "a run set with error status",
+            false,
+            CbasRunSetStatus.COMPLETE,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            1,
+            1,
+            "my input definition string",
+            "my output definition string",
+            "myRecordType");
+
+    // TODO: is this the right return integer?
+    // TODO: is it ok to set the function argument matcher to any()?
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
+    when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
+    when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
+
+    RunId myRunId = new RunId();
+    myRunId.setRunId("myRunId_UUID");
+    when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
+  }
+
+  @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
+  public void runSetsData() throws Exception {
+    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+    Method myMethod =
+        new Method(
+            UUID.fromString("00000000-0000-0000-0000-000000000009"),
+            "myMethod name",
+            "myMethod description",
+            OffsetDateTime.now(),
+            methodVersionUUID,
+            "myMethod source");
+
+    MethodVersion myMethodVersion =
+        new MethodVersion(
+            methodVersionUUID,
             myMethod,
             "myMethodVersion name",
             "myMethodVersion description",
