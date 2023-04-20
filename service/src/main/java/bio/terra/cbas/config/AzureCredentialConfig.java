@@ -15,7 +15,6 @@ public class AzureCredentialConfig {
   private String manualTokenOverride;
 
   public Duration getTokenAcquisitionTimeout() {
-    System.out.println("Using token acquisition timeout: " + tokenAcquisitionTimeout.toString());
     return tokenAcquisitionTimeout;
   }
 
