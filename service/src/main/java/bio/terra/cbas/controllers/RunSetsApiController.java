@@ -39,6 +39,7 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
+import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -69,6 +70,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
+  private final UuidSource uuidSource;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -82,7 +84,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
-      SmartRunSetsPoller smartRunSetsPoller) {
+      SmartRunSetsPoller smartRunSetsPoller,
+      UuidSource uuidSource) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
@@ -92,6 +95,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
+    this.uuidSource = uuidSource;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -165,7 +169,7 @@ public class RunSetsApiController implements RunSetsApi {
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
     // Create a new run_set
-    UUID runSetId = UUID.randomUUID();
+    UUID runSetId = this.uuidSource.randomUUID();
     RunSet runSet;
 
     try {

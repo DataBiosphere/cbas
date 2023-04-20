@@ -23,9 +23,11 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
@@ -53,6 +55,7 @@ class VerifyPactsRunSetsApiController {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
+  @MockBean private UuidSource uuidSource;
   @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -71,7 +74,7 @@ class VerifyPactsRunSetsApiController {
 
   // TODO: rename this state and this function after basic functionality is implemented
   @State({"post run sets"})
-  public void postRunSets() throws Exception {
+  public HashMap<String, String> postRunSets() throws Exception {
     System.out.println("####### POST RUN_SETS STATE FUNCTION HAS BEEN CALLED #######");
     UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
 
@@ -96,6 +99,10 @@ class VerifyPactsRunSetsApiController {
             methodVersionUUID,
             "myMethod source");
 
+    UUID fixedRandomUUID = UUID.fromString("01234567-8910-1112-1314-151617181920");
+
+    when(uuidSource.randomUUID()).thenReturn(fixedRandomUUID);
+
     MethodVersion myMethodVersion =
         new MethodVersion(
             methodVersionUUID,
@@ -103,14 +110,14 @@ class VerifyPactsRunSetsApiController {
             "myMethodVersion name",
             "myMethodVersion description",
             OffsetDateTime.now(),
-            UUID.randomUUID(),
+            UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92"),
             "http://myMethodVersionUrl.com");
 
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
 
     RunSet targetRunSet =
         new RunSet(
-            UUID.randomUUID(),
+            fixedRandomUUID,
             myMethodVersion,
             "a run set with methodVersion",
             "a run set with error status",
@@ -135,6 +142,10 @@ class VerifyPactsRunSetsApiController {
     RunId myRunId = new RunId();
     myRunId.setRunId("myRunId_UUID");
     when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
+
+    HashMap<String, String> providerStateValues = new HashMap();
+    providerStateValues.put("run_set_id", fixedRandomUUID.toString());
+    return providerStateValues;
   }
 
   @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
