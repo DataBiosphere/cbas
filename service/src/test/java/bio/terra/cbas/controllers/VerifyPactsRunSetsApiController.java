@@ -112,7 +112,7 @@ class VerifyPactsRunSetsApiController {
     when(runDao.createRun(any())).thenReturn(1);
   }
 
-  @State({"initialize run_set_id", "initialize run_id"})
+  @State({"initialize run_set"})
   public HashMap<String, String> postRunSets() throws Exception {
     String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
     String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
