@@ -11,7 +11,7 @@ public final class DurationUtils {
 
   private DurationUtils() {}
 
-  private static final Pattern DURATION_PATTERN = Pattern.compile("(?i)(\\d+(\\.\\d+)?)\\s*(\\w+)");
+  private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)?)\\s*(\\w+)");
 
   private static final Map<String, ChronoUnit> UNIT_MAP = new HashMap<>();
 
