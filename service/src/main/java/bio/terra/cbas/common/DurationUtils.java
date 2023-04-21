@@ -34,7 +34,7 @@ public final class DurationUtils {
   }
 
   private static boolean isValidDurationString(String input) {
-    String pattern = "^(\\d+(\\.\\d+)?[ ]*[a-zA-Z]+[ ]*)+$";
+    String pattern = "^(\\d+(\\.\\d+)?+[ ]*[a-zA-Z]+[ ]*)++$";
     return input.matches(pattern);
   }
 
