@@ -72,79 +72,62 @@ class VerifyPactsRunSetsApiController {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  // TODO: rename this state and this function after basic functionality is implemented
-  @State({"post run sets"})
-  public HashMap<String, String> postRunSets() throws Exception {
-    System.out.println("####### POST RUN_SETS STATE FUNCTION HAS BEEN CALLED #######");
-    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+  @State({"initialize dependencies"})
+  public void initialize() throws Exception {
 
+    // Arrange WDS
     RecordResponse myRecordResponse = new RecordResponse();
     myRecordResponse.setId("FOO1");
     myRecordResponse.setType("FOO");
-
     RecordAttributes myRecordAttributes = new RecordAttributes();
     myRecordAttributes.put("foo_rating", 10);
     myRecordAttributes.put("bar_string", "this is my bar_string");
-
     myRecordResponse.setAttributes(myRecordAttributes);
-
     when(wdsService.getRecord(any(), any())).thenReturn(myRecordResponse);
 
-    Method myMethod =
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000009"),
-            "myMethod name",
-            "myMethod description",
-            OffsetDateTime.now(),
-            methodVersionUUID,
-            "myMethod source");
-
-    UUID fixedRandomUUID = UUID.fromString("01234567-8910-1112-1314-151617181920");
-
-    when(uuidSource.randomUUID()).thenReturn(fixedRandomUUID);
-
+    // Arrange methodVersion
+    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
     MethodVersion myMethodVersion =
         new MethodVersion(
             methodVersionUUID,
-            myMethod,
+            new Method(
+                UUID.fromString("00000000-0000-0000-0000-000000000009"),
+                "myMethod name",
+                "myMethod description",
+                OffsetDateTime.now(),
+                methodVersionUUID,
+                "myMethod source"),
             "myMethodVersion name",
             "myMethodVersion description",
             OffsetDateTime.now(),
             UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92"),
             "http://myMethodVersionUrl.com");
-
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
 
-    RunSet targetRunSet =
-        new RunSet(
-            fixedRandomUUID,
-            myMethodVersion,
-            "a run set with methodVersion",
-            "a run set with error status",
-            false,
-            CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
-            OffsetDateTime.now(),
-            1,
-            1,
-            "my input definition string",
-            "my output definition string",
-            "myRecordType");
-
-    // TODO: is this the right return integer?
-    // TODO: is it ok to set the function argument matcher to any()?
+    // Arrange DAO responses
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+  }
+
+  @State({"initialize run_set_id", "initialize run_id"})
+  public HashMap<String, String> postRunSets() throws Exception {
+    String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
+    String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
+    when(uuidSource.generateUUID())
+        .thenReturn(UUID.fromString(fixedRunSetUUID))
+        .thenReturn(UUID.fromString(fixedRunUUID));
 
     RunId myRunId = new RunId();
-    myRunId.setRunId("myRunId_UUID");
+    myRunId.setRunId(fixedRunUUID);
     when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
 
+    // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap();
-    providerStateValues.put("run_set_id", fixedRandomUUID.toString());
+    providerStateValues.put("run_set_id", fixedRunSetUUID);
+    providerStateValues.put("run_id", fixedRunUUID);
     return providerStateValues;
   }
 

@@ -156,6 +156,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
+
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
           "Error while fetching WDS Records for Record ID(s): "
@@ -169,7 +170,7 @@ public class RunSetsApiController implements RunSetsApi {
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
     // Create a new run_set
-    UUID runSetId = this.uuidSource.randomUUID();
+    UUID runSetId = this.uuidSource.generateUUID();
     RunSet runSet;
 
     try {
@@ -197,7 +198,6 @@ public class RunSetsApiController implements RunSetsApi {
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
     runSetDao.createRunSet(runSet);
-
     methodDao.updateLastRunWithRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
 
@@ -426,7 +426,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     for (RecordResponse record : recordResponses) {
       RunId workflowResponse;
-      UUID runId = UUID.randomUUID();
+      UUID runId = uuidSource.generateUUID();
 
       try {
         // Build the inputs set from workflow parameter definitions and the fetched record
@@ -436,6 +436,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Submit the workflow, get its ID and store the Run to database
         workflowResponse =
             cromwellService.submitWorkflow(runSet.methodVersion().url(), workflowInputs);
+
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
       } catch (CoercionException e) {
