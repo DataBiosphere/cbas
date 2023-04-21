@@ -72,8 +72,8 @@ class VerifyPactsRunSetsApiController {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State({"initialize dependencies"})
-  public void initialize() throws Exception {
+  @State({"ready to fetch recordId FOO1 from recordType FOO from wdsService"})
+  public void initializeFooDataTable() throws Exception {
 
     // Arrange WDS
     RecordResponse myRecordResponse = new RecordResponse();
@@ -84,7 +84,10 @@ class VerifyPactsRunSetsApiController {
     myRecordAttributes.put("bar_string", "this is my bar_string");
     myRecordResponse.setAttributes(myRecordAttributes);
     when(wdsService.getRecord(any(), any())).thenReturn(myRecordResponse);
+  }
 
+  @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
+  public void initializeDAO() throws Exception {
     // Arrange methodVersion
     UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
     MethodVersion myMethodVersion =
@@ -112,8 +115,8 @@ class VerifyPactsRunSetsApiController {
     when(runDao.createRun(any())).thenReturn(1);
   }
 
-  @State({"initialize run_set"})
-  public HashMap<String, String> postRunSets() throws Exception {
+  @State({"ready to receive exactly 1 call to POST run_sets"})
+  public HashMap<String, String> initializeOneRunSet() throws Exception {
     String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
     String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
     when(uuidSource.generateUUID())
