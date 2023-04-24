@@ -39,6 +39,7 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
+import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -69,6 +70,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
+  private final UuidSource uuidSource;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -82,7 +84,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
-      SmartRunSetsPoller smartRunSetsPoller) {
+      SmartRunSetsPoller smartRunSetsPoller,
+      UuidSource uuidSource) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
@@ -92,6 +95,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
+    this.uuidSource = uuidSource;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -152,6 +156,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
+
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
           "Error while fetching WDS Records for Record ID(s): "
@@ -165,7 +170,7 @@ public class RunSetsApiController implements RunSetsApi {
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
     // Create a new run_set
-    UUID runSetId = UUID.randomUUID();
+    UUID runSetId = this.uuidSource.generateUUID();
     RunSet runSet;
 
     try {
@@ -193,7 +198,6 @@ public class RunSetsApiController implements RunSetsApi {
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
     runSetDao.createRunSet(runSet);
-
     methodDao.updateLastRunWithRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
 
@@ -422,7 +426,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     for (RecordResponse record : recordResponses) {
       RunId workflowResponse;
-      UUID runId = UUID.randomUUID();
+      UUID runId = uuidSource.generateUUID();
 
       try {
         // Build the inputs set from workflow parameter definitions and the fetched record
@@ -432,6 +436,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Submit the workflow, get its ID and store the Run to database
         workflowResponse =
             cromwellService.submitWorkflow(runSet.methodVersion().url(), workflowInputs);
+
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
       } catch (CoercionException e) {

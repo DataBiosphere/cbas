@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
@@ -22,10 +23,15 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +55,7 @@ class VerifyPactsRunSetsApiController {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
+  @MockBean private UuidSource uuidSource;
   @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -65,20 +72,83 @@ class VerifyPactsRunSetsApiController {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
+  @State({"ready to fetch recordId FOO1 from recordType FOO from wdsService"})
+  public void initializeFooDataTable() throws Exception {
+
+    // Arrange WDS
+    RecordResponse myRecordResponse = new RecordResponse();
+    myRecordResponse.setId("FOO1");
+    myRecordResponse.setType("FOO");
+    RecordAttributes myRecordAttributes = new RecordAttributes();
+    myRecordAttributes.put("foo_rating", 10);
+    myRecordAttributes.put("bar_string", "this is my bar_string");
+    myRecordResponse.setAttributes(myRecordAttributes);
+    when(wdsService.getRecord(any(), any())).thenReturn(myRecordResponse);
+  }
+
+  @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
+  public void initializeDAO() throws Exception {
+    // Arrange methodVersion
+    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+    MethodVersion myMethodVersion =
+        new MethodVersion(
+            methodVersionUUID,
+            new Method(
+                UUID.fromString("00000000-0000-0000-0000-000000000009"),
+                "myMethod name",
+                "myMethod description",
+                OffsetDateTime.now(),
+                methodVersionUUID,
+                "myMethod source"),
+            "myMethodVersion name",
+            "myMethodVersion description",
+            OffsetDateTime.now(),
+            UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92"),
+            "http://myMethodVersionUrl.com");
+    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
+
+    // Arrange DAO responses
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
+    when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
+    when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+  }
+
+  @State({"ready to receive exactly 1 call to POST run_sets"})
+  public HashMap<String, String> initializeOneRunSet() throws Exception {
+    String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
+    String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
+    when(uuidSource.generateUUID())
+        .thenReturn(UUID.fromString(fixedRunSetUUID))
+        .thenReturn(UUID.fromString(fixedRunUUID));
+
+    RunId myRunId = new RunId();
+    myRunId.setRunId(fixedRunUUID);
+    when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
+
+    // These values are returned so that they can be injected into variables in the Pact(s)
+    HashMap<String, String> providerStateValues = new HashMap();
+    providerStateValues.put("run_set_id", fixedRunSetUUID);
+    providerStateValues.put("run_id", fixedRunUUID);
+    return providerStateValues;
+  }
+
   @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
   public void runSetsData() throws Exception {
+    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
     Method myMethod =
         new Method(
             UUID.fromString("00000000-0000-0000-0000-000000000009"),
             "myMethod name",
             "myMethod description",
             OffsetDateTime.now(),
-            UUID.fromString("90000000-0000-0000-0000-000000000009"),
+            methodVersionUUID,
             "myMethod source");
 
     MethodVersion myMethodVersion =
         new MethodVersion(
-            UUID.randomUUID(),
+            methodVersionUUID,
             myMethod,
             "myMethodVersion name",
             "myMethodVersion description",
