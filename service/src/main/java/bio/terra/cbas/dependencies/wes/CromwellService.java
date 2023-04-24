@@ -93,7 +93,8 @@ public class CromwellService implements HealthCheckable {
     WorkflowMetadataResponse meta =
         cromwellConfig
             .workflowsApi()
-            .metadata(API_VERSION, run.engineId(), Collections.singletonList("failure"), null, null);
+            .metadata(
+                API_VERSION, run.engineId(), Collections.singletonList("failure"), null, null);
 
     return getErrorMessage(meta.getFailures());
   }
