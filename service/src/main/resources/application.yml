@@ -66,12 +66,12 @@ wds:
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
   wdsAppTypeNames: ['WDS', 'CROMWELL']
-  dependencyUrlCacheTtl: 5 minutes
+  dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
 
 credentials:
   azure:
-    tokenAcquisitionTimeout: 5 seconds
-    tokenCacheTtl: 5 minutes
+    tokenAcquisitionTimeoutSeconds: 5
+    tokenCacheTtlSeconds: 300 # Refresh every 5 minutes
     # For local testing, you can supply a manual token override to avoid token acquisition logic:
     #  manualTokenOverride: ""
 
