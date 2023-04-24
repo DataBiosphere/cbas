@@ -20,7 +20,7 @@ import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestDependencyUrlLoader {
+class TestDependencyUrlLoader {
 
   LeonardoServerConfiguration leonardoServerConfiguration;
   LeonardoService leonardoService;

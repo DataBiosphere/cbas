@@ -13,6 +13,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -66,9 +67,9 @@ public class CredentialLoader {
   }
 
   String fetchAzureAccessToken() throws AzureAccessTokenException {
-
-    if (azureCredentialConfig.getManualTokenOverride().isPresent()) {
-      return azureCredentialConfig.getManualTokenOverride().get();
+    Optional<String> manualTokenOverride = azureCredentialConfig.getManualTokenOverride();
+    if (manualTokenOverride.isPresent()) {
+      return manualTokenOverride.get();
     } else {
       DefaultAzureCredential credentials = defaultCredentialBuilder().build();
 

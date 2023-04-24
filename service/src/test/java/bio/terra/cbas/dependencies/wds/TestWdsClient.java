@@ -16,7 +16,7 @@ import org.databiosphere.workspacedata.api.RecordsApi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestWdsClient {
+class TestWdsClient {
 
   WdsServerConfiguration wdsServerConfiguration = mock(WdsServerConfiguration.class);
   DependencyUrlLoader dependencyUrlLoader = mock(DependencyUrlLoader.class);

@@ -12,7 +12,7 @@ import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestCredentialLoader {
+class TestCredentialLoader {
 
   AzureCredentialConfig azureCredentialConfig;
 

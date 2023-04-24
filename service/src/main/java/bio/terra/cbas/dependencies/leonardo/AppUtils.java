@@ -78,8 +78,6 @@ public class AppUtils {
             AppStatus.STOPPED,
             AppStatus.STOPPING);
 
-    List<AppStatus> nonRunningHealthyStates =
-        List.of(AppStatus.PROVISIONING, AppStatus.STOPPED, AppStatus.STOPPING);
     List<ListAppResponse> suitableApps =
         apps.stream()
             .filter(

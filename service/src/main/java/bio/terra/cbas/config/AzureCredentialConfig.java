@@ -27,7 +27,7 @@ public class AzureCredentialConfig {
 
   public void setTokenAcquisitionTimeoutSeconds(long tokenAcquisitionTimeoutSeconds) {
     var transformed = Duration.ofSeconds(tokenAcquisitionTimeoutSeconds);
-    log.info("Setting tokenAcquisitionTimeout=%s".formatted(transformed));
+    log.info("Setting tokenAcquisitionTimeout={}", transformed);
     this.tokenAcquisitionTimeout = transformed;
   }
 
@@ -37,7 +37,7 @@ public class AzureCredentialConfig {
 
   public void setTokenCacheTtlSeconds(long tokenCacheTtlSeconds) {
     var transformed = Duration.ofSeconds(tokenCacheTtlSeconds);
-    log.info("Setting tokenCacheTtl=%s".formatted(transformed));
+    log.info("Setting tokenCacheTtl={}", transformed);
     this.tokenCacheTtl = transformed;
   }
 
@@ -47,9 +47,7 @@ public class AzureCredentialConfig {
 
   public void setManualTokenOverride(String manualTokenOverride) {
     var transformed = Optional.ofNullable(manualTokenOverride);
-    log.info(
-        "Setting manualTokenOverride=%s"
-            .formatted(transformed.map(s -> "(set)").orElse("(empty)")));
+    log.info("Setting manualTokenOverride={}", transformed.map(s -> "(set)").orElse("(empty)"));
     this.manualTokenOverride = transformed;
   }
 }

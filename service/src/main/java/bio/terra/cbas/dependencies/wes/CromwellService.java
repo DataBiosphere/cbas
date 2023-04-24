@@ -23,7 +23,7 @@ public class CromwellService implements HealthCheckable {
   private final CromwellClient cromwellClient;
   private final CromwellServerConfiguration cromwellConfig;
 
-  private final String apiVersion = "v1";
+  private static final String apiVersion = "v1";
 
   public CromwellService(
       CromwellClient cromwellClient, CromwellServerConfiguration cromwellConfig) {

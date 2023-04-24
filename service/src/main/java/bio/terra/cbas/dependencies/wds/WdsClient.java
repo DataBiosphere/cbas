@@ -5,6 +5,7 @@ import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import java.util.Optional;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
@@ -29,9 +30,12 @@ public class WdsClient {
 
   protected ApiClient getApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
+
     String uri;
-    if (wdsServerConfiguration.getBaseUri().isPresent()) {
-      uri = wdsServerConfiguration.getBaseUri().get();
+
+    Optional<String> baseUriFromConfig = wdsServerConfiguration.getBaseUri();
+    if (baseUriFromConfig.isPresent()) {
+      uri = baseUriFromConfig.get();
     } else {
       uri = dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL);
     }

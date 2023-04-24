@@ -28,7 +28,7 @@ public class LeonardoServerConfiguration {
   }
 
   public void setBaseUri(String baseUri) {
-    log.info("Setting baseUri=%s".formatted(baseUri));
+    log.info("Setting baseUri={}", baseUri);
     this.baseUri = baseUri;
   }
 
@@ -39,7 +39,7 @@ public class LeonardoServerConfiguration {
 
   public void setWdsAppTypeNames(List<String> wdsAppTypeNames) {
     var transformed = wdsAppTypeNames.stream().map(AppType::fromValue).toList();
-    log.info("Setting wdsAppTypes=%s".formatted(transformed));
+    log.info("Setting wdsAppTypes={}", transformed);
     this.wdsAppTypes = transformed;
   }
 
@@ -54,7 +54,7 @@ public class LeonardoServerConfiguration {
 
   public void setDependencyUrlCacheTtlSeconds(long dependencyUrlCacheTtlSeconds) {
     var transformed = Duration.ofSeconds(dependencyUrlCacheTtlSeconds);
-    log.info("Setting dependencyUrlCacheTtl=%s".formatted(transformed));
+    log.info("Setting dependencyUrlCacheTtl={}", transformed);
     this.dependencyUrlCacheTtl = transformed;
   }
 }

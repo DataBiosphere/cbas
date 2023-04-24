@@ -16,7 +16,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.junit.jupiter.api.Test;
 
-public class TestAppUtils {
+class TestAppUtils {
   private final String workspaceId = UUID.randomUUID().toString();
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
