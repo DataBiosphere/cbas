@@ -23,7 +23,7 @@ public class CromwellService implements HealthCheckable {
   private final CromwellClient cromwellClient;
   private final CromwellServerConfiguration cromwellConfig;
 
-  private static final String apiVersion = "v1";
+  private static final String API_VERSION = "v1";
 
   public CromwellService(
       CromwellClient cromwellClient, CromwellServerConfiguration cromwellConfig) {
@@ -58,7 +58,7 @@ public class CromwellService implements HealthCheckable {
         cromwellConfig
             .workflowsApi()
             .queryGet(
-                apiVersion,
+                API_VERSION,
                 null,
                 null,
                 null,
@@ -85,7 +85,7 @@ public class CromwellService implements HealthCheckable {
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
-    return cromwellConfig.womtoolApi().describe(apiVersion, null, workflowUrl, null, null, null);
+    return cromwellConfig.womtoolApi().describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
   public String getRunErrors(Run run) throws ApiException {
@@ -93,7 +93,7 @@ public class CromwellService implements HealthCheckable {
     WorkflowMetadataResponse meta =
         cromwellConfig
             .workflowsApi()
-            .metadata(apiVersion, run.engineId(), Collections.singletonList("failure"), null, null);
+            .metadata(API_VERSION, run.engineId(), Collections.singletonList("failure"), null, null);
 
     return getErrorMessage(meta.getFailures());
   }

@@ -47,7 +47,9 @@ public class AzureCredentialConfig {
 
   public void setManualTokenOverride(String manualTokenOverride) {
     var transformed = Optional.ofNullable(manualTokenOverride);
-    log.info("Setting manualTokenOverride={}", transformed.map(s -> "(set)").orElse("(empty)"));
+    if (log.isInfoEnabled()) {
+      log.info("Setting manualTokenOverride={}", transformed.map(s -> "(set)").orElse("(empty)"));
+    }
     this.manualTokenOverride = transformed;
   }
 }
