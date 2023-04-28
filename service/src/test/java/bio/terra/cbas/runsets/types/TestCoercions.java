@@ -11,8 +11,6 @@ import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
 import bio.terra.cbas.model.StructField;
-import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
