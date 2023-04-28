@@ -6,7 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -20,12 +21,10 @@ class TestAppUtils {
   private final String workspaceId = UUID.randomUUID().toString();
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
-      new LeonardoServerConfiguration()
-          .baseUri("baseuri")
-          .wdsAppTypeNames(List.of("WDS", "CROMWELL"));
+      new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"), 0);
 
   private final WdsServerConfiguration wdsServerConfiguration =
-      new WdsServerConfiguration().instanceId(workspaceId);
+      new WdsServerConfiguration("", "", workspaceId, "");
 
   private final ListAppResponse combinedWdsInCromwellApp;
   private final ListAppResponse otherNamedCromwellApp;
@@ -34,6 +33,8 @@ class TestAppUtils {
   private final ListAppResponse otherNamedCromwellAppProvisioning;
   private final ListAppResponse separatedWdsApp;
   private final ListAppResponse separatedWorkflowsApp;
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
 
@@ -90,7 +91,7 @@ class TestAppUtils {
   }
 
   @Test
-  void throwIfBestAppNotReady() throws Exception {
+  void throwIfBestAppNotReady() {
     List<ListAppResponse> apps =
         new java.util.ArrayList<>(
             List.of(otherNamedCromwellAppOlder, otherNamedCromwellAppProvisioning));
@@ -99,22 +100,18 @@ class TestAppUtils {
 
     assertThrows(
         DependencyNotAvailableException.class,
-        () -> {
-          au.findUrlForWds(apps);
-        });
+        () -> au.findUrlForWds(apps));
   }
 
   @Test
-  void throwIfBestAppHasNoWDS() throws Exception {
+  void throwIfBestAppHasNoWDS() {
     List<ListAppResponse> apps = new java.util.ArrayList<>(List.of(separatedWorkflowsApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
 
     assertThrows(
         DependencyNotAvailableException.class,
-        () -> {
-          au.findUrlForWds(apps);
-        });
+        () -> au.findUrlForWds(apps));
   }
 
   private String anticipatedWdsUrl(String appName) {
@@ -123,48 +120,50 @@ class TestAppUtils {
         Map.of("workspaceId", workspaceId, "appName", appName));
   }
 
-  public TestAppUtils() throws IOException {
-    org.broadinstitute.dsde.workbench.client.leonardo.JSON.setGson(new Gson());
+  private ListAppResponse readAppResponse(String response) throws IOException {
+    return objectMapper.readValue(response, new TypeReference<>() {});
+  }
 
+  public TestAppUtils() throws IOException {
     combinedWdsInCromwellApp =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
-        {
-            "workspaceId": "${workspaceId}",
-            "cloudContext": {
-                "cloudProvider": "AZURE",
-                "cloudResource": "blah-blah-blah"
-            },
-            "kubernetesRuntimeConfig": {
-                "numNodes": 1,
-                "machineType": "Standard_A2_v2",
-                "autoscalingEnabled": false
-            },
-            "errors": [],
-            "status": "RUNNING",
-            "proxyUrls": {
-                "cbas": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/cbas",
-                "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/",
-                "cromwell": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/cromwell",
-                "wds": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/wds"
-            },
-            "appName": "wds-${workspaceId}",
-            "appType": "CROMWELL",
-            "diskName": null,
-            "auditInfo": {
-                "creator": "me@broadinstitute.org",
-                "createdDate": "2023-02-09T16:01:36.660590Z",
-                "destroyedDate": null,
-                "dateAccessed": "2023-02-09T16:01:36.660590Z"
-            },
-            "accessScope": null,
-            "labels": {}
-        }""",
+                    {
+                        "workspaceId": "${workspaceId}",
+                        "cloudContext": {
+                            "cloudProvider": "AZURE",
+                            "cloudResource": "blah-blah-blah"
+                        },
+                        "kubernetesRuntimeConfig": {
+                            "numNodes": 1,
+                            "machineType": "Standard_A2_v2",
+                            "autoscalingEnabled": false
+                        },
+                        "errors": [],
+                        "status": "RUNNING",
+                        "proxyUrls": {
+                            "cbas": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/cbas",
+                            "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/",
+                            "cromwell": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/cromwell",
+                            "wds": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/wds"
+                        },
+                        "appName": "wds-${workspaceId}",
+                        "appType": "CROMWELL",
+                        "diskName": null,
+                        "auditInfo": {
+                            "creator": "me@broadinstitute.org",
+                            "createdDate": "2023-02-09T16:01:36.660590Z",
+                            "destroyedDate": null,
+                            "dateAccessed": "2023-02-09T16:01:36.660590Z"
+                        },
+                        "accessScope": null,
+                        "labels": {}
+                    }""",
                 Map.of("workspaceId", workspaceId)));
 
     otherNamedCromwellApp =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {
@@ -201,7 +200,7 @@ class TestAppUtils {
                 Map.of("workspaceId", workspaceId)));
 
     galaxyApp =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {
@@ -235,7 +234,7 @@ class TestAppUtils {
                 Map.of("workspaceId", workspaceId)));
 
     otherNamedCromwellAppProvisioning =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {
@@ -272,7 +271,7 @@ class TestAppUtils {
                 Map.of("workspaceId", workspaceId)));
 
     otherNamedCromwellAppOlder =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {
@@ -309,7 +308,7 @@ class TestAppUtils {
                 Map.of("workspaceId", workspaceId)));
 
     separatedWdsApp =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {
@@ -343,7 +342,7 @@ class TestAppUtils {
                 Map.of("workspaceId", workspaceId)));
 
     separatedWorkflowsApp =
-        ListAppResponse.fromJson(
+        readAppResponse(
             StringSubstitutor.replace(
                 """
         {

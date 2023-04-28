@@ -40,13 +40,10 @@ public class WdsClient {
       uri = dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL);
     }
 
-    return new ApiClient()
-        .setBasePath(uri)
-        .addDefaultHeader(
-            "Authorization",
-            "Bearer %s"
-                .formatted(
-                    credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN)));
+    ApiClient apiClient = new ApiClient().setBasePath(uri);
+    apiClient.setAccessToken(
+        credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    return apiClient;
   }
 
   RecordsApi recordsApi() throws DependencyNotAvailableException, AzureAccessTokenException {
