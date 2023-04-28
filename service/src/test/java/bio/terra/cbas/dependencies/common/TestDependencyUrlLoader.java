@@ -118,14 +118,7 @@ class TestDependencyUrlLoader {
 
   @Test
   void wrapsExceptionsFromLeonardo() throws Exception {
-    // Doesn't actually matter what this is, we can force the app utils mock to create whatever
-    // url we want. This is really just a token for testing that the wiring is happening properly
-    // between the mocks.
-    List<ListAppResponse> dummyListAppResponse = List.of(new ListAppResponse());
-    String discoveredWdsUrl = "https://wds.com/prefix/wds";
-
     when(leonardoService.getApps()).thenThrow(new ApiException("Bad Leonardo!"));
-    when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10));
 
