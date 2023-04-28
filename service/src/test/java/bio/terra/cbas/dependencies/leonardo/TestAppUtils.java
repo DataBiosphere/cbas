@@ -98,9 +98,7 @@ class TestAppUtils {
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
 
-    assertThrows(
-        DependencyNotAvailableException.class,
-        () -> au.findUrlForWds(apps));
+    assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForWds(apps));
   }
 
   @Test
@@ -109,9 +107,7 @@ class TestAppUtils {
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
 
-    assertThrows(
-        DependencyNotAvailableException.class,
-        () -> au.findUrlForWds(apps));
+    assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForWds(apps));
   }
 
   private String anticipatedWdsUrl(String appName) {
