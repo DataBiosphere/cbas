@@ -1,7 +1,7 @@
 package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.config.CromwellServerConfiguration;
-import bio.terra.cbas.dependencies.common.HealthCheckable;
+import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,7 +17,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CromwellService implements HealthCheckable {
+public class CromwellService implements HealthCheck {
 
   private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
@@ -133,13 +133,13 @@ public class CromwellService implements HealthCheckable {
   }
 
   @Override
-  public HealthCheckable.HealthCheckResult checkHealth() {
+  public Result checkHealth() {
     try {
       // No response, the successful return code is the important thing:
       cromwellClient.engineApi().engineStatus("v1");
-      return new HealthCheckResult(true, "Cromwell was reachable");
+      return new Result(true, "Cromwell was reachable");
     } catch (ApiException e) {
-      return new HealthCheckable.HealthCheckResult(false, e.getMessage());
+      return new Result(false, e.getMessage());
     }
   }
 }

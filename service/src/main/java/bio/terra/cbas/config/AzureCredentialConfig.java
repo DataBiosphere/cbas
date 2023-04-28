@@ -5,51 +5,26 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @ConfigurationProperties(prefix = "credentials.azure")
-public class AzureCredentialConfig {
-
-  private Duration tokenAcquisitionTimeout;
-  private Duration tokenCacheTtl;
-  private Optional<String> manualTokenOverride = Optional.empty();
-
+public record AzureCredentialConfig(
+    Duration tokenAcquisitionTimeout, Duration tokenCacheTtl, String manualTokenOverride) {
   private static final Logger log = LoggerFactory.getLogger(AzureCredentialConfig.class);
 
-  public AzureCredentialConfig() {
-    log.info("Initializing manualTokenOverride=(empty)");
-  }
-
-  public Duration getTokenAcquisitionTimeout() {
-    return tokenAcquisitionTimeout;
-  }
-
-  public void setTokenAcquisitionTimeoutSeconds(long tokenAcquisitionTimeoutSeconds) {
-    var transformed = Duration.ofSeconds(tokenAcquisitionTimeoutSeconds);
-    log.info("Setting tokenAcquisitionTimeout={}", transformed);
-    this.tokenAcquisitionTimeout = transformed;
-  }
-
-  public Duration getTokenCacheTtl() {
-    return tokenCacheTtl;
-  }
-
-  public void setTokenCacheTtlSeconds(long tokenCacheTtlSeconds) {
-    var transformed = Duration.ofSeconds(tokenCacheTtlSeconds);
-    log.info("Setting tokenCacheTtl={}", transformed);
-    this.tokenCacheTtl = transformed;
+  public AzureCredentialConfig(
+      long tokenAcquisitionTimeoutSeconds, long tokenCacheTtlSeconds, String manualTokenOverride) {
+    this(
+        Duration.ofSeconds(tokenAcquisitionTimeoutSeconds),
+        Duration.ofSeconds(tokenCacheTtlSeconds),
+        manualTokenOverride);
+    log.info("Setting tokenAcquisitionTimeout={}", tokenAcquisitionTimeout);
+    log.info("Setting tokenCacheTtl={}", tokenCacheTtl);
+    if (log.isInfoEnabled()) {
+      log.info("Setting manualTokenOverride={}", manualTokenOverride != null ? "(set)" : "(empty)");
+    }
   }
 
   public Optional<String> getManualTokenOverride() {
-    return manualTokenOverride;
-  }
-
-  public void setManualTokenOverride(String manualTokenOverride) {
-    var transformed = Optional.ofNullable(manualTokenOverride);
-    if (log.isInfoEnabled()) {
-      log.info("Setting manualTokenOverride={}", transformed.map(s -> "(set)").orElse("(empty)"));
-    }
-    this.manualTokenOverride = transformed;
+    return Optional.ofNullable(manualTokenOverride);
   }
 }

@@ -4,26 +4,17 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.AzureCredentialConfig;
 import java.time.Duration;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TestCredentialLoader {
 
-  AzureCredentialConfig azureCredentialConfig;
-
-  @BeforeEach
-  void setup() {
-    azureCredentialConfig = mock(AzureCredentialConfig.class);
-  }
-
   @Test
   void credentialsLoaderFetchesNewTokens() throws Exception {
-    TestableCredentialLoader credentialLoader = new TestableCredentialLoader(azureCredentialConfig);
+    TestableCredentialLoader credentialLoader =
+        new TestableCredentialLoader(new AzureCredentialConfig(0, 0, null));
 
     assertEquals(
         "TOKEN_1", credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
@@ -31,8 +22,8 @@ class TestCredentialLoader {
 
   @Test
   void credentialsLoaderCaches() throws Exception {
-
-    when(azureCredentialConfig.getTokenCacheTtl()).thenReturn(Duration.ofMinutes(10));
+    var azureCredentialConfig =
+        new AzureCredentialConfig(Duration.ZERO, Duration.ofMinutes(10), null);
     TestableCredentialLoader credentialLoader = new TestableCredentialLoader(azureCredentialConfig);
 
     // Token caching means the token won't be re-fetched on multiple reads:
@@ -47,7 +38,8 @@ class TestCredentialLoader {
   @Test
   void credentialsLoaderCacheCanBeFlushed() throws Exception {
 
-    when(azureCredentialConfig.getTokenCacheTtl()).thenReturn(Duration.ofMinutes(10));
+    var azureCredentialConfig =
+        new AzureCredentialConfig(Duration.ZERO, Duration.ofMinutes(10), null);
     TestableCredentialLoader credentialLoader = new TestableCredentialLoader(azureCredentialConfig);
 
     // Token caching means the token won't be re-fetched on multiple reads:
@@ -70,7 +62,8 @@ class TestCredentialLoader {
   @Test
   void credentialsLoaderCacheTimesOutPerConfiguration() throws Exception {
 
-    when(azureCredentialConfig.getTokenCacheTtl()).thenReturn(Duration.ofMillis(100));
+    var azureCredentialConfig =
+        new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
     TestableCredentialLoader credentialLoader = new TestableCredentialLoader(azureCredentialConfig);
 
     // Token caching means the token won't be re-fetched on multiple reads:

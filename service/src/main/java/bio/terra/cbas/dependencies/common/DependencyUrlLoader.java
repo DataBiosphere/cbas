@@ -50,7 +50,7 @@ public class DependencyUrlLoader {
 
     cache =
         CacheBuilder.newBuilder()
-            .expireAfterWrite(leonardoServerConfiguration.getDependencyUrlCacheTtl())
+            .expireAfterWrite(leonardoServerConfiguration.dependencyUrlCacheTtl())
             .build(loader);
   }
 

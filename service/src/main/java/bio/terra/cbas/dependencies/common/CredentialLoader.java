@@ -13,7 +13,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -22,8 +21,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class CredentialLoader {
 
-  AzureProfile azureProfile = new AzureProfile(AzureEnvironment.AZURE);
-  String tokenScope = "https://management.azure.com/.default";
+  private static final AzureProfile azureProfile = new AzureProfile(AzureEnvironment.AZURE);
+  private static final String tokenScope = "https://management.azure.com/.default";
 
   public enum CredentialType {
     AZURE_TOKEN
@@ -51,7 +50,7 @@ public class CredentialLoader {
 
     cache =
         CacheBuilder.newBuilder()
-            .expireAfterWrite(azureCredentialConfig.getTokenCacheTtl())
+            .expireAfterWrite(azureCredentialConfig.tokenCacheTtl())
             .build(loader);
   }
 
@@ -67,9 +66,9 @@ public class CredentialLoader {
   }
 
   String fetchAzureAccessToken() throws AzureAccessTokenException {
-    Optional<String> manualTokenOverride = azureCredentialConfig.getManualTokenOverride();
-    if (manualTokenOverride.isPresent()) {
-      return manualTokenOverride.get();
+    String manualTokenOverride = azureCredentialConfig.manualTokenOverride();
+    if (manualTokenOverride != null) {
+      return manualTokenOverride;
     } else {
       DefaultAzureCredential credentials = defaultCredentialBuilder().build();
 
@@ -77,7 +76,7 @@ public class CredentialLoader {
         AccessToken tokenObject =
             credentials
                 .getToken(tokenRequestContext())
-                .block(azureCredentialConfig.getTokenAcquisitionTimeout());
+                .block(azureCredentialConfig.tokenAcquisitionTimeout());
         if (tokenObject == null) {
           throw new NullAzureAccessTokenException();
         } else {

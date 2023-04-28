@@ -4,10 +4,12 @@ import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import java.time.OffsetDateTime;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.AppStatus;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
@@ -29,11 +31,11 @@ public class AppUtils {
   int appComparisonFunction(ListAppResponse a, ListAppResponse b) {
     // Name scores: correct name always wins
     int nameScoreA =
-        Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.getInstanceId()))
+        Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
             ? 1
             : 0;
     int nameScoreB =
-        Objects.equals(b.getAppName(), "wds-%s".formatted(wdsServerConfiguration.getInstanceId()))
+        Objects.equals(b.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
             ? 1
             : 0;
     if (nameScoreA != nameScoreB) {
@@ -70,8 +72,8 @@ public class AppUtils {
     // running, there should only be one app RUNNING
     // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an
     // OK state for WDS
-    List<AppStatus> healthyStates =
-        List.of(
+    Set<AppStatus> healthyStates =
+        EnumSet.of(
             AppStatus.RUNNING,
             AppStatus.PROVISIONING,
             AppStatus.STARTING,
@@ -82,7 +84,7 @@ public class AppUtils {
         apps.stream()
             .filter(
                 app ->
-                    Objects.equals(app.getWorkspaceId(), wdsServerConfiguration.getInstanceId())
+                    Objects.equals(app.getWorkspaceId(), wdsServerConfiguration.instanceId())
                         && leonardoServerConfiguration.wdsAppTypes().contains(app.getAppType())
                         && healthyStates.contains(app.getStatus()))
             .toList();
@@ -96,8 +98,9 @@ public class AppUtils {
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {
     ListAppResponse foundApp = findBestAppForWds(apps);
+    @SuppressWarnings("unchecked")
     Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
-    if (foundApp.getStatus() == AppStatus.RUNNING) {
+    if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {
       return Optional.ofNullable(proxyUrls.get("wds"))
           .orElseThrow(
               () ->

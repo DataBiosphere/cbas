@@ -3,14 +3,14 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.cbas.dependencies.common.HealthCheckable;
+import bio.terra.cbas.dependencies.common.HealthCheck;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WdsService implements HealthCheckable {
+public class WdsService implements HealthCheck {
 
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
@@ -25,8 +25,8 @@ public class WdsService implements HealthCheckable {
     return wdsClient
         .recordsApi()
         .getRecord(
-            wdsServerConfiguration.getInstanceId(),
-            wdsServerConfiguration.getApiV(),
+            wdsServerConfiguration.instanceId(),
+            wdsServerConfiguration.apiV(),
             recordType,
             recordId);
   }
@@ -36,21 +36,16 @@ public class WdsService implements HealthCheckable {
     return wdsClient
         .recordsApi()
         .updateRecord(
-            request,
-            wdsServerConfiguration.getInstanceId(),
-            wdsServerConfiguration.getApiV(),
-            type,
-            id);
+            request, wdsServerConfiguration.instanceId(), wdsServerConfiguration.apiV(), type, id);
   }
 
   @Override
-  public HealthCheckResult checkHealth() {
+  public Result checkHealth() {
     try {
       var result = wdsClient.generalWdsInformationApi().versionGet();
-      return new HealthCheckResult(
-          true, "WDS version is %s".formatted(result.getBuild().getVersion()));
+      return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
     } catch (DependencyNotAvailableException | ApiException | AzureAccessTokenException e) {
-      return new HealthCheckResult(false, e.getMessage());
+      return new Result(false, e.getMessage());
     }
   }
 }
