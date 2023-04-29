@@ -26,13 +26,12 @@ public class PublicApiController implements PublicApi {
     scheduledHealthChecker
         .getHealthCheckStatuses()
         .forEach(
-            (serviceName, healthCheck) -> {
+            (serviceName, healthCheck) ->
               result.putSystemsItem(
                   serviceName,
                   new SystemStatusSystems()
                       .ok(healthCheck.isOk())
-                      .addMessagesItem(healthCheck.message()));
-            });
+                      .addMessagesItem(healthCheck.message())));
 
     return new ResponseEntity<>(result, HttpStatus.OK);
   }

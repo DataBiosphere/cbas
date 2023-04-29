@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
 public class CredentialLoader {
 
   private static final AzureProfile azureProfile = new AzureProfile(AzureEnvironment.AZURE);
-  private static final String tokenScope = "https://management.azure.com/.default";
+  private static final String TOKEN_SCOPE = "https://management.azure.com/.default";
 
   public enum CredentialType {
     AZURE_TOKEN
@@ -56,7 +56,7 @@ public class CredentialLoader {
 
   private TokenRequestContext tokenRequestContext() {
     TokenRequestContext trc = new TokenRequestContext();
-    trc.addScopes(tokenScope);
+    trc.addScopes(TOKEN_SCOPE);
     return trc;
   }
 

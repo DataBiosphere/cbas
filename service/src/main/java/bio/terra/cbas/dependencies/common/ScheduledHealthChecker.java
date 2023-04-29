@@ -40,7 +40,7 @@ public class ScheduledHealthChecker {
     healthCheckSystems.entrySet().stream()
         .parallel()
         .forEach(
-            (entry) -> {
+            entry -> {
               var health = entry.getValue().checkHealth();
               healthCheckStatuses.put(entry.getKey(), health);
               logger.info("Health check for {} is {}", entry.getKey(), health.isOk());
