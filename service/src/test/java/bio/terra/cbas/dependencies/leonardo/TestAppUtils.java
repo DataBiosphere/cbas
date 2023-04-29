@@ -85,9 +85,8 @@ class TestAppUtils {
   void preferWdsAppOverCromwell() throws Exception {
     List<ListAppResponse> apps =
         new java.util.ArrayList<>(List.of(separatedWdsApp, separatedWorkflowsApp));
-    // Shuffle to make sure the initial ordering isn't relevant:
-    Collections.shuffle(apps);
-    assertEquals(anticipatedWdsUrl("wds"), au.findUrlForWds(apps));
+
+    permuteAndTest(apps, anticipatedWdsUrl("wds"));
   }
 
   @Test
@@ -108,6 +107,14 @@ class TestAppUtils {
     Collections.shuffle(apps);
 
     assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForWds(apps));
+  }
+
+  private void permuteAndTest(List<ListAppResponse> apps, String expectedUrl) throws Exception {
+    int permutation = 0;
+    do {
+      Collections.rotate(apps, 1);
+      assertEquals(expectedUrl, au.findUrlForWds(apps));
+    } while (permutation++ < apps.size());
   }
 
   private String anticipatedWdsUrl(String appName) {

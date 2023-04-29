@@ -29,7 +29,16 @@ public class AppUtils {
   }
 
   int appComparisonFunction(ListAppResponse a, ListAppResponse b) {
-    // Name scores: correct name always wins
+
+    // First criteria: Prefer apps with the WDS app type.
+    // NB: Negative because lower index is better
+    int appTypeScoreA = -leonardoServerConfiguration.wdsAppTypes().indexOf(a.getAppType());
+    int appTypeScoreB = -leonardoServerConfiguration.wdsAppTypes().indexOf(b.getAppType());
+    if (appTypeScoreA != appTypeScoreB) {
+      return appTypeScoreA - appTypeScoreB;
+    }
+
+    // Second criteria: Prefer apps with the WDS name
     int nameScoreA =
         Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
             ? 1
@@ -40,13 +49,6 @@ public class AppUtils {
             : 0;
     if (nameScoreA != nameScoreB) {
       return nameScoreA - nameScoreB;
-    }
-
-    // Second criteria: Prefer apps higher up in AppName precedence (+100/200/...)
-    int appTypeScoreA = leonardoServerConfiguration.wdsAppTypes().indexOf(a.getAppType());
-    int appTypeScoreB = leonardoServerConfiguration.wdsAppTypes().indexOf(b.getAppType());
-    if (appTypeScoreA != appTypeScoreB) {
-      return appTypeScoreA - appTypeScoreB;
     }
 
     // Third criteria: tie-break on whichever is older
