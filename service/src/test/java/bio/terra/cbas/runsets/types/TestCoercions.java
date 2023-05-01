@@ -6,8 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionArray;
+import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
+import bio.terra.cbas.model.StructField;
+import java.util.HashMap;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -94,5 +98,34 @@ class TestCoercions {
                             .type(ParameterTypeDefinition.TypeEnum.PRIMITIVE))
                     .type(ParameterTypeDefinition.TypeEnum.ARRAY),
                 input));
+  }
+
+  @Test
+  void testValidOptionalInStruct() throws Exception {
+    HashMap<String, String> input = new HashMap<>();
+    input.put("foo", "notbar");
+    var actual =
+        CbasValue.parseValue(
+            new ParameterTypeDefinitionStruct()
+                .fields(
+                    List.of(
+                        new StructField()
+                            .fieldName("foo")
+                            .fieldType(
+                                new ParameterTypeDefinitionOptional()
+                                    .optionalType(
+                                        new ParameterTypeDefinitionPrimitive()
+                                            .primitiveType(PrimitiveParameterValueType.STRING))),
+                        new StructField()
+                            .fieldName("bar")
+                            .fieldType(
+                                new ParameterTypeDefinitionOptional()
+                                    .optionalType(
+                                        new ParameterTypeDefinitionPrimitive()
+                                            .primitiveType(PrimitiveParameterValueType.STRING)))))
+                .type(ParameterTypeDefinition.TypeEnum.STRUCT),
+            input);
+
+    assertEquals(input, actual.asSerializableValue());
   }
 }

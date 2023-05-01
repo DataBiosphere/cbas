@@ -1,5 +1,6 @@
 package bio.terra.cbas.runsets.types;
 
+import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.StructField;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ public class CbasStruct implements CbasValue {
           coercedValues.put(
               field.getFieldName(),
               CbasValue.parseValue(field.getFieldType(), valueMap.get(field.getFieldName())));
+        } else if (field.getFieldType() instanceof ParameterTypeDefinitionOptional) {
+          // "do nothing"
         } else {
           throw new ValueCoercionException(
               values,
