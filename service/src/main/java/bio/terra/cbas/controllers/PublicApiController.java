@@ -27,11 +27,11 @@ public class PublicApiController implements PublicApi {
         .getHealthCheckStatuses()
         .forEach(
             (serviceName, healthCheck) ->
-              result.putSystemsItem(
-                  serviceName,
-                  new SystemStatusSystems()
-                      .ok(healthCheck.isOk())
-                      .addMessagesItem(healthCheck.message())));
+                result.putSystemsItem(
+                    serviceName,
+                    new SystemStatusSystems()
+                        .ok(healthCheck.isOk())
+                        .addMessagesItem(healthCheck.message())));
 
     return new ResponseEntity<>(result, HttpStatus.OK);
   }
