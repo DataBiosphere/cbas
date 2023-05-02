@@ -20,8 +20,10 @@ public class LeonardoClient {
 
   public ApiClient getApiClient() throws AzureAccessTokenException {
     var apiClient = new ApiClient().setBasePath(leonardoServerConfiguration.baseUri());
-    apiClient.setAccessToken(
-        credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.addDefaultHeader(
+        "Authorization",
+        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.setDebugging(true);
     return apiClient;
   }
 }

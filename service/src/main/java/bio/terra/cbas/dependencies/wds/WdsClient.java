@@ -41,8 +41,10 @@ public class WdsClient {
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
-    apiClient.setAccessToken(
-        credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.addDefaultHeader(
+        "Authorization",
+        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.setDebugging(true);
     return apiClient;
   }
 

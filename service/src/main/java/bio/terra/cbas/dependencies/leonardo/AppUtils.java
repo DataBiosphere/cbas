@@ -126,7 +126,8 @@ public class AppUtils {
             () ->
                 new DependencyNotAvailableException(
                     "WDS",
-                    "No suitable, healthy app found for WDS (out of %s total apps in this workspace)".formatted(apps.size())));
+                    "No suitable, healthy app found for WDS (out of %s total apps in this workspace)"
+                        .formatted(apps.size())));
   }
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {
