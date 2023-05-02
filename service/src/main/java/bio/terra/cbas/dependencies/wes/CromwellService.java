@@ -1,6 +1,7 @@
 package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,11 +17,13 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CromwellService {
+public class CromwellService implements HealthCheck {
 
   private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
   private final CromwellServerConfiguration cromwellConfig;
+
+  private static final String API_VERSION = "v1";
 
   public CromwellService(
       CromwellClient cromwellClient, CromwellServerConfiguration cromwellConfig) {
@@ -55,7 +58,7 @@ public class CromwellService {
         cromwellConfig
             .workflowsApi()
             .queryGet(
-                "v1",
+                API_VERSION,
                 null,
                 null,
                 null,
@@ -82,7 +85,7 @@ public class CromwellService {
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
-    return cromwellConfig.womtoolApi().describe("v1", null, workflowUrl, null, null, null);
+    return cromwellConfig.womtoolApi().describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
   public String getRunErrors(Run run) throws ApiException {
@@ -90,7 +93,8 @@ public class CromwellService {
     WorkflowMetadataResponse meta =
         cromwellConfig
             .workflowsApi()
-            .metadata("v1", run.engineId(), Collections.singletonList("failure"), null, null);
+            .metadata(
+                API_VERSION, run.engineId(), Collections.singletonList("failure"), null, null);
 
     return getErrorMessage(meta.getFailures());
   }
@@ -126,5 +130,16 @@ public class CromwellService {
 
   public void cancelRun(Run run) throws ApiException {
     cromwellClient.wesAPI().cancelRun(run.engineId());
+  }
+
+  @Override
+  public Result checkHealth() {
+    try {
+      // No response, the successful return code is the important thing:
+      cromwellClient.engineApi().engineStatus("v1");
+      return new Result(true, "Cromwell was reachable");
+    } catch (ApiException e) {
+      return new Result(false, e.getMessage());
+    }
   }
 }
