@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.AppStatus;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,6 +22,8 @@ public class AppUtils {
 
   private final LeonardoServerConfiguration leonardoServerConfiguration;
   private final WdsServerConfiguration wdsServerConfiguration;
+
+  private static final Logger logger = LoggerFactory.getLogger(AppUtils.class);
 
   public AppUtils(
       LeonardoServerConfiguration leonardoServerConfiguration,
@@ -85,17 +89,44 @@ public class AppUtils {
     List<ListAppResponse> suitableApps =
         apps.stream()
             .filter(
-                app ->
-                    Objects.equals(app.getWorkspaceId(), wdsServerConfiguration.instanceId())
-                        && leonardoServerConfiguration.wdsAppTypes().contains(app.getAppType())
-                        && healthyStates.contains(app.getStatus()))
+                app -> {
+                  var a = Objects.equals(app.getWorkspaceId(), wdsServerConfiguration.instanceId());
+                  if (!a) {
+                    logger.info(
+                        "Not using app {} for WDS because it is in workspace {}, not {}",
+                        app.getAppName(),
+                        app.getWorkspaceId(),
+                        wdsServerConfiguration.instanceId());
+                  }
+                  var b = leonardoServerConfiguration.wdsAppTypes().contains(app.getAppType());
+                  if (!b) {
+                    logger.info(
+                        "Not using app {} for WDS because it is of type {}, not one of {}",
+                        app.getAppName(),
+                        app.getAppType(),
+                        leonardoServerConfiguration.wdsAppTypes());
+                  }
+                  var c = healthyStates.contains(app.getStatus());
+                  if (!c) {
+                    logger.info(
+                        "Not using app {} for WDS because it is in state {}, not one of {}",
+                        app.getAppName(),
+                        app.getStatus(),
+                        healthyStates);
+                  }
+
+                  return a && b && c;
+                })
             .toList();
 
     // Return the highest scoring app:
     return suitableApps.stream()
         .max(this::appComparisonFunction)
         .orElseThrow(
-            () -> new DependencyNotAvailableException("WDS", "No suitable, healthy app found"));
+            () ->
+                new DependencyNotAvailableException(
+                    "WDS",
+                    "No suitable, healthy app found for WDS (out of %s total apps in this workspace)".formatted(apps.size())));
   }
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {

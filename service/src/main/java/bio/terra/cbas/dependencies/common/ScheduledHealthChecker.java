@@ -43,7 +43,11 @@ public class ScheduledHealthChecker {
             entry -> {
               var health = entry.getValue().checkHealth();
               healthCheckStatuses.put(entry.getKey(), health);
-              logger.info("Health check for {} is {}", entry.getKey(), health.isOk());
+              logger.info(
+                  "Health check for {} is {}. Message: {}",
+                  entry.getKey(),
+                  health.isOk(),
+                  health.message());
             });
   }
 
