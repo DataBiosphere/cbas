@@ -1,4 +1,4 @@
-# Write a github action which validates that the PR name begins with a Jira tag
+# A github action to validate the name of a pull request begins with a Jira tag:
 
 name: Validate PR name
 
