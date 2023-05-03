@@ -193,7 +193,7 @@ jobs:
       - name: Fire off publish action
         uses: broadinstitute/workflow-dispatch@v1
         with:
-          workflow: publish
+          workflow: Publish and deploy
           inputs:
             jiraIdOverride: ${{ steps.ensure-jira-id.outputs.JIRA_ID }}
           token: ${{ secrets.BROADBOT_TOKEN }}
