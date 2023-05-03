@@ -195,5 +195,5 @@ jobs:
         with:
           workflow: Publish and deploy
           inputs:
-            jiraIdOverride: ${{ steps.ensure-jira-id.outputs.JIRA_ID }}
+            jiraId: ${{ steps.ensure-jira-id.outputs.JIRA_ID }}
           token: ${{ secrets.BROADBOT_TOKEN }}
