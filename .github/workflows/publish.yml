@@ -8,7 +8,7 @@ on:
     inputs:
       tagOverride:
         description: 'Specify the tag to use for this publish'
-        required: true
+        required: false
       jiraId:
         description: 'JIRA ticket number'
         required: true
