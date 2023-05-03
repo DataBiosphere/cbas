@@ -1,17 +1,12 @@
-name: Publish and deploy
+name: Tag and publish
 
 # Note: Adapted from terra-data-catalog.
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 on:
-  workflow_dispatch:
-    inputs:
-      tagOverride:
-        description: 'Specify the tag to use for this publish'
-        required: false
-      jiraId:
-        description: 'JIRA ticket number'
-        required: true
+  push:
+    branches: [ main ]
+    paths-ignore: [ '*.md' ]
 
 env:
   SERVICE_NAME: cbas
@@ -19,15 +14,33 @@ env:
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
-  publish-job:
-    if: startsWith(github.ref, 'refs/tags/') || github.event.inputs.tagOverride != ''
+  tag-and-publish-job:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
       id-token: 'write'
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Fetch Jira ID from commit message
+        id: ensure-jira-id
+        run: |
+          JIRA_ID=$(echo '${{ github.event.head_commit.message }}' | grep -Eo '\[?[A-Z][A-Z]+-[0-9]+\]?')
+          [[ -z "$JIRA_ID" ]] && { echo "No Jira ID found in $1" ; exit 1; }
+          echo ::set-output name=JIRA_ID::${JIRA_ID}
+      - name: Checkout current code
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.BROADBOT_TOKEN }} # this allows the push to succeed later
+      - name: Bump the tag to a new version
+        # https://github.com/DataBiosphere/github-actions/tree/master/actions/bumper
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
+        id: tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+          VERSION_FILE_PATH: settings.gradle
+          VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
@@ -35,23 +48,11 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Parse tag
-        # Sets up a step output called TAG with the appropriate tag
-        id: tag
-        run: |
-          TAG_OVERRIDE=${{ github.event.inputs.tagOverride }}
-          if [[ ! -z "${TAG_OVERRIDE}" ]]
-          then
-            echo ::set-output name=TAG::${TAG_OVERRIDE}
-          else
-            echo ::set-output name=TAG::$(git describe --tags)
-          fi
-
       - name: Construct dockerhub and GCR image names
         id: image-name
         run: |
-          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
-          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.TAG }}
+          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.tag }}
+          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.tag }}
 
       - name: Build image locally with jib
         run: |
@@ -108,7 +109,7 @@ jobs:
           git checkout main
           ls -la
           HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ steps.tag.outputs.TAG }}
+          HELM_NEW_TAG=${{ steps.tag.outputs.tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
           # prefixing search and replacement text with 'cbas' is needed to avoid replacing tag for cbas-ui
           # when both cbas and cbas-ui have the same image version
@@ -116,5 +117,5 @@ jobs:
           git diff
           git config --global user.name "broadbot"
           git config --global user.email "broadbot@broadinstitute.org"
-          git commit -am "${{ github.event.inputs.jiraId }}: Auto update CBAS version to $HELM_NEW_TAG"
+          git commit -am "${{ steps.ensure-jira-id.outputs.JIRA_ID }}: Auto update CBAS version to $HELM_NEW_TAG"
           git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
