@@ -4,13 +4,12 @@ name: Publish and deploy
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 on:
-  create:
   workflow_dispatch:
     inputs:
       tagOverride:
         description: 'Specify the tag to use for this publish'
         required: true
-      jiraIdOverride:
+      jiraId:
         description: 'JIRA ticket number'
         required: true
 
@@ -28,19 +27,6 @@ jobs:
       id-token: 'write'
 
     steps:
-      - name: Ensure that a Jira ID is present in the commit message
-        id: ensure-jira-id
-        run: |
-          JIRA_ID=${{ github.event.inputs.jiraIdOverride }}
-          if [[ ! -z "${JIRA_ID}" ]]
-          then
-            echo ::set-output name=JIRA_ID::${JIRA_ID}
-          else
-            JIRA_ID=$(echo '${{ github.event.head_commit.message }}' | grep -Eo '\[?[A-Z][A-Z]+-[0-9]+\]?')
-            [[ -z "$JIRA_ID" ]] && { echo "No Jira ID found in $1" ; exit 1; }
-            echo ::set-output name=JIRA_ID::${JIRA_ID}
-          fi
-
       - uses: actions/checkout@v2
       - name: Set up JDK
         uses: actions/setup-java@v2
@@ -130,5 +116,5 @@ jobs:
           git diff
           git config --global user.name "broadbot"
           git config --global user.email "broadbot@broadinstitute.org"
-          git commit -am "[${{ steps.ensure-jira-id.outputs.JIRA_ID }}] Auto update CBAS version to $HELM_NEW_TAG"
+          git commit -am "${{ github.event.inputs.jiraId }}: Auto update CBAS version to $HELM_NEW_TAG"
           git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
