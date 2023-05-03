@@ -194,6 +194,5 @@ jobs:
         uses: broadinstitute/workflow-dispatch@v1
         with:
           workflow: Publish and deploy
-          inputs:
-            jiraId: ${{ steps.ensure-jira-id.outputs.JIRA_ID }}
+          inputs: '{ "jiraId": "${{ steps.ensure-jira-id.outputs.JIRA_ID }}" }'
           token: ${{ secrets.BROADBOT_TOKEN }}
