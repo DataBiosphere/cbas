@@ -13,7 +13,7 @@ workflow test_all_engine_functions {
         Int int_out = run_read_int.out
         Float float_out = run_read_float.out
         Boolean boolean_out = run_read_boolean.out
-        Object json_out = run_read_json.out
+        String json_out = run_read_json.out.hello
     }
 }
 
