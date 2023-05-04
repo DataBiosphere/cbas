@@ -23,7 +23,7 @@ class TestAppUtils {
       new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"), 0, false);
 
   private final WdsServerConfiguration wdsServerConfiguration =
-      new WdsServerConfiguration("", workspaceId, "");
+      new WdsServerConfiguration("", workspaceId, "", false);
 
   private final ListAppResponse combinedWdsInCromwellApp;
   private final ListAppResponse otherNamedCromwellApp;
