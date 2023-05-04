@@ -4,7 +4,8 @@ import java.util.Optional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "wds")
-public record WdsServerConfiguration(String baseUri, String instanceId, String apiV) {
+public record WdsServerConfiguration(
+    String baseUri, String instanceId, String apiV, Boolean debugApiLogging) {
   public Optional<String> getBaseUri() {
     return Optional.ofNullable(baseUri);
   }

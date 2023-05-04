@@ -56,17 +56,20 @@ workflow-engines:
   cromwell:
     baseUri: "http://localhost:8000"
     healthUri: "http://localhost:8000/engine/v1/status"
+    debugApiLogging: false
 
 wds:
   # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
   #  baseUri: "http://localhost:8001"
   instanceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   apiV: "v0.2"
+  debugApiLogging: false
 
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
   wdsAppTypeNames: ['WDS', 'CROMWELL']
   dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
+  debugApiLogging: false
 
 credentials:
   azure:

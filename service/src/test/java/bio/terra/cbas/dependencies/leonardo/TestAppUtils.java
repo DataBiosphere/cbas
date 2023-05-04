@@ -20,7 +20,7 @@ class TestAppUtils {
   private final String workspaceId = UUID.randomUUID().toString();
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
-      new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"), 0);
+      new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"), 0, false);
 
   private final WdsServerConfiguration wdsServerConfiguration =
       new WdsServerConfiguration("", workspaceId, "");

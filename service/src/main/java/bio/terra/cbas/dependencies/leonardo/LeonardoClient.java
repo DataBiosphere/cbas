@@ -23,6 +23,7 @@ public class LeonardoClient {
     apiClient.addDefaultHeader(
         "Authorization",
         "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.setDebugging(leonardoServerConfiguration.debugApiLogging());
     return apiClient;
   }
 }
