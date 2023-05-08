@@ -82,6 +82,14 @@ public class RunDao {
                 currentTimestamp)));
   }
 
+  static String truncatedErrorMessage(String errorMessage) {
+    int maxChars = 1000;
+    if (errorMessage == null) {
+      return null;
+    }
+    return errorMessage.substring(0, Math.min(errorMessage.length(), maxChars));
+  }
+
   public int updateRunStatusWithError(
       UUID runId,
       CbasRunStatus newStatus,
