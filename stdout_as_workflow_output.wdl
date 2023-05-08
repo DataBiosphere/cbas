@@ -12,6 +12,9 @@ task create_stdout {
     command {
         echo "Hello World!"
     }
+    runtime {
+        docker: "ubuntu:latest"
+    }
     output {
         File my_stdout = stdout()
     }
