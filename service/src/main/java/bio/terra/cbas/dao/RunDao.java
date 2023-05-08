@@ -111,7 +111,7 @@ public class RunDao {
                 Run.LAST_POLLED_TIMESTAMP_COL,
                 currentTimestamp,
                 Run.ERROR_MESSAGES_COL,
-                updatedErrorMessage.substring(0, 999))));
+                truncatedErrorMessage(updatedErrorMessage))));
   }
 
   public int updateLastPolledTimestamp(UUID runID) {
