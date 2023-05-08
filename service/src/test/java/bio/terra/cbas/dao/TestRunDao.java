@@ -113,4 +113,34 @@ class TestRunDao {
             "status_5", "CANCELING"),
         actual.params());
   }
+
+  @Test
+  void truncateTooShortMessage() {
+    String message = "This is a short message";
+    String actual = RunDao.truncatedErrorMessage(message);
+    assertEquals(message, actual);
+    assertEquals(23, actual.length());
+  }
+
+  @Test
+  void truncateExactLengthMessage() {
+
+    String inputString = "a".repeat(1000);
+    String actual = RunDao.truncatedErrorMessage(inputString);
+
+    assertEquals(inputString, actual);
+    assertEquals(1000, actual.length());
+  }
+
+  @Test
+  void truncateTooLongMessage() {
+
+    String inputString = "a".repeat(1025);
+    String expectedString = "a".repeat(1000);
+
+    String actual = RunDao.truncatedErrorMessage(inputString);
+
+    assertEquals(expectedString, actual);
+    assertEquals(1000, actual.length());
+  }
 }
