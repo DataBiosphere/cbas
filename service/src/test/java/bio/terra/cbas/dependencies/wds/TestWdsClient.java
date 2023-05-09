@@ -22,7 +22,7 @@ class TestWdsClient {
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
     WdsServerConfiguration wdsServerConfiguration =
-        new WdsServerConfiguration("http://localhost:8001/wds", "instanceId", "apiV");
+        new WdsServerConfiguration("http://localhost:8001/wds", "instanceId", "apiV", false);
 
     when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
         .thenReturn("TOKEN");
@@ -36,7 +36,7 @@ class TestWdsClient {
   @Test
   void lookupWdsUrlWhenNecessary() throws Exception {
     WdsServerConfiguration wdsServerConfiguration =
-        new WdsServerConfiguration(null, "instanceId", "apiV");
+        new WdsServerConfiguration(null, "instanceId", "apiV", false);
     when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
         .thenReturn("TOKEN");
     when(dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL))

@@ -39,7 +39,7 @@ class TestDependencyUrlLoader {
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10));
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
 
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
@@ -61,7 +61,7 @@ class TestDependencyUrlLoader {
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10));
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
 
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
@@ -90,7 +90,7 @@ class TestDependencyUrlLoader {
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl1);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMillis(100));
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMillis(100), false);
 
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
@@ -120,7 +120,7 @@ class TestDependencyUrlLoader {
   void wrapsExceptionsFromLeonardo() throws Exception {
     when(leonardoService.getApps()).thenThrow(new ApiException("Bad Leonardo!"));
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10));
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
 
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
@@ -149,7 +149,7 @@ class TestDependencyUrlLoader {
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenThrow(dnae);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10));
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
 
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
