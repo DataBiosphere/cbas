@@ -30,6 +30,7 @@ public class SmartRunSetsPoller {
   private final RunDao runDao;
   private final RunSetDao runSetDao;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final RunSetAbortManager abortManager;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
 
@@ -37,11 +38,13 @@ public class SmartRunSetsPoller {
       SmartRunsPoller smartRunsPoller,
       RunSetDao runSetDao,
       RunDao runDao,
-      CbasApiConfiguration cbasApiConfiguration) {
+      CbasApiConfiguration cbasApiConfiguration,
+      RunSetAbortManager abortManager) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.smartRunsPoller = smartRunsPoller;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.abortManager = abortManager;
   }
 
   public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets) {
@@ -99,6 +102,29 @@ public class SmartRunSetsPoller {
       smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime));
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
+
+      if (rs.status() == CbasRunSetStatus.CANCELING) {
+        abortManager.abortRunSet(rs.runSetId());
+      }
+
+      List<Run> allRuns = runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), null));
+      int canceledRuns = 0;
+
+      for (Run run : allRuns) {
+        if (run.status() == CbasRunStatus.CANCELED) {
+          canceledRuns += 1;
+        }
+      }
+
+      if (canceledRuns == rs.runCount()) {
+        runSetDao.updateStateAndRunDetails(
+            rs.runSetId(),
+            CbasRunSetStatus.CANCELED,
+            rs.runCount(),
+            rs.errorCount(),
+            OffsetDateTime.now());
+      }
+
       if (newStatusAndCounts.status != rs.status()
           || !Objects.equals(newStatusAndCounts.runErrors, rs.errorCount())
           || !Objects.equals(newStatusAndCounts.totalRuns, rs.runCount())) {
