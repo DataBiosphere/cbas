@@ -105,24 +105,25 @@ public class SmartRunSetsPoller {
 
       if (rs.status() == CbasRunSetStatus.CANCELING) {
         abortManager.abortRunSet(rs.runSetId());
-      }
+        List<Run> allRuns = runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), null));
+        int canceledRuns = 0;
 
-      List<Run> allRuns = runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), null));
-      int canceledRuns = 0;
-
-      for (Run run : allRuns) {
-        if (run.status() == CbasRunStatus.CANCELED) {
-          canceledRuns += 1;
+        // Check how many runs in the run set are canceled; increment.
+        for (Run run : allRuns) {
+          if (run.status() == CbasRunStatus.CANCELED) {
+            canceledRuns += 1;
+          }
         }
-      }
-
-      if (canceledRuns == rs.runCount()) {
-        runSetDao.updateStateAndRunDetails(
-            rs.runSetId(),
-            CbasRunSetStatus.CANCELED,
-            rs.runCount(),
-            rs.errorCount(),
-            OffsetDateTime.now());
+        // If the total number of canceled runs is the same as the number of runs in the run set, then the
+        // entire run set is canceled.
+        if (canceledRuns == rs.runCount()) {
+          runSetDao.updateStateAndRunDetails(
+              rs.runSetId(),
+              CbasRunSetStatus.CANCELED,
+              rs.runCount(),
+              rs.errorCount(),
+              OffsetDateTime.now());
+        }
       }
 
       if (newStatusAndCounts.status != rs.status()
