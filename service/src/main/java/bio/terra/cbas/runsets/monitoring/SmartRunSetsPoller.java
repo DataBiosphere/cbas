@@ -114,8 +114,8 @@ public class SmartRunSetsPoller {
             canceledRuns += 1;
           }
         }
-        // If the total number of canceled runs is the same as the number of runs in the run set, then the
-        // entire run set is canceled.
+        // If the total number of canceled runs is the same as the number of runs in the run set,
+        // then the entire run set is canceled.
         if (canceledRuns == rs.runCount()) {
           runSetDao.updateStateAndRunDetails(
               rs.runSetId(),
