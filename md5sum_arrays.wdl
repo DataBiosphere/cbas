@@ -4,11 +4,13 @@ workflow md5sum_workflow {
     input {
         Array[File] files
     }
-    call md5sum_arrays_task {
-        input: f = files
+    scatter (i in range(15)) {
+        call md5sum_arrays_task {
+            input: f = files
+        }
     }
     output {
-        Array[String] checksums = md5sum_arrays_task.checksums
+        Array[String] checksums = flatten(md5sum_arrays_task.checksums)
     }
 }
 
