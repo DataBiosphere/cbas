@@ -22,6 +22,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,6 +57,7 @@ class VerifyPactsRunSetsApiController {
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
+  @MockBean private RunSetAbortManager abortManager;
   @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
