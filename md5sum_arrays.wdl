@@ -3,8 +3,9 @@ version 1.0
 workflow md5sum_workflow {
     input {
         Array[File] files
+      Int width
     }
-    scatter (i in range(15)) {
+    scatter (i in range(width)) {
         call md5sum_arrays_task {
             input: f = files
         }
