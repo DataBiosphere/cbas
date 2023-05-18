@@ -6,6 +6,7 @@ import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import java.util.Optional;
+import javax.ws.rs.client.Client;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
@@ -18,6 +19,8 @@ public class WdsClient {
   private final DependencyUrlLoader dependencyUrlLoader;
 
   private final CredentialLoader credentialLoader;
+
+  private final Client commonHttpClient = new ApiClient().getHttpClient();
 
   public WdsClient(
       WdsServerConfiguration wdsServerConfiguration,
@@ -45,6 +48,7 @@ public class WdsClient {
         "Authorization",
         "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
     apiClient.setDebugging(wdsServerConfiguration.debugApiLogging());
+    apiClient.setHttpClient(commonHttpClient);
     return apiClient;
   }
 

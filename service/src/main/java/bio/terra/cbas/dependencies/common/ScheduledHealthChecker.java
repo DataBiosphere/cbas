@@ -35,7 +35,9 @@ public class ScheduledHealthChecker {
             "leonardo", leonardoService);
   }
 
-  @Scheduled(fixedDelay = 5 * 60 * 1000)
+  @Scheduled(
+      fixedDelayString = "${cbas.scheduler.healthCheckIntervalSeconds}",
+      timeUnit = java.util.concurrent.TimeUnit.SECONDS)
   public void checkHealth() {
     healthCheckSystems.entrySet().stream()
         .parallel()

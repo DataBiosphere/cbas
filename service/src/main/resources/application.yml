@@ -51,6 +51,9 @@ cbas:
     minSecondsBetweenRunStatusPolls: 30
     maxSmartPollRunUpdateSeconds: 3
     maxSmartPollRunSetUpdateSeconds: 6
+  scheduler:
+    # How often to check downstream services for health:
+    healthCheckIntervalSeconds: 300
 
 workflow-engines:
   cromwell:
