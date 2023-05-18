@@ -59,6 +59,10 @@ task CountAlignments {
   command <<<
     set -e
     declare -a bam_files=(~{sep=' ' aligned_bam_inputs})
+    for bam_file in $bam_files
+    do
+      md5sum $bam_file
+    done
     declare -a output_prefix=(~{sep=' ' input_ids})
     for (( i=0; i<${#bam_files[@]}; ++i));
     do
