@@ -6,6 +6,7 @@ workflow testCountAlignments {
     Array[File] aligned_bam_inputs
     Array[String] input_ids
     File annotation_gtf
+    Int directory_size
 
     #runtime values
     String docker = "quay.io/humancellatlas/snss2-featurecount:0.1.0"
@@ -24,7 +25,8 @@ workflow testCountAlignments {
       machine_mem_mb = machine_mem_mb,
       cpu = cpu,
       disk = disk,
-      preemptible = preemptible
+      preemptible = preemptible,
+      directory_size = directory_size
   }
 
 }
@@ -35,6 +37,7 @@ task CountAlignments {
     Array[File] aligned_bam_inputs
     Array[String] input_ids
     File annotation_gtf
+    Int directory_size
 
     #runtime values
     String docker = "quay.io/humancellatlas/snss2-featurecount:0.1.0"
@@ -59,13 +62,16 @@ task CountAlignments {
   command <<<
     set -e
     declare -a bam_files=(~{sep=' ' aligned_bam_inputs})
-    for bam_file in $bam_files
-    do
-      md5sum $bam_file
-    done
+    echo ~{sep=' ' aligned_bam_inputs}
+    dir=$(printf 'a%.0s' {1..400})
+    mkdir $dir
+    mv ~{sep=' ' aligned_bam_inputs} $dir
+    declare -a bam_files=(${ls $dir})
+
     declare -a output_prefix=(~{sep=' ' input_ids})
     for (( i=0; i<${#bam_files[@]}; ++i));
     do
+      echo "file: ${bam_files[$i]}"
     # counting the introns
     featureCounts -M -p "${bam_files[$i]}" \
     -a ~{annotation_gtf} \
