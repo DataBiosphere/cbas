@@ -46,6 +46,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -565,10 +566,9 @@ class TestRunSetsApiController {
             OffsetDateTime.now(),
             null);
 
-    HashMap<String, List<String>> abortResults = new HashMap<>();
-    abortResults.put("Failed run IDs", List.of());
-    abortResults.put(
-        "Submitted Abort Workflows", List.of(run1.runId().toString(), run2.runId().toString()));
+    AbortRequestDetails abortResults = new AbortRequestDetails();
+    abortResults.setFailedIds(List.of());
+    abortResults.setSubmittedIds(List.of(run1.runId(), run2.runId()));
     when(abortManager.abortRunSet(returnedRunSet1Running.runSetId())).thenReturn(abortResults);
 
     MvcResult result =
@@ -643,9 +643,9 @@ class TestRunSetsApiController {
             OffsetDateTime.now(),
             null);
 
-    HashMap<String, List<String>> abortResults = new HashMap<>();
-    abortResults.put("Failed run IDs", List.of(run2.runId().toString()));
-    abortResults.put("Submitted Abort Workflows", List.of(run1.runId().toString()));
+    AbortRequestDetails abortResults = new AbortRequestDetails();
+    abortResults.setFailedIds(List.of(run2.runId().toString()));
+    abortResults.setSubmittedIds(List.of(run1.runId()));
     when(abortManager.abortRunSet(returnedRunSet1Running.runSetId())).thenReturn(abortResults);
 
     doThrow(

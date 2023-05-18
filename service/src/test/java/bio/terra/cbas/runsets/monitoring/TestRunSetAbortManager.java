@@ -117,10 +117,10 @@ class TestRunSetAbortManager {
     assertEquals(run2Running.status(), capturedRuns.get(1).status());
     assertEquals(run2Running.engineId(), capturedRuns.get(1).engineId());
 
-    assertEquals(List.of(), result.get("Failed run IDs"));
-    assertEquals(2, result.get("Submitted Abort Workflows").size());
-    assertEquals(runId1.toString(), result.get("Submitted Abort Workflows").get(0));
-    assertEquals(runId2.toString(), result.get("Submitted Abort Workflows").get(1));
+    assertEquals(List.of(), result.getAbortRequestFailedIds());
+    assertEquals(2, result.getAbortRequestSubmittedIds().size());
+    assertEquals(runId1, result.getAbortRequestSubmittedIds().get(0));
+    assertEquals(runId2, result.getAbortRequestSubmittedIds().get(1));
   }
 
   @Test
@@ -192,10 +192,10 @@ class TestRunSetAbortManager {
 
     var result = runSetAbortManager.abortRunSet(runSetId);
 
-    assertEquals(1, result.get("Failed run IDs").size());
-    assertEquals(1, result.get("Submitted Abort Workflows").size());
-    assertEquals(runId1.toString(), result.get("Submitted Abort Workflows").get(0));
-    assertEquals(runId2.toString(), result.get("Failed run IDs").get(0));
+    assertEquals(1, result.getAbortRequestFailedIds().size());
+    assertEquals(1, result.getAbortRequestSubmittedIds().size());
+    assertEquals(runId1, result.getAbortRequestSubmittedIds().get(0));
+    assertEquals(runId2.toString(), result.getAbortRequestFailedIds().get(0));
     assertNotSame(CANCELING, run2Running.status());
   }
 }

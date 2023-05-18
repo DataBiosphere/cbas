@@ -39,6 +39,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -244,9 +245,9 @@ public class RunSetsApiController implements RunSetsApi {
 
     aborted.runSetId(runSetId);
 
-    Map<String, List<String>> abortDetails = abortManager.abortRunSet(runSetId);
-    List<String> failedRunIds = abortDetails.get("Failed run IDs");
-    List<String> submittedAbortWorkflows = abortDetails.get("Submitted Abort Workflows");
+    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
+    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
 
     if (!failedRunIds.isEmpty()) {
       aborted.errors(

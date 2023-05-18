@@ -14,6 +14,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -104,25 +105,23 @@ public class SmartRunSetsPoller {
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
 
       if (rs.status() == CbasRunSetStatus.CANCELING) {
-        abortManager.abortRunSet(rs.runSetId());
-        List<Run> allRuns = runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), null));
-        int canceledRuns = 0;
+        // Check how many runs in the run set are canceled;
+        Map<CbasRunStatus, RunDao.StatusCountRecord> canceledRunSetRuns =
+            runDao.getRunStatusCounts(
+                new RunDao.RunsFilters(
+                    rs.runSetId(), Collections.singleton(CbasRunStatus.CANCELED)));
 
-        // Check how many runs in the run set are canceled; increment.
-        for (Run run : allRuns) {
-          if (run.status() == CbasRunStatus.CANCELED) {
-            canceledRuns += 1;
-          }
-        }
         // If the total number of canceled runs is the same as the number of runs in the run set,
         // then the entire run set is canceled.
-        if (canceledRuns == rs.runCount()) {
+        if (canceledRunSetRuns.values().size() == rs.runCount()) {
           runSetDao.updateStateAndRunDetails(
               rs.runSetId(),
               CbasRunSetStatus.CANCELED,
               rs.runCount(),
               rs.errorCount(),
               OffsetDateTime.now());
+        } else {
+          abortManager.abortRunSet(rs.runSetId());
         }
       }
 

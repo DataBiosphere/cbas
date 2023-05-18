@@ -11,9 +11,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +28,8 @@ public class RunSetAbortManager {
     this.cromwellService = cromwellService;
   }
 
-  public Map<String, List<String>> abortRunSet(UUID runSetId) {
+  public AbortRequestDetails abortRunSet(UUID runSetId) {
+    AbortRequestDetails abortDetails = new AbortRequestDetails();
 
     List<String> failedRunIds = new ArrayList<>();
 
@@ -48,13 +47,13 @@ public class RunSetAbortManager {
     // Get a list of workflows able to be canceled
     List<Run> runningWorkflows =
         runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
-    List<String> submittedAbortWorkflows = new ArrayList<>();
+    List<UUID> submittedAbortWorkflows = new ArrayList<>();
 
     for (Run run : runningWorkflows) {
       // Trying inside the for-loop in case a single run fails to be updated
       try {
         cromwellService.cancelRun(run);
-        submittedAbortWorkflows.add(run.runId().toString());
+        submittedAbortWorkflows.add(run.runId());
       } catch (cromwell.client.ApiException e) {
         String msg = "Unable to abort workflow %s.".formatted(run.runId());
         log.error(msg, e);
@@ -64,10 +63,32 @@ public class RunSetAbortManager {
       }
     }
 
-    Map<String, List<String>> failedAndSubmittedIds = new HashMap<>();
-    failedAndSubmittedIds.put("Failed run IDs", failedRunIds);
-    failedAndSubmittedIds.put("Submitted Abort Workflows", submittedAbortWorkflows);
+    abortDetails.setFailedIds(failedRunIds);
+    abortDetails.setSubmittedIds(submittedAbortWorkflows);
 
-    return failedAndSubmittedIds;
+    return abortDetails;
+  }
+
+  public static class AbortRequestDetails {
+
+    private List<String> abortRequestFailedIds = null;
+
+    private List<UUID> abortRequestSubmittedIds = null;
+
+    public List<String> getAbortRequestFailedIds() {
+      return abortRequestFailedIds;
+    }
+
+    public List<UUID> getAbortRequestSubmittedIds() {
+      return abortRequestSubmittedIds;
+    }
+
+    public void setFailedIds(List<String> failedIds) {
+      this.abortRequestFailedIds = failedIds;
+    }
+
+    public void setSubmittedIds(List<UUID> submittedIds) {
+      this.abortRequestSubmittedIds = submittedIds;
+    }
   }
 }
