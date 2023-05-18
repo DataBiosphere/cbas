@@ -63,7 +63,7 @@ task CountAlignments {
     set -e
     declare -a bam_files=(~{sep=' ' aligned_bam_inputs})
     echo ~{sep=' ' aligned_bam_inputs}
-    dir=$(printf 'a%.0s' {1..400})
+    dir=$(printf 'a%.0s' {1..~{directory_size}})
     mkdir $dir
     mv ~{sep=' ' aligned_bam_inputs} $dir
     declare -a bam_files=(${ls $dir})
