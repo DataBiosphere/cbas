@@ -37,9 +37,8 @@ public class ScheduledWdsClientRefresher {
       timeUnit = java.util.concurrent.TimeUnit.SECONDS)
   public void refreshClient() {
     synchronized (synchronizer) {
-      logger.debug("Refreshing client for {}.", clientName);
+      logger.debug("Refreshing client for {} and marking current client as retired.", clientName);
       if (currentClient != null) {
-        logger.debug("Marking current client as retired");
         retiredClients.add(currentClient);
       }
     }
@@ -55,7 +54,11 @@ public class ScheduledWdsClientRefresher {
       timeUnit = java.util.concurrent.TimeUnit.SECONDS)
   public void closeOldClients() {
     synchronized (synchronizer) {
-      logger.debug("Closing {} expired client(s) and marking {} retired clients as now expired for {}", expiredClients.size(), retiredClients.size(), clientName);
+      logger.debug(
+          "Closing {} expired client(s) and marking {} retired clients as now expired for {}",
+          expiredClients.size(),
+          retiredClients.size(),
+          clientName);
       for (Client client : expiredClients) {
         if (client != null) {
           client.close();
@@ -73,5 +76,13 @@ public class ScheduledWdsClientRefresher {
 
   public Client getCurrentClient() {
     return currentClient;
+  }
+
+  protected List<Client> getRetiredClients() {
+    return retiredClients;
+  }
+
+  protected List<Client> getExpiredClients() {
+    return expiredClients;
   }
 }
