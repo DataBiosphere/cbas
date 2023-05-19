@@ -6,7 +6,6 @@ import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import java.util.Optional;
-import javax.ws.rs.client.Client;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
@@ -20,15 +19,17 @@ public class WdsClient {
 
   private final CredentialLoader credentialLoader;
 
-  private final Client commonHttpClient = new ApiClient().getHttpClient();
+  private final ScheduledWdsClientRefresher scheduledWdsClientRefresher;
 
   public WdsClient(
       WdsServerConfiguration wdsServerConfiguration,
       DependencyUrlLoader dependencyUrlLoader,
-      CredentialLoader credentialLoader) {
+      CredentialLoader credentialLoader,
+      ScheduledWdsClientRefresher scheduledWdsClientRefresher) {
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.dependencyUrlLoader = dependencyUrlLoader;
     this.credentialLoader = credentialLoader;
+    this.scheduledWdsClientRefresher = scheduledWdsClientRefresher;
   }
 
   protected ApiClient getApiClient()
@@ -48,7 +49,7 @@ public class WdsClient {
         "Authorization",
         "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
     apiClient.setDebugging(wdsServerConfiguration.debugApiLogging());
-    apiClient.setHttpClient(commonHttpClient);
+    apiClient.setHttpClient(scheduledWdsClientRefresher.getCurrentClient());
     return apiClient;
   }
 

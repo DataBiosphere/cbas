@@ -28,7 +28,12 @@ class TestWdsClient {
         .thenReturn("TOKEN");
 
     RecordsApi recordsApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader).recordsApi();
+        new WdsClient(
+                wdsServerConfiguration,
+                dependencyUrlLoader,
+                credentialLoader,
+                new ScheduledWdsClientRefresher())
+            .recordsApi();
 
     assertEquals("http://localhost:8001/wds", recordsApi.getApiClient().getBasePath());
   }
@@ -43,7 +48,11 @@ class TestWdsClient {
         .thenReturn("https://my-wds-service:10101/wds");
 
     GeneralWdsInformationApi generalWdsInformationApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader)
+        new WdsClient(
+                wdsServerConfiguration,
+                dependencyUrlLoader,
+                credentialLoader,
+                new ScheduledWdsClientRefresher())
             .generalWdsInformationApi();
 
     assertEquals(
