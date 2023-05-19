@@ -66,7 +66,7 @@ task CountAlignments {
     dir=$(printf 'a%.0s' {1..~{directory_size}})
     mkdir $dir
     mv ~{sep=' ' aligned_bam_inputs} $dir
-    declare -a bam_files=(${ls $dir})
+    declare -a bam_files="$("ls ${dir}")"
 
     declare -a output_prefix=(~{sep=' ' input_ids})
     for (( i=0; i<${#bam_files[@]}; ++i));
