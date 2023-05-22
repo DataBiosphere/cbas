@@ -36,13 +36,15 @@ public class RunSetAbortManager {
     // Get the run set associated with runSetId
     RunSet runSet = runSetDao.getRunSet(runSetId);
 
-    // Update the run set to have a canceling state
-    runSetDao.updateStateAndRunDetails(
-        runSetId,
-        CbasRunSetStatus.CANCELING,
-        runSet.runCount(),
-        runSet.errorCount(),
-        OffsetDateTime.now());
+    // Update the run set to have a canceling state if not canceling
+    if (runSet.status() != CbasRunSetStatus.CANCELING && runSet.status().nonTerminal()) {
+      runSetDao.updateStateAndRunDetails(
+          runSetId,
+          CbasRunSetStatus.CANCELING,
+          runSet.runCount(),
+          runSet.errorCount(),
+          OffsetDateTime.now());
+    }
 
     // Get a list of workflows able to be canceled
     List<Run> runningWorkflows =
