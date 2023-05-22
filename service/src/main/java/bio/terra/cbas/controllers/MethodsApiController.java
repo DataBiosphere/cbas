@@ -1,11 +1,14 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.exceptions.DockstoreDescriptorException.DockstoreDescriptorNotFoundException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -29,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -51,9 +55,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
-
-  private static final List<String> SUPPORTED_URL_HOSTS =
-      new ArrayList<>(List.of("raw.githubusercontent.com"));
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -84,19 +85,51 @@ public class MethodsApiController implements MethodsApi {
 
     String methodSource = postMethodRequest.getMethodSource().toString();
 
+    // convert method url to raw GitHub url and use that to call Cromwell's /describe endpoint
+    String rawMethodUrl;
+    try {
+      rawMethodUrl =
+          MethodUtil.convertToRawGithubUrl(
+              postMethodRequest.getMethodUrl(),
+              postMethodRequest.getMethodSource(),
+              postMethodRequest.getMethodVersion());
+
+      // this could happen if there was no url or empty url received in the Dockstore workflow's
+      // descriptor response
+      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
+        String errorMsg =
+            "Error while importing Dockstore workflow. No workflow url found specified path.";
+        log.error(errorMsg);
+        return new ResponseEntity<>(
+            new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+      }
+    } catch (URISyntaxException | MalformedURLException e) {
+      // the flow shouldn't reach here since if it was invalid URL it should have been caught in
+      // method validation itself --> not true anymore
+      String errorMsg =
+          "Something went wrong while importing method. Error: %s".formatted(e.getMessage());
+      log.error(errorMsg, e);
+      return new ResponseEntity<>(
+          new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (UnsupportedEncodingException | DockstoreDescriptorNotFoundException e) {
+      String errorMsg =
+          "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
+      log.error(errorMsg, e);
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+    }
+
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
     WorkflowDescription workflowDescription;
     try {
-      workflowDescription = cromwellService.describeWorkflow(postMethodRequest.getMethodUrl());
+      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
             String.format(
                 "Bad user request. Method '%s' in invalid. Error(s): %s",
-                postMethodRequest.getMethodUrl(),
-                String.join(". ", workflowDescription.getErrors()));
+                rawMethodUrl, String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
         recordMethodCreationCompletion(
             methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
@@ -243,21 +276,26 @@ public class MethodsApiController implements MethodsApi {
     if (methodUrl == null || methodUrl.trim().isEmpty()) {
       errors.add("method_url is required");
     } else {
-      // verify that URL is valid, and it's host is supported
-      try {
-        URL url = new URI(methodUrl).toURL();
-        Pattern pattern =
-            Pattern.compile(
-                "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
-        boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
+      // we only verify if URL is valid for Github source. For Dockstore workflows a workflow path
+      // which is not completely a valid URL is sent as method url
+      // TODO - Saloni: should we ping dockstore to check if path is valid?
+      if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
+        // verify that URL is valid, and it's host is supported
+        try {
+          URL url = new URI(methodUrl).toURL();
+          Pattern pattern =
+              Pattern.compile(
+                  "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
+          boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
 
-        if (!doesUrlMatchPattern) {
-          errors.add("method_url is invalid. URL doesn't match pattern format");
-        } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
-          errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
+          if (!doesUrlMatchPattern) {
+            errors.add("method_url is invalid. URL doesn't match pattern format");
+          } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
+            errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
+          }
+        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+          errors.add("method_url is invalid. Reason: " + e.getMessage());
         }
-      } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-        errors.add("method_url is invalid. Reason: " + e.getMessage());
       }
     }
 

@@ -13,8 +13,10 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.common.exceptions.DockstoreDescriptorException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -25,6 +27,7 @@ import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -46,12 +49,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import cromwell.client.model.RunId;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -171,6 +178,40 @@ public class RunSetsApiController implements RunSetsApi {
     // Fetch existing method:
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
+    // convert method url to raw GitHub url and use that while calling Cromwell's submit workflow
+    // endpoint
+    String rawMethodUrl;
+    try {
+      rawMethodUrl =
+          MethodUtil.convertToRawGithubUrl(
+              methodVersion.url(),
+              Objects.requireNonNull(
+                  PostMethodRequest.MethodSourceEnum.fromValue(
+                      methodVersion.method().methodSource())),
+              methodVersion.name());
+
+      // this could happen if there was no url or empty url received in the Dockstore workflow's
+      // descriptor response
+      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
+        String errorMsg =
+            "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.";
+        log.error(errorMsg);
+        return new ResponseEntity<>(
+            new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
+      }
+    } catch (URISyntaxException
+        | MalformedURLException
+        | UnsupportedEncodingException
+        | DockstoreDescriptorException.DockstoreDescriptorNotFoundException e) {
+      // the flow shouldn't reach here since if it was invalid URL it should have been caught in
+      // when method was imported
+      String errorMsg =
+          "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
+      log.error(errorMsg, e);
+      return new ResponseEntity<>(
+          new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
     RunSet runSet;
@@ -205,7 +246,8 @@ public class RunSetsApiController implements RunSetsApi {
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
-        buildInputsAndSubmitRun(request, runSet, wdsRecordResponses.recordResponseList);
+        buildInputsAndSubmitRun(
+            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -426,7 +468,10 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private List<RunStateResponse> buildInputsAndSubmitRun(
-      RunSetRequest request, RunSet runSet, ArrayList<RecordResponse> recordResponses) {
+      RunSetRequest request,
+      RunSet runSet,
+      ArrayList<RecordResponse> recordResponses,
+      String rawMethodUrl) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     for (RecordResponse record : recordResponses) {
@@ -439,8 +484,7 @@ public class RunSetsApiController implements RunSetsApi {
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
         // Submit the workflow, get its ID and store the Run to database
-        workflowResponse =
-            cromwellService.submitWorkflow(runSet.methodVersion().url(), workflowInputs);
+        workflowResponse = cromwellService.submitWorkflow(rawMethodUrl, workflowInputs);
 
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
