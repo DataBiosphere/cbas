@@ -66,7 +66,7 @@ task CountAlignments {
     dir=$(printf 'a%.0s' {1..~{directory_size}})
     for bam_file in $bam_files
     do
-      result=$(basename "$bam_file”)
+      result=$(basename "$bam_file")
       ln -s $bam_file $result
     done
     declare -a bam_files=$(ls *bam)
