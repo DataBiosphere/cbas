@@ -7,7 +7,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
-import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
@@ -39,6 +38,8 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -73,6 +74,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
+  private final RunSetAbortManager abortManager;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -87,7 +89,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
-      UuidSource uuidSource) {
+      UuidSource uuidSource,
+      RunSetAbortManager abortManager) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
@@ -98,6 +101,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;
+    this.abortManager = abortManager;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -238,40 +242,12 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     AbortRunSetResponse aborted = new AbortRunSetResponse();
-    List<String> failedRunIds = new ArrayList<>();
-
-    // Get the run set associated with runSetId
-    RunSet runSet = runSetDao.getRunSet(runSetId);
-    // Update the run set to have a canceling state
-    runSetDao.updateStateAndRunDetails(
-        runSetId,
-        CbasRunSetStatus.CANCELING,
-        runSet.runCount(),
-        runSet.errorCount(),
-        OffsetDateTime.now());
 
     aborted.runSetId(runSetId);
 
-    // Get a list of workflows able to be canceled
-    List<Run> runningWorkflows =
-        runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
-    List<UUID> submittedAbortWorkflows = new ArrayList<>();
-
-    for (Run run : runningWorkflows) {
-      // Trying inside the for-loop in case a single run fails to be updated
-      try {
-        cromwellService.cancelRun(run);
-        submittedAbortWorkflows.add(run.runId());
-        // Update each run to have a 'canceling' run state
-        runDao.updateRunStatus(run.runId(), CbasRunStatus.CANCELING, OffsetDateTime.now());
-      } catch (cromwell.client.ApiException e) {
-        String msg = "Unable to abort workflow %s.".formatted(run.runId());
-        log.error(msg, e);
-        failedRunIds.add(run.runId().toString());
-        // Add the error message against the run
-        run.withErrorMessage(msg);
-      }
-    }
+    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
+    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
 
     if (!failedRunIds.isEmpty()) {
       aborted.errors(

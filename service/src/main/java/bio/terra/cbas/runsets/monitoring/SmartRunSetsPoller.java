@@ -14,6 +14,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class SmartRunSetsPoller {
   private final RunDao runDao;
   private final RunSetDao runSetDao;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final RunSetAbortManager abortManager;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
 
@@ -37,11 +39,13 @@ public class SmartRunSetsPoller {
       SmartRunsPoller smartRunsPoller,
       RunSetDao runSetDao,
       RunDao runDao,
-      CbasApiConfiguration cbasApiConfiguration) {
+      CbasApiConfiguration cbasApiConfiguration,
+      RunSetAbortManager abortManager) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.smartRunsPoller = smartRunsPoller;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.abortManager = abortManager;
   }
 
   public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets) {
@@ -99,6 +103,28 @@ public class SmartRunSetsPoller {
       smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime));
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
+
+      if (rs.status() == CbasRunSetStatus.CANCELING) {
+        // Check how many runs in the run set are canceled
+        Map<CbasRunStatus, RunDao.StatusCountRecord> canceledRunSetRuns =
+            runDao.getRunStatusCounts(
+                new RunDao.RunsFilters(
+                    rs.runSetId(), Collections.singleton(CbasRunStatus.CANCELED)));
+
+        // If the total number of canceled runs is the same as the number of runs in the run set,
+        // then the entire run set is canceled.
+        if (canceledRunSetRuns.values().size() == rs.runCount()) {
+          runSetDao.updateStateAndRunDetails(
+              rs.runSetId(),
+              CbasRunSetStatus.CANCELED,
+              rs.runCount(),
+              rs.errorCount(),
+              OffsetDateTime.now());
+        } else {
+          abortManager.abortRunSet(rs.runSetId());
+        }
+      }
+
       if (newStatusAndCounts.status != rs.status()
           || !Objects.equals(newStatusAndCounts.runErrors, rs.errorCount())
           || !Objects.equals(newStatusAndCounts.totalRuns, rs.runCount())) {
