@@ -105,7 +105,7 @@ public class SmartRunSetsPoller {
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
 
       if (rs.status() == CbasRunSetStatus.CANCELING) {
-        // Check how many runs in the run set are canceled;
+        // Check how many runs in the run set are canceled
         Map<CbasRunStatus, RunDao.StatusCountRecord> canceledRunSetRuns =
             runDao.getRunStatusCounts(
                 new RunDao.RunsFilters(
