@@ -4,10 +4,10 @@ import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
-import javax.ws.rs.ProcessingException;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.databiosphere.workspacedata.model.VersionResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -44,13 +44,17 @@ public class WdsService implements HealthCheck {
 
   @Override
   public Result checkHealth() {
+
     try {
-      var result = wdsClient.generalWdsInformationApi().versionGet();
+      WdsClientSupport.WdsFunction<VersionResponse> checkAction =
+          () -> {
+            return wdsClient.generalWdsInformationApi().versionGet();
+          };
+      VersionResponse result =
+          WdsClientSupport.withListenerResetRetry(checkAction, "WDS health check");
+
       return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
-    } catch (DependencyNotAvailableException
-        | ApiException
-        | AzureAccessTokenException
-        | ProcessingException e) {
+    } catch (Exception e) {
       logger.error("WDS health check failed", e);
       return new Result(false, e.getMessage());
     }
