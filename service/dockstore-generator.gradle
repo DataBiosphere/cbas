@@ -1,0 +1,33 @@
+dependencies {
+    // dependencies for generating Dockstore library
+//    implementation "com.fasterxml.jackson.core:jackson-core:2.9.9"
+//    implementation "com.fasterxml.jackson.core:jackson-annotations:2.9.9"
+//    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9"
+
+//    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9"
+//    implementation "org.openapitools:jackson-databind-nullable:0.2.1"
+//    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation 'io.swagger:swagger-annotations:1.5.22'
+}
+
+openApiGenerate {
+    generatorName = "java"
+    inputSpec = "$rootDir/common/dockstore-openapi.yml"
+    outputDir = "$rootDir/build/generated/sources/"
+    apiPackage = "org.dockstore.client"
+    modelPackage = "org.dockstore.client.model"
+    configOptions = [
+        dateLibrary: "java11",
+//        generateBuilders: "true",
+        library: "native",
+//        useRuntimeException: "true",
+//        generatePom: "false",
+//        sourceFolder: "$rootDir/../service/build/generated/sources/"
+    ]
+}
+
+String openApiGenerateOutputSrc = "$rootDir/build/generated/sources/src/main/java"
+
+idea.module.generatedSourceDirs = [file(openApiGenerateOutputSrc)]
+sourceSets.main.java.srcDir openApiGenerateOutputSrc
+compileJava.dependsOn tasks.openApiGenerate

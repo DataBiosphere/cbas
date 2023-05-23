@@ -1,6 +1,14 @@
 plugins {
+    id 'idea'
     id 'groovy-gradle-plugin'
+    id "org.openapi.generator" version "4.3.1"
 }
+
+//ext{
+//    outputDir = "$rootDir/../service/build/generated/sources/"
+//}
+
+//sourceSets.main.java.srcDirs += "$outputDir"
 
 repositories {
     maven {
@@ -28,4 +36,53 @@ dependencies {
     implementation 'bio.terra:terra-test-runner:0.1.4-SNAPSHOT'
     // This is required due to a dependency conflict between jib and srcclr. Removing it will cause jib to fail.
     implementation 'org.apache.commons:commons-compress:1.21'
+    // dependencies for generating Dockstore library
+    implementation "com.fasterxml.jackson.core:jackson-core:2.9.9"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:2.9.9"
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.9.9"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9"
+    implementation "org.openapitools:jackson-databind-nullable:0.2.1"
+    implementation "com.google.code.findbugs:jsr305:3.0.2"
+    implementation 'io.swagger:swagger-annotations:1.5.22'
 }
+
+//tasks.register('deleteExtraGeneratedDirectories', Delete) {
+//    delete ".openapi-generator"
+//    delete "api"
+////    delete "src"
+//}
+//
+//tasks.deleteExtraGeneratedDirectories.dependsOn tasks.openApiGenerate
+//compileJava.dependsOn tasks.deleteExtraGeneratedDirectories
+
+
+
+openApiGenerate {
+    generatorName = "java"
+    inputSpec = "$rootDir/../common/dockstore-openapi.yml"
+    outputDir = "$rootDir/../service/build/generated/sources/"
+    apiPackage = "org.dockstore.client"
+    modelPackage = "org.dockstore.client.model"
+    configOptions = [
+        dateLibrary: "java11",
+//        generateBuilders: "true",
+library: "native",
+//        useRuntimeException: "true",
+//        generatePom: "false",
+//        sourceFolder: "$rootDir/../service/build/generated/sources/"
+    ]
+}
+
+String openApiGenerateOutputSrc = "${openApiGenerate.outputDir}/src/main/java"
+
+sourceSets.main.java.srcDir openApiGenerateOutputSrc
+idea.module.generatedSourceDirs += [file("${openApiGenerate.outputDir}/src/main/java")]
+compileJava.dependsOn tasks.openApiGenerate
+
+//sourceSets  {
+//    main {
+//        java {
+//            srcDir(files("${openApiGenerate.outputDir.get()}/src/main/java"))
+//        }
+//    }
+//}
