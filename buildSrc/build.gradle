@@ -68,15 +68,21 @@ openApiGenerate {
 //        generateBuilders: "true",
 library: "native",
 //        useRuntimeException: "true",
-//        generatePom: "false",
+        generatePom: "false",
 //        sourceFolder: "$rootDir/../service/build/generated/sources/"
     ]
 }
 
-String openApiGenerateOutputSrc = "${openApiGenerate.outputDir}/src/main/java"
+//String openApiGenerateOutputSrc = "${openApiGenerate.outputDir}/src/main/java"
+//
+//sourceSets.main.java.srcDir openApiGenerateOutputSrc
+//idea.module.generatedSourceDirs += [file("${openApiGenerate.outputDir}/src/main/java")]
+//compileJava.dependsOn tasks.openApiGenerate
 
-sourceSets.main.java.srcDir openApiGenerateOutputSrc
-idea.module.generatedSourceDirs += [file("${openApiGenerate.outputDir}/src/main/java")]
+//String openApiGenerateOutputSrc = "$rootDir/../service/build/generated/sources/src/main/java"
+
+sourceSets.main.java.srcDirs += [file("$rootDir/../service/build/generated/sources/src/main/java")]
+idea.module.generatedSourceDirs += [file("$rootDir/../service/build/generated/sources/src/main/java")]
 compileJava.dependsOn tasks.openApiGenerate
 
 //sourceSets  {
