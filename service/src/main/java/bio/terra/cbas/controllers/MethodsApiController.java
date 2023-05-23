@@ -49,7 +49,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-//import org.dock
+import bio.terra.dockstore.api.Ga4Ghv1Api;
 
 @Controller
 public class MethodsApiController implements MethodsApi {
@@ -76,6 +76,8 @@ public class MethodsApiController implements MethodsApi {
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     long requestStartNanos = System.nanoTime();
+
+//    new Ga4Ghv1Api()
 
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);

@@ -7,14 +7,10 @@ plugins {
 
     id 'com.gorylenko.gradle-git-properties' version '2.3.1'
     id 'org.liquibase.gradle' version '2.1.0'
-
-//    id "org.openapi.generator" version "6.2.0"
-//    id "org.openapi.generator" version "6.6.0"
 }
 
 apply from: 'generators.gradle'
 apply from: 'publishing.gradle'
-//apply from: 'dockstore-generator.gradle'
 
 dependencies {
     implementation "com.google.guava:guava:31.0.1-jre"
@@ -38,6 +34,8 @@ dependencies {
     // azure dependencies
     implementation 'com.azure:azure-core-management:1.10.2'
     implementation 'com.azure:azure-identity:1.4.6'
+
+    implementation project(':dockstore-client')
 
     liquibaseRuntime 'org.liquibase:liquibase-core:3.10.0'
     liquibaseRuntime 'info.picocli:picocli:4.6.1'
