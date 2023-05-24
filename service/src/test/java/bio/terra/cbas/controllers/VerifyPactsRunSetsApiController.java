@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
@@ -17,9 +18,12 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
@@ -183,5 +187,57 @@ class VerifyPactsRunSetsApiController {
 
     when(smartRunSetsPoller.updateRunSets(response))
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 1, 1, true));
+  }
+
+  @State({"a response with UUID 20000000-0000-0000-0000-000000000002"})
+  public void postAbort() throws Exception {
+    UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
+    UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
+    RunSet runSetToBeCancelled =
+        new RunSet(
+            runSetId,
+            null,
+            null,
+            null,
+            null,
+            CbasRunSetStatus.RUNNING,
+            null,
+            null,
+            null,
+            1,
+            null,
+            null,
+            null,
+            null);
+
+    Run runToBeCancelled =
+        new Run(
+            runId,
+            UUID.randomUUID().toString(),
+            runSetToBeCancelled,
+            null,
+            null,
+            CbasRunStatus.RUNNING,
+            null,
+            null,
+            null);
+
+    AbortRunSetResponse response =
+        objectMapper.readValue(
+            """
+        {
+          run_set_id: "20000000-0000-0000-0000-000000000002",
+          runs: [
+          "30000000-0000-0000-0000-000000000003"
+              ],
+          state: CANCELING
+        }
+        """
+                .stripIndent()
+                .trim(),
+            AbortRunSetResponse.class);
+
+    verify(cromwellService).cancelRun(runToBeCancelled);
+    when(abortManager.abortRunSet(runSetId)).thenReturn(response);
   }
 }
