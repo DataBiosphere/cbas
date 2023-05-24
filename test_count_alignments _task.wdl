@@ -62,16 +62,15 @@ task CountAlignments {
   command <<<
     set -e
     declare -a bam_files=(~{sep=' ' aligned_bam_inputs})
-    declare -a output_prefix=(~{sep=' ' input_ids})
-
-    # move the bam files to get around the issue of long file paths causing a segfault in featureCounts
-    declare -a bam_files
-    for filepath in ${bam_file_paths[@]};
+    echo ~{sep=' ' aligned_bam_inputs}
+    for bam_file in $bam_files
     do
-    filename="$(basename $filepath)"
-    mv $filepath $filename
-    bam_files+=("$filename")
-    done;
+      result=$(basename "$bam_file")
+      ln -s $bam_file $result
+    done
+    declare -a bam_files=$(ls *bam)
+
+    declare -a output_prefix=(~{sep=' ' input_ids})
     for (( i=0; i<${#bam_files[@]}; ++i));
     do
       echo "file: ${bam_files[$i]}"
