@@ -83,8 +83,9 @@ class TestRunSetsApiController {
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
   private final UUID dockstoreMethodVersionId = UUID.randomUUID();
-  private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
-  private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/helloworld.wdl";
+  private final String workflowUrl =
+      "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
+  private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/hello.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
   private final String outputDefinitionAsString =
@@ -194,7 +195,7 @@ class TestRunSetsApiController {
                 "methoddescription",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "test method source"));
+                "GitHub"));
 
     when(methodVersionDao.getMethodVersion(methodVersionId))
         .thenReturn(
@@ -206,7 +207,7 @@ class TestRunSetsApiController {
                     "methoddescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "test method source"),
+                    "GitHub"),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),

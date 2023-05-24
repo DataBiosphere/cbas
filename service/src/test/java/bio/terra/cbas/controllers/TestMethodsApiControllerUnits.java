@@ -172,7 +172,7 @@ class TestMethodsApiControllerUnits {
         new ArrayList<>(
             List.of(
                 "method_name is required",
-                "method_source is required and should be one of: [GitHub]",
+                "method_source is required and should be one of: [GitHub, Dockstore]",
                 "method_version is required",
                 "method_url is required"));
 
@@ -210,7 +210,8 @@ class TestMethodsApiControllerUnits {
     invalidPostRequest.setMethodUrl("https://foo.net/abc/hello.wdl");
     List<String> expectedErrors =
         new ArrayList<>(
-            List.of("method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]"));
+            List.of(
+                "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]"));
 
     List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());

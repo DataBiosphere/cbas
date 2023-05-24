@@ -9,13 +9,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class MethodUtil {
   private static final String GITHUB_URL_HOST = "github.com";
   private static final String RAW_GITHUB_UTL_HOST = "raw.githubusercontent.com";
   public static final List<String> SUPPORTED_URL_HOSTS =
-      new ArrayList<>(List.of(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST));
+      new ArrayList<>(Arrays.asList(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST));
 
   public static String convertToRawGithubUrl(
       String originalUrl,
