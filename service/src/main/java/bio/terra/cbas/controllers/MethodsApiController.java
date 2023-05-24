@@ -8,11 +8,11 @@ import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCba
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
-import bio.terra.cbas.common.exceptions.DockstoreDescriptorException.DockstoreDescriptorNotFoundException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
@@ -49,22 +49,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import bio.terra.dockstore.api.Ga4Ghv1Api;
-
 @Controller
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
+  private final DockstoreService dockstoreService;
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
 
   public MethodsApiController(
       CromwellService cromwellService,
+      DockstoreService dockstoreService,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper) {
     this.cromwellService = cromwellService;
+    this.dockstoreService = dockstoreService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
@@ -77,7 +78,7 @@ public class MethodsApiController implements MethodsApi {
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     long requestStartNanos = System.nanoTime();
 
-//    new Ga4Ghv1Api()
+    //    new Ga4Ghv1Api()
 
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);
@@ -96,7 +97,8 @@ public class MethodsApiController implements MethodsApi {
           MethodUtil.convertToRawGithubUrl(
               postMethodRequest.getMethodUrl(),
               postMethodRequest.getMethodSource(),
-              postMethodRequest.getMethodVersion());
+              postMethodRequest.getMethodVersion(),
+              dockstoreService);
 
       // this could happen if there was no url or empty url received in the Dockstore workflow's
       // descriptor response
@@ -115,7 +117,7 @@ public class MethodsApiController implements MethodsApi {
       log.error(errorMsg, e);
       return new ResponseEntity<>(
           new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
-    } catch (UnsupportedEncodingException | DockstoreDescriptorNotFoundException e) {
+    } catch (UnsupportedEncodingException | bio.terra.dockstore.client.ApiException e) {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);

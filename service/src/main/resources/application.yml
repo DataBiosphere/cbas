@@ -71,13 +71,15 @@ leonardo:
   dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
   debugApiLogging: false
 
+dockstore:
+  baseUri: "https://staging.dockstore.org/api"
+
 credentials:
   azure:
     tokenAcquisitionTimeoutSeconds: 5
     tokenCacheTtlSeconds: 300 # Refresh every 5 minutes
     # For local testing, you can supply a manual token override to avoid token acquisition logic:
     manualTokenOverride: ""
-
 
 terra.common:
   tracing:

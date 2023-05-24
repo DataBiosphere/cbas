@@ -16,13 +16,13 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
-import bio.terra.cbas.common.exceptions.DockstoreDescriptorException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
@@ -45,6 +45,7 @@ import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
@@ -72,6 +73,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private final CromwellService cromwellService;
   private final WdsService wdsService;
+  private final DockstoreService dockstoreService;
   private final MethodVersionDao methodVersionDao;
   private final MethodDao methodDao;
   private final RunSetDao runSetDao;
@@ -87,6 +89,7 @@ public class RunSetsApiController implements RunSetsApi {
   public RunSetsApiController(
       CromwellService cromwellService,
       WdsService wdsService,
+      DockstoreService dockstoreService,
       ObjectMapper objectMapper,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
@@ -97,6 +100,7 @@ public class RunSetsApiController implements RunSetsApi {
       UuidSource uuidSource) {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
+    this.dockstoreService = dockstoreService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
@@ -188,7 +192,8 @@ public class RunSetsApiController implements RunSetsApi {
               Objects.requireNonNull(
                   PostMethodRequest.MethodSourceEnum.fromValue(
                       methodVersion.method().methodSource())),
-              methodVersion.name());
+              methodVersion.name(),
+              dockstoreService);
 
       // this could happen if there was no url or empty url received in the Dockstore workflow's
       // descriptor response
@@ -202,7 +207,7 @@ public class RunSetsApiController implements RunSetsApi {
     } catch (URISyntaxException
         | MalformedURLException
         | UnsupportedEncodingException
-        | DockstoreDescriptorException.DockstoreDescriptorNotFoundException e) {
+        | bio.terra.dockstore.client.ApiException e) {
       // the flow shouldn't reach here since if it was invalid URL it should have been caught in
       // when method was imported
       String errorMsg =
