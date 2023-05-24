@@ -3,7 +3,6 @@ package bio.terra.cbas.common;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.dockstore.model.ToolDescriptor;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,8 +22,7 @@ public final class MethodUtil {
       MethodSourceEnum methodSource,
       String methodVersion,
       DockstoreService dockstoreService)
-      throws URISyntaxException, MalformedURLException,
-          bio.terra.dockstore.client.ApiException {
+      throws URISyntaxException, MalformedURLException, bio.terra.dockstore.client.ApiException {
     return switch (methodSource) {
       case GITHUB -> {
         URL url = new URI(originalUrl).toURL();
