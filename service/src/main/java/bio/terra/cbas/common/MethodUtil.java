@@ -16,12 +16,14 @@ public final class MethodUtil {
   public static final List<String> SUPPORTED_URL_HOSTS =
       List.of(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST);
 
+  private MethodUtil() {}
+
   public static String convertToRawGithubUrl(
       String originalUrl,
       MethodSourceEnum methodSource,
       String methodVersion,
       DockstoreService dockstoreService)
-      throws URISyntaxException, MalformedURLException, UnsupportedEncodingException,
+      throws URISyntaxException, MalformedURLException,
           bio.terra.dockstore.client.ApiException {
     return switch (methodSource) {
       case GITHUB -> {

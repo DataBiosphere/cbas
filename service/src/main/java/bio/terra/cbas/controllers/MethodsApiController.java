@@ -112,7 +112,7 @@ public class MethodsApiController implements MethodsApi {
           "Bad user request. Method url has invalid value. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
-    } catch (UnsupportedEncodingException | bio.terra.dockstore.client.ApiException e) {
+    } catch (bio.terra.dockstore.client.ApiException e) {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);

@@ -25,7 +25,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 @WebMvcTest
 @ContextConfiguration(classes = MethodsApiController.class)
-public class TestMethodUtil {
+class TestMethodUtil {
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private MethodDao methodDao;

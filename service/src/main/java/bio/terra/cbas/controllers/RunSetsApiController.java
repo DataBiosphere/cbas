@@ -205,7 +205,6 @@ public class RunSetsApiController implements RunSetsApi {
       }
     } catch (URISyntaxException
         | MalformedURLException
-        | UnsupportedEncodingException
         | bio.terra.dockstore.client.ApiException e) {
       // the flow shouldn't reach here since if it was invalid URL it should have been caught in
       // when method was imported
