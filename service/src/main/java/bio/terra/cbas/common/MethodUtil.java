@@ -18,9 +18,12 @@ public final class MethodUtil {
       new ArrayList<>(List.of(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST));
 
   public static String convertToRawGithubUrl(
-      String originalUrl, MethodSourceEnum methodSource, String methodVersion, DockstoreService dockstoreService)
+      String originalUrl,
+      MethodSourceEnum methodSource,
+      String methodVersion,
+      DockstoreService dockstoreService)
       throws URISyntaxException, MalformedURLException, UnsupportedEncodingException,
-      bio.terra.dockstore.client.ApiException {
+          bio.terra.dockstore.client.ApiException {
     return switch (methodSource) {
       case GITHUB -> {
         URL url = new URI(originalUrl).toURL();

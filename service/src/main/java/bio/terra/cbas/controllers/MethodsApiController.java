@@ -78,8 +78,6 @@ public class MethodsApiController implements MethodsApi {
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     long requestStartNanos = System.nanoTime();
 
-    //    new Ga4Ghv1Api()
-
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);
     if (!validationErrors.isEmpty()) {
@@ -104,19 +102,16 @@ public class MethodsApiController implements MethodsApi {
       // descriptor response
       if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
         String errorMsg =
-            "Error while importing Dockstore workflow. No workflow url found specified path.";
+            "Error while importing Dockstore workflow. No workflow url found at specified path.";
         log.error(errorMsg);
         return new ResponseEntity<>(
             new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
       }
     } catch (URISyntaxException | MalformedURLException e) {
-      // the flow shouldn't reach here since if it was invalid URL it should have been caught in
-      // method validation itself --> not true anymore
       String errorMsg =
-          "Something went wrong while importing method. Error: %s".formatted(e.getMessage());
+          "Bad user request. Method url has invalid value. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
-      return new ResponseEntity<>(
-          new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     } catch (UnsupportedEncodingException | bio.terra.dockstore.client.ApiException e) {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
@@ -282,9 +277,9 @@ public class MethodsApiController implements MethodsApi {
     if (methodUrl == null || methodUrl.trim().isEmpty()) {
       errors.add("method_url is required");
     } else {
-      // we only verify if URL is valid for Github source. For Dockstore workflows a workflow path
-      // which is not completely a valid URL is sent as method url
-      // TODO - Saloni: should we ping dockstore to check if path is valid?
+      // we only verify if URL is valid for GitHub source here. For Dockstore methods a workflow
+      // path which is not completely a valid URL is sent as method url, and it's validity is
+      // checked while fetching the raw GitHub url for the workflow path
       if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
         // verify that URL is valid, and it's host is supported
         try {

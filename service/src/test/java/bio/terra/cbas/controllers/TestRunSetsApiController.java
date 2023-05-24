@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,6 +30,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
@@ -48,6 +50,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
@@ -80,7 +83,9 @@ class TestRunSetsApiController {
   private static final String API_ABORT = "/api/batch/v1/run_sets/abort";
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
+  private final UUID dockstoreMethodVersionId = UUID.randomUUID();
   private final String workflowUrl = "www.example.com/wdls/helloworld.wdl";
+  private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/helloworld.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
   private final String outputDefinitionAsString =
@@ -139,6 +144,7 @@ class TestRunSetsApiController {
   // later):
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
+  @MockBean private DockstoreService dockstoreService;
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
@@ -176,6 +182,11 @@ class TestRunSetsApiController {
     workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
     workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
 
+    ToolDescriptor mockToolDescriptor = new ToolDescriptor();
+    mockToolDescriptor.setDescriptor("mock descriptor");
+    mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
+    mockToolDescriptor.setUrl(workflowUrl);
+
     when(methodDao.getMethod(methodId))
         .thenReturn(
             new Method(
@@ -203,6 +214,23 @@ class TestRunSetsApiController {
                 null,
                 workflowUrl));
 
+    when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
+        .thenReturn(
+            new MethodVersion(
+                dockstoreMethodVersionId,
+                new Method(
+                    methodId,
+                    "dockstore method name",
+                    "dockstore method description",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "Dockstore"),
+                "develop",
+                "version description",
+                OffsetDateTime.now(),
+                null,
+                dockstoreWorkflowUrl));
+
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
         .thenReturn(
@@ -213,6 +241,9 @@ class TestRunSetsApiController {
     when(wdsService.getRecord(recordType, recordId3))
         .thenReturn(
             new RecordResponse().type(recordType).id(recordId3).attributes(recordAttributes3));
+
+    when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
+        .thenReturn(mockToolDescriptor);
 
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1)))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
@@ -281,6 +312,37 @@ class TestRunSetsApiController {
     assertThat(
         newRunCaptor.getValue().submissionTimestamp(),
         greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
+  void postRunSetRequestForDockstoreWorkflow() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            dockstoreMethodVersionId,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\" ]".formatted(recordId1));
+
+    when(runDao.createRun(any())).thenReturn(1);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    // verify dockstoreService and cromwellService methods were called with expected params
+    verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
+    verify(cromwellService).submitWorkflow(eq(workflowUrl), any());
+
+    assertNull(response.getErrors());
   }
 
   @Test
