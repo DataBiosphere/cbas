@@ -191,7 +191,7 @@ class VerifyPactsRunSetsApiController {
 
   @State({"a run set with UUID 20000000-0000-0000-0000-000000000002 exists"})
   public void postAbort() throws Exception {
-    UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
+    UUID runSetId = UUID.randomUUID(); // UUID.fromString("20000000-0000-0000-0000-000000000002");
     UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
     RunSet runSetToBeCancelled =
         new RunSet(
@@ -225,26 +225,11 @@ class VerifyPactsRunSetsApiController {
     AbortRequestDetails abortDetails = new AbortRequestDetails();
     abortDetails.setFailedIds(List.of());
     abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
-    //    AbortRunSetResponse response =
-    //        objectMapper.readValue(
-    //            """
-    //        {
-    //          run_set_id: "20000000-0000-0000-0000-000000000002",
-    //          runs: [
-    //          "30000000-0000-0000-0000-000000000003"
-    //              ],
-    //          state: CANCELING
-    //        }
-    //        """
-    //                .stripIndent()
-    //                .trim(),
-    //            AbortRunSetResponse.class);
 
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
-    // verify(cromwellService).cancelRun(runToBeCancelled);
     when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
   }
 }
