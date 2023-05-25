@@ -15,11 +15,14 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
     - DSP-issued workstations should have everything pre-configured
   - If the command is not found, run `brew install git-secrets`
   - If there are no rules, use the script [here](https://github.com/broadinstitute/dsp-appsec-gitsecrets-client#setup) to add them
-- Install Postgres 13.1: https://www.postgresql.org/download/
+- Install Postgres 13: https://www.postgresql.org/download/
   - [The app](https://postgresapp.com/downloads.html) may be easier, just make sure to download the right version. It'll manage things for you and has a useful menulet where the server can be turned on and off. Don't forget to create a server if you go this route.
 - Install Adoptium Java 17 (Temurin). Here's an easy way on Mac, using [jEnv](https://www.jenv.be/) to manage the active version:
 
     ```sh
+    # if on Mac, you may need to install Terminal developer tools first
+    xcode-select --install
+
     brew install jenv
     # follow postinstall instructions to activate jenv...
 
@@ -44,11 +47,16 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 - Convenient app setup:
   Install [the convenient app](https://postgresapp.com/), and create a database called `bio.terra.batchanalysis`.
 
+Make sure to use the correct version, as noted above.
+
 #### Initialize your database:
 ```sh
 psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
 ```
-***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/latest/bin/psql`
+***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/13/bin/psql`. To add Postgres commands to your path, run the following command:
+```sh
+sudo mkdir -p /etc/paths.d && echo /Applications/Postgres.app/Contents/Versions/13/bin | sudo tee /etc/paths.d/postgresapp
+```
 
 
 ### Dependencies
@@ -65,12 +73,13 @@ CREATE DATABASE wds;
 Start a WDS container with the following command:
 Replace [YOUR_USERNAME] with something like mspector
 
-```
+```sh
 docker run \
   --name "WDS_6786552" \
   -e WDS_DB_HOST='host.docker.internal' \
   -e WDS_DB_USER='[YOUR_USERNAME]' \
-  -p 8001:8080 us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:d8ad0a4
+  -e SAM_URL=https://sam.dsde-dev.broadinstitute.org/ \
+  -p 8001:8080 us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service:0.2.57
 ```
 
 A few notes:
@@ -78,16 +87,16 @@ A few notes:
 - At the time of this writing, `us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service` does not have an image with the `latest` tag. Take care to specify the intended tag!
 
 
-With the container running, initialize an instance with e.g. UUID `00000000-0000-0000-0000-000000000000`:
-```
+With the container running, initialize an instance with any UUID, e.g. UUID `00000000-0000-0000-0000-000000000000`:
+```sh
 curl -X 'POST' \
-  'http://localhost:8001/00000000-0000-0000-0000-000000000000/v0.2/' \
+  'http://localhost:8001/instances/v0.2/00000000-0000-0000-0000-000000000000/' \
   -H 'accept: */*' \
   -d ''
 ```
 
-Then add a record `FOO1` of type `FOO` to instance `00000000-0000-0000-0000-000000000000`:
-```
+Then add a record `FOO1` of type `FOO` to the instance you just created. Make sure to use the same UUID:
+```sh
 curl -X 'PUT' \
   'http://localhost:8001/00000000-0000-0000-0000-000000000000/records/v0.2/FOO/FOO1' \
   -H 'accept: */*' \
@@ -102,17 +111,33 @@ curl -X 'PUT' \
 In the `wds` database, the record will be written to a schema with the same name as the instance ID.
 Select that schema with the following SQL command (for e.g. the instance ID `00000000-0000-0000-0000-000000000000`):
 
-```
+```sql
 SET search_path TO "00000000-0000-0000-0000-000000000000";
 ```
 
+This command needs to be run each time you wish to directly query the database. To set it
+permanently, you can run the following command with your instance ID:
+
+```sql
+ALTER DATABASE wds SET search_path TO "00000000-0000-0000-0000-000000000000";
+```
+
 Then, run the Postgres command `\dt` to show the existing tables.
+You can then use psql commands to view items in the table `FOO`:
+
+```
+SELECT * FROM "FOO";
+```
+
+You should see a row with name `FOO1` and `foo_rating` 1000.
 
 ## Running
 
 ### Running Tests
 
-Unit tests will run on build.  Integration tests can be run by following the instructions in the [integration README](/integration/README.md).
+All unit tests can be run with a Gradle configuration that runs `:service:unitTest`. If you get a message
+`Test events were not received`, this means nothing has changed since the previous test run.
+Integration tests can be run by following the instructions in the [integration README](./integration/README.md).
 
 ### Running The Service Locally
 
@@ -141,7 +166,8 @@ Then navigate to the Swagger: `http://localhost:8080/swagger-ui.html`
 - Check out [gng](https://github.com/gdubw/gng), it'll save you typing `./gradlew` over
   and over, and also takes care of knowing when you're not in the root directory so you
   don't have to figure out the appropriate number of `../`s.
-- In IntelliJ, instead of running the local server with `bootRun`, use the `TerraBatchAnalysisApplication` Spring
-  Boot configuration that IntelliJ auto-generates. To edit it, click on it (in the upper
+- In IntelliJ, instead of running the local server with `bootRun`, use the Spring
+  Boot configuration that IntelliJ auto-generates (`-cp cbas.service.main`, main class
+  `bio.terra.cbas.App`). To edit it, click on it (in the upper
   right of the window), and click `Edit Configurations`.
     - For readable logs, put `human-readable-logging` in the `Active Profiles` field.
