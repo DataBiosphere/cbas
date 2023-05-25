@@ -83,7 +83,8 @@ public class WdsService implements HealthCheck {
     // Why all this song and dance to catch exceptions and map them to almost identical exceptions?
     // Because the RetryTemplate's execute function only allows us to declare one Throwable type.
     // So we have a top-level WdsServiceException that we can catch and handle, and then we have
-    // subclasses of that exception representing the types of exception that can be thrown. This way,
+    // subclasses of that exception representing the types of exception that can be thrown. This
+    // way,
     // we can keep well typed exceptions (no "catch (Exception e)") and still make use of the
     // retry framework.
     return retryTemplate.execute(
