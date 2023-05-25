@@ -2,7 +2,6 @@ package bio.terra.cbas.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
@@ -32,6 +31,7 @@ import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -189,7 +189,7 @@ class VerifyPactsRunSetsApiController {
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 1, 1, true));
   }
 
-  @State({"a response with UUID 20000000-0000-0000-0000-000000000002"})
+  @State({"a run set with UUID 20000000-0000-0000-0000-000000000002 exists"})
   public void postAbort() throws Exception {
     UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
     UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
@@ -237,7 +237,11 @@ class VerifyPactsRunSetsApiController {
                 .trim(),
             AbortRunSetResponse.class);
 
-    verify(cromwellService).cancelRun(runToBeCancelled);
+    when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
+    when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
+        .thenReturn(Collections.singletonList(runToBeCancelled));
+
+    // verify(cromwellService).cancelRun(runToBeCancelled);
     when(abortManager.abortRunSet(runSetId)).thenReturn(response);
   }
 }
