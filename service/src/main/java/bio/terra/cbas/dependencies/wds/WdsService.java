@@ -67,7 +67,7 @@ public class WdsService implements HealthCheck {
           executionWithRetryTemplate(
               listenerResetRetryTemplate, () -> wdsClient.generalWdsInformationApi().versionGet());
       return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
-    } catch (Exception e) {
+    } catch (WdsServiceException e) {
       logger.error("WDS health check failed", e);
       return new Result(false, e.getMessage());
     }
@@ -79,6 +79,13 @@ public class WdsService implements HealthCheck {
 
   public static <T> T executionWithRetryTemplate(RetryTemplate retryTemplate, WdsAction<T> action)
       throws WdsServiceException {
+
+    // Why all this song and dance to catch exceptions and map them to almost identical exceptions?
+    // Because the RetryTemplate's execute function only allows us to declare one Throwable type.
+    // So we have a top-level WdsServiceException that we can catch and handle, and then we have
+    // subclasses of that exception representing the types of exception that can be thrown. This way,
+    // we can keep well typed exceptions (no "catch (Exception e)") and still make use of the
+    // retry framework.
     return retryTemplate.execute(
         context -> {
           try {
