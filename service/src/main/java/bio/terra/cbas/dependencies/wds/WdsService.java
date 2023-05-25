@@ -8,7 +8,6 @@ import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.databiosphere.workspacedata.model.VersionResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +17,17 @@ public class WdsService implements HealthCheck {
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
 
-  @Autowired private RetryTemplate listenerResetRetryTemplate;
+  private final RetryTemplate listenerResetRetryTemplate;
 
   private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WdsService.class);
 
-  public WdsService(WdsClient wdsClient, WdsServerConfiguration wdsServerConfiguration) {
+  public WdsService(
+      WdsClient wdsClient,
+      WdsServerConfiguration wdsServerConfiguration,
+      RetryTemplate listenerResetRetryTemplate) {
     this.wdsClient = wdsClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
+    this.listenerResetRetryTemplate = listenerResetRetryTemplate;
   }
 
   public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {
