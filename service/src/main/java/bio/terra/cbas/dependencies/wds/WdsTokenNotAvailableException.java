@@ -10,7 +10,7 @@ public class WdsTokenNotAvailableException extends WdsServiceException {
   }
 
   @Override
-  public AzureAccessTokenException getCause() {
+  public synchronized AzureAccessTokenException getCause() {
     return exception;
   }
 }

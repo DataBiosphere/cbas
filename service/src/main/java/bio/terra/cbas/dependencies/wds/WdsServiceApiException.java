@@ -10,7 +10,7 @@ public class WdsServiceApiException extends WdsServiceException {
   }
 
   @Override
-  public ApiException getCause() {
+  public synchronized ApiException getCause() {
     return exception;
   }
 }

@@ -10,7 +10,7 @@ public class WdsServiceNotAvailableException extends WdsServiceException {
   }
 
   @Override
-  public DependencyNotAvailableException getCause() {
+  public synchronized DependencyNotAvailableException getCause() {
     return exception;
   }
 }
