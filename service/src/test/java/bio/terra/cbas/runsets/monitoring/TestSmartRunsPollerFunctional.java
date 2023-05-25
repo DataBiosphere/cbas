@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
@@ -348,14 +349,16 @@ public class TestSmartRunsPollerFunctional {
     when(cromwellService.getOutputs(runningRunEngineId1)).thenReturn(parseRunLog.getOutputs());
     when(wdsService.updateRecord(
             mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId()))
-        .thenThrow(new org.databiosphere.workspacedata.client.ApiException("Bad WDS update"));
+        .thenThrow(
+            new WdsServiceApiException(
+                new org.databiosphere.workspacedata.client.ApiException("Bad WDS update")));
     when(runsDao.updateRunStatusWithError(eq(runningRunId1), eq(SYSTEM_ERROR), any(), any()))
         .thenReturn(1);
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     String expectedErrorMessage =
-        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Bad WDS update"
+        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): WdsServiceApiException: Bad WDS update"
             .formatted(runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId());
     verify(runsDao)
         .updateRunStatusWithError(
