@@ -15,15 +15,15 @@ public class RetryLoggingListener implements RetryListener {
   @Override
   public <T, E extends Throwable> void close(
       RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
-    if (context.getRetryCount() > 0) {
-      logger.debug("Retryable method closing ({}th retry)", context.getRetryCount() + 1);
+    if (context.getRetryCount() > 1) {
+      logger.debug("Retryable method closing ({}th retry)", context.getRetryCount());
     }
   }
 
   @Override
   public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
-    if (context.getRetryCount() > 0) {
-      logger.debug("Retryable method opening ({}th retry)", context.getRetryCount() + 1);
+    if (context.getRetryCount() > 1) {
+      logger.debug("Retryable method opening ({}th retry)", context.getRetryCount());
     }
     return true;
   }
