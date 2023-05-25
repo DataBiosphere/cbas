@@ -17,7 +17,6 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -26,6 +25,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -222,26 +222,29 @@ class VerifyPactsRunSetsApiController {
             null,
             null);
 
-    AbortRunSetResponse response =
-        objectMapper.readValue(
-            """
-        {
-          run_set_id: "20000000-0000-0000-0000-000000000002",
-          runs: [
-          "30000000-0000-0000-0000-000000000003"
-              ],
-          state: CANCELING
-        }
-        """
-                .stripIndent()
-                .trim(),
-            AbortRunSetResponse.class);
+    AbortRequestDetails abortDetails = new AbortRequestDetails();
+    abortDetails.setFailedIds(List.of());
+    abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
+    //    AbortRunSetResponse response =
+    //        objectMapper.readValue(
+    //            """
+    //        {
+    //          run_set_id: "20000000-0000-0000-0000-000000000002",
+    //          runs: [
+    //          "30000000-0000-0000-0000-000000000003"
+    //              ],
+    //          state: CANCELING
+    //        }
+    //        """
+    //                .stripIndent()
+    //                .trim(),
+    //            AbortRunSetResponse.class);
 
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
     // verify(cromwellService).cancelRun(runToBeCancelled);
-    when(abortManager.abortRunSet(runSetId)).thenReturn(response);
+    when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
   }
 }
