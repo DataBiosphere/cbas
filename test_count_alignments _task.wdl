@@ -63,6 +63,7 @@ task CountAlignments {
     set -e
     declare -a bam_files=(~{sep=' ' aligned_bam_inputs})
     echo ~{sep=' ' aligned_bam_inputs}
+    ln -s ~{annotation_gtf} annotation.gtf
     for bam_file in $bam_files
     do
       result=$(basename "$bam_file")
@@ -76,7 +77,7 @@ task CountAlignments {
       echo "file: ${bam_files[$i]}"
     # counting the introns
     featureCounts -M -p "${bam_files[$i]}" \
-    -a ~{annotation_gtf} \
+    -a annotation.gtf \
     -F GTF \
     -o "${output_prefix[$i]}.introns.counts" \
     --minOverlap 3  \
@@ -84,12 +85,12 @@ task CountAlignments {
     -g gene_id
 
     # create a new input bam where the alignemnts crossing intron-exon junctions are removed
-    python3 /tools/remove-reads-on-junctions.py --input-gtf  ~{annotation_gtf} \
+    python3 /tools/remove-reads-on-junctions.py --input-gtf  annotation.gtf \
     --input-bam "${bam_files[$i]}"  --output-bam "${output_prefix[$i]}.input.nojunc.bam"
 
     # counting the exons
     featureCounts -M -p "${output_prefix[$i]}.input.nojunc.bam" \
-    -a ~{annotation_gtf} -F GTF -o "${output_prefix[$i]}.exons.counts"  \
+    -a annotation.gtf -F GTF -o "${output_prefix[$i]}.exons.counts"  \
     --minOverlap 1 -t exon  -g gene_id
     done;
   >>>
