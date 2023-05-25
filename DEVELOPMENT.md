@@ -87,10 +87,11 @@ A few notes:
 - At the time of this writing, `us.gcr.io/broad-dsp-gcr-public/terra-workspace-data-service` does not have an image with the `latest` tag. Take care to specify the intended tag!
 
 
-With the container running, initialize an instance with any UUID, e.g. UUID `00000000-0000-0000-0000-000000000000`:
+With the container running, initialize an instance with any UUID, e.g. UUID `00000000-0000-0000-0000-000000000000`.
+Note that CBAS UI expects an instance with UUID `15f36863-30a5-4cab-91f7-52be439f1175`.
 ```sh
 curl -X 'POST' \
-  'http://localhost:8001/instances/v0.2/00000000-0000-0000-0000-000000000000/' \
+  'http://localhost:8001/instances/v0.2/15f36863-30a5-4cab-91f7-52be439f1175/' \
   -H 'accept: */*' \
   -d ''
 ```
@@ -98,7 +99,7 @@ curl -X 'POST' \
 Then add a record `FOO1` of type `FOO` to the instance you just created. Make sure to use the same UUID:
 ```sh
 curl -X 'PUT' \
-  'http://localhost:8001/00000000-0000-0000-0000-000000000000/records/v0.2/FOO/FOO1' \
+  'http://localhost:8001/15f36863-30a5-4cab-91f7-52be439f1175/records/v0.2/FOO/FOO1' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -109,17 +110,17 @@ curl -X 'PUT' \
 ```
 
 In the `wds` database, the record will be written to a schema with the same name as the instance ID.
-Select that schema with the following SQL command (for e.g. the instance ID `00000000-0000-0000-0000-000000000000`):
+Select that schema with the following SQL command (for e.g. the instance ID `15f36863-30a5-4cab-91f7-52be439f1175`):
 
 ```sql
-SET search_path TO "00000000-0000-0000-0000-000000000000";
+SET search_path TO "15f36863-30a5-4cab-91f7-52be439f1175";
 ```
 
 This command needs to be run each time you wish to directly query the database. To set it
 permanently, you can run the following command with your instance ID:
 
 ```sql
-ALTER DATABASE wds SET search_path TO "00000000-0000-0000-0000-000000000000";
+ALTER DATABASE wds SET search_path TO "15f36863-30a5-4cab-91f7-52be439f1175";
 ```
 
 Then, run the Postgres command `\dt` to show the existing tables.
