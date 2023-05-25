@@ -77,6 +77,7 @@ public class WdsService implements HealthCheck {
     T execute() throws ApiException, DependencyNotAvailableException, AzureAccessTokenException;
   }
 
+  @SuppressWarnings("java:S125") // The comment here isn't "commented code"
   public static <T> T executionWithRetryTemplate(RetryTemplate retryTemplate, WdsAction<T> action)
       throws WdsServiceException {
 
