@@ -191,7 +191,7 @@ class VerifyPactsRunSetsApiController {
 
   @State({"a run set with UUID 20000000-0000-0000-0000-000000000002 exists"})
   public void postAbort() throws Exception {
-    UUID runSetId = UUID.randomUUID(); // UUID.fromString("20000000-0000-0000-0000-000000000002");
+    UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
     UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
     RunSet runSetToBeCancelled =
         new RunSet(
