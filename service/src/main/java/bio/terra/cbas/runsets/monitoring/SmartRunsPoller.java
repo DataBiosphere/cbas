@@ -5,12 +5,11 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
 import bio.terra.cbas.common.MetricsUtil;
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -68,9 +67,8 @@ public class SmartRunsPoller {
   }
 
   public void updateOutputAttributes(Run run)
-      throws ApiException, JsonProcessingException,
-          org.databiosphere.workspacedata.client.ApiException, CoercionException,
-          OutputProcessingException, DependencyNotAvailableException, AzureAccessTokenException {
+      throws ApiException, JsonProcessingException, WdsServiceException, CoercionException,
+          OutputProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     Object outputs = cromwellService.getOutputs(run.engineId());

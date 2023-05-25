@@ -6,6 +6,7 @@ import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import java.util.Optional;
+import javax.ws.rs.client.Client;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
@@ -19,17 +20,16 @@ public class WdsClient {
 
   private final CredentialLoader credentialLoader;
 
-  private final ScheduledWdsClientRefresher scheduledWdsClientRefresher;
+  private final Client singletonHttpClient;
 
   public WdsClient(
       WdsServerConfiguration wdsServerConfiguration,
       DependencyUrlLoader dependencyUrlLoader,
-      CredentialLoader credentialLoader,
-      ScheduledWdsClientRefresher scheduledWdsClientRefresher) {
+      CredentialLoader credentialLoader) {
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.dependencyUrlLoader = dependencyUrlLoader;
     this.credentialLoader = credentialLoader;
-    this.scheduledWdsClientRefresher = scheduledWdsClientRefresher;
+    singletonHttpClient = new ApiClient().getHttpClient();
   }
 
   protected ApiClient getApiClient()
@@ -45,11 +45,14 @@ public class WdsClient {
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
+    apiClient.setHttpClient(singletonHttpClient);
     apiClient.addDefaultHeader(
         "Authorization",
         "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    // By closing the connection after each request, we avoid the problem of the open connection
+    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
+    apiClient.addDefaultHeader("Connection", "close");
     apiClient.setDebugging(wdsServerConfiguration.debugApiLogging());
-    apiClient.setHttpClient(scheduledWdsClientRefresher.getCurrentClient());
     return apiClient;
   }
 

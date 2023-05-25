@@ -1,5 +1,5 @@
 logging:
-  level.bio.terra.cbas: ${BATCHANALYSIS_LOG_LEVEL:debug}
+  level.bio.terra.cbas: ${BATCHANALYSIS_LOG_LEVEL:info}
   pattern.level: '%X{requestId} %5p'
 
 server:
@@ -54,13 +54,10 @@ cbas:
   scheduler:
     # How often to check downstream services for health:
     healthCheckIntervalSeconds: 300
-    # How often to refresh http clients:
-    httpClientRefreshSeconds: 55
 
 workflow-engines:
   cromwell:
     baseUri: "http://localhost:8000"
-    healthUri: "http://localhost:8000/engine/v1/status"
     debugApiLogging: false
 
 wds:
