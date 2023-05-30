@@ -18,16 +18,20 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -183,5 +187,49 @@ class VerifyPactsRunSetsApiController {
 
     when(smartRunSetsPoller.updateRunSets(response))
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 1, 1, true));
+  }
+
+  @State({"a run set with UUID 20000000-0000-0000-0000-000000000002 exists"})
+  public void postAbort() throws Exception {
+    UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
+    UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
+    RunSet runSetToBeCancelled =
+        new RunSet(
+            runSetId,
+            null,
+            null,
+            null,
+            null,
+            CbasRunSetStatus.RUNNING,
+            null,
+            null,
+            null,
+            1,
+            null,
+            null,
+            null,
+            null);
+
+    Run runToBeCancelled =
+        new Run(
+            runId,
+            UUID.randomUUID().toString(),
+            runSetToBeCancelled,
+            null,
+            null,
+            CbasRunStatus.RUNNING,
+            null,
+            null,
+            null);
+
+    AbortRequestDetails abortDetails = new AbortRequestDetails();
+    abortDetails.setFailedIds(List.of());
+    abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
+
+    when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
+    when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
+        .thenReturn(Collections.singletonList(runToBeCancelled));
+
+    when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
   }
 }
