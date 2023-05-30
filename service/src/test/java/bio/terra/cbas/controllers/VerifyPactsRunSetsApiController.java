@@ -200,7 +200,7 @@ class VerifyPactsRunSetsApiController {
             null,
             null,
             null,
-            CbasRunSetStatus.RUNNING,
+            CbasRunSetStatus.CANCELING,
             null,
             null,
             null,
