@@ -239,26 +239,26 @@ public class RunSetsApiController implements RunSetsApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  @Override
-  public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
-    AbortRunSetResponse aborted = new AbortRunSetResponse();
-
-    aborted.runSetId(runSetId);
-
-    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
-    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
-    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
-
-    if (!failedRunIds.isEmpty()) {
-      aborted.errors(
-          "Run set canceled with errors. Unable to abort workflow(s): %s".formatted(failedRunIds));
-    }
-
-    aborted.state(CANCELING);
-    aborted.runs(submittedAbortWorkflows);
-
-    return new ResponseEntity<>(aborted, HttpStatus.OK);
-  }
+//  @Override
+//  public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
+//    AbortRunSetResponse aborted = new AbortRunSetResponse();
+//
+//    aborted.runSetId(runSetId);
+//
+//    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+//    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
+//    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
+//
+//    if (!failedRunIds.isEmpty()) {
+//      aborted.errors(
+//          "Run set canceled with errors. Unable to abort workflow(s): %s".formatted(failedRunIds));
+//    }
+//
+//    aborted.state(CANCELING);
+//    aborted.runs(submittedAbortWorkflows);
+//
+//    return new ResponseEntity<>(aborted, HttpStatus.OK);
+//  }
 
   public static void captureRequestMetrics(RunSetRequest request) {
     recordInputsInRequest(request.getWorkflowInputDefinitions().size());
