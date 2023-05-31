@@ -257,9 +257,6 @@ public class RunSetsApiController implements RunSetsApi {
     aborted.state(CANCELING);
     aborted.runs(submittedAbortWorkflows);
 
-    System.out.println(abortDetails);
-    System.out.println(aborted);
-
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }
 
