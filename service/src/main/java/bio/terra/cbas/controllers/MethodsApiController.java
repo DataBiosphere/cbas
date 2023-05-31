@@ -253,6 +253,27 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
+  // helper method to verify that URL is valid and its host is supported
+  private String validateGithubUrl(String methodUrl) {
+    try {
+      URL url = new URI(methodUrl).toURL();
+      Pattern pattern =
+          Pattern.compile(
+              "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
+      boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
+
+      if (!doesUrlMatchPattern) {
+        return "method_url is invalid. URL doesn't match pattern format";
+      } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
+        return "method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS;
+      }
+    } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+      return "method_url is invalid. Reason: " + e.getMessage();
+    }
+
+    return null;
+  }
+
   public List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
@@ -280,22 +301,8 @@ public class MethodsApiController implements MethodsApi {
       // path which is not completely a valid URL is sent as method url, and it's validity is
       // checked while fetching the raw GitHub url for the workflow path
       if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
-        // verify that URL is valid, and its host is supported
-        try {
-          URL url = new URI(methodUrl).toURL();
-          Pattern pattern =
-              Pattern.compile(
-                  "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
-          boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
-
-          if (!doesUrlMatchPattern) {
-            errors.add("method_url is invalid. URL doesn't match pattern format");
-          } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
-            errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
-          }
-        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-          errors.add("method_url is invalid. Reason: " + e.getMessage());
-        }
+        String urlError = validateGithubUrl(methodUrl);
+        if (urlError != null) errors.add(urlError);
       }
     }
 
