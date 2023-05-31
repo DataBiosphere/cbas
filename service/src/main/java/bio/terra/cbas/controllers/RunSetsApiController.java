@@ -4,7 +4,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
-import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
@@ -22,7 +21,6 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
@@ -39,7 +37,6 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
-import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -239,26 +236,27 @@ public class RunSetsApiController implements RunSetsApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-//  @Override
-//  public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
-//    AbortRunSetResponse aborted = new AbortRunSetResponse();
-//
-//    aborted.runSetId(runSetId);
-//
-//    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
-//    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
-//    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
-//
-//    if (!failedRunIds.isEmpty()) {
-//      aborted.errors(
-//          "Run set canceled with errors. Unable to abort workflow(s): %s".formatted(failedRunIds));
-//    }
-//
-//    aborted.state(CANCELING);
-//    aborted.runs(submittedAbortWorkflows);
-//
-//    return new ResponseEntity<>(aborted, HttpStatus.OK);
-//  }
+  //  @Override
+  //  public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
+  //    AbortRunSetResponse aborted = new AbortRunSetResponse();
+  //
+  //    aborted.runSetId(runSetId);
+  //
+  //    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+  //    List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
+  //    List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
+  //
+  //    if (!failedRunIds.isEmpty()) {
+  //      aborted.errors(
+  //          "Run set canceled with errors. Unable to abort workflow(s):
+  // %s".formatted(failedRunIds));
+  //    }
+  //
+  //    aborted.state(CANCELING);
+  //    aborted.runs(submittedAbortWorkflows);
+  //
+  //    return new ResponseEntity<>(aborted, HttpStatus.OK);
+  //  }
 
   public static void captureRequestMetrics(RunSetRequest request) {
     recordInputsInRequest(request.getWorkflowInputDefinitions().size());
