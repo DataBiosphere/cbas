@@ -2,6 +2,11 @@
 
 TODO: Complete me! Should be of similar quality to the ECM documentation.
 
+## Contributing
+
+For compliance reasons, all pull requests **must** be submitted with a Jira ID in the pull request title.
+Include the Jira ID at the beginning of the title, enclosed in square brackets.
+For example: "[WM-1992] add statement to README.md and DEVELOPMENT.md about including Jira IDs in PR titles" 
 
 ## Setup
 
