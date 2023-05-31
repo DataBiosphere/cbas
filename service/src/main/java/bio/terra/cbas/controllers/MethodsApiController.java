@@ -156,66 +156,22 @@ public class MethodsApiController implements MethodsApi {
             new PostMethodResponse().error(invalidMappingError), HttpStatus.BAD_REQUEST);
       }
 
-      // convert WomTool inputs and outputs schema to CBAS input and output definition
-      List<WorkflowInputDefinition> inputs =
-          womToCbasInputBuilder(workflowDescription, methodInputMappings);
-      List<WorkflowOutputDefinition> outputs =
-          womToCbasOutputBuilder(workflowDescription, methodOutputMappings);
-
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
-      UUID methodVersionId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
 
-      // because of FK constraints, lastRunSetId for method and method_version will be added
-      // after the run set is created
-      Method method =
-          new Method(
-              methodId,
-              postMethodRequest.getMethodName(),
-              postMethodRequest.getMethodDescription(),
-              DateUtils.currentTimeInUTC(),
-              null,
-              postMethodRequest.getMethodSource().toString());
-
-      MethodVersion methodVersion =
-          new MethodVersion(
-              methodVersionId,
-              method,
-              postMethodRequest.getMethodVersion(),
-              method.description(),
-              DateUtils.currentTimeInUTC(),
-              null,
-              postMethodRequest.getMethodUrl());
-
-      String templateRunSetName =
-          String.format("%s/%s workflow", method.name(), methodVersion.name());
-      String templateRunSetDesc = "Template Run Set for Method " + templateRunSetName;
-      RunSet templateRunSet =
-          new RunSet(
-              runSetId,
-              methodVersion,
-              templateRunSetName,
-              templateRunSetDesc,
-              true,
-              CbasRunSetStatus.COMPLETE,
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              0,
-              0,
-              objectMapper.writeValueAsString(inputs),
-              objectMapper.writeValueAsString(outputs),
-              null);
-
-      methodDao.createMethod(method);
-      methodVersionDao.createMethodVersion(methodVersion);
-      runSetDao.createRunSet(templateRunSet);
+      createNewMethod(
+          methodId,
+          runSetId,
+          postMethodRequest,
+          workflowDescription,
+          methodInputMappings,
+          methodOutputMappings);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
-
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
+
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
     } catch (ApiException | JsonProcessingException | WomtoolValueTypeNotFoundException e) {
       String errorMsg =
@@ -251,6 +207,68 @@ public class MethodsApiController implements MethodsApi {
 
     addLastRunDetails(methodDetails);
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
+  }
+
+  private void createNewMethod(
+      UUID methodId,
+      UUID runSetId,
+      PostMethodRequest postMethodRequest,
+      WorkflowDescription workflowDescription,
+      List<MethodInputMapping> methodInputMappings,
+      List<MethodOutputMapping> methodOutputMappings)
+      throws WomtoolValueTypeNotFoundException, JsonProcessingException {
+    UUID methodVersionId = UUID.randomUUID();
+
+    // convert WomTool inputs and outputs schema to CBAS input and output definition
+    List<WorkflowInputDefinition> inputs =
+        womToCbasInputBuilder(workflowDescription, methodInputMappings);
+    List<WorkflowOutputDefinition> outputs =
+        womToCbasOutputBuilder(workflowDescription, methodOutputMappings);
+
+    // because of FK constraints, lastRunSetId for method and method_version will be added
+    // after the run set is created
+    Method method =
+        new Method(
+            methodId,
+            postMethodRequest.getMethodName(),
+            postMethodRequest.getMethodDescription(),
+            DateUtils.currentTimeInUTC(),
+            null,
+            postMethodRequest.getMethodSource().toString());
+
+    MethodVersion methodVersion =
+        new MethodVersion(
+            methodVersionId,
+            method,
+            postMethodRequest.getMethodVersion(),
+            method.description(),
+            DateUtils.currentTimeInUTC(),
+            null,
+            postMethodRequest.getMethodUrl());
+
+    String templateRunSetName =
+        String.format("%s/%s workflow", method.name(), methodVersion.name());
+    String templateRunSetDesc = "Template Run Set for Method " + templateRunSetName;
+    RunSet templateRunSet =
+        new RunSet(
+            runSetId,
+            methodVersion,
+            templateRunSetName,
+            templateRunSetDesc,
+            true,
+            CbasRunSetStatus.COMPLETE,
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            0,
+            0,
+            objectMapper.writeValueAsString(inputs),
+            objectMapper.writeValueAsString(outputs),
+            null);
+
+    methodDao.createMethod(method);
+    methodVersionDao.createMethodVersion(methodVersion);
+    runSetDao.createRunSet(templateRunSet);
   }
 
   // helper method to verify that URL is valid and its host is supported
