@@ -17,7 +17,7 @@ public final class MethodUtil {
 
   private MethodUtil() {}
 
-  public static String convertToRawGithubUrl(
+  public static String convertToRawUrl(
       String originalUrl,
       MethodSourceEnum methodSource,
       String methodVersion,

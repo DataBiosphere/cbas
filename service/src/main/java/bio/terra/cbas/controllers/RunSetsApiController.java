@@ -180,12 +180,12 @@ public class RunSetsApiController implements RunSetsApi {
     // Fetch existing method:
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
-    // convert method url to raw GitHub url and use that while calling Cromwell's submit workflow
+    // convert method url to raw url and use that while calling Cromwell's submit workflow
     // endpoint
     String rawMethodUrl;
     try {
       rawMethodUrl =
-          MethodUtil.convertToRawGithubUrl(
+          MethodUtil.convertToRawUrl(
               methodVersion.url(),
               Objects.requireNonNull(
                   PostMethodRequest.MethodSourceEnum.fromValue(

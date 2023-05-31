@@ -87,11 +87,11 @@ public class MethodsApiController implements MethodsApi {
 
     String methodSource = postMethodRequest.getMethodSource().toString();
 
-    // convert method url to raw GitHub url and use that to call Cromwell's /describe endpoint
+    // convert method url to raw url and use that to call Cromwell's /describe endpoint
     String rawMethodUrl;
     try {
       rawMethodUrl =
-          MethodUtil.convertToRawGithubUrl(
+          MethodUtil.convertToRawUrl(
               postMethodRequest.getMethodUrl(),
               postMethodRequest.getMethodSource(),
               postMethodRequest.getMethodVersion(),
