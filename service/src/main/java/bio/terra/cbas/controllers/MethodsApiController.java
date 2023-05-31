@@ -102,19 +102,19 @@ public class MethodsApiController implements MethodsApi {
       if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
         String errorMsg =
             "Error while importing Dockstore workflow. No workflow url found at specified path.";
-        log.error(errorMsg);
+        log.warn(errorMsg);
         return new ResponseEntity<>(
             new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
       }
     } catch (URISyntaxException | MalformedURLException e) {
       String errorMsg =
           "Bad user request. Method url has invalid value. Error: %s".formatted(e.getMessage());
-      log.error(errorMsg, e);
+      log.warn(errorMsg, e);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     } catch (bio.terra.dockstore.client.ApiException e) {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
-      log.error(errorMsg, e);
+      log.warn(errorMsg, e);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
@@ -280,7 +280,7 @@ public class MethodsApiController implements MethodsApi {
       // path which is not completely a valid URL is sent as method url, and it's validity is
       // checked while fetching the raw GitHub url for the workflow path
       if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
-        // verify that URL is valid, and it's host is supported
+        // verify that URL is valid, and its host is supported
         try {
           URL url = new URI(methodUrl).toURL();
           Pattern pattern =

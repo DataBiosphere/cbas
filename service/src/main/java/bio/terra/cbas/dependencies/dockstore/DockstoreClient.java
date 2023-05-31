@@ -19,6 +19,6 @@ public class DockstoreClient {
   public ApiClient getApiClient() {
     return new ApiClient()
         .setHttpClient(commonHttpClient)
-        .setBasePath(dockstoreServerConfiguration.getBaseUri() + API_PREFIX);
+        .setBasePath(dockstoreServerConfiguration.baseUri() + API_PREFIX);
   }
 }

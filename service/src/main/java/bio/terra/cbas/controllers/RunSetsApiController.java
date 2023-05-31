@@ -198,7 +198,7 @@ public class RunSetsApiController implements RunSetsApi {
       if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
         String errorMsg =
             "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.";
-        log.error(errorMsg);
+        log.warn(errorMsg);
         return new ResponseEntity<>(
             new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
       }

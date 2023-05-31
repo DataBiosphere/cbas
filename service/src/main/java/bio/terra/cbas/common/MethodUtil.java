@@ -11,9 +11,9 @@ import java.util.List;
 
 public final class MethodUtil {
   private static final String GITHUB_URL_HOST = "github.com";
-  private static final String RAW_GITHUB_UTL_HOST = "raw.githubusercontent.com";
+  private static final String RAW_GITHUB_URL_HOST = "raw.githubusercontent.com";
   public static final List<String> SUPPORTED_URL_HOSTS =
-      List.of(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST);
+      List.of(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST);
 
   private MethodUtil() {}
 
@@ -26,10 +26,10 @@ public final class MethodUtil {
     return switch (methodSource) {
       case GITHUB -> {
         URL url = new URI(originalUrl).toURL();
-        if (url.getHost().equals(RAW_GITHUB_UTL_HOST)) {
+        if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
           yield originalUrl;
         } else {
-          yield originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_UTL_HOST).replace("/blob/", "/");
+          yield originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
         }
       }
       case DOCKSTORE -> {

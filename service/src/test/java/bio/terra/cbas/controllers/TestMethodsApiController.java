@@ -31,7 +31,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +43,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
+@ExtendWith(MockitoExtension.class)
 @ContextConfiguration(classes = MethodsApiController.class)
 class TestMethodsApiController {
 
@@ -218,6 +221,34 @@ class TestMethodsApiController {
       """;
     String expectedError =
         "Bad user request. Error(s): method_name is required. method_source is required and should be one of: [GitHub, Dockstore]. method_version is required";
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(invalidPostRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(postMethodResponse.getMethodId());
+    assertNull(postMethodResponse.getRunSetId());
+    assertEquals(expectedError, postMethodResponse.getError());
+  }
+
+  @Test
+  void returnErrorForInvalidGithubPostRequest() throws Exception {
+    String invalidPostRequest =
+        """
+      {
+        "method_name": "",
+        "method_version":"develop",
+        "method_source":"GitHub",
+        "method_url":"https://foo.net/abc/hello.wdl"
+      }
+      """;
+    String expectedError =
+        "Bad user request. Error(s): method_name is required. method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]";
 
     MvcResult response =
         mockMvc
