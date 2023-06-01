@@ -9,16 +9,18 @@ import org.springframework.stereotype.Component;
 public class DockstoreClient {
 
   private final DockstoreServerConfiguration dockstoreServerConfiguration;
-  private final Client commonHttpClient = new ApiClient().getHttpClient();
+  private final Client singletonHttpClient;
   private static final String API_PREFIX = "api";
 
   public DockstoreClient(DockstoreServerConfiguration dockstoreServerConfiguration) {
     this.dockstoreServerConfiguration = dockstoreServerConfiguration;
+    this.singletonHttpClient = new ApiClient().getHttpClient();
   }
 
   public ApiClient getApiClient() {
     return new ApiClient()
-        .setHttpClient(commonHttpClient)
+        .setHttpClient(singletonHttpClient)
+        .addDefaultHeader("Connection", "close")
         .setBasePath(dockstoreServerConfiguration.baseUri() + API_PREFIX);
   }
 }

@@ -6,12 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.controllers.MethodsApiController;
-import bio.terra.cbas.dao.MethodDao;
-import bio.terra.cbas.dao.MethodVersionDao;
-import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
-import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.dockstore.client.ApiException;
 import bio.terra.dockstore.model.ToolDescriptor;
@@ -20,20 +15,12 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ContextConfiguration;
 
-@WebMvcTest
-@ContextConfiguration(classes = MethodsApiController.class)
 @ExtendWith(MockitoExtension.class)
 class TestMethodUtil {
-  @MockBean private CromwellService cromwellService;
-  @MockBean private DockstoreService dockstoreService;
-  @MockBean private MethodDao methodDao;
-  @MockBean private MethodVersionDao methodVersionDao;
-  @MockBean private RunSetDao runSetDao;
+  DockstoreService dockstoreService = Mockito.mock(DockstoreService.class);
 
   @Test
   void conversionOfRawGithubUrl()
