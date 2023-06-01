@@ -1,6 +1,7 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
@@ -115,6 +116,8 @@ public class MethodsApiController implements MethodsApi {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
       log.warn(errorMsg, e);
+      increaseEventCounter("Dockstore method import error", 1);
+
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
