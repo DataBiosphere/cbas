@@ -358,7 +358,7 @@ public class TestSmartRunsPollerFunctional {
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     String expectedErrorMessage =
-        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): WdsServiceApiException: Bad WDS update"
+        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Bad WDS update"
             .formatted(runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId());
     verify(runsDao)
         .updateRunStatusWithError(

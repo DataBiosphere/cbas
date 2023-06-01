@@ -24,13 +24,14 @@ public class RetryConfig {
     FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
     fixedBackOffPolicy.setBackOffPeriod(1000L);
 
+    // Inner retry (assumping the classifier hits): up to 3 times
+    SimpleRetryPolicy srp = new SimpleRetryPolicy();
+    srp.setMaxAttempts(3);
+
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
           if (exception instanceof ProcessingException) {
-            // Retry only 3 times
-            SimpleRetryPolicy srp = new SimpleRetryPolicy();
-            srp.setMaxAttempts(3);
             return srp;
           } else {
             return new NeverRetryPolicy();

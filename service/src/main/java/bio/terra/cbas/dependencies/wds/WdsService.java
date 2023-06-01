@@ -78,7 +78,7 @@ public class WdsService implements HealthCheck {
   }
 
   @SuppressWarnings("java:S125") // The comment here isn't "commented code"
-  public static <T> T executionWithRetryTemplate(RetryTemplate retryTemplate, WdsAction<T> action)
+  static <T> T executionWithRetryTemplate(RetryTemplate retryTemplate, WdsAction<T> action)
       throws WdsServiceException {
 
     // Why all this song and dance to catch exceptions and map them to almost identical exceptions?
