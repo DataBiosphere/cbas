@@ -29,6 +29,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
@@ -397,8 +398,9 @@ class TestRunSetsApiController {
             new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
     when(wdsService.getRecord(recordType, recordId2))
         .thenThrow(
-            new org.databiosphere.workspacedata.client.ApiException(
-                400, "ApiException thrown for testing purposes."));
+            new WdsServiceApiException(
+                new org.databiosphere.workspacedata.client.ApiException(
+                    400, "ApiException thrown for testing purposes.")));
 
     MvcResult result =
         mockMvc
