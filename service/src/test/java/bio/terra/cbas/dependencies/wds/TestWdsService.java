@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class TestWdsService {
+class TestWdsService {
 
   final String baseUri = "http://baseurl.com";
   final String instanceId = UUID.randomUUID().toString();
