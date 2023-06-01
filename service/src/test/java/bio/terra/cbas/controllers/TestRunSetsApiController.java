@@ -1,7 +1,6 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.models.CbasRunStatus.CANCELING;
-import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
@@ -47,6 +46,8 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
+import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.dockstore.model.ToolDescriptor;
@@ -54,7 +55,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -151,6 +151,7 @@ class TestRunSetsApiController {
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
+  @MockBean private RunSetAbortManager abortManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -626,27 +627,11 @@ class TestRunSetsApiController {
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             null);
-    when(runDao.createRun(run1)).thenReturn(1);
-    when(runDao.createRun(run2)).thenReturn(1);
 
-    List<Run> runs = new ArrayList<>();
-    runs.add(run1);
-    runs.add(run2);
-
-    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
-    when(runDao.getRuns(
-            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
-        .thenReturn(runs);
-
-    when(runSetDao.updateStateAndRunDetails(
-            eq(returnedRunSet1Running.runSetId()),
-            eq(CbasRunSetStatus.CANCELING),
-            eq(2),
-            eq(0),
-            any()))
-        .thenReturn(1);
-
-    when(runDao.getRuns(any())).thenReturn(runs);
+    AbortRequestDetails abortResults = new AbortRequestDetails();
+    abortResults.setFailedIds(List.of());
+    abortResults.setSubmittedIds(List.of(run1.runId(), run2.runId()));
+    when(abortManager.abortRunSet(returnedRunSet1Running.runSetId())).thenReturn(abortResults);
 
     MvcResult result =
         mockMvc
@@ -654,18 +639,6 @@ class TestRunSetsApiController {
                 post(API_ABORT).param("run_set_id", returnedRunSet1Running.runSetId().toString()))
             .andExpect(status().isOk())
             .andReturn();
-
-    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
-    verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture());
-    List<Run> capturedRuns = newRunCaptor.getAllValues();
-    assertEquals(2, capturedRuns.size());
-    assertEquals(run1.runId(), capturedRuns.get(0).runId());
-    assertEquals(run1.status(), capturedRuns.get(0).status());
-    assertEquals(run1.engineId(), capturedRuns.get(0).engineId());
-
-    assertEquals(run2.runId(), capturedRuns.get(1).runId());
-    assertEquals(run2.status(), capturedRuns.get(1).status());
-    assertEquals(run2.engineId(), capturedRuns.get(1).engineId());
 
     AbortRunSetResponse parsedResponse =
         objectMapper.readValue(
@@ -731,24 +704,11 @@ class TestRunSetsApiController {
             OffsetDateTime.now(),
             OffsetDateTime.now(),
             null);
-    when(runDao.createRun(run1)).thenReturn(1);
-    when(runDao.createRun(run2)).thenReturn(1);
 
-    List<Run> runs = new ArrayList<>();
-    runs.add(run1);
-    runs.add(run2);
-
-    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
-    when(runDao.getRuns(
-            new RunDao.RunsFilters(returnedRunSet1Running.runSetId(), NON_TERMINAL_STATES)))
-        .thenReturn(runs);
-    when(runSetDao.updateStateAndRunDetails(
-            eq(returnedRunSet1Running.runSetId()),
-            eq(CbasRunSetStatus.CANCELING),
-            eq(2),
-            eq(0),
-            any()))
-        .thenReturn(1);
+    AbortRequestDetails abortResults = new AbortRequestDetails();
+    abortResults.setFailedIds(List.of(run2.runId().toString()));
+    abortResults.setSubmittedIds(List.of(run1.runId()));
+    when(abortManager.abortRunSet(returnedRunSet1Running.runSetId())).thenReturn(abortResults);
 
     doThrow(
             new cromwell.client.ApiException(
