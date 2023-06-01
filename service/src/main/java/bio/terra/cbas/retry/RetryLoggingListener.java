@@ -23,7 +23,7 @@ public class RetryLoggingListener implements RetryListener {
   @Override
   public <T, E extends Throwable> boolean open(RetryContext context, RetryCallback<T, E> callback) {
     if (context.getRetryCount() > 1) {
-      logger.debug("Retryable method opening ({}th retry)", context.getRetryCount());
+      logger.debug("Retryable method opening (retry count: {})", context.getRetryCount());
     }
     return true;
   }
@@ -31,6 +31,6 @@ public class RetryLoggingListener implements RetryListener {
   @Override
   public <T, E extends Throwable> void onError(
       RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
-    logger.warn("Retryable method threw {}th exception {}", context.getRetryCount(), throwable);
+    logger.warn("Retryable method threw exception (retry count: {})", context.getRetryCount(), throwable);
   }
 }
