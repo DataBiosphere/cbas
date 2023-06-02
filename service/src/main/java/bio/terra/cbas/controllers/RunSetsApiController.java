@@ -13,8 +13,6 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -23,6 +21,8 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
+import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
@@ -398,10 +398,10 @@ public class RunSetsApiController implements RunSetsApi {
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId));
-      } catch (ApiException e) {
+      } catch (WdsServiceApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, getErrorMessage(e));
-      } catch (DependencyNotAvailableException | AzureAccessTokenException e) {
+        recordIdsWithError.put(recordId, getErrorMessage(e.getCause()));
+      } catch (WdsServiceException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, e.getMessage());
       }
