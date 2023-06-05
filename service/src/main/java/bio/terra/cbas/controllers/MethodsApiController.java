@@ -1,15 +1,19 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
+import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
@@ -48,20 +52,20 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
+  private final DockstoreService dockstoreService;
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
 
-  private static final List<String> SUPPORTED_URL_HOSTS =
-      new ArrayList<>(List.of("raw.githubusercontent.com"));
-
   public MethodsApiController(
       CromwellService cromwellService,
+      DockstoreService dockstoreService,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper) {
     this.cromwellService = cromwellService;
+    this.dockstoreService = dockstoreService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
@@ -84,19 +88,51 @@ public class MethodsApiController implements MethodsApi {
 
     String methodSource = postMethodRequest.getMethodSource().toString();
 
+    // convert method url to raw url and use that to call Cromwell's /describe endpoint
+    String rawMethodUrl;
+    try {
+      rawMethodUrl =
+          MethodUtil.convertToRawUrl(
+              postMethodRequest.getMethodUrl(),
+              postMethodRequest.getMethodSource(),
+              postMethodRequest.getMethodVersion(),
+              dockstoreService);
+
+      // this could happen if there was no url or empty url received in the Dockstore workflow's
+      // descriptor response
+      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
+        String errorMsg =
+            "Error while importing Dockstore workflow. No workflow url found at specified path.";
+        log.warn(errorMsg);
+        return new ResponseEntity<>(
+            new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+      }
+    } catch (URISyntaxException | MalformedURLException e) {
+      String errorMsg =
+          "Bad user request. Method url has invalid value. Error: %s".formatted(e.getMessage());
+      log.warn(errorMsg, e);
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+    } catch (bio.terra.dockstore.client.ApiException e) {
+      String errorMsg =
+          "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
+      log.warn(errorMsg, e);
+      increaseEventCounter("Dockstore method import error", 1);
+
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+    }
+
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
     WorkflowDescription workflowDescription;
     try {
-      workflowDescription = cromwellService.describeWorkflow(postMethodRequest.getMethodUrl());
+      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
             String.format(
                 "Bad user request. Method '%s' in invalid. Error(s): %s",
-                postMethodRequest.getMethodUrl(),
-                String.join(". ", workflowDescription.getErrors()));
+                rawMethodUrl, String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
         recordMethodCreationCompletion(
             methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
@@ -123,66 +159,22 @@ public class MethodsApiController implements MethodsApi {
             new PostMethodResponse().error(invalidMappingError), HttpStatus.BAD_REQUEST);
       }
 
-      // convert WomTool inputs and outputs schema to CBAS input and output definition
-      List<WorkflowInputDefinition> inputs =
-          womToCbasInputBuilder(workflowDescription, methodInputMappings);
-      List<WorkflowOutputDefinition> outputs =
-          womToCbasOutputBuilder(workflowDescription, methodOutputMappings);
-
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
-      UUID methodVersionId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
 
-      // because of FK constraints, lastRunSetId for method and method_version will be added
-      // after the run set is created
-      Method method =
-          new Method(
-              methodId,
-              postMethodRequest.getMethodName(),
-              postMethodRequest.getMethodDescription(),
-              DateUtils.currentTimeInUTC(),
-              null,
-              postMethodRequest.getMethodSource().toString());
-
-      MethodVersion methodVersion =
-          new MethodVersion(
-              methodVersionId,
-              method,
-              postMethodRequest.getMethodVersion(),
-              method.description(),
-              DateUtils.currentTimeInUTC(),
-              null,
-              postMethodRequest.getMethodUrl());
-
-      String templateRunSetName =
-          String.format("%s/%s workflow", method.name(), methodVersion.name());
-      String templateRunSetDesc = "Template Run Set for Method " + templateRunSetName;
-      RunSet templateRunSet =
-          new RunSet(
-              runSetId,
-              methodVersion,
-              templateRunSetName,
-              templateRunSetDesc,
-              true,
-              CbasRunSetStatus.COMPLETE,
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              0,
-              0,
-              objectMapper.writeValueAsString(inputs),
-              objectMapper.writeValueAsString(outputs),
-              null);
-
-      methodDao.createMethod(method);
-      methodVersionDao.createMethodVersion(methodVersion);
-      runSetDao.createRunSet(templateRunSet);
+      createNewMethod(
+          methodId,
+          runSetId,
+          postMethodRequest,
+          workflowDescription,
+          methodInputMappings,
+          methodOutputMappings);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
-
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
+
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
     } catch (ApiException | JsonProcessingException | WomtoolValueTypeNotFoundException e) {
       String errorMsg =
@@ -220,6 +212,89 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
+  private void createNewMethod(
+      UUID methodId,
+      UUID runSetId,
+      PostMethodRequest postMethodRequest,
+      WorkflowDescription workflowDescription,
+      List<MethodInputMapping> methodInputMappings,
+      List<MethodOutputMapping> methodOutputMappings)
+      throws WomtoolValueTypeNotFoundException, JsonProcessingException {
+    UUID methodVersionId = UUID.randomUUID();
+
+    // convert WomTool inputs and outputs schema to CBAS input and output definition
+    List<WorkflowInputDefinition> inputs =
+        womToCbasInputBuilder(workflowDescription, methodInputMappings);
+    List<WorkflowOutputDefinition> outputs =
+        womToCbasOutputBuilder(workflowDescription, methodOutputMappings);
+
+    // because of FK constraints, lastRunSetId for method and method_version will be added
+    // after the run set is created
+    Method method =
+        new Method(
+            methodId,
+            postMethodRequest.getMethodName(),
+            postMethodRequest.getMethodDescription(),
+            DateUtils.currentTimeInUTC(),
+            null,
+            postMethodRequest.getMethodSource().toString());
+
+    MethodVersion methodVersion =
+        new MethodVersion(
+            methodVersionId,
+            method,
+            postMethodRequest.getMethodVersion(),
+            method.description(),
+            DateUtils.currentTimeInUTC(),
+            null,
+            postMethodRequest.getMethodUrl());
+
+    String templateRunSetName =
+        String.format("%s/%s workflow", method.name(), methodVersion.name());
+    String templateRunSetDesc = "Template Run Set for Method " + templateRunSetName;
+    RunSet templateRunSet =
+        new RunSet(
+            runSetId,
+            methodVersion,
+            templateRunSetName,
+            templateRunSetDesc,
+            true,
+            CbasRunSetStatus.COMPLETE,
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            0,
+            0,
+            objectMapper.writeValueAsString(inputs),
+            objectMapper.writeValueAsString(outputs),
+            null);
+
+    methodDao.createMethod(method);
+    methodVersionDao.createMethodVersion(methodVersion);
+    runSetDao.createRunSet(templateRunSet);
+  }
+
+  // helper method to verify that URL is valid and its host is supported
+  private String validateGithubUrl(String methodUrl) {
+    try {
+      URL url = new URI(methodUrl).toURL();
+      Pattern pattern =
+          Pattern.compile(
+              "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
+      boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
+
+      if (!doesUrlMatchPattern) {
+        return "method_url is invalid. URL doesn't match pattern format";
+      } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
+        return "method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS;
+      }
+    } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+      return "method_url is invalid. Reason: " + e.getMessage();
+    }
+
+    return null;
+  }
+
   public List<String> validateMethod(PostMethodRequest methodRequest) {
     String methodName = methodRequest.getMethodName();
     String methodVersion = methodRequest.getMethodVersion();
@@ -243,21 +318,12 @@ public class MethodsApiController implements MethodsApi {
     if (methodUrl == null || methodUrl.trim().isEmpty()) {
       errors.add("method_url is required");
     } else {
-      // verify that URL is valid, and it's host is supported
-      try {
-        URL url = new URI(methodUrl).toURL();
-        Pattern pattern =
-            Pattern.compile(
-                "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
-        boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
-
-        if (!doesUrlMatchPattern) {
-          errors.add("method_url is invalid. URL doesn't match pattern format");
-        } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
-          errors.add("method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS);
-        }
-      } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-        errors.add("method_url is invalid. Reason: " + e.getMessage());
+      // we only verify if URL is valid for GitHub source here. For Dockstore methods a workflow
+      // path which is not completely a valid URL is sent as method url, and it's validity is
+      // checked while fetching the raw GitHub url for the workflow path
+      if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
+        String urlError = validateGithubUrl(methodUrl);
+        if (urlError != null) errors.add(urlError);
       }
     }
 

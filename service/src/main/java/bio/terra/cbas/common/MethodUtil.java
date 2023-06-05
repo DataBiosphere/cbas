@@ -1,0 +1,42 @@
+package bio.terra.cbas.common;
+
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.dockstore.model.ToolDescriptor;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
+
+public final class MethodUtil {
+  private static final String GITHUB_URL_HOST = "github.com";
+  private static final String RAW_GITHUB_URL_HOST = "raw.githubusercontent.com";
+  public static final List<String> SUPPORTED_URL_HOSTS =
+      List.of(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST);
+
+  private MethodUtil() {}
+
+  public static String convertToRawUrl(
+      String originalUrl,
+      MethodSourceEnum methodSource,
+      String methodVersion,
+      DockstoreService dockstoreService)
+      throws URISyntaxException, MalformedURLException, bio.terra.dockstore.client.ApiException {
+    return switch (methodSource) {
+      case GITHUB -> {
+        URL url = new URI(originalUrl).toURL();
+        if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
+          yield originalUrl;
+        } else {
+          yield originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
+        }
+      }
+      case DOCKSTORE -> {
+        ToolDescriptor toolDescriptor =
+            dockstoreService.descriptorGetV1(originalUrl, methodVersion);
+        yield toolDescriptor.getUrl();
+      }
+    };
+  }
+}

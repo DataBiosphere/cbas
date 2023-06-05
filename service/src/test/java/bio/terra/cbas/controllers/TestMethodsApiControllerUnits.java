@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
@@ -36,6 +37,7 @@ class TestMethodsApiControllerUnits {
 
   @Autowired private MockMvc mockMvc;
   @MockBean private CromwellService cromwellService;
+  @MockBean private DockstoreService dockstoreService;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -155,7 +157,12 @@ class TestMethodsApiControllerUnits {
   void instantiateMethodsController() {
     methodsApiController =
         new MethodsApiController(
-            cromwellService, methodDao, methodVersionDao, runSetDao, objectMapper);
+            cromwellService,
+            dockstoreService,
+            methodDao,
+            methodVersionDao,
+            runSetDao,
+            objectMapper);
   }
 
   @Test
@@ -165,7 +172,7 @@ class TestMethodsApiControllerUnits {
         new ArrayList<>(
             List.of(
                 "method_name is required",
-                "method_source is required and should be one of: [GitHub]",
+                "method_source is required and should be one of: [GitHub, Dockstore]",
                 "method_version is required",
                 "method_url is required"));
 
@@ -203,7 +210,8 @@ class TestMethodsApiControllerUnits {
     invalidPostRequest.setMethodUrl("https://foo.net/abc/hello.wdl");
     List<String> expectedErrors =
         new ArrayList<>(
-            List.of("method_url is invalid. Supported URI host(s): [raw.githubusercontent.com]"));
+            List.of(
+                "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]"));
 
     List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());
