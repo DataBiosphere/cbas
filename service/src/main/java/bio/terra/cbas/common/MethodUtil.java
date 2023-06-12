@@ -1,6 +1,8 @@
 package bio.terra.cbas.common;
 
+import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.dockstore.model.ToolDescriptor;
 import java.net.MalformedURLException;
@@ -8,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import org.apache.commons.lang3.EnumUtils;
 
 public final class MethodUtil {
   private static final String GITHUB_URL_HOST = "github.com";
@@ -38,5 +41,19 @@ public final class MethodUtil {
         yield toolDescriptor.getUrl();
       }
     };
+  }
+
+  public static MethodSourceEnum convertToMethodSourceEnum(String methodSource)
+      throws UnknownMethodSourceException {
+    // we ignore the case to make it backwards compatible for 3 staged Covid workflows that have
+    // 'Github' (instead of 'GitHub') as source. See
+    // https://broadworkbench.atlassian.net/browse/WM-2040
+    MethodSourceEnum methodSourceEnum =
+        EnumUtils.getEnumIgnoreCase(PostMethodRequest.MethodSourceEnum.class, methodSource);
+    if (methodSourceEnum != null) {
+      return methodSourceEnum;
+    }
+
+    throw new UnknownMethodSourceException(methodSource);
   }
 }

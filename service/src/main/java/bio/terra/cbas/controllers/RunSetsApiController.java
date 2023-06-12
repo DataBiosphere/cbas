@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
 import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
@@ -14,6 +15,7 @@ import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
+import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -26,7 +28,6 @@ import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -192,8 +193,7 @@ public class RunSetsApiController implements RunSetsApi {
           MethodUtil.convertToRawUrl(
               methodVersion.url(),
               Objects.requireNonNull(
-                  PostMethodRequest.MethodSourceEnum.fromValue(
-                      methodVersion.method().methodSource())),
+                  convertToMethodSourceEnum(methodVersion.method().methodSource())),
               methodVersion.name(),
               dockstoreService);
 
@@ -208,9 +208,10 @@ public class RunSetsApiController implements RunSetsApi {
       }
     } catch (URISyntaxException
         | MalformedURLException
+        | UnknownMethodSourceException
         | bio.terra.dockstore.client.ApiException e) {
-      // the flow shouldn't reach here since if it was invalid URL it should have been caught in
-      // when method was imported
+      // the flow shouldn't reach here since if it was invalid URL or invalid method source it
+      // should have been caught when method was imported
       String errorMsg =
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
