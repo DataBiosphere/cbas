@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.dockstore.client.ApiException;
@@ -108,5 +109,36 @@ class TestMethodUtil {
                     dockstoreService));
 
     assertEquals("Error thrown for testing purposes", exceptionThrow.getMessage());
+  }
+
+  @Test
+  void conversionOfGithubToMethodSourceEnum()
+      throws MethodProcessingException.UnknownMethodSourceException {
+    assertEquals(
+        PostMethodRequest.MethodSourceEnum.GITHUB, MethodUtil.convertToMethodSourceEnum("Github"));
+  }
+
+  @Test
+  void conversionOfGitHubToMethodSourceEnum()
+      throws MethodProcessingException.UnknownMethodSourceException {
+    assertEquals(
+        PostMethodRequest.MethodSourceEnum.GITHUB, MethodUtil.convertToMethodSourceEnum("GitHub"));
+  }
+
+  @Test
+  void conversionOfDockstoreToMethodSourceEnum()
+      throws MethodProcessingException.UnknownMethodSourceException {
+    assertEquals(
+        PostMethodRequest.MethodSourceEnum.DOCKSTORE,
+        MethodUtil.convertToMethodSourceEnum("Dockstore"));
+  }
+
+  @Test
+  void conversionOfUnknownMethodSource() {
+    MethodProcessingException.UnknownMethodSourceException unknownSourceException =
+        assertThrows(
+            MethodProcessingException.UnknownMethodSourceException.class,
+            () -> MethodUtil.convertToMethodSourceEnum("MyMethodSource"));
+    assertEquals("Unknown method source: MyMethodSource", unknownSourceException.getMessage());
   }
 }
