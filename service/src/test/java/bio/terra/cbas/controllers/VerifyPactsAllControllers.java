@@ -53,7 +53,7 @@ import org.springframework.test.web.servlet.MockMvc;
     classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
 @Provider("cbas")
 @PactBroker()
-class VerifyPactsRunSetsApiController {
+class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
   @MockBean private CromwellService cromwellService;
