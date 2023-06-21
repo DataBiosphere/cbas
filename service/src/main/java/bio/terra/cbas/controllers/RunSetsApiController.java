@@ -1,6 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
 import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
@@ -28,6 +27,7 @@ import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -188,14 +188,24 @@ public class RunSetsApiController implements RunSetsApi {
     // convert method url to raw url and use that while calling Cromwell's submit workflow
     // endpoint
     String rawMethodUrl;
+    PostMethodRequest.MethodSourceEnum methodSourceEnum;
+    try {
+      methodSourceEnum =
+          Objects.requireNonNull(
+              PostMethodRequest.MethodSourceEnum.fromValue(methodVersion.method().methodSource()));
+    } catch (NullPointerException e) {
+      String errorMsg =
+          "Error while interpreting Method Version: Invalid method source: "
+              + methodVersion.method().methodSource();
+      log.warn(errorMsg);
+      return new ResponseEntity<>(
+          new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
+    }
+
     try {
       rawMethodUrl =
           MethodUtil.convertToRawUrl(
-              methodVersion.url(),
-              Objects.requireNonNull(
-                  convertToMethodSourceEnum(methodVersion.method().methodSource())),
-              methodVersion.name(),
-              dockstoreService);
+              methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
 
       // this could happen if there was no url or empty url received in the Dockstore workflow's
       // descriptor response
