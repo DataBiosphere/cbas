@@ -110,8 +110,6 @@ jobs:
         run: |
           mkdir -p ./service/src/test/resources
           echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
-          mkdir -p ./service/src/main/resources
-          echo "cbas:\n  cbas-api:\n    runSetsMaximumRecordIds: 100\n    maxWorkflowInputs: 100\n    maxWorkflowOutputs: 40\n" >> ./service/src/main/resources/application.yml
 
       - name: Verify pacts
         run: |
