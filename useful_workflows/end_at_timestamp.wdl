@@ -254,14 +254,14 @@ workflow end_at_timestamp {
 
     Boolean output21 = false
     Boolean output22 = false
-    Boolean output23= false
+    Boolean output23 = false
     Boolean output24 = false
     Boolean output25 = false
     Boolean output26 = false
     Boolean output27 = false
     Boolean output28 = false
     Boolean output29 = false
-    Boolean output30= false
+    Boolean output30 = false
   }
 }
 
