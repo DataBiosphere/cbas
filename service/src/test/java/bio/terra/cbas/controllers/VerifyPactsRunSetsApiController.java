@@ -31,6 +31,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
+import cromwell.client.model.WorkflowDescription;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +49,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
-@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
+@ContextConfiguration(
+    classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
 @Provider("cbas")
 @PactBroker()
 class VerifyPactsRunSetsApiController {
@@ -107,7 +109,7 @@ class VerifyPactsRunSetsApiController {
                 "myMethod description",
                 OffsetDateTime.now(),
                 methodVersionUUID,
-                "myMethod source"),
+                "GitHub"),
             "myMethodVersion name",
             "myMethodVersion description",
             OffsetDateTime.now(),
@@ -121,6 +123,13 @@ class VerifyPactsRunSetsApiController {
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
+  }
+
+  @State({"cromwell initialized"})
+  public void initializeCromwell() throws Exception {
+    WorkflowDescription workflowDescription = new WorkflowDescription();
+    workflowDescription.valid(true);
+    when(cromwellService.describeWorkflow(any())).thenReturn(workflowDescription);
   }
 
   @State({"ready to receive exactly 1 call to POST run_sets"})
@@ -152,7 +161,7 @@ class VerifyPactsRunSetsApiController {
             "myMethod description",
             OffsetDateTime.now(),
             methodVersionUUID,
-            "myMethod source");
+            "GitHub");
 
     MethodVersion myMethodVersion =
         new MethodVersion(
@@ -162,7 +171,7 @@ class VerifyPactsRunSetsApiController {
             "myMethodVersion description",
             OffsetDateTime.now(),
             UUID.randomUUID(),
-            "http://myMethodVersionUrl.com");
+            "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl");
 
     RunSet targetRunSet =
         new RunSet(
