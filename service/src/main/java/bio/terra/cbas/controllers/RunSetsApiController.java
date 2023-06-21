@@ -59,7 +59,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -188,21 +187,13 @@ public class RunSetsApiController implements RunSetsApi {
     // convert method url to raw url and use that while calling Cromwell's submit workflow
     // endpoint
     String rawMethodUrl;
-    PostMethodRequest.MethodSourceEnum methodSourceEnum;
     try {
-      methodSourceEnum =
-          Objects.requireNonNull(
-              PostMethodRequest.MethodSourceEnum.fromValue(methodVersion.method().methodSource()));
-    } catch (NullPointerException e) {
-      String errorMsg =
-          "Error while interpreting Method Version: Invalid method source: "
-              + methodVersion.method().methodSource();
-      log.warn(errorMsg);
-      return new ResponseEntity<>(
-          new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
-    }
+      PostMethodRequest.MethodSourceEnum methodSourceEnum =
+          PostMethodRequest.MethodSourceEnum.fromValue(methodVersion.method().methodSource());
 
-    try {
+      if (methodSourceEnum == null) {
+        throw new UnknownMethodSourceException(methodVersion.method().methodSource());
+      }
       rawMethodUrl =
           MethodUtil.convertToRawUrl(
               methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
