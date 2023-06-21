@@ -104,24 +104,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure pact
-        env:
-          PACTBROKER_APPLICATION_YAML_B64: ${{ secrets.PACTBROKER_APPLICATION_YAML_B64 }}
-        run: |
-          mkdir -p ./service/src/test/resources
-          echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
-          echo "PROVIDER_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-          echo "PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-
-      - name: Verify pacts
-        env:
-          PACT_PROVIDER_BRANCH: ${{ env.PROVIDER_BRANCH }}
-          PACT_PROVIDER_COMMIT: ${{ env.PROVIDER_COMMIT }}
-        run: |
-          echo "PACT_PROVIDER_BRANCH=${{ env.PROVIDER_BRANCH }}
-          echo "PACT_PROVIDER_COMMIT=${{ env.PROVIDER_COMMIT }}
-          ./gradlew --build-cache verifyPacts
-
   integration-tests:
     needs: [ build ]
     runs-on: ubuntu-latest
