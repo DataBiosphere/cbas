@@ -46,11 +46,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
 @ContextConfiguration(
     classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
+@TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=100")
+@TestPropertySource(properties = "cbas.cbas-api.maxWorkflowInputs=100")
+@TestPropertySource(properties = "cbas.cbas-api.maxWorkflowOutputs=40")
 @Provider("cbas")
 @PactBroker()
 class VerifyPactsAllControllers {
