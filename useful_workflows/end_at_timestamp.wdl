@@ -241,8 +241,6 @@ workflow end_at_timestamp {
     String output9 = "foo"
     String output10 = "foo"
 
-    Int output9 = 1010
-    Int output10 = 1010
     Int output11 = 1010
     Int output12 = 1010
     Int output13 = 1010
@@ -251,17 +249,19 @@ workflow end_at_timestamp {
     Int output16 = 1010
     Int output17 = 1010
     Int output18 = 1010
+    Int output19 = 1010
+    Int output20 = 1010
 
-    Boolean output17 = false
-    Boolean output18 = false
-    Boolean output19 = false
-    Boolean output20 = false
-    Boolean output17 = false
-    Boolean output18 = false
-    Boolean output19 = false
-    Boolean output20 = false
-    Boolean output19 = false
-    Boolean output20 = false
+    Boolean output21 = false
+    Boolean output22 = false
+    Boolean output23= false
+    Boolean output24 = false
+    Boolean output25 = false
+    Boolean output26 = false
+    Boolean output27 = false
+    Boolean output28 = false
+    Boolean output29 = false
+    Boolean output30= false
   }
 }
 
