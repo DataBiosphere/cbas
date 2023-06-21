@@ -15,6 +15,107 @@ workflow end_at_timestamp {
     String input6
     String input7
     String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
+
+    String input1
+    String input2
+    String input3
+    String input4
+    String input5
+    String input6
+    String input7
+    String input8
+    String input9
+    String input10
 
     Int input9
     Int input10
@@ -24,10 +125,105 @@ workflow end_at_timestamp {
     Int input14
     Int input15
     Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
+
+    Int input9
+    Int input10
+    Int input11
+    Int input12
+    Int input13
+    Int input14
+    Int input15
+    Int input16
+    Int input17
+    Int input18
 
     Boolean input17
     Boolean input18
     Boolean input19
+    Boolean input20
+    Boolean input20
+    Boolean input20
+    Boolean input20
+    Boolean input20
     Boolean input20
   }
 
@@ -42,6 +238,8 @@ workflow end_at_timestamp {
     String output6 = "foo"
     String output7 = "foo"
     String output8 = "foo"
+    String output9 = "foo"
+    String output10 = "foo"
 
     Int output9 = 1010
     Int output10 = 1010
@@ -51,9 +249,17 @@ workflow end_at_timestamp {
     Int output14 = 1010
     Int output15 = 1010
     Int output16 = 1010
+    Int output17 = 1010
+    Int output18 = 1010
 
     Boolean output17 = false
     Boolean output18 = false
+    Boolean output19 = false
+    Boolean output20 = false
+    Boolean output17 = false
+    Boolean output18 = false
+    Boolean output19 = false
+    Boolean output20 = false
     Boolean output19 = false
     Boolean output20 = false
   }
