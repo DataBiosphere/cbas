@@ -113,9 +113,17 @@ jobs:
 
       - name: Verify pacts
         run: |
-          export PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)
-          export PACT_PROVIDER_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          export PACT_PUBLISH_RESULTS=false
+          PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)
+          PACT_PROVIDER_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
+            PACT_PUBLISH_RESULTS=true
+          else
+            PACT_PUBLISH_RESULTS=false
+          fi
+
+          echo "Verifying Pacts on branch [${PACT_PROVIDER_BRANCH}]. Publish results is [${PACT_PUBLISH_RESULTS}]."
+
           ./gradlew --build-cache verifyPacts
 
   integration-tests:
