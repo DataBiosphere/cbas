@@ -18,6 +18,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -113,7 +114,7 @@ class VerifyPactsAllControllers {
                 "myMethod description",
                 OffsetDateTime.now(),
                 methodVersionUUID,
-                "GitHub"),
+                PostMethodRequest.MethodSourceEnum.GITHUB.toString()),
             "myMethodVersion name",
             "myMethodVersion description",
             OffsetDateTime.now(),
@@ -165,7 +166,7 @@ class VerifyPactsAllControllers {
             "myMethod description",
             OffsetDateTime.now(),
             methodVersionUUID,
-            "GitHub");
+            PostMethodRequest.MethodSourceEnum.GITHUB.toString());
 
     MethodVersion myMethodVersion =
         new MethodVersion(
