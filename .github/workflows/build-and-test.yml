@@ -114,7 +114,7 @@ jobs:
       - name: Verify pacts
         run: |
           PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)
-          PACT_PROVIDER_BRANCH=${{ github.ref_name }}
+          PACT_PROVIDER_BRANCH=$GITHUB_HEAD_REF
 
           if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
             PACT_PUBLISH_RESULTS=true
@@ -124,10 +124,6 @@ jobs:
 
           echo "Verifying Pacts on branch [${PACT_PROVIDER_BRANCH}] with commit SHA [${PACT_PROVIDER_COMMIT}]."
           echo "Publish results is set to [${PACT_PUBLISH_RESULTS}]."
-
-          echo "${{ github.ref_name }}"
-          echo "${{ github.ref }}"
-          echo "$GITHUB_HEAD_REF"
 
           ./gradlew --build-cache verifyPacts
 
