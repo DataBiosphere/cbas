@@ -110,7 +110,7 @@ jobs:
         run: |
           mkdir -p ./service/src/test/resources
           echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
-          PACT_PROVIDER_BRANCH=$GITHUB_HEAD_REF
+          PACT_PROVIDER_BRANCH=$GITHUB_REF_NAME
 
           echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
           echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
@@ -120,10 +120,6 @@ jobs:
           else
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
           fi
-
-          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
-          echo "GITHUB_BASE_REF: $GITHUB_BASE_REF"
-          echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
           
       - name: Verify pacts
         run: |
