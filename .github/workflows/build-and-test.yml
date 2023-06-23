@@ -120,6 +120,10 @@ jobs:
           else
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
           fi
+
+          echo "GITHUB_HEAD_REF: $GITHUB_HEAD_REF"
+          echo "GITHUB_BASE_REF: $GITHUB_BASE_REF"
+          echo "GITHUB_REF_NAME: $GITHUB_REF_NAME"
           
       - name: Verify pacts
         run: |
