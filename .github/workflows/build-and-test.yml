@@ -118,7 +118,7 @@ jobs:
           if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
             echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
           else
-            echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
+            echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
           fi
           
 
