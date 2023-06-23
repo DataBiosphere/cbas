@@ -119,13 +119,13 @@ jobs:
           if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
             PACT_PUBLISH_RESULTS=true
           else
-            PACT_PUBLISH_RESULTS=true
+            PACT_PUBLISH_RESULTS=false
           fi
 
           echo "Verifying Pacts on branch [${PACT_PROVIDER_BRANCH}] with commit SHA [${PACT_PROVIDER_COMMIT}]."
           echo "Publish results is set to [${PACT_PUBLISH_RESULTS}]."
 
-          ./gradlew verifyPacts
+          ./gradlew --build-cache verifyPacts
 
   integration-tests:
     needs: [ build ]
