@@ -191,10 +191,7 @@ public class RunSetsApiController implements RunSetsApi {
     try {
       PostMethodRequest.MethodSourceEnum methodSourceEnum =
           convertToMethodSourceEnum(methodVersion.method().methodSource());
-
-      if (methodSourceEnum == null) {
-        throw new UnknownMethodSourceException(methodVersion.method().methodSource());
-      }
+      
       rawMethodUrl =
           MethodUtil.convertToRawUrl(
               methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
