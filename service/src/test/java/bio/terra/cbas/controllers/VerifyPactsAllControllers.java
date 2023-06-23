@@ -18,6 +18,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -31,6 +32,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
+import cromwell.client.model.WorkflowDescription;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,13 +47,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
-@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
+@ContextConfiguration(
+    classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
+@TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=100")
+@TestPropertySource(properties = "cbas.cbas-api.maxWorkflowInputs=100")
+@TestPropertySource(properties = "cbas.cbas-api.maxWorkflowOutputs=40")
 @Provider("cbas")
 @PactBroker()
-class VerifyPactsRunSetsApiController {
+class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
   @MockBean private CromwellService cromwellService;
@@ -107,7 +114,7 @@ class VerifyPactsRunSetsApiController {
                 "myMethod description",
                 OffsetDateTime.now(),
                 methodVersionUUID,
-                "myMethod source"),
+                PostMethodRequest.MethodSourceEnum.GITHUB.toString()),
             "myMethodVersion name",
             "myMethodVersion description",
             OffsetDateTime.now(),
@@ -121,6 +128,13 @@ class VerifyPactsRunSetsApiController {
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
+  }
+
+  @State({"cromwell initialized"})
+  public void initializeCromwell() throws Exception {
+    WorkflowDescription workflowDescription = new WorkflowDescription();
+    workflowDescription.valid(true);
+    when(cromwellService.describeWorkflow(any())).thenReturn(workflowDescription);
   }
 
   @State({"ready to receive exactly 1 call to POST run_sets"})
@@ -152,7 +166,7 @@ class VerifyPactsRunSetsApiController {
             "myMethod description",
             OffsetDateTime.now(),
             methodVersionUUID,
-            "myMethod source");
+            PostMethodRequest.MethodSourceEnum.GITHUB.toString());
 
     MethodVersion myMethodVersion =
         new MethodVersion(
@@ -162,7 +176,7 @@ class VerifyPactsRunSetsApiController {
             "myMethodVersion description",
             OffsetDateTime.now(),
             UUID.randomUUID(),
-            "http://myMethodVersionUrl.com");
+            "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl");
 
     RunSet targetRunSet =
         new RunSet(

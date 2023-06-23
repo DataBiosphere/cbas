@@ -28,6 +28,7 @@ import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -59,7 +60,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -189,13 +189,12 @@ public class RunSetsApiController implements RunSetsApi {
     // endpoint
     String rawMethodUrl;
     try {
+      PostMethodRequest.MethodSourceEnum methodSourceEnum =
+          convertToMethodSourceEnum(methodVersion.method().methodSource());
+
       rawMethodUrl =
           MethodUtil.convertToRawUrl(
-              methodVersion.url(),
-              Objects.requireNonNull(
-                  convertToMethodSourceEnum(methodVersion.method().methodSource())),
-              methodVersion.name(),
-              dockstoreService);
+              methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
 
       // this could happen if there was no url or empty url received in the Dockstore workflow's
       // descriptor response

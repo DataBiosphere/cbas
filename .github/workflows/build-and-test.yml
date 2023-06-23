@@ -110,11 +110,22 @@ jobs:
         run: |
           mkdir -p ./service/src/test/resources
           echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
+          PACT_PROVIDER_BRANCH=$GITHUB_HEAD_REF
 
+          echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
+          echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          
+          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
+            echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
+          else
+            echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
+          fi
+          
       - name: Verify pacts
         run: |
-          export PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)
-          export PACT_PROVIDER_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          echo "Verifying Pacts on branch [${PACT_PROVIDER_BRANCH}] with commit SHA [${PACT_PROVIDER_COMMIT}]."
+          echo "Publish results is set to [${PACT_PUBLISH_RESULTS}]."
+
           ./gradlew --build-cache verifyPacts
 
   integration-tests:
