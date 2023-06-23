@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
 import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
@@ -188,8 +189,7 @@ public class RunSetsApiController implements RunSetsApi {
     // endpoint
     String rawMethodUrl;
     try {
-      PostMethodRequest.MethodSourceEnum methodSourceEnum =
-          PostMethodRequest.MethodSourceEnum.fromValue(methodVersion.method().methodSource());
+      PostMethodRequest.MethodSourceEnum methodSourceEnum = convertToMethodSourceEnum(methodVersion.method().methodSource());
 
       if (methodSourceEnum == null) {
         throw new UnknownMethodSourceException(methodVersion.method().methodSource());
