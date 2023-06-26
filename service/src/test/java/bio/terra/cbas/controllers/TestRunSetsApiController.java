@@ -134,6 +134,38 @@ class TestRunSetsApiController {
         }
         """;
 
+  private final String requestTemplate2 =
+      """
+        {
+          "method_version_id" : "%s",
+          "workflow_input_definitions" : [ %s
+          {
+            "input_name" : "myworkflow.mycall.inputname1",
+            "input_type" : { "type": "primitive", "primitive_type": "String" },
+            "source" : {
+              "type" : "literal",
+              "parameter_value" : "literal value"
+            }
+          }],
+          "workflow_output_definitions" : [ %s
+          {
+            "output_name" : "myWorkflow.myCall.outputName1",
+            "output_type" : {
+              "type" : "primitive",
+              "primitive_type" : "String"
+            },
+            "destination" : {
+              "type" : "record_update",
+              "record_attribute" : "foo_rating"
+            }
+          }],
+          "wds_records" : {
+            "record_type" : "%s",
+            "record_ids" : %s
+          }
+        }
+        """;
+
   final String recordId1 = "MY_RECORD_ID_1";
   final String recordId2 = "MY_RECORD_ID_2";
   final String recordId3 = "MY_RECORD_ID_3";
@@ -345,6 +377,92 @@ class TestRunSetsApiController {
     verify(cromwellService).submitWorkflow(eq(workflowUrl), any());
 
     assertNull(response.getErrors());
+  }
+
+  @Test
+  void postRunSetRequestTooManyInputs() throws Exception {
+    String twoHundredInputs =
+        """
+          {
+            "input_name" : "myworkflow.mycall.inputname1",
+            "input_type" : { "type": "primitive", "primitive_type": "String" },
+            "source" : {
+              "type" : "literal",
+              "parameter_value" : "literal value"
+            }
+        },
+        """
+            .repeat(200);
+
+    String request =
+        requestTemplate2.formatted(
+            methodVersionId,
+            twoHundredInputs,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(runDao.createRun(any())).thenReturn(1);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    assertEquals(
+        "Bad user request. Error(s): [Number of defined inputs (201) exceeds maximum value (200)]",
+        response.getErrors());
+  }
+
+  @Test
+  void postRunSetRequestTooManyOutputs() throws Exception {
+    final String optionalInputSourceString = "";
+    String threeHundredInputs =
+        """
+          {
+            "output_name" : "myWorkflow.myCall.outputName1",
+            "output_type" : {
+              "type" : "primitive",
+              "primitive_type" : "String"
+            },
+            "destination" : {
+              "type" : "record_update",
+              "record_attribute" : "foo_rating"
+            }
+          },
+        """
+            .repeat(300);
+
+    String request =
+        requestTemplate2.formatted(
+            methodVersionId,
+            optionalInputSourceString,
+            threeHundredInputs,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(runDao.createRun(any())).thenReturn(1);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    assertEquals(
+        "Bad user request. Error(s): [Number of defined outputs (301) exceeds maximum value (300)]",
+        response.getErrors());
   }
 
   @Test
