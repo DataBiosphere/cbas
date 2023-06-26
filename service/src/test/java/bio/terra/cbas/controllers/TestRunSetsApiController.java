@@ -381,6 +381,7 @@ class TestRunSetsApiController {
 
   @Test
   void postRunSetRequestTooManyInputs() throws Exception {
+    String optionalOutputSourceString = "";
     String twoHundredInputs =
         """
           {
@@ -398,7 +399,7 @@ class TestRunSetsApiController {
         requestTemplate2.formatted(
             methodVersionId,
             twoHundredInputs,
-            outputDefinitionAsString,
+            optionalOutputSourceString,
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
@@ -422,8 +423,8 @@ class TestRunSetsApiController {
 
   @Test
   void postRunSetRequestTooManyOutputs() throws Exception {
-    final String optionalInputSourceString = "";
-    String threeHundredInputs =
+    String optionalInputSourceString = "";
+    String threeHundredOutputs =
         """
           {
             "output_name" : "myWorkflow.myCall.outputName1",
@@ -443,7 +444,7 @@ class TestRunSetsApiController {
         requestTemplate2.formatted(
             methodVersionId,
             optionalInputSourceString,
-            threeHundredInputs,
+            threeHundredOutputs,
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
