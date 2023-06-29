@@ -13,6 +13,7 @@ import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -44,6 +45,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+  @MockBean private UuidSource uuidSource;
 
   String workflowDescriptionString =
       """
@@ -162,7 +164,8 @@ class TestMethodsApiControllerUnits {
             methodDao,
             methodVersionDao,
             runSetDao,
-            objectMapper);
+            objectMapper,
+            uuidSource);
   }
 
   @Test

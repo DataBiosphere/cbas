@@ -76,6 +76,20 @@ class VerifyPactsAllControllers {
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
 
+  // mock objects
+  UUID fixedMethodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+  UUID fixedMethodUUID = UUID.fromString("00000000-0000-0000-0000-000000000009");
+  UUID fixedLastRunSetUUIDForMethod = UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92");
+
+  Method fixedMethod =
+      new Method(
+          fixedMethodUUID,
+          "scATAC-imported-4",
+          "scATAC-imported-4 description",
+          OffsetDateTime.now(),
+          fixedMethodVersionUUID,
+          PostMethodRequest.MethodSourceEnum.GITHUB.toString());
+
   @TestTemplate
   @ExtendWith(PactVerificationSpringProvider.class)
   void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -104,25 +118,18 @@ class VerifyPactsAllControllers {
   @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
   public void initializeDAO() throws Exception {
     // Arrange methodVersion
-    UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
     MethodVersion myMethodVersion =
         new MethodVersion(
-            methodVersionUUID,
-            new Method(
-                UUID.fromString("00000000-0000-0000-0000-000000000009"),
-                "myMethod name",
-                "myMethod description",
-                OffsetDateTime.now(),
-                methodVersionUUID,
-                PostMethodRequest.MethodSourceEnum.GITHUB.toString()),
-            "myMethodVersion name",
-            "myMethodVersion description",
+            fixedMethodVersionUUID,
+            fixedMethod,
+            "imported-version-4",
+            "imported-version-4 description",
             OffsetDateTime.now(),
-            UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92"),
-            "http://myMethodVersionUrl.com");
-    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
+            fixedLastRunSetUUIDForMethod,
+            "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl");
 
     // Arrange DAO responses
+    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
@@ -150,7 +157,7 @@ class VerifyPactsAllControllers {
     when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
 
     // These values are returned so that they can be injected into variables in the Pact(s)
-    HashMap<String, String> providerStateValues = new HashMap();
+    HashMap<String, String> providerStateValues = new HashMap<>();
     providerStateValues.put("run_set_id", fixedRunSetUUID);
     providerStateValues.put("run_id", fixedRunUUID);
     return providerStateValues;
@@ -247,5 +254,21 @@ class VerifyPactsAllControllers {
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
     when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
+  }
+
+  @State({"ready to receive exactly 1 call to POST /method endpoint"})
+  public HashMap<String, String> postMethod() throws Exception {
+    when(uuidSource.generateUUID())
+        .thenReturn(fixedLastRunSetUUIDForMethod)
+        .thenReturn(fixedMethodUUID);
+
+    when(methodDao.createMethod(any())).thenReturn(1);
+    when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
+
+    // These values are returned so that they can be injected into variables in the Pact(s)
+    HashMap<String, String> providerStateValues = new HashMap<>();
+    providerStateValues.put("run_set_id", fixedLastRunSetUUIDForMethod.toString());
+    providerStateValues.put("method_id", fixedMethodUUID.toString());
+    return providerStateValues;
   }
 }
