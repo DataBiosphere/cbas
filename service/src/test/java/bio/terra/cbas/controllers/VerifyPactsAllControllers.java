@@ -259,8 +259,8 @@ class VerifyPactsAllControllers {
   @State({"ready to receive exactly 1 call to POST /method endpoint"})
   public HashMap<String, String> postMethod() throws Exception {
     when(uuidSource.generateUUID())
-        .thenReturn(fixedLastRunSetUUIDForMethod)
-        .thenReturn(fixedMethodUUID);
+        .thenReturn(fixedMethodUUID)
+        .thenReturn(fixedLastRunSetUUIDForMethod);
 
     when(methodDao.createMethod(any())).thenReturn(1);
     when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
