@@ -110,12 +110,12 @@ jobs:
         run: |
           mkdir -p ./service/src/test/resources
           echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
-          PACT_PROVIDER_BRANCH=$GITHUB_HEAD_REF
+          PACT_PROVIDER_BRANCH=$GITHUB_REF_NAME
 
           echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
           echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
           
-          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
+          if [[ ! -z "${{ github.event.push }}" ]]; then
             echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
           else
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
