@@ -121,8 +121,8 @@ jobs:
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
           fi
           
-          echo "github event:"
-          echo "${{ toJson(github.event) }}"
+          echo "github object:"
+          echo "${{ toJson(github) }}"
 
       - name: Verify pacts
         run: |
