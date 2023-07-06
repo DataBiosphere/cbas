@@ -120,9 +120,6 @@ jobs:
           else
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
           fi
-          
-          echo "github object:"
-          echo "${{ toJson(github) }}"
 
       - name: Verify pacts
         run: |
@@ -130,6 +127,12 @@ jobs:
           echo "Publish results is set to [${PACT_PUBLISH_RESULTS}]."
 
           ./gradlew --build-cache verifyPacts
+
+      - name: Check github object
+        run: |
+          cat << OBJECT
+          ${{ toJson(github) }}
+          OBJECT
 
   integration-tests:
     needs: [ build ]
