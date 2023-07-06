@@ -135,6 +135,10 @@ class VerifyPactsAllControllers {
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
+
+    // for POST /method endpoint
+    when(methodDao.createMethod(any())).thenReturn(1);
+    when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
   }
 
   @State({"cromwell initialized"})
@@ -256,19 +260,25 @@ class VerifyPactsAllControllers {
     when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
   }
 
-  @State({"ready to receive exactly 1 call to POST /method endpoint"})
-  public HashMap<String, String> postMethod() throws Exception {
+  @State({"returns a fixed method ID"})
+  public HashMap<String, String> setFixedMethodId() throws Exception {
     when(uuidSource.generateUUID())
-        .thenReturn(fixedMethodUUID)
+        .thenReturn(fixedMethodUUID);
+
+    // This value is returned so that it can be injected into variables in the Pact(s)
+    HashMap<String, String> providerStateValues = new HashMap<>();
+    providerStateValues.put("method_id", fixedMethodUUID.toString());
+    return providerStateValues;
+  }
+
+  @State({"returns a fixed run set ID"})
+  public HashMap<String, String> setFixedRunSetId() throws Exception {
+    when(uuidSource.generateUUID())
         .thenReturn(fixedLastRunSetUUIDForMethod);
 
-    when(methodDao.createMethod(any())).thenReturn(1);
-    when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
-
-    // These values are returned so that they can be injected into variables in the Pact(s)
+    // This value is returned so that it can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
     providerStateValues.put("run_set_id", fixedLastRunSetUUIDForMethod.toString());
-    providerStateValues.put("method_id", fixedMethodUUID.toString());
     return providerStateValues;
   }
 }
