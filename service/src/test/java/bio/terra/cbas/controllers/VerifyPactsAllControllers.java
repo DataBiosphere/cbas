@@ -262,8 +262,7 @@ class VerifyPactsAllControllers {
 
   @State({"returns a fixed method ID"})
   public HashMap<String, String> setFixedMethodId() throws Exception {
-    when(uuidSource.generateUUID())
-        .thenReturn(fixedMethodUUID);
+    when(uuidSource.generateUUID()).thenReturn(fixedMethodUUID);
 
     // This value is returned so that it can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
@@ -273,8 +272,7 @@ class VerifyPactsAllControllers {
 
   @State({"returns a fixed run set ID"})
   public HashMap<String, String> setFixedRunSetId() throws Exception {
-    when(uuidSource.generateUUID())
-        .thenReturn(fixedLastRunSetUUIDForMethod);
+    when(uuidSource.generateUUID()).thenReturn(fixedLastRunSetUUIDForMethod);
 
     // This value is returned so that it can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
