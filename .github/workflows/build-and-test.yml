@@ -122,7 +122,7 @@ jobs:
           fi
           
           echo "github event:"
-          echo "${{ github.event }}"
+          echo "${{ toJson(github.event) }}"
 
       - name: Verify pacts
         run: |
