@@ -115,7 +115,7 @@ jobs:
           echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
           echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
           
-          if [[ ! -z "${{ github.event.push }}" ]]; then
+          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
             echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
           else
             echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
