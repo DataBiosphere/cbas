@@ -21,7 +21,6 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
-import bio.terra.cbas.util.UuidSource;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
@@ -58,7 +57,6 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
-  @MockBean private UuidSource uuidSource;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -434,8 +432,6 @@ class TestMethodsApiController {
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
 
-    when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
-
     MvcResult response =
         mockMvc
             .perform(
@@ -467,8 +463,6 @@ class TestMethodsApiController {
         .thenReturn(mockToolDescriptor);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-
-    when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
 
     MvcResult response =
         mockMvc

@@ -259,24 +259,4 @@ class VerifyPactsAllControllers {
 
     when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
   }
-
-  @State({"returns a fixed method ID"})
-  public HashMap<String, String> setFixedMethodId() throws Exception {
-    when(uuidSource.generateUUID()).thenReturn(fixedMethodUUID);
-
-    // This value is returned so that it can be injected into variables in the Pact(s)
-    HashMap<String, String> providerStateValues = new HashMap<>();
-    providerStateValues.put("method_id", fixedMethodUUID.toString());
-    return providerStateValues;
-  }
-
-  @State({"returns a fixed run set ID"})
-  public HashMap<String, String> setFixedRunSetId() throws Exception {
-    when(uuidSource.generateUUID()).thenReturn(fixedLastRunSetUUIDForMethod);
-
-    // This value is returned so that it can be injected into variables in the Pact(s)
-    HashMap<String, String> providerStateValues = new HashMap<>();
-    providerStateValues.put("run_set_id", fixedLastRunSetUUIDForMethod.toString());
-    return providerStateValues;
-  }
 }

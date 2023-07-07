@@ -29,7 +29,6 @@ import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -57,7 +56,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
-  private final UuidSource uuidSource;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -65,15 +63,13 @@ public class MethodsApiController implements MethodsApi {
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
-      ObjectMapper objectMapper,
-      UuidSource uuidSource) {
+      ObjectMapper objectMapper) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
-    this.uuidSource = uuidSource;
   }
 
   private final ObjectMapper objectMapper;
@@ -164,8 +160,8 @@ public class MethodsApiController implements MethodsApi {
       }
 
       // store method in database along with input and output definitions
-      UUID methodId = uuidSource.generateUUID();
-      UUID runSetId = uuidSource.generateUUID();
+      UUID methodId = UUID.randomUUID();
+      UUID runSetId = UUID.randomUUID();
 
       createNewMethod(
           methodId,
