@@ -180,3 +180,18 @@ Then navigate to the Swagger: `http://localhost:8080/swagger-ui.html`
   `bio.terra.cbas.App`). To edit it, click on it (in the upper
   right of the window), and click `Edit Configurations`.
     - For readable logs, put `human-readable-logging` in the `Active Profiles` field.
+
+### Pushing a new image
+
+New images are built and pushed automatically each time a PR is merged. Developers may
+want to do this manually in order to test in-development CBAS versions in non-local
+environments. 
+
+First, log into GCP using `gcloud auth login`. You need this to authenticate to push the image.
+
+```
+TAG="my-custom-image-name"
+cd service/
+../gradlew :service:jibDockerBuild --image=us.gcr.io/broad-dsp-gcr-public/cbas:$TAG -Djib.console=plain
+docker push us.gcr.io/broad-dsp-gcr-public/cbas:$TAG
+```
