@@ -20,7 +20,7 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
-  "/api/batch/v1/methods":
+  "/api/batch/v1/methods": 
     post:
       tags: [ methods ]
       summary: Create new method
@@ -249,6 +249,10 @@ components:
           type: string
           format: uuid
           description: ID of the method version to run
+        call_caching_enabled:
+          type: boolean
+          required: true
+          description: Whether to enable call caching for this run set.
         wds_records:
           $ref: '#/components/schemas/WdsRecordSet'
         workflow_input_definitions:
@@ -745,6 +749,8 @@ components:
           type: string
         run_set_description:
           type: string
+        call_caching_enabled:
+          type: boolean
         state:
           $ref: '#/components/schemas/RunSetState'
         record_type:

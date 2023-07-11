@@ -229,6 +229,7 @@ public class RunSetsApiController implements RunSetsApi {
               methodVersion,
               request.getRunSetName(),
               request.getRunSetDescription(),
+              true, // TODO, get this from the request
               false,
               CbasRunSetStatus.UNKNOWN,
               DateUtils.currentTimeInUTC(),
