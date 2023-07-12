@@ -121,6 +121,7 @@ public class RunSetsApiController implements RunSetsApi {
         .methodVersionId(runSet.methodVersion().methodVersionId())
         .runSetName(runSet.name())
         .runSetDescription(runSet.description())
+        .callCachingEnabled(runSet.callCachingEnabled())
         .isTemplate(runSet.isTemplate())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
         .recordType(runSet.recordType())
@@ -229,7 +230,7 @@ public class RunSetsApiController implements RunSetsApi {
               methodVersion,
               request.getRunSetName(),
               request.getRunSetDescription(),
-              true, // TODO, get this from the request
+              request.isCallCachingEnabled(),
               false,
               CbasRunSetStatus.UNKNOWN,
               DateUtils.currentTimeInUTC(),
