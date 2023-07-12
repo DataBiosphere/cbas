@@ -86,6 +86,7 @@ class TestRunSetsApiController {
   private final UUID dockstoreMethodVersionId = UUID.randomUUID();
   private final String workflowUrl =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
+  private final Boolean isCallCachingEnabled = true;
   private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/hello.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
@@ -279,13 +280,13 @@ class TestRunSetsApiController {
     when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
         .thenReturn(mockToolDescriptor);
 
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), eq(isCallCachingEnabled)))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), eq(isCallCachingEnabled)))
         .thenThrow(
             new cromwell.client.ApiException(
                 "ApiException thrown on purpose for testing purposes."));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), eq(isCallCachingEnabled)))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
   }
 
@@ -374,7 +375,7 @@ class TestRunSetsApiController {
 
     // verify dockstoreService and cromwellService methods were called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflow(eq(workflowUrl), any());
+    verify(cromwellService).submitWorkflow(eq(workflowUrl), any(), eq(isCallCachingEnabled));
 
     assertNull(response.getErrors());
   }
@@ -617,6 +618,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            true,
             false,
             CbasRunSetStatus.ERROR,
             OffsetDateTime.now(),
@@ -647,6 +649,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
@@ -715,6 +718,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            true,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
@@ -792,6 +796,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            true,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),

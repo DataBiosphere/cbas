@@ -464,7 +464,7 @@ public class RunSetsApiController implements RunSetsApi {
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
         // Submit the workflow, get its ID and store the Run to database
-        workflowResponse = cromwellService.submitWorkflow(rawMethodUrl, workflowInputs);
+        workflowResponse = cromwellService.submitWorkflow(rawMethodUrl, workflowInputs, runSet.callCachingEnabled());
 
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));

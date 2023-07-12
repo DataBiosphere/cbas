@@ -158,7 +158,7 @@ class VerifyPactsAllControllers {
 
     RunId myRunId = new RunId();
     myRunId.setRunId(fixedRunUUID);
-    when(cromwellService.submitWorkflow(any(), any())).thenReturn(myRunId);
+    when(cromwellService.submitWorkflow(any(), any(), any())).thenReturn(myRunId);
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
@@ -195,6 +195,7 @@ class VerifyPactsAllControllers {
             myMethodVersion,
             "a run set with methodVersion",
             "a run set with error status",
+            true,
             false,
             CbasRunSetStatus.COMPLETE,
             OffsetDateTime.now(),
@@ -223,6 +224,7 @@ class VerifyPactsAllControllers {
     RunSet runSetToBeCancelled =
         new RunSet(
             runSetId,
+            null,
             null,
             null,
             null,

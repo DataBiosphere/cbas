@@ -258,8 +258,8 @@ public class MethodsApiController implements MethodsApi {
             methodVersion,
             templateRunSetName,
             templateRunSetDesc,
-            true,
-            true,
+            true, //callCachingEnabled
+            true, //isTemplate
             CbasRunSetStatus.COMPLETE,
             DateUtils.currentTimeInUTC(),
             DateUtils.currentTimeInUTC(),

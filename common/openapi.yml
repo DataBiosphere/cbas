@@ -20,7 +20,7 @@ paths:
           $ref: '#/components/responses/ServerError'
         '503':
           $ref: '#/components/responses/SystemStatusResponse'
-  "/api/batch/v1/methods": 
+  "/api/batch/v1/methods":
     post:
       tags: [ methods ]
       summary: Create new method

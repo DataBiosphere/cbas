@@ -51,6 +51,7 @@ class TestRunSetDao {
             "fetch_sra_to_bam workflow",
             "fetch_sra_to_bam sample submission",
             true,
+            true,
             CbasRunSetStatus.COMPLETE,
             OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
             OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),

@@ -5,6 +5,9 @@ import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
@@ -13,6 +16,7 @@ import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
@@ -31,15 +35,15 @@ public class CromwellService implements HealthCheck {
     this.cromwellConfig = cromwellConfig;
   }
 
-  public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
+  public RunId submitWorkflow(String workflowUrl, Map<String, Object> params, Boolean isCallCachingEnabled)
       throws ApiException, JsonProcessingException {
 
-    // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
-    String workflowOptions =
-        this.cromwellClient
-            .getFinalWorkflowLogDirOption()
-            .map(dir -> String.format("{\"final_workflow_log_dir\": \"%s\"}", dir))
-            .orElse(null);
+    //build the Workflow Options JSON
+    Map<String, Object> workflowOptions = new HashMap<>();
+     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
+    workflowOptions.put("final_workflow_log_dir", this.cromwellClient.getFinalWorkflowLogDirOption().orElse(null));
+    workflowOptions.put("write_to_cache", isCallCachingEnabled);
+    workflowOptions.put("read_from_cache", isCallCachingEnabled);
 
     return cromwellClient
         .wesAPI()
@@ -48,7 +52,7 @@ public class CromwellService implements HealthCheck {
             null,
             null,
             null,
-            workflowOptions,
+            InputGenerator.inputsToJson(workflowOptions),
             workflowUrl,
             null);
   }
