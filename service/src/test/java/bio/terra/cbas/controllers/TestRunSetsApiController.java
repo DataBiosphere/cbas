@@ -622,8 +622,8 @@ class TestRunSetsApiController {
     String expectedFalse = "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":false}";
     assertEquals(expectedFalse, cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), false));
 
-    //empty optional should pass "null" as the final_workflow_log_dir
-    String expectedEmptyDir = "{\"final_workflow_log_dir\":null,\"read_from_cache\":false,\"write_to_cache\":false}";
+    //empty optional should omit final_workflow_log_dir
+    String expectedEmptyDir = "{\"read_from_cache\":false,\"write_to_cache\":false}";
     assertEquals(expectedEmptyDir, cromwellService.buildWorkflowOptionsJson(Optional.empty(), false));
   }
 

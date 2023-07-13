@@ -144,7 +144,9 @@ public class CromwellService implements HealthCheck {
     }
     Map<String, Object> workflowOptions = new HashMap<>();
     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
-    workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.orElse(null));
+    if(finalWorkflowLogDir.isPresent()) {
+      workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
+    }
     workflowOptions.put("write_to_cache", isCallCachingEnabled);
     workflowOptions.put("read_from_cache", isCallCachingEnabled);
     return InputGenerator.inputsToJson(workflowOptions);
