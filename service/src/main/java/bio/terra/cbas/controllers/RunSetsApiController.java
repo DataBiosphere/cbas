@@ -386,8 +386,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
     return errorList;
   }
-
-
+  
   private String getErrorMessage(ApiException exception) {
     Gson gson = new Gson();
     try {
