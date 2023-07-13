@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,25 +39,16 @@ public class CromwellService implements HealthCheck {
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params, Boolean isCallCachingEnabled)
       throws ApiException, JsonProcessingException {
 
-    //build the Workflow Options JSON
-    Map<String, Object> workflowOptions = new HashMap<>();
-     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
-    workflowOptions.put("final_workflow_log_dir", this.cromwellClient.getFinalWorkflowLogDirOption().orElse(null));
-    workflowOptions.put("write_to_cache", isCallCachingEnabled);
-    workflowOptions.put("read_from_cache", isCallCachingEnabled);
-    String myJson = InputGenerator.inputsToJson(workflowOptions);
-
-    RunId ret = cromwellClient
+    return cromwellClient
         .wesAPI()
         .runWorkflow(
             InputGenerator.inputsToJson(params),
             null,
             null,
             null,
-            myJson,
+            this.buildWorkflowOptionsJson(cromwellClient.getFinalWorkflowLogDirOption(), isCallCachingEnabled),
             workflowUrl,
             null);
-    return ret;
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
@@ -132,6 +124,30 @@ public class CromwellService implements HealthCheck {
     } else {
       return result;
     }
+  }
+
+  /**
+   * Cromwell accepts an object "Workflow Options" to specify additional configuration for a
+   * workflow. Here, we build that object with the parameters we care about. final_workflow_log_dir
+   * specifies the path where outputs will be written. write_to_cache and read_from_cache are both
+   * related to call caching. When a user enables call caching, these should both be set to true.
+   * Otherwise, they should both be set to false.
+   * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
+   *
+   * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
+   * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
+   * @throws JsonProcessingException, IllegalArgumentException
+   */
+  public static String buildWorkflowOptionsJson(Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled) throws JsonProcessingException, IllegalArgumentException {
+    if (isCallCachingEnabled == null) {
+      throw new IllegalArgumentException("isCallCachingEnabled must be true or false");
+    }
+    Map<String, Object> workflowOptions = new HashMap<>();
+    // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
+    workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.orElse(null));
+    workflowOptions.put("write_to_cache", isCallCachingEnabled);
+    workflowOptions.put("read_from_cache", isCallCachingEnabled);
+    return InputGenerator.inputsToJson(workflowOptions);
   }
 
   public void cancelRun(Run run) throws ApiException {

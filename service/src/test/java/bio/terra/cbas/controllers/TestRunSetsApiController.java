@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -31,6 +32,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
+import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
@@ -52,6 +54,7 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.dockstore.model.ToolDescriptor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
@@ -59,6 +62,7 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -108,6 +112,7 @@ class TestRunSetsApiController {
       """
         {
           "method_version_id" : "%s",
+          "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ {
             "input_name" : "myworkflow.mycall.inputname1",
             "input_type" : { "type": "primitive", "primitive_type": "String" },
@@ -139,6 +144,7 @@ class TestRunSetsApiController {
       """
         {
           "method_version_id" : "%s",
+          "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ %s
           {
             "input_name" : "myworkflow.mycall.inputname1",
@@ -296,6 +302,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             outputDefinitionAsString,
             recordType,
@@ -318,6 +325,7 @@ class TestRunSetsApiController {
     assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().methodId());
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
+    assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());
@@ -355,6 +363,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             dockstoreMethodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             outputDefinitionAsString,
             recordType,
@@ -399,6 +408,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate2.formatted(
             methodVersionId,
+            true,
             twoHundredInputs,
             optionalOutputSourceString,
             recordType,
@@ -444,6 +454,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate2.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             threeHundredOutputs,
             recordType,
@@ -473,6 +484,7 @@ class TestRunSetsApiController {
     String requestOptionalNone =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -496,6 +508,7 @@ class TestRunSetsApiController {
     String requestOptionalRecordLookup =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -523,6 +536,7 @@ class TestRunSetsApiController {
     String requestOptionalLiteral =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -547,7 +561,7 @@ class TestRunSetsApiController {
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
-            workflowUrl, inputSourceAsString, outputDefinitionAsString, recordType, recordIds);
+            workflowUrl,isCallCachingEnabled, inputSourceAsString, outputDefinitionAsString, recordType, recordIds);
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -569,6 +583,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -595,6 +610,21 @@ class TestRunSetsApiController {
         result.getResponse().getContentAsString(),
         containsString(
             "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
+  }
+
+  @Test
+  void testWorkflowOptionsProperlyConstructed() throws JsonProcessingException {
+    CromwellClient client = new CromwellClient(new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false));
+
+    //Both read_from_cache and write_to_cache should match the provided call caching argument.
+    String expected = "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
+    assertEquals(expected, cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), true));
+    String expectedFalse = "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":false}";
+    assertEquals(expectedFalse, cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), false));
+
+    //empty optional should pass "null" as the final_workflow_log_dir
+    String expectedEmptyDir = "{\"final_workflow_log_dir\":null,\"read_from_cache\":false,\"write_to_cache\":false}";
+    assertEquals(expectedEmptyDir, cromwellService.buildWorkflowOptionsJson(Optional.empty(), false));
   }
 
   @Test
@@ -1003,4 +1033,5 @@ class TestRunSetsApiControllerUnits {
         RunSetsApiController.validateRequestInputsAndOutputs(request, config);
     assertTrue(actualErrorList.isEmpty());
   }
+
 }
