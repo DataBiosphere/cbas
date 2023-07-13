@@ -954,6 +954,24 @@ class TestRunSetsApiControllerUnits {
   }
 
   @Test
+  void testRequestValidationCallCachingEnabled() {
+    final RunSetRequest request = new RunSetRequest();
+    request.setWorkflowInputDefinitions(
+        List.of(new WorkflowInputDefinition(), new WorkflowInputDefinition()));
+    List<String> errorList = List.of("Request must contain boolean call_caching_enabled parameter");
+    List<String> okList = List.of();
+
+    //Call Caching Param is null - should throw error
+    assertEquals(errorList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
+
+    //Call Caching Param is true or false - this is fine
+    request.setCallCachingEnabled(true);
+    assertEquals(okList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
+    request.setCallCachingEnabled(false);
+    assertEquals(okList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
+  }
+
+  @Test
   void testRequestOutputsGreaterThanMax() {
     final CbasApiConfiguration config = new CbasApiConfiguration();
     final RunSetRequest request = new RunSetRequest();

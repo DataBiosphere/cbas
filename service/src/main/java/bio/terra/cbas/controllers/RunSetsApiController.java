@@ -322,6 +322,7 @@ public class RunSetsApiController implements RunSetsApi {
     List<String> errorList = new ArrayList<>();
     errorList.addAll(validateRequestRecordIds(request, config));
     errorList.addAll(validateRequestInputsAndOutputs(request, config));
+    errorList.addAll(validateRequestContainsCallCachingParameter(request));
     return errorList;
   }
 
@@ -377,6 +378,15 @@ public class RunSetsApiController implements RunSetsApi {
 
     return errorList;
   }
+
+  public static List<String> validateRequestContainsCallCachingParameter(RunSetRequest request) {
+    List<String> errorList = new ArrayList<>();
+    if(request.isCallCachingEnabled() == null) {
+      errorList.add("Request must contain boolean call_caching_enabled parameter");
+    }
+    return errorList;
+  }
+
 
   private String getErrorMessage(ApiException exception) {
     Gson gson = new Gson();

@@ -5,8 +5,6 @@ import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
@@ -20,6 +18,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+
+import static bio.terra.cbas.api.RunsApi.log;
 
 @Component
 public class CromwellService implements HealthCheck {
@@ -138,9 +138,9 @@ public class CromwellService implements HealthCheck {
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
    * @throws JsonProcessingException, IllegalArgumentException
    */
-  public static String buildWorkflowOptionsJson(Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled) throws JsonProcessingException, IllegalArgumentException {
-    if (isCallCachingEnabled == null) {
-      throw new IllegalArgumentException("isCallCachingEnabled must be true or false");
+  public static String buildWorkflowOptionsJson(Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled) throws JsonProcessingException {
+    if(isCallCachingEnabled == null) {
+      log.error("Sending null call caching parameters to Cromwell. call_caching_enabled should be set to a boolean value. ");
     }
     Map<String, Object> workflowOptions = new HashMap<>();
     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
