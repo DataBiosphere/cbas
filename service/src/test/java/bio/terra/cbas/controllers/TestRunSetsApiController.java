@@ -280,13 +280,13 @@ class TestRunSetsApiController {
     when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
         .thenReturn(mockToolDescriptor);
 
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), eq(isCallCachingEnabled)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), eq(isCallCachingEnabled)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), any()))
         .thenThrow(
             new cromwell.client.ApiException(
                 "ApiException thrown on purpose for testing purposes."));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), eq(isCallCachingEnabled)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
   }
 
@@ -375,7 +375,7 @@ class TestRunSetsApiController {
 
     // verify dockstoreService and cromwellService methods were called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflow(eq(workflowUrl), any(), eq(isCallCachingEnabled));
+    verify(cromwellService).submitWorkflow(eq(workflowUrl), any(), any());
 
     assertNull(response.getErrors());
   }

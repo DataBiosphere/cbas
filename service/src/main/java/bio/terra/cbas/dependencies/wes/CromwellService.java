@@ -44,17 +44,19 @@ public class CromwellService implements HealthCheck {
     workflowOptions.put("final_workflow_log_dir", this.cromwellClient.getFinalWorkflowLogDirOption().orElse(null));
     workflowOptions.put("write_to_cache", isCallCachingEnabled);
     workflowOptions.put("read_from_cache", isCallCachingEnabled);
+    String myJson = InputGenerator.inputsToJson(workflowOptions);
 
-    return cromwellClient
+    RunId ret = cromwellClient
         .wesAPI()
         .runWorkflow(
             InputGenerator.inputsToJson(params),
             null,
             null,
             null,
-            InputGenerator.inputsToJson(workflowOptions),
+            myJson,
             workflowUrl,
             null);
+    return ret;
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
