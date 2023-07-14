@@ -381,12 +381,12 @@ public class RunSetsApiController implements RunSetsApi {
 
   public static List<String> validateRequestContainsCallCachingParameter(RunSetRequest request) {
     List<String> errorList = new ArrayList<>();
-    if(request.isCallCachingEnabled() == null) {
+    if (request.isCallCachingEnabled() == null) {
       errorList.add("Request must contain boolean call_caching_enabled parameter");
     }
     return errorList;
   }
-  
+
   private String getErrorMessage(ApiException exception) {
     Gson gson = new Gson();
     try {
@@ -473,7 +473,9 @@ public class RunSetsApiController implements RunSetsApi {
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
         // Submit the workflow, get its ID and store the Run to database
-        workflowResponse = cromwellService.submitWorkflow(rawMethodUrl, workflowInputs, runSet.callCachingEnabled());
+        workflowResponse =
+            cromwellService.submitWorkflow(
+                rawMethodUrl, workflowInputs, runSet.callCachingEnabled());
 
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));

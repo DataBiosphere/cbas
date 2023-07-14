@@ -1,5 +1,7 @@
 package bio.terra.cbas.dependencies.wes;
 
+import static bio.terra.cbas.api.RunsApi.log;
+
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
@@ -12,13 +14,11 @@ import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
-
-import static bio.terra.cbas.api.RunsApi.log;
 
 @Component
 public class CromwellService implements HealthCheck {
@@ -35,7 +35,8 @@ public class CromwellService implements HealthCheck {
     this.cromwellConfig = cromwellConfig;
   }
 
-  public RunId submitWorkflow(String workflowUrl, Map<String, Object> params, Boolean isCallCachingEnabled)
+  public RunId submitWorkflow(
+      String workflowUrl, Map<String, Object> params, Boolean isCallCachingEnabled)
       throws ApiException, JsonProcessingException {
 
     return cromwellClient
@@ -45,7 +46,8 @@ public class CromwellService implements HealthCheck {
             null,
             null,
             null,
-            this.buildWorkflowOptionsJson(cromwellClient.getFinalWorkflowLogDirOption(), isCallCachingEnabled),
+            this.buildWorkflowOptionsJson(
+                cromwellClient.getFinalWorkflowLogDirOption(), isCallCachingEnabled),
             workflowUrl,
             null);
   }
@@ -137,13 +139,16 @@ public class CromwellService implements HealthCheck {
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
    * @throws JsonProcessingException, IllegalArgumentException
    */
-  public static String buildWorkflowOptionsJson(Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled) throws JsonProcessingException {
-    if(isCallCachingEnabled == null) {
-      log.error("Sending null call caching parameters to Cromwell. call_caching_enabled should be set to a boolean value. ");
+  public static String buildWorkflowOptionsJson(
+      Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled)
+      throws JsonProcessingException {
+    if (isCallCachingEnabled == null) {
+      log.error(
+          "Sending null call caching parameters to Cromwell. call_caching_enabled should be set to a boolean value. ");
     }
     Map<String, Object> workflowOptions = new HashMap<>();
     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
-    if(finalWorkflowLogDir.isPresent()) {
+    if (finalWorkflowLogDir.isPresent()) {
       workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
     }
     workflowOptions.put("write_to_cache", isCallCachingEnabled);

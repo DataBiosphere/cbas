@@ -561,7 +561,12 @@ class TestRunSetsApiController {
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
-            workflowUrl,isCallCachingEnabled, inputSourceAsString, outputDefinitionAsString, recordType, recordIds);
+            workflowUrl,
+            isCallCachingEnabled,
+            inputSourceAsString,
+            outputDefinitionAsString,
+            recordType,
+            recordIds);
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -614,17 +619,26 @@ class TestRunSetsApiController {
 
   @Test
   void testWorkflowOptionsProperlyConstructed() throws JsonProcessingException {
-    CromwellClient client = new CromwellClient(new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false));
+    CromwellClient client =
+        new CromwellClient(
+            new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false));
 
-    //Both read_from_cache and write_to_cache should match the provided call caching argument.
-    String expected = "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
-    assertEquals(expected, cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), true));
-    String expectedFalse = "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":false}";
-    assertEquals(expectedFalse, cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), false));
+    // Both read_from_cache and write_to_cache should match the provided call caching argument.
+    String expected =
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
+    assertEquals(
+        expected,
+        cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), true));
+    String expectedFalse =
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":false}";
+    assertEquals(
+        expectedFalse,
+        cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), false));
 
-    //empty optional should omit final_workflow_log_dir
+    // empty optional should omit final_workflow_log_dir
     String expectedEmptyDir = "{\"read_from_cache\":false,\"write_to_cache\":false}";
-    assertEquals(expectedEmptyDir, cromwellService.buildWorkflowOptionsJson(Optional.empty(), false));
+    assertEquals(
+        expectedEmptyDir, cromwellService.buildWorkflowOptionsJson(Optional.empty(), false));
   }
 
   @Test
@@ -961,10 +975,11 @@ class TestRunSetsApiControllerUnits {
     List<String> errorList = List.of("Request must contain boolean call_caching_enabled parameter");
     List<String> okList = List.of();
 
-    //Call Caching Param is null - should throw error
-    assertEquals(errorList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
+    // Call Caching Param is null - should throw error
+    assertEquals(
+        errorList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
 
-    //Call Caching Param is true or false - this is fine
+    // Call Caching Param is true or false - this is fine
     request.setCallCachingEnabled(true);
     assertEquals(okList, RunSetsApiController.validateRequestContainsCallCachingParameter(request));
     request.setCallCachingEnabled(false);
@@ -1051,5 +1066,4 @@ class TestRunSetsApiControllerUnits {
         RunSetsApiController.validateRequestInputsAndOutputs(request, config);
     assertTrue(actualErrorList.isEmpty());
   }
-
 }
