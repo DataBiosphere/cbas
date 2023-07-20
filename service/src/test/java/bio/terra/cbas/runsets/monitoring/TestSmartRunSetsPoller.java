@@ -256,7 +256,7 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            true,
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             null,

@@ -137,14 +137,14 @@ public class CromwellService implements HealthCheck {
    *
    * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
-   * @throws JsonProcessingException, IllegalArgumentException
+   * @throws JsonProcessingException
    */
   public static String buildWorkflowOptionsJson(
       Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled)
       throws JsonProcessingException {
     if (isCallCachingEnabled == null) {
-      log.error(
-          "Sending null call caching parameters to Cromwell. call_caching_enabled should be set to a boolean value. ");
+      log.warn("Null call caching parameter provided. Defaulting to false.");
+      isCallCachingEnabled = false;
     }
     Map<String, Object> workflowOptions = new HashMap<>();
     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission

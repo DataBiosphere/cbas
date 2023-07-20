@@ -90,7 +90,7 @@ class TestRunSetsApiController {
   private final UUID dockstoreMethodVersionId = UUID.randomUUID();
   private final String workflowUrl =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
-  private final Boolean isCallCachingEnabled = true;
+  private final Boolean isCallCachingEnabled = false;
   private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/hello.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
@@ -408,7 +408,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate2.formatted(
             methodVersionId,
-            true,
+            false,
             twoHundredInputs,
             optionalOutputSourceString,
             recordType,
@@ -662,7 +662,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
-            true,
+            false,
             false,
             CbasRunSetStatus.ERROR,
             OffsetDateTime.now(),
@@ -762,7 +762,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
-            true,
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
@@ -840,7 +840,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
-            true,
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),

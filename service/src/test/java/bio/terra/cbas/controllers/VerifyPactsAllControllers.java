@@ -195,7 +195,7 @@ class VerifyPactsAllControllers {
             myMethodVersion,
             "a run set with methodVersion",
             "a run set with error status",
-            true,
+            false,
             false,
             CbasRunSetStatus.COMPLETE,
             OffsetDateTime.now(),
