@@ -1,5 +1,7 @@
 package bio.terra.cbas.dependencies.wes;
 
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
@@ -32,7 +34,8 @@ public class CromwellService implements HealthCheck {
   }
 
   public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
-      throws ApiException, JsonProcessingException {
+      throws ApiException, JsonProcessingException, DependencyNotAvailableException,
+          AzureAccessTokenException {
 
     // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
     String workflowOptions =
@@ -80,7 +83,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public Object getOutputs(String id) throws ApiException {
+  public Object getOutputs(String id)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     return cromwellClient.wesAPI().getRunLog(id).getOutputs();
   }
 
@@ -128,7 +132,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run) throws ApiException {
+  public void cancelRun(Run run)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 
@@ -138,7 +143,7 @@ public class CromwellService implements HealthCheck {
       // No response, the successful return code is the important thing:
       cromwellClient.engineApi().engineStatus("v1");
       return new Result(true, "Cromwell was reachable");
-    } catch (ApiException e) {
+    } catch (ApiException | DependencyNotAvailableException | AzureAccessTokenException e) {
       return new Result(false, e.getMessage());
     }
   }

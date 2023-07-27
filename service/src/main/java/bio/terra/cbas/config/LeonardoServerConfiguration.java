@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConfigurationProperties(prefix = "leonardo")
 public record LeonardoServerConfiguration(
     String baseUri,
-    List<AppType> wdsAppTypes,
+    List<AppType> appTypes,
     Duration dependencyUrlCacheTtl,
     Boolean debugApiLogging) {
 
@@ -20,14 +20,14 @@ public record LeonardoServerConfiguration(
   @ConstructorBinding
   public LeonardoServerConfiguration(
       String baseUri,
-      List<String> wdsAppTypeNames,
+      List<String> appTypes,
       long dependencyUrlCacheTtlSeconds,
       Boolean debugApiLogging) {
     this(
         baseUri,
-        wdsAppTypeNames.stream().map(AppType::fromValue).toList(),
+        appTypes.stream().map(AppType::fromValue).toList(),
         Duration.ofSeconds(dependencyUrlCacheTtlSeconds),
         debugApiLogging);
-    log.info("Setting wdsAppTypes={}", wdsAppTypeNames);
+    log.info("Setting appTypes={}", appTypes);
   }
 }

@@ -32,6 +32,7 @@ class TestAppUtils {
   private final ListAppResponse otherNamedCromwellAppProvisioning;
   private final ListAppResponse separatedWdsApp;
   private final ListAppResponse separatedWorkflowsApp;
+  private final ListAppResponse separatedWorkflowsAppMissingCromwell;
 
   private final AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
 
@@ -44,6 +45,14 @@ class TestAppUtils {
   }
 
   @Test
+  void findCromwellUrlInCombinedApp() throws Exception {
+    List<ListAppResponse> apps = List.of(combinedWdsInCromwellApp);
+
+    AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
+    assertEquals(anticipatedCromwellUrl("wds"), au.findUrlForCromwell(apps));
+  }
+
+  @Test
   void findWdsUrlInOtherNamedApp() throws Exception {
     List<ListAppResponse> apps = List.of(otherNamedCromwellApp);
 
@@ -52,12 +61,29 @@ class TestAppUtils {
   }
 
   @Test
-  void preferSpecificallyNamedApp() throws Exception {
+  void findCromwellUrlInOtherNamedApp() throws Exception {
+    List<ListAppResponse> apps = List.of(otherNamedCromwellApp);
+
+    AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
+    assertEquals(anticipatedCromwellUrl("app1"), au.findUrlForCromwell(apps));
+  }
+
+  @Test
+  void preferSpecificallyNamedAppWds() throws Exception {
     List<ListAppResponse> apps =
         new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, otherNamedCromwellApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
     assertEquals(anticipatedWdsUrl("wds"), au.findUrlForWds(apps));
+  }
+
+  @Test
+  void preferSpecificallyNamedAppCromwell() throws Exception {
+    List<ListAppResponse> apps =
+        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, otherNamedCromwellApp));
+    // Shuffle to make sure the initial ordering isn't relevant:
+    Collections.shuffle(apps);
+    assertEquals(anticipatedCromwellUrl("wds"), au.findUrlForCromwell(apps));
   }
 
   @Test
@@ -106,6 +132,16 @@ class TestAppUtils {
     assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForWds(apps));
   }
 
+  @Test
+  void throwIfBestAppHasNoCromwell() {
+    List<ListAppResponse> apps =
+        new java.util.ArrayList<>(List.of(separatedWorkflowsAppMissingCromwell));
+    // Shuffle to make sure the initial ordering isn't relevant:
+    Collections.shuffle(apps);
+
+    assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForCromwell(apps));
+  }
+
   private void permuteAndTest(List<ListAppResponse> apps, String expectedUrl) throws Exception {
     int permutation = 0;
     do {
@@ -117,6 +153,12 @@ class TestAppUtils {
   private String anticipatedWdsUrl(String appName) {
     return StringSubstitutor.replace(
         "https://lzblahblahblah.servicebus.windows.net/${appName}-${workspaceId}/wds",
+        Map.of("workspaceId", workspaceId, "appName", appName));
+  }
+
+  private String anticipatedCromwellUrl(String appName) {
+    return StringSubstitutor.replace(
+        "https://lzblahblahblah.servicebus.windows.net/${appName}-${workspaceId}/cromwell",
         Map.of("workspaceId", workspaceId, "appName", appName));
   }
 
@@ -361,6 +403,41 @@ class TestAppUtils {
                         "cbas": "https://lzblahblahblah.servicebus.windows.net/workflows-${workspaceId}/cbas",
                         "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/workflows-${workspaceId}/",
                         "cromwell": "https://lzblahblahblah.servicebus.windows.net/workflows-${workspaceId}/cromwell"
+                    },
+                    "appName": "workflows-${workspaceId}",
+                    "appType": "CROMWELL",
+                    "diskName": null,
+                    "auditInfo": {
+                        "creator": "me@broadinstitute.org",
+                        "createdDate": "2023-02-09T16:01:36.660590Z",
+                        "destroyedDate": null,
+                        "dateAccessed": "2023-02-09T16:01:36.660590Z"
+                    },
+                    "accessScope": null,
+                    "labels": {}
+                }""",
+                Map.of("workspaceId", workspaceId)));
+
+    separatedWorkflowsAppMissingCromwell =
+        ListAppResponse.fromJson(
+            StringSubstitutor.replace(
+                """
+                {
+                    "workspaceId": "${workspaceId}",
+                    "cloudContext": {
+                        "cloudProvider": "AZURE",
+                        "cloudResource": "blah-blah-blah"
+                    },
+                    "kubernetesRuntimeConfig": {
+                        "numNodes": 1,
+                        "machineType": "Standard_A2_v2",
+                        "autoscalingEnabled": false
+                    },
+                    "errors": [],
+                    "status": "RUNNING",
+                    "proxyUrls": {
+                        "cbas": "https://lzblahblahblah.servicebus.windows.net/workflows-${workspaceId}/cbas",
+                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/workflows-${workspaceId}/"
                     },
                     "appName": "workflows-${workspaceId}",
                     "appType": "CROMWELL",
