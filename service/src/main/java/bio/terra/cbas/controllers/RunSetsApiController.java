@@ -495,8 +495,14 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn("Error processing inputs", e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
-      } catch (AzureAccessTokenException | DependencyNotAvailableException e) {
-        throw new RuntimeException(e);
+      } catch (AzureAccessTokenException e) {
+        log.warn("Unrecognized token", e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
+      } catch (DependencyNotAvailableException e) {
+        log.warn("Dependency not available", e);
+        runStateResponseList.add(
+            storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));
       }
     }
 
