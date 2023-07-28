@@ -54,7 +54,6 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.dockstore.model.ToolDescriptor;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import java.time.Duration;
@@ -62,7 +61,6 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -618,27 +616,21 @@ class TestRunSetsApiController {
   }
 
   @Test
-  void testWorkflowOptionsProperlyConstructed() throws JsonProcessingException {
-    CromwellClient client =
-        new CromwellClient(
-            new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false));
+  void testWorkflowOptionsProperlyConstructed() {
+    CromwellServerConfiguration localTestConfig =
+        new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
+    CromwellClient localTestClient = new CromwellClient(localTestConfig);
+    CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
 
-    // Both read_from_cache and write_to_cache should match the provided call caching argument.
+    // Workflow options should reflect the final workflow log directory.
+    // write_to_cache should always be true. read_from_cache should match the provided call caching
+    // option.
     String expected =
         "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
-    assertEquals(
-        expected,
-        cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), true));
+    assertEquals(expected, localtestService.buildWorkflowOptionsJson(true));
     String expectedFalse =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":false}";
-    assertEquals(
-        expectedFalse,
-        cromwellService.buildWorkflowOptionsJson(client.getFinalWorkflowLogDirOption(), false));
-
-    // empty optional should omit final_workflow_log_dir
-    String expectedEmptyDir = "{\"read_from_cache\":false,\"write_to_cache\":false}";
-    assertEquals(
-        expectedEmptyDir, cromwellService.buildWorkflowOptionsJson(Optional.empty(), false));
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":true}";
+    assertEquals(expectedFalse, localtestService.buildWorkflowOptionsJson(false));
   }
 
   @Test

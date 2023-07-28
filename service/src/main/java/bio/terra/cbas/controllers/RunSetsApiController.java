@@ -60,6 +60,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -454,6 +455,11 @@ public class RunSetsApiController implements RunSetsApi {
       String rawMethodUrl) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
+    // Build the JSON that specifies additional configuration for cromwell workflows. The same options
+    // will be used for all workflows submitted as part of this run set.
+    String workflowOptionsJson =
+        cromwellService.buildWorkflowOptionsJson(Objects.requireNonNullElse(runSet.callCachingEnabled(), false));
+
     for (RecordResponse record : recordResponses) {
       RunId workflowResponse;
       UUID runId = uuidSource.generateUUID();
@@ -465,8 +471,7 @@ public class RunSetsApiController implements RunSetsApi {
 
         // Submit the workflow, get its ID and store the Run to database
         workflowResponse =
-            cromwellService.submitWorkflow(
-                rawMethodUrl, workflowInputs, runSet.callCachingEnabled());
+            cromwellService.submitWorkflow(rawMethodUrl, workflowInputs, workflowOptionsJson);
 
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));

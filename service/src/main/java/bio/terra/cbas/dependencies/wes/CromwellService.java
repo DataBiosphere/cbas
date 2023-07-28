@@ -36,7 +36,7 @@ public class CromwellService implements HealthCheck {
   }
 
   public RunId submitWorkflow(
-      String workflowUrl, Map<String, Object> params, Boolean isCallCachingEnabled)
+      String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
       throws ApiException, JsonProcessingException {
 
     return cromwellClient
@@ -46,8 +46,7 @@ public class CromwellService implements HealthCheck {
             null,
             null,
             null,
-            this.buildWorkflowOptionsJson(
-                cromwellClient.getFinalWorkflowLogDirOption(), isCallCachingEnabled),
+            workflowOptionsJson,
             workflowUrl,
             null);
   }
@@ -131,29 +130,40 @@ public class CromwellService implements HealthCheck {
    * Cromwell accepts an object "Workflow Options" to specify additional configuration for a
    * workflow. Here, we build that object with the parameters we care about. final_workflow_log_dir
    * specifies the path where outputs will be written. write_to_cache and read_from_cache are both
-   * related to call caching. When a user enables call caching, these should both be set to true.
-   * Otherwise, they should both be set to false.
+   * related to call caching. Users expect that we will always write_to_cache, but only
+   * read_from_cache when call caching is enabled. This is how it works in GCP, so we are mirroring
+   * the behavior here. write_from_cache should always be true, and read_from_cache should only be
+   * true when the user enables call caching.
    * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
    *
    * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
    * @throws JsonProcessingException
    */
-  public static String buildWorkflowOptionsJson(
-      Optional<String> finalWorkflowLogDir, Boolean isCallCachingEnabled)
-      throws JsonProcessingException {
-    if (isCallCachingEnabled == null) {
-      log.warn("Null call caching parameter provided. Defaulting to false.");
-      isCallCachingEnabled = false;
-    }
+  public String buildWorkflowOptionsJson(Boolean isCallCachingEnabled) {
+    // Map we will convert to JSON
     Map<String, Object> workflowOptions = new HashMap<>();
-    // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
+
+    // Path for cromwell to write workflow logs to.
+    Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
     if (finalWorkflowLogDir.isPresent()) {
       workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
     }
-    workflowOptions.put("write_to_cache", isCallCachingEnabled);
+
+    // Call caching fields
+    workflowOptions.put("write_to_cache", true);
     workflowOptions.put("read_from_cache", isCallCachingEnabled);
-    return InputGenerator.inputsToJson(workflowOptions);
+
+    try {
+      return InputGenerator.inputsToJson(workflowOptions);
+    } catch (JsonProcessingException e) {
+      String errorMsg =
+          String.format(
+              "Failed to generate Workflow Options JSON. JsonProcessingException: %s",
+              e.getMessage());
+      log.warn(errorMsg, e);
+      return "{}";
+    }
   }
 
   public void cancelRun(Run run) throws ApiException {
