@@ -11,7 +11,7 @@ import javax.servlet.ServletRequestWrapper;
 import javax.servlet.ServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -32,10 +32,10 @@ class TestBearerTokenFilter {
   }
 
   @Test
-  void testRequestWithLeoToken() throws ServletException, IOException {
-    String tokenValue = "foo-leo-token";
+  void testRequestWithAuthHeader() throws ServletException, IOException {
+    String tokenValue = "foo-token";
     MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setCookies(new MockCookie("LeoToken", tokenValue));
+    request.addHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", tokenValue));
     assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     filter.doFilter(request, response, chain);
@@ -43,7 +43,7 @@ class TestBearerTokenFilter {
   }
 
   @Test
-  void testRequestWithoutLeoToken() throws ServletException, IOException {
+  void testRequestWithoutAuthHeader() throws ServletException, IOException {
     MockHttpServletRequest request = new MockHttpServletRequest();
     assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
@@ -53,9 +53,9 @@ class TestBearerTokenFilter {
 
   @Test
   void testNonHttpRequest() throws ServletException, IOException {
-    String tokenValue = "foo-leo-token";
+    String tokenValue = "foo-token";
     MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setCookies(new MockCookie("LeoToken", tokenValue));
+    request.addHeader(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", tokenValue));
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     ServletRequest wrappedRequest = new ServletRequestWrapper(request);
     filter.doFilter(wrappedRequest, response, chain);

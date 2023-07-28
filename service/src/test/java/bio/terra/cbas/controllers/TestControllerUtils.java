@@ -20,9 +20,9 @@ class TestControllerUtils {
   private ServletRequest request;
   private ControllerUtils utils;
 
-  private final String tokenValue = "foo-leo-token";
-  private final String expiredTokenValue = "expired-leo-token";
-  private final String interruptedTokenValue = "interrupted-leo-token";
+  private final String tokenValue = "foo-token";
+  private final String expiredTokenValue = "expired-token";
+  private final String interruptedTokenValue = "interrupted-token";
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
           .userEmail("realuser@gmail.com")
