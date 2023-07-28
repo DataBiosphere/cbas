@@ -135,7 +135,7 @@ jobs:
           HELM_CUR_TAG=$(grep "/cbas:" charts/workflows-app/values.yaml | sed "s,.*/cbas:,,")
           HELM_NEW_TAG=${{ steps.tag.outputs.tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
-          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" charts/wds/values.yaml
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" charts/workflows-app/values.yaml
           cd -
 
       - name: Make PR in terra-helmfile
