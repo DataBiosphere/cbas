@@ -59,7 +59,9 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -173,8 +175,15 @@ class TestRunSetsApiController {
   final String cromwellWorkflowId1 = UUID.randomUUID().toString();
   final String cromwellWorkflowId3 = UUID.randomUUID().toString();
 
+  private final UserStatusInfo mockUser =
+      new UserStatusInfo()
+          .userEmail("realuser@gmail.com")
+          .userSubjectId("user-id-foo")
+          .enabled(true);
+
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
+  @MockBean private ControllerUtils controllerUtils;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -287,6 +296,8 @@ class TestRunSetsApiController {
                 "ApiException thrown on purpose for testing purposes."));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
+
+    when(controllerUtils.getSamUser()).thenReturn(Optional.of(mockUser));
   }
 
   @Test

@@ -60,7 +60,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -71,6 +73,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class RunSetsApiController implements RunSetsApi {
 
+  private final ControllerUtils controllerUtils;
   private final CromwellService cromwellService;
   private final WdsService wdsService;
   private final DockstoreService dockstoreService;
@@ -88,6 +91,7 @@ public class RunSetsApiController implements RunSetsApi {
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
 
   public RunSetsApiController(
+      ControllerUtils controllerUtils,
       CromwellService cromwellService,
       WdsService wdsService,
       DockstoreService dockstoreService,
@@ -100,6 +104,7 @@ public class RunSetsApiController implements RunSetsApi {
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
       RunSetAbortManager abortManager) {
+    this.controllerUtils = controllerUtils;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.dockstoreService = dockstoreService;
@@ -159,6 +164,13 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    Optional<UserStatusInfo> user = controllerUtils.getSamUser();
+    if (user.isPresent()) {
+      log.info("User ID: " + user.get().getUserSubjectId());
+    } else {
+      log.error("User could not be verified");
+    }
+
     captureRequestMetrics(request);
 
     // request validation
