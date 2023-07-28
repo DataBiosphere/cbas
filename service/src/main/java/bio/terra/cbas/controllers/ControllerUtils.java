@@ -8,6 +8,7 @@ import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,6 +36,7 @@ public class ControllerUtils {
                 return samService.getUserStatusInfo(token);
               } catch (InterruptedException e) {
                 logger.error(e.getMessage(), e.getCause());
+                Thread.currentThread().interrupt();
                 return null;
               }
             });

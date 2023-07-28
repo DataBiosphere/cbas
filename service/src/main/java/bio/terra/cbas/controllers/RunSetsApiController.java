@@ -166,7 +166,7 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     Optional<UserStatusInfo> user = controllerUtils.getSamUser();
     if (user.isPresent()) {
-      log.info("User ID: " + user.get().getUserSubjectId());
+      log.info("User ID: {}", user.get().getUserSubjectId());
     } else {
       log.error("User could not be verified");
     }

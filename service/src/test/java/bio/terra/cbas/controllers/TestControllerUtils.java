@@ -17,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-public class TestControllerUtils {
+class TestControllerUtils {
   private ServletRequest request;
   private ControllerUtils utils;
 
@@ -33,28 +33,19 @@ public class TestControllerUtils {
   void init() throws InterruptedException {
     request = mock(MockHttpServletRequest.class);
     SamService samService = mock(SamService.class);
-    when(samService.getUserStatusInfo(eq(tokenValue))).thenReturn(mockUser);
-    when(samService.getUserStatusInfo(eq(expiredTokenValue)))
+    when(samService.getUserStatusInfo(tokenValue)).thenReturn(mockUser);
+    when(samService.getUserStatusInfo(expiredTokenValue))
         .thenThrow(new SamUnauthorizedException("Unauthorized :("));
     utils = new ControllerUtils(request, samService);
   }
 
-  void addToken() {
-    when(request.getAttribute(eq(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN))).thenReturn(tokenValue);
-  }
-
-  void addExpiredToken() {
-    when(request.getAttribute(eq(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN)))
-        .thenReturn(expiredTokenValue);
-  }
-
-  void noToken() {
-    when(request.getAttribute(eq(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN))).thenReturn(null);
+  void setTokenValue(String token) {
+    when(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN)).thenReturn(token);
   }
 
   @Test
   void testGetUserToken() {
-    addToken();
+    setTokenValue(tokenValue);
     Optional<String> userToken = utils.getUserToken();
     assertTrue(userToken.isPresent());
     assertEquals(tokenValue, userToken.get());
@@ -62,14 +53,14 @@ public class TestControllerUtils {
 
   @Test
   void testGetUserTokenNoToken() {
-    noToken();
+    setTokenValue(null);
     Optional<String> userToken = utils.getUserToken();
     assertTrue(userToken.isEmpty());
   }
 
   @Test
   void testGetUserTokenExpiredToken() {
-    addExpiredToken();
+    setTokenValue(expiredTokenValue);
     Optional<String> userToken = utils.getUserToken();
     assertTrue(userToken.isPresent());
     assertEquals(expiredTokenValue, userToken.get());
@@ -77,7 +68,7 @@ public class TestControllerUtils {
 
   @Test
   void testGetSamUser() {
-    addToken();
+    setTokenValue(tokenValue);
     Optional<UserStatusInfo> user = utils.getSamUser();
     assertTrue(user.isPresent());
     assertEquals(mockUser, user.get());
@@ -85,14 +76,14 @@ public class TestControllerUtils {
 
   @Test
   void testGetSamUserNoToken() {
-    noToken();
+    setTokenValue(null);
     Optional<UserStatusInfo> user = utils.getSamUser();
     assertTrue(user.isEmpty());
   }
 
   @Test
   void testGetSamUserExpiredToken() {
-    addExpiredToken();
+    setTokenValue(expiredTokenValue);
     assertThrows(SamUnauthorizedException.class, () -> utils.getSamUser());
   }
 }
