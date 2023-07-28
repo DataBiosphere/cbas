@@ -34,9 +34,7 @@ public class BearerTokenFilter implements Filter {
     if (request instanceof HttpServletRequest httpRequest) {
       Cookie[] cookies = Optional.ofNullable(httpRequest.getCookies()).orElse(new Cookie[0]);
       Optional<Cookie> leoToken =
-          Arrays.stream(cookies)
-              .filter(cookie -> cookie.getName().equals(COOKIE_NAME))
-              .findFirst();
+          Arrays.stream(cookies).filter(cookie -> cookie.getName().equals(COOKIE_NAME)).findFirst();
       if (leoToken.isPresent()) {
         String token = leoToken.get().getValue();
 
