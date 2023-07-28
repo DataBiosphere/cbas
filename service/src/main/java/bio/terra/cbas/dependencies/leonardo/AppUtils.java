@@ -100,7 +100,7 @@ public class AppUtils {
                     logger.info(
                         "Not using app {} for {} because it is in workspace {}, not {}",
                         app.getAppName(),
-                        appType.toString(),
+                        appType,
                         app.getWorkspaceId(),
                         wdsServerConfiguration.instanceId());
                   }
@@ -109,7 +109,7 @@ public class AppUtils {
                     logger.info(
                         "Not using app {} for {} because it is of type {}, not one of {}",
                         app.getAppName(),
-                        appType.toString(),
+                        appType,
                         app.getAppType(),
                         leonardoServerConfiguration.appTypeNames());
                   }
@@ -118,7 +118,7 @@ public class AppUtils {
                     logger.info(
                         "Not using app {} for {} because it is in state {}, not one of {}",
                         app.getAppName(),
-                        appType.toString(),
+                        appType,
                         app.getStatus(),
                         healthyStates);
                   }
