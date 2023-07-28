@@ -22,6 +22,9 @@ import org.springframework.web.context.request.RequestContextHolder;
  *
  * <p>Note that this filter does not validate or inspect the token; it just extracts it from the
  * request, allowing it to be sent as-is from CBAS to other services such as Sam.
+ *
+ * <p>Adapted from <a
+ * href="https://github.com/DataBiosphere/terra-workspace-data-service/blob/b479672d36545d0b45766b3e0e09564d077a19b8/service/src/main/java/org/databiosphere/workspacedataservice/sam/BearerTokenFilter.java">WDS</a>
  */
 @Component
 public class BearerTokenFilter implements Filter {
