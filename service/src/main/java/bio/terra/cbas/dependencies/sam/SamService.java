@@ -44,6 +44,7 @@ public class SamService implements HealthCheck {
     } catch (ApiException apiException) {
       throw SamExceptionFactory.create("Error getting user status info from Sam", apiException);
     } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
       throw SamExceptionFactory.create(
           "Request interrupted while getting user status info from Sam", interruptedException);
     }
