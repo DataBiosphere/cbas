@@ -31,6 +31,7 @@ public class BearerTokenFilter implements Filter {
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
       throws IOException, ServletException {
+    // ServletRequest does not expose cookie methods
     if (request instanceof HttpServletRequest httpRequest) {
       Cookie[] cookies = Optional.ofNullable(httpRequest.getCookies()).orElse(new Cookie[0]);
       Optional<Cookie> leoToken =

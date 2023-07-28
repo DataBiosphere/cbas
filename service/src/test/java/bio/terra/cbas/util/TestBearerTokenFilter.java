@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.io.IOException;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletRequestWrapper;
 import javax.servlet.ServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,17 @@ class TestBearerTokenFilter {
     assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     filter.doFilter(request, response, chain);
+    assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
+  }
+
+  @Test
+  void testNonHttpRequest() throws ServletException, IOException {
+    String tokenValue = "foo-leo-token";
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setCookies(new MockCookie("LeoToken", tokenValue));
+    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    ServletRequest wrappedRequest = new ServletRequestWrapper(request);
+    filter.doFilter(wrappedRequest, response, chain);
     assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
   }
 }

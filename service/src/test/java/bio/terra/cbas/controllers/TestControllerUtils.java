@@ -22,6 +22,7 @@ class TestControllerUtils {
 
   private final String tokenValue = "foo-leo-token";
   private final String expiredTokenValue = "expired-leo-token";
+  private final String interruptedTokenValue = "interrupted-leo-token";
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
           .userEmail("realuser@gmail.com")
@@ -35,6 +36,7 @@ class TestControllerUtils {
     when(samService.getUserStatusInfo(tokenValue)).thenReturn(mockUser);
     when(samService.getUserStatusInfo(expiredTokenValue))
         .thenThrow(new SamUnauthorizedException("Unauthorized :("));
+    when(samService.getUserStatusInfo(interruptedTokenValue)).thenThrow(new InterruptedException());
     utils = new ControllerUtils(request, samService);
   }
 
@@ -84,5 +86,13 @@ class TestControllerUtils {
   void testGetSamUserExpiredToken() {
     setTokenValue(expiredTokenValue);
     assertThrows(SamUnauthorizedException.class, () -> utils.getSamUser());
+  }
+
+  @Test
+  void testGetSamUserInterrupted() {
+    setTokenValue(interruptedTokenValue);
+    Optional<UserStatusInfo> user = utils.getSamUser();
+    assertTrue(user.isEmpty());
+    assertTrue(Thread.interrupted());
   }
 }
