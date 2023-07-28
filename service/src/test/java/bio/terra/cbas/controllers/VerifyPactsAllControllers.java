@@ -61,6 +61,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
+  @MockBean private ControllerUtils controllerUtils;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private WdsService wdsService;
