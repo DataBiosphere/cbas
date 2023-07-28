@@ -37,12 +37,15 @@ public class SamService implements HealthCheck {
     }
   }
 
-  public UserStatusInfo getUserStatusInfo(String accessToken) throws InterruptedException {
+  public UserStatusInfo getUserStatusInfo(String accessToken) {
     UsersApi usersApi = samUsersApi(accessToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {
       throw SamExceptionFactory.create("Error getting user status info from Sam", apiException);
+    } catch (InterruptedException interruptedException) {
+      throw SamExceptionFactory.create(
+          "Request interrupted while getting user status info from Sam", interruptedException);
     }
   }
 }

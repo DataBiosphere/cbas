@@ -28,16 +28,6 @@ public class ControllerUtils {
   }
 
   Optional<UserStatusInfo> getSamUser() {
-    return getUserToken()
-        .map(
-            token -> {
-              try {
-                return samService.getUserStatusInfo(token);
-              } catch (InterruptedException e) {
-                logger.error(e.getMessage(), e.getCause());
-                Thread.currentThread().interrupt();
-                return null;
-              }
-            });
+    return getUserToken().map(samService::getUserStatusInfo);
   }
 }
