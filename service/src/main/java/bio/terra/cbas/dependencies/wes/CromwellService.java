@@ -1,8 +1,9 @@
 package bio.terra.cbas.dependencies.wes;
 
+import static bio.terra.cbas.api.RunsApi.log;
+
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
-import static bio.terra.cbas.api.RunsApi.log;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
@@ -35,7 +36,7 @@ public class CromwellService implements HealthCheck {
     this.cromwellClient = cromwellClient;
     this.cromwellConfig = cromwellConfig;
   }
-  
+
   public RunId submitWorkflow(
       String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
       throws ApiException, JsonProcessingException, DependencyNotAvailableException,
@@ -169,7 +170,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public void cancelRun(Run run)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 
