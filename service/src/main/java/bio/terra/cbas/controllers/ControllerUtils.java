@@ -3,24 +3,25 @@ package bio.terra.cbas.controllers;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.util.BearerTokenFilter;
 import java.util.Optional;
-import javax.servlet.ServletRequest;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @Component
 public class ControllerUtils {
-  private final ServletRequest servletRequest;
   private final SamService samService;
 
   @Autowired
-  ControllerUtils(ServletRequest servletRequest, SamService samService) {
-    this.servletRequest = servletRequest;
+  ControllerUtils(SamService samService) {
     this.samService = samService;
   }
 
   Optional<String> getUserToken() {
-    Object token = servletRequest.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN);
+    Object token =
+        RequestContextHolder.currentRequestAttributes()
+            .getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN, RequestAttributes.SCOPE_REQUEST);
     return Optional.ofNullable((String) token);
   }
 

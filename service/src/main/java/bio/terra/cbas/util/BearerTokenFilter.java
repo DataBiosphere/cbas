@@ -1,7 +1,5 @@
 package bio.terra.cbas.util;
 
-import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
-
 import java.io.IOException;
 import java.util.Optional;
 import javax.servlet.Filter;
@@ -41,7 +39,8 @@ public class BearerTokenFilter implements Filter {
         String token = authString.replaceFirst(BEARER_PREFIX, "");
 
         RequestAttributes currentAttributes = RequestContextHolder.currentRequestAttributes();
-        currentAttributes.setAttribute(ATTRIBUTE_NAME_TOKEN, token, SCOPE_REQUEST);
+        currentAttributes.setAttribute(
+            ATTRIBUTE_NAME_TOKEN, token, RequestAttributes.SCOPE_REQUEST);
         RequestContextHolder.setRequestAttributes(currentAttributes);
       }
     }

@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.util.BearerTokenFilter.ATTRIBUTE_NAME_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,17 +8,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.dependencies.sam.SamService;
-import bio.terra.cbas.util.BearerTokenFilter;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import java.util.Optional;
-import javax.servlet.ServletRequest;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 class TestControllerUtils {
-  private ServletRequest request;
   private ControllerUtils utils;
 
   private final String tokenValue = "foo-token";
@@ -30,16 +30,17 @@ class TestControllerUtils {
 
   @BeforeEach
   void init() {
-    request = mock(MockHttpServletRequest.class);
     SamService samService = mock(SamService.class);
     when(samService.getUserStatusInfo(tokenValue)).thenReturn(mockUser);
     when(samService.getUserStatusInfo(expiredTokenValue))
         .thenThrow(new SamUnauthorizedException("Unauthorized :("));
-    utils = new ControllerUtils(request, samService);
+    utils = new ControllerUtils(samService);
   }
 
   void setTokenValue(String token) {
-    when(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN)).thenReturn(token);
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setAttribute(ATTRIBUTE_NAME_TOKEN, token);
+    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
   }
 
   @Test
