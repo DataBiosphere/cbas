@@ -251,7 +251,7 @@ components:
           description: ID of the method version to run
         call_caching_enabled:
           type: boolean
-          default: false
+          default: true
           description: Whether to enable call caching for this run set.
         wds_records:
           $ref: '#/components/schemas/WdsRecordSet'

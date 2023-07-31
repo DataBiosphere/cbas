@@ -132,8 +132,8 @@ public class CromwellService implements HealthCheck {
    * specifies the path where outputs will be written. write_to_cache and read_from_cache are both
    * related to call caching. Users expect that we will always write_to_cache, but only
    * read_from_cache when call caching is enabled. This is how it works in GCP, so we are mirroring
-   * the behavior here. write_from_cache should always be true, and read_from_cache should only be
-   * true when the user enables call caching.
+   * the behavior here. write_from_cache should always be true, and read_from_cache should be false
+   * if the user doesn't wish to call cache.
    * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
    *
    * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
@@ -142,17 +142,17 @@ public class CromwellService implements HealthCheck {
    */
   public String buildWorkflowOptionsJson(Boolean isCallCachingEnabled) {
     // Map we will convert to JSON
-    Map<String, Object> workflowOptions = new HashMap<>();
+    Map<String, Object> workflowOptions =
+        new HashMap<>(
+            Map.ofEntries(
+                Map.entry("write_to_cache", true),
+                Map.entry("read_from_cache", isCallCachingEnabled)));
 
     // Path for cromwell to write workflow logs to.
     Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
     if (finalWorkflowLogDir.isPresent()) {
       workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
     }
-
-    // Call caching fields
-    workflowOptions.put("write_to_cache", true);
-    workflowOptions.put("read_from_cache", isCallCachingEnabled);
 
     try {
       return InputGenerator.inputsToJson(workflowOptions);

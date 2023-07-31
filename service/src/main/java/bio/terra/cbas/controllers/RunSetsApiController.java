@@ -455,10 +455,12 @@ public class RunSetsApiController implements RunSetsApi {
       String rawMethodUrl) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
-    // Build the JSON that specifies additional configuration for cromwell workflows. The same options
+    // Build the JSON that specifies additional configuration for cromwell workflows. The same
+    // options
     // will be used for all workflows submitted as part of this run set.
     String workflowOptionsJson =
-        cromwellService.buildWorkflowOptionsJson(Objects.requireNonNullElse(runSet.callCachingEnabled(), false));
+        cromwellService.buildWorkflowOptionsJson(
+            Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
     for (RecordResponse record : recordResponses) {
       RunId workflowResponse;
