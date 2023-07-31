@@ -144,6 +144,7 @@ jobs:
           GH_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
         run: |
           set -e
+          HELM_NEW_TAG=${{ steps.tag.outputs.tag }}
           JIRA_ID=${{ steps.ensure-jira-id.outputs.JIRA_ID }}
           if [[ $JIRA_ID == "missing" ]]; then
             echo "JIRA_ID missing, PR to terra-helmfile will not be created"
