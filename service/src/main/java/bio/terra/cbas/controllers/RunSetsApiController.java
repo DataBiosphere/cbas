@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
@@ -123,6 +124,7 @@ public class RunSetsApiController implements RunSetsApi {
         .methodVersionId(runSet.methodVersion().methodVersionId())
         .runSetName(runSet.name())
         .runSetDescription(runSet.description())
+        .callCachingEnabled(runSet.callCachingEnabled())
         .isTemplate(runSet.isTemplate())
         .state(CbasRunSetStatus.toCbasRunSetApiState(runSet.status()))
         .recordType(runSet.recordType())
@@ -231,6 +233,7 @@ public class RunSetsApiController implements RunSetsApi {
               methodVersion,
               request.getRunSetName(),
               request.getRunSetDescription(),
+              request.isCallCachingEnabled(),
               false,
               CbasRunSetStatus.UNKNOWN,
               DateUtils.currentTimeInUTC(),
@@ -454,6 +457,13 @@ public class RunSetsApiController implements RunSetsApi {
       String rawMethodUrl) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
+    // Build the JSON that specifies additional configuration for cromwell workflows. The same
+    // options
+    // will be used for all workflows submitted as part of this run set.
+    String workflowOptionsJson =
+        cromwellService.buildWorkflowOptionsJson(
+            Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
+
     for (RecordResponse record : recordResponses) {
       RunId workflowResponse;
       UUID runId = uuidSource.generateUUID();
@@ -464,7 +474,8 @@ public class RunSetsApiController implements RunSetsApi {
             InputGenerator.buildInputs(request.getWorkflowInputDefinitions(), record);
 
         // Submit the workflow, get its ID and store the Run to database
-        workflowResponse = cromwellService.submitWorkflow(rawMethodUrl, workflowInputs);
+        workflowResponse =
+            cromwellService.submitWorkflow(rawMethodUrl, workflowInputs, workflowOptionsJson);
 
         runStateResponseList.add(
             storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));

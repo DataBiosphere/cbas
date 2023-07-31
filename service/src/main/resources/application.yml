@@ -87,3 +87,7 @@ terra.common:
   tracing:
     stackdriverExportEnabled: ${CLOUD_TRACE_ENABLED:false}
     samplingRate: ${SAMPLING_PROBABILITY:0}
+
+sam:
+  baseUri: "https://sam.dsde-dev.broadinstitute.org/"
+  debugApiLogging: false

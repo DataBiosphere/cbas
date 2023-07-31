@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import static bio.terra.cbas.api.RunsApi.log;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
@@ -14,8 +15,10 @@ import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,17 +35,11 @@ public class CromwellService implements HealthCheck {
     this.cromwellClient = cromwellClient;
     this.cromwellConfig = cromwellConfig;
   }
-
-  public RunId submitWorkflow(String workflowUrl, Map<String, Object> params)
+  
+  public RunId submitWorkflow(
+      String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
       throws ApiException, JsonProcessingException, DependencyNotAvailableException,
           AzureAccessTokenException {
-
-    // This supplies a JSON snippet to WES to use as workflowOptions for a cromwell submission
-    String workflowOptions =
-        this.cromwellClient
-            .getFinalWorkflowLogDirOption()
-            .map(dir -> String.format("{\"final_workflow_log_dir\": \"%s\"}", dir))
-            .orElse(null);
 
     return cromwellClient
         .wesAPI()
@@ -51,7 +48,7 @@ public class CromwellService implements HealthCheck {
             null,
             null,
             null,
-            workflowOptions,
+            workflowOptionsJson,
             workflowUrl,
             null);
   }
@@ -132,8 +129,47 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run)
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  /**
+   * Cromwell accepts an object "Workflow Options" to specify additional configuration for a
+   * workflow. Here, we build that object with the parameters we care about. final_workflow_log_dir
+   * specifies the path where outputs will be written. write_to_cache and read_from_cache are both
+   * related to call caching. Users expect that we will always write_to_cache, but only
+   * read_from_cache when call caching is enabled. This is how it works in GCP, so we are mirroring
+   * the behavior here. write_from_cache should always be true, and read_from_cache should be false
+   * if the user doesn't wish to call cache.
+   * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
+   *
+   * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
+   * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
+   * @throws JsonProcessingException
+   */
+  public String buildWorkflowOptionsJson(Boolean isCallCachingEnabled) {
+    // Map we will convert to JSON
+    Map<String, Object> workflowOptions =
+        new HashMap<>(
+            Map.ofEntries(
+                Map.entry("write_to_cache", true),
+                Map.entry("read_from_cache", isCallCachingEnabled)));
+
+    // Path for cromwell to write workflow logs to.
+    Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
+    if (finalWorkflowLogDir.isPresent()) {
+      workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
+    }
+
+    try {
+      return InputGenerator.inputsToJson(workflowOptions);
+    } catch (JsonProcessingException e) {
+      String errorMsg =
+          String.format(
+              "Failed to generate Workflow Options JSON. JsonProcessingException: %s",
+              e.getMessage());
+      log.warn(errorMsg, e);
+      return "{}";
+    }
+  }
+
+  public void cancelRun(Run run) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 
