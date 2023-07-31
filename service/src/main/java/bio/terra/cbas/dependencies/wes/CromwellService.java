@@ -137,8 +137,8 @@ public class CromwellService implements HealthCheck {
    * related to call caching. Users expect that we will always write_to_cache, but only
    * read_from_cache when call caching is enabled. This is how it works in GCP, so we are mirroring
    * the behavior here. write_from_cache should always be true, and read_from_cache should be false
-   * if the user doesn't wish to call cache.
-   * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
+   * if the user doesn't wish to call cache. <a
+   * href="https://cromwell.readthedocs.io/en/stable/wf_options/Overview/">...</a> for more info.
    *
    * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
@@ -154,9 +154,7 @@ public class CromwellService implements HealthCheck {
 
     // Path for cromwell to write workflow logs to.
     Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
-    if (finalWorkflowLogDir.isPresent()) {
-      workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
-    }
+    finalWorkflowLogDir.ifPresent(s -> workflowOptions.put("final_workflow_log_dir", s));
 
     try {
       return InputGenerator.inputsToJson(workflowOptions);
