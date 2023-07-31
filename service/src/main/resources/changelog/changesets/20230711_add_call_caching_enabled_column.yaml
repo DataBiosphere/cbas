@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: "add call_caching_enabled column to run_set table"
+      author: twiseman
+      changes:
+        - addColumn:
+            tableName: run_set
+            columns:
+              - column:
+                  name: call_caching_enabled
+                  type: boolean

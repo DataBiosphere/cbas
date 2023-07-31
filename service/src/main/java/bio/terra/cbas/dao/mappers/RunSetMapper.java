@@ -22,6 +22,7 @@ public class RunSetMapper implements RowMapper<RunSet> {
         methodVersion,
         rs.getString(RunSet.NAME_COL),
         rs.getString(RunSet.DESCRIPTION_COL),
+        rs.getBoolean(RunSet.CALL_CACHING_ENABLED_COL),
         rs.getBoolean(RunSet.IS_TEMPLATE_COL),
         CbasRunSetStatus.fromValue(rs.getString(RunSet.STATUS_COL)),
         rs.getObject(RunSet.SUBMISSION_TIMESTAMP_COL, OffsetDateTime.class),
