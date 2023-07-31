@@ -33,6 +33,7 @@ class TestAppUtils {
   private final ListAppResponse separatedWdsApp;
   private final ListAppResponse separatedWorkflowsApp;
   private final ListAppResponse separatedWorkflowsAppMissingCromwell;
+  private final ListAppResponse combinedCromwellApp;
 
   private final AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
 
@@ -80,10 +81,10 @@ class TestAppUtils {
   @Test
   void preferSpecificallyNamedAppCromwell() throws Exception {
     List<ListAppResponse> apps =
-        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, otherNamedCromwellApp));
+        new java.util.ArrayList<>(List.of(combinedCromwellApp, otherNamedCromwellApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
-    assertEquals(anticipatedCromwellUrl("wds"), au.findUrlForCromwell(apps));
+    assertEquals(anticipatedCromwellUrl("cromwell"), au.findUrlForCromwell(apps));
   }
 
   @Test
@@ -188,6 +189,43 @@ class TestAppUtils {
                         "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/",
                         "cromwell": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/cromwell",
                         "wds": "https://lzblahblahblah.servicebus.windows.net/wds-${workspaceId}/wds"
+                    },
+                    "appName": "wds-${workspaceId}",
+                    "appType": "CROMWELL",
+                    "diskName": null,
+                    "auditInfo": {
+                        "creator": "me@broadinstitute.org",
+                        "createdDate": "2023-02-09T16:01:36.660590Z",
+                        "destroyedDate": null,
+                        "dateAccessed": "2023-02-09T16:01:36.660590Z"
+                    },
+                    "accessScope": null,
+                    "labels": {}
+                }""",
+                Map.of("workspaceId", workspaceId)));
+
+    combinedCromwellApp =
+        ListAppResponse.fromJson(
+            StringSubstitutor.replace(
+                """
+                {
+                    "workspaceId": "${workspaceId}",
+                    "cloudContext": {
+                        "cloudProvider": "AZURE",
+                        "cloudResource": "blah-blah-blah"
+                    },
+                    "kubernetesRuntimeConfig": {
+                        "numNodes": 1,
+                        "machineType": "Standard_A2_v2",
+                        "autoscalingEnabled": false
+                    },
+                    "errors": [],
+                    "status": "RUNNING",
+                    "proxyUrls": {
+                        "cbas": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/cbas",
+                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/",
+                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/cromwell",
+                        "wds": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/wds"
                     },
                     "appName": "wds-${workspaceId}",
                     "appType": "CROMWELL",
