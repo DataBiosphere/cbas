@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -31,6 +32,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
+import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
@@ -88,6 +90,7 @@ class TestRunSetsApiController {
   private final UUID dockstoreMethodVersionId = UUID.randomUUID();
   private final String workflowUrl =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
+  private final Boolean isCallCachingEnabled = false;
   private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/hello.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
@@ -109,6 +112,7 @@ class TestRunSetsApiController {
       """
         {
           "method_version_id" : "%s",
+          "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ {
             "input_name" : "myworkflow.mycall.inputname1",
             "input_type" : { "type": "primitive", "primitive_type": "String" },
@@ -140,6 +144,7 @@ class TestRunSetsApiController {
       """
         {
           "method_version_id" : "%s",
+          "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ %s
           {
             "input_name" : "myworkflow.mycall.inputname1",
@@ -288,13 +293,13 @@ class TestRunSetsApiController {
     when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
         .thenReturn(mockToolDescriptor);
 
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), any()))
         .thenThrow(
             new cromwell.client.ApiException(
                 "ApiException thrown on purpose for testing purposes."));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3)))
+    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
     when(controllerUtils.getSamUser()).thenReturn(Optional.of(mockUser));
@@ -306,6 +311,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             outputDefinitionAsString,
             recordType,
@@ -328,6 +334,7 @@ class TestRunSetsApiController {
     assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().methodId());
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
+    assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());
@@ -365,6 +372,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             dockstoreMethodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             outputDefinitionAsString,
             recordType,
@@ -385,7 +393,7 @@ class TestRunSetsApiController {
 
     // verify dockstoreService and cromwellService methods were called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflow(eq(workflowUrl), any());
+    verify(cromwellService).submitWorkflow(eq(workflowUrl), any(), any());
 
     assertNull(response.getErrors());
   }
@@ -409,6 +417,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate2.formatted(
             methodVersionId,
+            false,
             twoHundredInputs,
             optionalOutputSourceString,
             recordType,
@@ -454,6 +463,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate2.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             optionalInputSourceString,
             threeHundredOutputs,
             recordType,
@@ -483,6 +493,7 @@ class TestRunSetsApiController {
     String requestOptionalNone =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -506,6 +517,7 @@ class TestRunSetsApiController {
     String requestOptionalRecordLookup =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -533,6 +545,7 @@ class TestRunSetsApiController {
     String requestOptionalLiteral =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -557,7 +570,12 @@ class TestRunSetsApiController {
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
-            workflowUrl, inputSourceAsString, outputDefinitionAsString, recordType, recordIds);
+            workflowUrl,
+            isCallCachingEnabled,
+            inputSourceAsString,
+            outputDefinitionAsString,
+            recordType,
+            recordIds);
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -579,6 +597,7 @@ class TestRunSetsApiController {
     String request =
         requestTemplate.formatted(
             methodVersionId,
+            isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
             recordType,
@@ -608,6 +627,24 @@ class TestRunSetsApiController {
   }
 
   @Test
+  void testWorkflowOptionsProperlyConstructed() {
+    CromwellServerConfiguration localTestConfig =
+        new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
+    CromwellClient localTestClient = new CromwellClient(localTestConfig);
+    CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
+
+    // Workflow options should reflect the final workflow log directory.
+    // write_to_cache should always be true. read_from_cache should match the provided call caching
+    // option.
+    String expected =
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
+    assertEquals(expected, localtestService.buildWorkflowOptionsJson(true));
+    String expectedFalse =
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"write_to_cache\":true}";
+    assertEquals(expectedFalse, localtestService.buildWorkflowOptionsJson(false));
+  }
+
+  @Test
   void getRunSetsApiTest() throws Exception {
     RunSet returnedRunSet1 =
         new RunSet(
@@ -628,6 +665,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            false,
             false,
             CbasRunSetStatus.ERROR,
             OffsetDateTime.now(),
@@ -658,6 +696,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
@@ -726,6 +765,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),
@@ -803,6 +843,7 @@ class TestRunSetsApiController {
                 "method url"),
             "",
             "",
+            false,
             false,
             CbasRunSetStatus.RUNNING,
             OffsetDateTime.now(),

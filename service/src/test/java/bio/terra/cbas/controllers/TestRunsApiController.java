@@ -82,6 +82,7 @@ class TestRunsApiController {
               "methodurl"),
           "runSetName",
           "runSetDescription",
+          true,
           false,
           CbasRunSetStatus.UNKNOWN,
           returnedSubmittedTime,

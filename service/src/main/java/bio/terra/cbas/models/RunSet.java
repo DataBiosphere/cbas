@@ -8,6 +8,7 @@ public record RunSet(
     MethodVersion methodVersion,
     String name,
     String description,
+    Boolean callCachingEnabled,
     Boolean isTemplate,
     CbasRunSetStatus status,
     OffsetDateTime submissionTimestamp,
@@ -24,6 +25,7 @@ public record RunSet(
   public static final String STATUS_COL = "status";
   public static final String NAME_COL = "run_set_name";
   public static final String DESCRIPTION_COL = "run_set_description";
+  public static final String CALL_CACHING_ENABLED_COL = "call_caching_enabled";
   public static final String IS_TEMPLATE_COL = "is_template";
   public static final String SUBMISSION_TIMESTAMP_COL = "submission_timestamp";
   public static final String LAST_MODIFIED_TIMESTAMP_COL = "last_modified_timestamp";
