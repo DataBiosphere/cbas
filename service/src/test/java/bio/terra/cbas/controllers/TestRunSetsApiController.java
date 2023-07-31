@@ -23,13 +23,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.config.AzureCredentialConfig;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.common.CredentialLoader;
+import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.leonardo.AppUtils;
+import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
@@ -67,6 +73,7 @@ import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -190,6 +197,8 @@ class TestRunSetsApiController {
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
+  @Mock private LeonardoService leonardoService;
+  @Mock private AppUtils appUtils;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -619,7 +628,15 @@ class TestRunSetsApiController {
   void testWorkflowOptionsProperlyConstructed() {
     CromwellServerConfiguration localTestConfig =
         new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
-    CromwellClient localTestClient = new CromwellClient(localTestConfig);
+    var leonardoServerConfiguration =
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
+    DependencyUrlLoader dependencyUrlLoader =
+        new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
+    var azureCredentialConfig =
+        new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
+    CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
+    CromwellClient localTestClient =
+        new CromwellClient(localTestConfig, dependencyUrlLoader, credentialLoader);
     CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
 
     // Workflow options should reflect the final workflow log directory.
