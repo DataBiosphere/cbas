@@ -30,6 +30,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
@@ -188,7 +189,7 @@ class TestRunSetsApiController {
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
-  @MockBean private ControllerUtils controllerUtils;
+  @MockBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -302,7 +303,7 @@ class TestRunSetsApiController {
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
-    when(controllerUtils.getSamUser()).thenReturn(Optional.of(mockUser));
+    when(samService.getSamUser()).thenReturn(Optional.of(mockUser));
   }
 
   @Test

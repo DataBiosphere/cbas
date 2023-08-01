@@ -16,6 +16,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
@@ -61,7 +62,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
-  @MockBean private ControllerUtils controllerUtils;
+  @MockBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private WdsService wdsService;

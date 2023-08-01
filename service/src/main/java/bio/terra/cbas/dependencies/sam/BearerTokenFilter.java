@@ -1,4 +1,4 @@
-package bio.terra.cbas.util;
+package bio.terra.cbas.dependencies.sam;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -14,8 +14,16 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**
- * Servlet filter that inspects the incoming request for an Authorization: Bearer ... token, and
- * saves any token it finds into the current thread-local RequestContextHolder.
+ * <a href="https://docs.oracle.com/javaee/6/api/javax/servlet/Filter.html">Servlet filter</a> that
+ * inspects the incoming request for an Authorization: Bearer ... token, and saves any token it
+ * finds into the current thread-local RequestContextHolder.
+ *
+ * <p>Filters are contructed once (hence the @Component tag), while doFilter is called for each
+ * request/response pair. Read the Javadoc for `doFilter` to learn more about its function. By
+ * isolating the request to this class, we can access thread-specific RequestContextHolders without
+ * worrying about whether a given `request` object is up-to-date. The filter is necessary to inspect
+ * certain request properties like headers, while the RequestContextHolders serves more as a
+ * dictionary for specific keyed attributes.
  *
  * <p>Note that this filter does not validate or inspect the token; it just extracts it from the
  * request, allowing it to be sent as-is from CBAS to other services such as Sam.

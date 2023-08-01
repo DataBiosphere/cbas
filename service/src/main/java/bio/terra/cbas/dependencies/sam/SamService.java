@@ -3,12 +3,15 @@ package bio.terra.cbas.dependencies.sam;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
+import java.util.Optional;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
 @Component
 public class SamService implements HealthCheck {
@@ -23,8 +26,21 @@ public class SamService implements HealthCheck {
     return new StatusApi(samClient.getApiClient());
   }
 
-  private UsersApi samUsersApi(String accessToken) {
+  UsersApi getUsersApi(String accessToken) {
     return new UsersApi(samClient.getApiClient(accessToken));
+  }
+
+  public Optional<String> getUserToken() {
+    // RequestContextHolder exposes the web request in the form of a *thread-bound*
+    // [RequestAttributes](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/context/request/RequestAttributes.html) object.
+    Object token =
+        RequestContextHolder.currentRequestAttributes()
+            .getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN, RequestAttributes.SCOPE_REQUEST);
+    return Optional.ofNullable((String) token);
+  }
+
+  public Optional<UserStatusInfo> getSamUser() {
+    return getUserToken().map(this::getUserStatusInfo);
   }
 
   @Override
@@ -38,7 +54,7 @@ public class SamService implements HealthCheck {
   }
 
   public UserStatusInfo getUserStatusInfo(String accessToken) {
-    UsersApi usersApi = samUsersApi(accessToken);
+    UsersApi usersApi = getUsersApi(accessToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {
