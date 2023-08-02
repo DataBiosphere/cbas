@@ -54,6 +54,7 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
@@ -81,7 +82,12 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=3")
-@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
+@ContextConfiguration(
+    classes = {
+      RunSetsApiController.class,
+      CbasApiConfiguration.class,
+      GlobalExceptionHandler.class
+    })
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
@@ -304,6 +310,32 @@ class TestRunSetsApiController {
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
     when(samService.getSamUser()).thenReturn(Optional.of(mockUser));
+  }
+
+  @Test
+  void runSetWithSamException() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(samService.getSamUser()).thenCallRealMethod();
+    when(samService.getUserToken()).thenReturn(Optional.of("expired-token"));
+    when(samService.getUserStatusInfo(any()))
+        .thenThrow(new SamUnauthorizedException("Unauthorized"));
+
+    mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof SamUnauthorizedException))
+        .andExpect(
+            result -> assertEquals("Unauthorized", result.getResolvedException().getMessage()));
   }
 
   @Test
@@ -571,7 +603,7 @@ class TestRunSetsApiController {
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
-            workflowUrl,
+            methodVersionId,
             isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,

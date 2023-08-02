@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import java.util.Optional;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
@@ -19,6 +20,7 @@ import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
+import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -28,6 +30,7 @@ class TestSamService {
 
   private final String tokenValue = "foo-token";
   private final String expiredTokenValue = "expired-token";
+  private final String tokenCausingInterrupt = "interrupting-cow-moo";
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
           .userEmail("realuser@gmail.com")
@@ -49,6 +52,9 @@ class TestSamService {
                   if (samService.getUserToken().isPresent()
                       && samService.getUserToken().get().equals(tokenValue)) {
                     return mockUser;
+                  } else if (samService.getUserToken().isPresent()
+                      && samService.getUserToken().get().equals(tokenCausingInterrupt)) {
+                    throw new InterruptedException();
                   } else {
                     throw new ApiException(401, "Unauthorized :(");
                   }
@@ -85,6 +91,14 @@ class TestSamService {
   }
 
   @Test
+  void testGetUserTokenInterruptingToken() {
+    setTokenValue(tokenCausingInterrupt);
+    Optional<String> userToken = samService.getUserToken();
+    assertTrue(userToken.isPresent());
+    assertEquals(tokenCausingInterrupt, userToken.get());
+  }
+
+  @Test
   void testGetSamUser() {
     setTokenValue(tokenValue);
     Optional<UserStatusInfo> user = samService.getSamUser();
@@ -102,6 +116,18 @@ class TestSamService {
   @Test
   void testGetSamUserExpiredToken() {
     setTokenValue(expiredTokenValue);
-    assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
+    SamUnauthorizedException e =
+        assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
+    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
+    assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+  }
+
+  @Test
+  void testGetSamUserInterruptingToken() {
+    setTokenValue(tokenCausingInterrupt);
+    SamInterruptedException e =
+        assertThrows(SamInterruptedException.class, () -> samService.getSamUser());
+    assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
   }
 }

@@ -43,6 +43,17 @@ class TestBearerTokenFilter {
   }
 
   @Test
+  void testRequestWithAuthHeaderNoBearer() throws ServletException, IOException {
+    String tokenValue = "foo-token";
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.addHeader(HttpHeaders.AUTHORIZATION, tokenValue);
+    assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
+    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    filter.doFilter(request, response, chain);
+    assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
+  }
+
+  @Test
   void testRequestWithoutAuthHeader() throws ServletException, IOException {
     MockHttpServletRequest request = new MockHttpServletRequest();
     assertNull(request.getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN));
