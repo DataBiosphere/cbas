@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.sam;
 
 import static bio.terra.cbas.dependencies.sam.BearerTokenFilter.ATTRIBUTE_NAME_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
