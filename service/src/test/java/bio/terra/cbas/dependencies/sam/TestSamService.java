@@ -2,8 +2,8 @@ package bio.terra.cbas.dependencies.sam;
 
 import static bio.terra.cbas.dependencies.sam.BearerTokenFilter.ATTRIBUTE_NAME_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
-import java.util.Optional;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
@@ -39,6 +38,8 @@ class TestSamService {
 
   @BeforeEach
   void init() throws ApiException {
+    RequestContextHolder.setRequestAttributes(
+        new ServletRequestAttributes(new MockHttpServletRequest()));
     UsersApi usersApi = mock(UsersApi.class);
     ApiClient apiClient = mock(ApiClient.class);
     SamClient samClient = mock(SamClient.class);
@@ -49,13 +50,13 @@ class TestSamService {
         .thenAnswer(
             (Answer<UserStatusInfo>)
                 invocation -> {
-                  if (samService.getUserToken().isPresent()
-                      && samService.getUserToken().get().equals(tokenValue)) {
+                  String token = samService.getUserToken();
+                  if (token != null && token.equals(tokenValue)) {
                     return mockUser;
-                  } else if (samService.getUserToken().isPresent()
-                      && samService.getUserToken().get().equals(tokenCausingInterrupt)) {
+                  } else if (token != null && token.equals(tokenCausingInterrupt)) {
                     throw new InterruptedException();
                   } else {
+                    // expired or no token
                     throw new ApiException(401, "Unauthorized :(");
                   }
                 });
@@ -70,47 +71,29 @@ class TestSamService {
   @Test
   void testGetUserToken() {
     setTokenValue(tokenValue);
-    Optional<String> userToken = samService.getUserToken();
-    assertTrue(userToken.isPresent());
-    assertEquals(tokenValue, userToken.get());
+    String userToken = samService.getUserToken();
+    assertEquals(tokenValue, userToken);
   }
 
   @Test
   void testGetUserTokenNoToken() {
-    setTokenValue(null);
-    Optional<String> userToken = samService.getUserToken();
-    assertTrue(userToken.isEmpty());
-  }
-
-  @Test
-  void testGetUserTokenExpiredToken() {
-    setTokenValue(expiredTokenValue);
-    Optional<String> userToken = samService.getUserToken();
-    assertTrue(userToken.isPresent());
-    assertEquals(expiredTokenValue, userToken.get());
-  }
-
-  @Test
-  void testGetUserTokenInterruptingToken() {
-    setTokenValue(tokenCausingInterrupt);
-    Optional<String> userToken = samService.getUserToken();
-    assertTrue(userToken.isPresent());
-    assertEquals(tokenCausingInterrupt, userToken.get());
+    String userToken = samService.getUserToken();
+    assertNull(userToken);
   }
 
   @Test
   void testGetSamUser() {
     setTokenValue(tokenValue);
-    Optional<UserStatusInfo> user = samService.getSamUser();
-    assertTrue(user.isPresent());
-    assertEquals(mockUser, user.get());
+    UserStatusInfo user = samService.getSamUser();
+    assertEquals(mockUser, user);
   }
 
   @Test
   void testGetSamUserNoToken() {
-    setTokenValue(null);
-    Optional<UserStatusInfo> user = samService.getSamUser();
-    assertTrue(user.isEmpty());
+    SamUnauthorizedException e =
+        assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
+    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
+    assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
   }
 
   @Test

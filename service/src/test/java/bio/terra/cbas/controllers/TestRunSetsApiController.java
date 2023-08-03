@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -30,6 +32,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
@@ -63,8 +66,9 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.ApiException;
+import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -74,6 +78,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -195,7 +200,9 @@ class TestRunSetsApiController {
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
-  @MockBean private SamService samService;
+  @MockBean private SamClient samClient;
+  @MockBean private UsersApi usersApi;
+  @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -309,7 +316,7 @@ class TestRunSetsApiController {
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
-    when(samService.getSamUser()).thenReturn(Optional.of(mockUser));
+    doReturn(mockUser).when(samService).getSamUser();
   }
 
   @Test
@@ -324,10 +331,10 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
-    when(samService.getSamUser()).thenCallRealMethod();
-    when(samService.getUserToken()).thenReturn(Optional.of("expired-token"));
-    when(samService.getUserStatusInfo(any()))
-        .thenThrow(new SamUnauthorizedException("Unauthorized"));
+    doCallRealMethod().when(samService).getSamUser();
+    doReturn(null).when(samService).getUserToken();
+    doReturn(usersApi).when(samService).getUsersApi(any());
+    when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -335,7 +342,10 @@ class TestRunSetsApiController {
         .andExpect(
             result -> assertTrue(result.getResolvedException() instanceof SamUnauthorizedException))
         .andExpect(
-            result -> assertEquals("Unauthorized", result.getResolvedException().getMessage()));
+            result ->
+                assertEquals(
+                    "Error getting user status info from Sam: No token provided",
+                    result.getResolvedException().getMessage()));
   }
 
   @Test

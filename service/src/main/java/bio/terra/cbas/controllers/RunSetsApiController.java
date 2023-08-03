@@ -62,7 +62,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.client.ApiException;
@@ -167,12 +166,8 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    Optional<UserStatusInfo> user = samService.getSamUser();
-    if (user.isPresent()) {
-      log.info("User ID: {}", user.get().getUserSubjectId());
-    } else {
-      log.error("User could not be verified");
-    }
+    UserStatusInfo user = samService.getSamUser();
+    log.info("User ID: {}", user.getUserSubjectId());
 
     captureRequestMetrics(request);
 
