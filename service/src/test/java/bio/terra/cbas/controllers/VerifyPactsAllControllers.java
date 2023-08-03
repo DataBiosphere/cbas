@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,6 +162,7 @@ class VerifyPactsAllControllers {
     RunId myRunId = new RunId();
     myRunId.setRunId(fixedRunUUID);
     when(cromwellService.submitWorkflow(any(), any(), any())).thenReturn(myRunId);
+    when(samService.getSamUser()).thenReturn(new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
