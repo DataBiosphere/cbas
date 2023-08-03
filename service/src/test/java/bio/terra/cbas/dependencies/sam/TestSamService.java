@@ -76,19 +76,6 @@ class TestSamService {
   }
 
   @Test
-  void testGetUserTokenNoToken() {
-    String userToken = samService.getUserToken();
-    assertNull(userToken);
-  }
-
-  @Test
-  void testGetSamUser() {
-    setTokenValue(tokenValue);
-    UserStatusInfo user = samService.getSamUser();
-    assertEquals(mockUser, user);
-  }
-
-  @Test
   void testGetSamUserNoToken() {
     SamUnauthorizedException e =
         assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());

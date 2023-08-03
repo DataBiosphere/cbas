@@ -9,6 +9,7 @@ import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -38,6 +39,10 @@ public class SamService implements HealthCheck {
             .getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN, RequestAttributes.SCOPE_REQUEST);
   }
 
+  // this cache uses token.hashCode as its key. This prevents any logging such as
+  // in CacheLogger from logging the raw token.
+  // Taken from WDS
+  @Cacheable(cacheNames = "tokenResolution", key = "#root.target.getUserToken().hashCode()")
   public UserStatusInfo getSamUser() throws ErrorReportException {
     UsersApi usersApi = getUsersApi(getUserToken());
     try {
