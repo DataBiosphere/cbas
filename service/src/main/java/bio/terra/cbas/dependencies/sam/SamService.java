@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.sam;
 
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.common.exception.ErrorReportException;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
@@ -11,40 +12,30 @@ import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 @Component
 public class SamService implements HealthCheck {
 
   private final SamClient samClient;
+  private final BearerToken bearerToken;
 
-  public SamService(SamClient samClient) {
+  public SamService(SamClient samClient, BearerToken bearerToken) {
     this.samClient = samClient;
+    this.bearerToken = bearerToken;
   }
 
   private StatusApi getStatusApi() {
     return new StatusApi(samClient.getApiClient());
   }
 
-  public UsersApi getUsersApi(String accessToken) {
-    return new UsersApi(samClient.getApiClient(accessToken));
+  public UsersApi getUsersApi() {
+    return new UsersApi(samClient.getApiClient(bearerToken.getToken()));
   }
 
-  public String getUserToken() {
-    // RequestContextHolder exposes the web request in the form of a *thread-bound*
-    // [RequestAttributes](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/context/request/RequestAttributes.html) object.
-    return (String)
-        RequestContextHolder.currentRequestAttributes()
-            .getAttribute(BearerTokenFilter.ATTRIBUTE_NAME_TOKEN, RequestAttributes.SCOPE_REQUEST);
-  }
-
-  // this cache uses token.hashCode as its key. This prevents any logging such as
-  // in CacheLogger from logging the raw token.
-  // Taken from WDS
-  @Cacheable(cacheNames = "tokenResolution", key = "#root.target.getUserToken().hashCode()")
+  // Borrowed from WDS
+  @Cacheable(cacheNames = "tokenToUserResolution", key = "@bearerToken.hashCode()")
   public UserStatusInfo getSamUser() throws ErrorReportException {
-    UsersApi usersApi = getUsersApi(getUserToken());
+    UsersApi usersApi = getUsersApi();
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {

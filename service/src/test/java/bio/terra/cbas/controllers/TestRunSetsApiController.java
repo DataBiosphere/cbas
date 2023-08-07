@@ -57,6 +57,7 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -200,6 +201,7 @@ class TestRunSetsApiController {
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
+  @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
   @SpyBean private SamService samService;
@@ -332,8 +334,7 @@ class TestRunSetsApiController {
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
     doCallRealMethod().when(samService).getSamUser();
-    doReturn(null).when(samService).getUserToken();
-    doReturn(usersApi).when(samService).getUsersApi(any());
+    doReturn(usersApi).when(samService).getUsersApi();
     when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
 
     mockMvc

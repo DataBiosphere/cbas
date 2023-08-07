@@ -167,7 +167,7 @@ public class RunSetsApiController implements RunSetsApi {
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     UserStatusInfo user = samService.getSamUser();
-    log.info("User ID: {}", user.getUserSubjectId());
+    log.info("User ID: {}", user.getUserSubjectId()); // TODO: remove in WM-2093
 
     captureRequestMetrics(request);
 

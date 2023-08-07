@@ -14,7 +14,7 @@ spring:
   application.name: cbas
   application.version: ${cbas.version.gitHash:unknown}
   cache:
-    cache-names: tokenResolution
+    cache-names: tokenToUserResolution
     caffeine.spec: expireAfterWrite=1h
   datasource:
     jdbc-url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}

@@ -1,30 +1,29 @@
 package bio.terra.cbas.dependencies.sam;
 
-import static bio.terra.cbas.dependencies.sam.BearerTokenFilter.ATTRIBUTE_NAME_TOKEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
-import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 class TestSamService {
-  private SamService samService;
+  @SpyBean private SamService samService;
+  @MockBean private BearerToken bearerToken;
+  @MockBean private UsersApi usersApi;
 
   private final String tokenValue = "foo-token";
   private final String expiredTokenValue = "expired-token";
@@ -37,22 +36,18 @@ class TestSamService {
 
   @BeforeEach
   void init() throws ApiException {
-    RequestContextHolder.setRequestAttributes(
-        new ServletRequestAttributes(new MockHttpServletRequest()));
-    UsersApi usersApi = mock(UsersApi.class);
-    ApiClient apiClient = mock(ApiClient.class);
+    usersApi = mock(UsersApi.class);
     SamClient samClient = mock(SamClient.class);
-    samService = spy(new SamService(samClient));
-    when(samClient.getApiClient(any())).thenReturn(apiClient);
-    doReturn(usersApi).when(samService).getUsersApi(any());
+    samService = spy(new SamService(samClient, bearerToken));
+    doReturn(usersApi).when(samService).getUsersApi();
     when(usersApi.getUserStatusInfo())
         .thenAnswer(
             (Answer<UserStatusInfo>)
                 invocation -> {
-                  String token = samService.getUserToken();
-                  if (token != null && token.equals(tokenValue)) {
+                  if (bearerToken != null && bearerToken.getToken().equals(tokenValue)) {
                     return mockUser;
-                  } else if (token != null && token.equals(tokenCausingInterrupt)) {
+                  } else if (bearerToken != null
+                      && bearerToken.getToken().equals(tokenCausingInterrupt)) {
                     throw new InterruptedException();
                   } else {
                     // expired or no token
@@ -62,20 +57,19 @@ class TestSamService {
   }
 
   void setTokenValue(String token) {
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setAttribute(ATTRIBUTE_NAME_TOKEN, token);
-    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    bearerToken = new BearerToken(token);
   }
 
   @Test
-  void testGetUserToken() {
+  void testGetSamUserValidToken() {
     setTokenValue(tokenValue);
-    String userToken = samService.getUserToken();
-    assertEquals(tokenValue, userToken);
+    UserStatusInfo user = samService.getSamUser();
+    assertEquals(mockUser, user);
   }
 
   @Test
   void testGetSamUserNoToken() {
+    setTokenValue("");
     SamUnauthorizedException e =
         assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
     assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
