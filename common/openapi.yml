@@ -751,8 +751,6 @@ components:
           type: string
         call_caching_enabled:
           type: boolean
-        user_id:
-          type: string
         state:
           $ref: '#/components/schemas/RunSetState'
         record_type:
