@@ -23,7 +23,6 @@ import org.springframework.http.HttpStatus;
 class TestSamService {
   @SpyBean private SamService samService;
   @MockBean private BearerToken bearerToken;
-  @MockBean private UsersApi usersApi;
 
   private final String tokenValue = "foo-token";
   private final String expiredTokenValue = "expired-token";
@@ -36,7 +35,7 @@ class TestSamService {
 
   @BeforeEach
   void init() throws ApiException {
-    usersApi = mock(UsersApi.class);
+    UsersApi usersApi = mock(UsersApi.class);
     SamClient samClient = mock(SamClient.class);
     samService = spy(new SamService(samClient, bearerToken));
     doReturn(usersApi).when(samService).getUsersApi();

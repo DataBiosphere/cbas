@@ -10,7 +10,6 @@ import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,7 +32,6 @@ public class SamService implements HealthCheck {
   }
 
   // Borrowed from WDS
-  @Cacheable(cacheNames = "tokenToUserResolution", key = "@bearerToken.hashCode()")
   public UserStatusInfo getSamUser() throws ErrorReportException {
     UsersApi usersApi = getUsersApi();
     try {
