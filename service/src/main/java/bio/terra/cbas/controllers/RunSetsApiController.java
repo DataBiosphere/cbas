@@ -22,6 +22,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -72,6 +74,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class RunSetsApiController implements RunSetsApi {
 
+  private final SamService samService;
   private final CromwellService cromwellService;
   private final WdsService wdsService;
   private final DockstoreService dockstoreService;
@@ -89,6 +92,7 @@ public class RunSetsApiController implements RunSetsApi {
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
 
   public RunSetsApiController(
+      SamService samService,
       CromwellService cromwellService,
       WdsService wdsService,
       DockstoreService dockstoreService,
@@ -101,6 +105,7 @@ public class RunSetsApiController implements RunSetsApi {
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
       RunSetAbortManager abortManager) {
+    this.samService = samService;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.dockstoreService = dockstoreService;
@@ -161,6 +166,9 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    UserStatusInfo user = samService.getSamUser();
+    log.info("User ID: {}", user.getUserSubjectId()); // TODO: remove in WM-2093
+
     captureRequestMetrics(request);
 
     // request validation

@@ -23,4 +23,10 @@ public class SamClient {
         .setBasePath(samServerConfiguration.baseUri())
         .setDebugging(samServerConfiguration.debugApiLogging());
   }
+
+  public ApiClient getApiClient(String accessToken) {
+    ApiClient apiClient = getApiClient();
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
+  }
 }
