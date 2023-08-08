@@ -379,6 +379,7 @@ class TestRunSetsApiController {
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
     assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
+    assertEquals(mockUser.getUserSubjectId(), newRunSetCaptor.getValue().userId());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());
@@ -719,7 +720,8 @@ class TestRunSetsApiController {
             1,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     RunSet returnedRunSet2 =
         new RunSet(
@@ -750,7 +752,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "BAR");
+            "BAR",
+            mockUser.getUserSubjectId());
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
@@ -819,7 +822,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     Run run1 =
         new Run(
@@ -897,7 +901,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     Run run1 =
         new Run(

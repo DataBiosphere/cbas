@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: "add user_id column to run_set table"
+      author: scottdil
+      changes:
+        - addColumn:
+            tableName: run_set
+            columns:
+              - column:
+                  name: user_id
+                  type: text

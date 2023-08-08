@@ -166,9 +166,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    UserStatusInfo user = samService.getSamUser();
-    log.info("User ID: {}", user.getUserSubjectId()); // TODO: remove in WM-2093
-
     captureRequestMetrics(request);
 
     // request validation
@@ -228,6 +225,8 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    UserStatusInfo user = samService.getSamUser();
+
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
     RunSet runSet;
@@ -249,7 +248,8 @@ public class RunSetsApiController implements RunSetsApi {
               0,
               objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
               objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
-              request.getWdsRecords().getRecordType());
+              request.getWdsRecords().getRecordType(),
+              user.getUserSubjectId());
     } catch (JsonProcessingException e) {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(

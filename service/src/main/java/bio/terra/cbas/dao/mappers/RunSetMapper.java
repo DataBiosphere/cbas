@@ -32,6 +32,7 @@ public class RunSetMapper implements RowMapper<RunSet> {
         rs.getInt(RunSet.ERROR_COUNT_COL),
         rs.getString(RunSet.INPUT_DEFINITION_COL),
         rs.getString(RunSet.OUTPUT_DEFINITION_COL),
-        rs.getString(RunSet.RECORD_TYPE_COL));
+        rs.getString(RunSet.RECORD_TYPE_COL),
+        rs.getString(RunSet.USER_ID_COL));
   }
 }
