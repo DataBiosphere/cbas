@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletRequest;
 
-public class TestBeanConfig {
+class TestBeanConfig {
   private final BeanConfig beanConfig = new BeanConfig();
   private MockHttpServletRequest request;
 
