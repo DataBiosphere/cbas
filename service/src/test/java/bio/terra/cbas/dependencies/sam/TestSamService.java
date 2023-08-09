@@ -261,7 +261,7 @@ class TestSamService {
   @Test
   void testHasComputePermissionForTokenWithNoAccess() {
     setTokenValue(validTokenWithNoAccess);
-    assertFalse(samService.hasReadPermission());
+    assertFalse(samService.hasComputePermission());
   }
 
   @Test
