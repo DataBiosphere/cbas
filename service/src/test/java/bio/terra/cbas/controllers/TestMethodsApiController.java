@@ -15,6 +15,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -44,13 +45,14 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
 @ExtendWith(MockitoExtension.class)
-@ContextConfiguration(classes = MethodsApiController.class)
+@ContextConfiguration(classes = {MethodsApiController.class, GlobalExceptionHandler.class})
 class TestMethodsApiController {
 
   private static final String API = "/api/batch/v1/methods";
 
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
+  @MockBean private SamService samService;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -65,10 +67,18 @@ class TestMethodsApiController {
   // tests:
   @Autowired private ObjectMapper objectMapper;
 
+  private void initSamMocks() {
+    // setup Sam permission check to return true
+    when(samService.hasReadPermission()).thenReturn(true);
+    when(samService.hasWritePermission()).thenReturn(true);
+  }
+
   // Set up the database query responses.
   // These answers are always the same, only the business logic that chooses them and interprets
   // the results should change:
   private void initMocks() {
+    initSamMocks();
+
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
     when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
@@ -222,6 +232,8 @@ class TestMethodsApiController {
     String expectedError =
         "Bad user request. Error(s): method_name is required. method_source is required and should be one of: [GitHub, Dockstore]. method_version is required";
 
+    initSamMocks();
+
     MvcResult response =
         mockMvc
             .perform(post(API).content(invalidPostRequest).contentType(MediaType.APPLICATION_JSON))
@@ -249,6 +261,8 @@ class TestMethodsApiController {
       """;
     String expectedError =
         "Bad user request. Error(s): method_name is required. method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]";
+
+    initSamMocks();
 
     MvcResult response =
         mockMvc
@@ -376,6 +390,7 @@ class TestMethodsApiController {
         """
             .trim();
 
+    initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
@@ -427,6 +442,7 @@ class TestMethodsApiController {
   void validGithubMethodRequest() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validGithubWorkflow);
 
+    initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
@@ -457,6 +473,7 @@ class TestMethodsApiController {
     mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
     mockToolDescriptor.setUrl(validRawWorkflow);
 
+    initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))

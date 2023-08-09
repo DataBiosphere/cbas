@@ -319,6 +319,10 @@ class TestRunSetsApiController {
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
     doReturn(mockUser).when(samService).getSamUser();
+
+    // setup Sam permission check to return true
+    when(samService.hasReadPermission()).thenReturn(true);
+    when(samService.hasComputePermission()).thenReturn(true);
   }
 
   @Test

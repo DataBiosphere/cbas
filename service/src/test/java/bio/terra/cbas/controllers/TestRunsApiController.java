@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -34,7 +35,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
-@ContextConfiguration(classes = RunsApiController.class)
+@ContextConfiguration(classes = {RunsApiController.class, GlobalExceptionHandler.class})
 class TestRunsApiController {
 
   private static final String API = "/api/batch/v1/runs";
@@ -52,6 +53,7 @@ class TestRunsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private SamService samService;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
@@ -121,6 +123,7 @@ class TestRunsApiController {
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(true);
 
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
