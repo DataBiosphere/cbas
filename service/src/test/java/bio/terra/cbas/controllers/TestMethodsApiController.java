@@ -11,17 +11,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
+import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.sam.exception.SamInterruptedException;
+import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
@@ -35,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -625,6 +631,138 @@ class TestMethodsApiController {
             response.getResponse().getContentAsString(), PostMethodResponse.class);
 
     assertEquals(expectedErrors.get(0), postMethodResponse.getError());
+  }
+
+  @Test
+  void returnErrorForUserWithNoReadAccess() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(false);
+
+    mockMvc
+        .perform(get(API))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'read' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForUserWithNoWriteAccess() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
+
+    when(samService.hasWritePermission()).thenReturn(false);
+
+    mockMvc
+        .perform(post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'write' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForGetRequestWithoutToken() throws Exception {
+    when(samService.hasReadPermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(get(API))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForPostRequestWithoutToken() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
+
+    when(samService.hasWritePermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamApiException() throws Exception {
+    // throw a form of ErrorReportException which is thrown when an ApiException happens in
+    // hasPermission()
+    when(samService.hasReadPermission())
+        .thenThrow(new SamUnauthorizedException("Exception thrown for testing purposes"));
+
+    MvcResult response = mockMvc.perform(get(API)).andExpect(status().isUnauthorized()).andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Exception thrown for testing purposes", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamInterruptedException() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
+
+    // throw SamInterruptedException which is thrown when InterruptedException happens in
+    // hasPermission()
+    when(samService.hasWritePermission())
+        .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(500, errorResponse.getStatusCode());
+    assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
   }
 
   private static final Method neverRunMethod1 =
