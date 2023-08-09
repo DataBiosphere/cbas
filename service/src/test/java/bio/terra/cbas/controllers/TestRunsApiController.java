@@ -92,7 +92,8 @@ class TestRunsApiController {
           0,
           "inputDefinition",
           "outputDefinition",
-          "entitytype");
+          "entitytype",
+          "user-foo");
 
   private static final Run returnedRun =
       new Run(

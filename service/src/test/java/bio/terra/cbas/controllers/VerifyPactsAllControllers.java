@@ -211,7 +211,8 @@ class VerifyPactsAllControllers {
             1,
             "my input definition string",
             "my output definition string",
-            "myRecordType");
+            "myRecordType",
+            "user-foo");
 
     List<RunSet> response = List.of(targetRunSet);
 
@@ -240,6 +241,7 @@ class VerifyPactsAllControllers {
             null,
             null,
             1,
+            null,
             null,
             null,
             null,
