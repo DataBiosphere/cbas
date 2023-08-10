@@ -3,6 +3,7 @@ package bio.terra.cbas.config;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -25,7 +26,8 @@ public class BeanConfig {
         .registerModule(new Jdk8Module())
         .registerModule(new JavaTimeModule())
         .setDateFormat(new StdDateFormat())
-        .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT);
+        .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
   /**
