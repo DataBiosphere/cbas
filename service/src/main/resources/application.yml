@@ -21,6 +21,9 @@ spring:
     init:
       mode: always
 
+  jackson:
+    serialization.indent-output: true
+
   main.banner-mode: off
 
   web:
