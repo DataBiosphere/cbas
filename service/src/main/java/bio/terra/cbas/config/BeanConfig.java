@@ -27,7 +27,7 @@ public class BeanConfig {
         .registerModule(new Jdk8Module())
         .registerModule(new JavaTimeModule())
         .setDateFormat(new StdDateFormat())
-        .setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL)
+        .setDefaultPropertyInclusion(JsonInclude.Include.NON_ABSENT)
         .enable(SerializationFeature.INDENT_OUTPUT)
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
