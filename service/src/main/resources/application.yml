@@ -23,7 +23,7 @@ spring:
 
 
   jackson:
-    serialization.indent-output: true
+    serialization.indent_output: true
     default-property-inclusion: non_null # this prevents a problem serializing VisaCriterion in openapi where `type` is included a second time with null value
 
   main.banner-mode: off
