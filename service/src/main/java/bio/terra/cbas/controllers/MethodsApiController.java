@@ -3,6 +3,7 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
+import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
@@ -87,9 +88,7 @@ public class MethodsApiController implements MethodsApi {
     // check if current user has write permissions on the workspace
     if (!samService.hasWritePermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.WRITE_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.WRITE_ACTION);
     }
 
@@ -213,9 +212,7 @@ public class MethodsApiController implements MethodsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.READ_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 

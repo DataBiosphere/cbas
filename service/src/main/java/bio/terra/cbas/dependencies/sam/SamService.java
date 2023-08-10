@@ -49,8 +49,10 @@ public class SamService implements HealthCheck {
     if (!samClient.checkAuthAccessWithSam()) return true;
 
     logger.debug(
-        "Checking Sam permission for '%s' resource and '%s' action type for user on workspace '%s'."
-            .formatted(RESOURCE_TYPE_WORKSPACE, actionType, samClient.getWorkspaceId()));
+        "Checking Sam permission for '{}' resource and '{}' action type for user on workspace '{}'.",
+        RESOURCE_TYPE_WORKSPACE,
+        actionType,
+        samClient.getWorkspaceId());
 
     try {
       ResourcesApi resourcesApi = getResourcesApi();

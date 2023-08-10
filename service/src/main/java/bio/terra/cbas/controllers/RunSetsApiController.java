@@ -5,6 +5,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
+import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
@@ -148,9 +149,7 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.READ_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 
@@ -182,9 +181,8 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.COMPUTE_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
     }
 
@@ -321,9 +319,8 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.COMPUTE_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
     }
 

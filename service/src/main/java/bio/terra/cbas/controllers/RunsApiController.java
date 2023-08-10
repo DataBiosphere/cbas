@@ -1,5 +1,7 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
+
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
@@ -55,9 +57,7 @@ public class RunsApiController implements RunsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '{}' permission on '{}' resource",
-          SamService.READ_ACTION,
-          SamService.RESOURCE_TYPE_WORKSPACE);
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
       throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 
