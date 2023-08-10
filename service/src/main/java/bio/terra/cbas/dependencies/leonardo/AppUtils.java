@@ -43,21 +43,33 @@ public class AppUtils {
       return appTypeScoreA - appTypeScoreB;
     }
 
-    // Second criteria: Prefer apps with the expected app type name name
-    int nameScoreA =
-        Objects.equals(
-                a.getAppName(),
-                "%s-%s".formatted(a.getAppType(), wdsServerConfiguration.instanceId()))
-            ? 1
-            : 0;
-    int nameScoreB =
-        Objects.equals(
-                b.getAppName(),
-                "%s-%s".formatted(b.getAppType(), wdsServerConfiguration.instanceId()))
-            ? 1
-            : 0;
-    if (nameScoreA != nameScoreB) {
-      return nameScoreA - nameScoreB;
+    // Second criteria: Prefer apps with the expected app type name
+    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")) {
+      int nameScoreA =
+          Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
+              ? 1
+              : 0;
+      int nameScoreB =
+          Objects.equals(b.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
+              ? 1
+              : 0;
+      if (nameScoreA != nameScoreB) {
+        return nameScoreA - nameScoreB;
+      }
+    } else {
+      int nameScoreA =
+          Objects.equals(
+                  a.getAppName(), "terra-app-%s".formatted(wdsServerConfiguration.instanceId()))
+              ? 1
+              : 0;
+      int nameScoreB =
+          Objects.equals(
+                  b.getAppName(), "terra-app-%s".formatted(wdsServerConfiguration.instanceId()))
+              ? 1
+              : 0;
+      if (nameScoreA != nameScoreB) {
+        return nameScoreA - nameScoreB;
+      }
     }
 
     // Third criteria: tie-break on whichever is older

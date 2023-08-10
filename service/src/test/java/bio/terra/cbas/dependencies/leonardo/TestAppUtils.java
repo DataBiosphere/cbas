@@ -84,7 +84,7 @@ class TestAppUtils {
         new java.util.ArrayList<>(List.of(combinedCromwellApp, otherNamedCromwellApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
-    assertEquals(anticipatedCromwellUrl("cromwell"), au.findUrlForCromwell(apps));
+    assertEquals(anticipatedCromwellUrl("terra-app"), au.findUrlForCromwell(apps));
   }
 
   @Test
@@ -222,12 +222,12 @@ class TestAppUtils {
                     "errors": [],
                     "status": "RUNNING",
                     "proxyUrls": {
-                        "cbas": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/cbas",
-                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/",
-                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/cromwell",
-                        "wds": "https://lzblahblahblah.servicebus.windows.net/cromwell-${workspaceId}/wds"
+                        "cbas": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cbas",
+                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/",
+                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cromwell",
+                        "wds": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/wds"
                     },
-                    "appName": "wds-${workspaceId}",
+                    "appName": "terra-app-${workspaceId}",
                     "appType": "CROMWELL",
                     "diskName": null,
                     "auditInfo": {
