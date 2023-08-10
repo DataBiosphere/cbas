@@ -87,8 +87,9 @@ public class MethodsApiController implements MethodsApi {
     // check if current user has write permissions on the workspace
     if (!samService.hasWritePermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.WRITE_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
+          "User doesn't have '{}' permission on '{}' resource",
+          samService.WRITE_ACTION,
+          samService.RESOURCE_TYPE_WORKSPACE);
       throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.WRITE_ACTION);
     }
 
@@ -212,8 +213,9 @@ public class MethodsApiController implements MethodsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.READ_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
+          "User doesn't have '{}' permission on '{}' resource",
+          samService.READ_ACTION,
+          samService.RESOURCE_TYPE_WORKSPACE);
       throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.READ_ACTION);
     }
 
