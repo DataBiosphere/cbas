@@ -55,9 +55,10 @@ public class RunsApiController implements RunsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.READ_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.READ_ACTION);
+          "User doesn't have '{}' permission on '{}' resource",
+          SamService.READ_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));

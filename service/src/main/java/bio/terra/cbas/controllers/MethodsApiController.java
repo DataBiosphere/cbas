@@ -88,9 +88,9 @@ public class MethodsApiController implements MethodsApi {
     if (!samService.hasWritePermission()) {
       logger.info(
           "User doesn't have '{}' permission on '{}' resource",
-          samService.WRITE_ACTION,
-          samService.RESOURCE_TYPE_WORKSPACE);
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.WRITE_ACTION);
+          SamService.WRITE_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.WRITE_ACTION);
     }
 
     long requestStartNanos = System.nanoTime();
@@ -214,9 +214,9 @@ public class MethodsApiController implements MethodsApi {
     if (!samService.hasReadPermission()) {
       logger.info(
           "User doesn't have '{}' permission on '{}' resource",
-          samService.READ_ACTION,
-          samService.RESOURCE_TYPE_WORKSPACE);
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.READ_ACTION);
+          SamService.READ_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 
     List<MethodDetails> methodDetails;

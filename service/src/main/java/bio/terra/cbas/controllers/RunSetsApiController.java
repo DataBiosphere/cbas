@@ -148,9 +148,10 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.READ_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.READ_ACTION);
+          "User doesn't have '{}' permission on '{}' resource",
+          SamService.READ_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
     }
 
     RunSetListResponse response;
@@ -181,9 +182,10 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.COMPUTE_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.COMPUTE_ACTION);
+          "User doesn't have '{}' permission on '{}' resource",
+          SamService.COMPUTE_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
     }
 
     captureRequestMetrics(request);
@@ -319,9 +321,10 @@ public class RunSetsApiController implements RunSetsApi {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
       logger.info(
-          "User doesn't have '%s' permission on '%s' resource"
-              .formatted(samService.COMPUTE_ACTION, samService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(samService.RESOURCE_TYPE_WORKSPACE, samService.COMPUTE_ACTION);
+          "User doesn't have '{}' permission on '{}' resource",
+          SamService.COMPUTE_ACTION,
+          SamService.RESOURCE_TYPE_WORKSPACE);
+      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
     }
 
     AbortRunSetResponse aborted = new AbortRunSetResponse();

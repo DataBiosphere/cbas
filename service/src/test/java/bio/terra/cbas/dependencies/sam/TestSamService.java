@@ -79,7 +79,7 @@ class TestSamService {
     doReturn(resourcesApi).when(samService).getResourcesApi();
 
     // mock response for hasReadPermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(samService.READ_ACTION)))
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
         .thenAnswer(
             (Answer<Boolean>)
                 invocation -> {
@@ -101,7 +101,7 @@ class TestSamService {
                 });
 
     // mock response for hasWritePermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(samService.WRITE_ACTION)))
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.WRITE_ACTION)))
         .thenAnswer(
             (Answer<Boolean>)
                 invocation -> {
@@ -123,7 +123,7 @@ class TestSamService {
                 });
 
     // mock response for hasComputePermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(samService.COMPUTE_ACTION)))
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.COMPUTE_ACTION)))
         .thenAnswer(
             (Answer<Boolean>)
                 invocation -> {
@@ -275,7 +275,7 @@ class TestSamService {
             .getMessage()
             .contains("BearerToken bean throws error when no token is available."));
     assertTrue(exception.getRootCause() instanceof UnauthorizedException);
-    assertEquals(exception.getRootCause().getMessage(), "Authorization header missing");
+    assertEquals("Authorization header missing", exception.getRootCause().getMessage());
   }
 
   @Test

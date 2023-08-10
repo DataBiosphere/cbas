@@ -22,16 +22,16 @@ public class SamService implements HealthCheck {
   private final BearerToken bearerToken;
 
   // Sam resource type name for Workspaces
-  public final String RESOURCE_TYPE_WORKSPACE = "workspace";
+  public static final String RESOURCE_TYPE_WORKSPACE = "workspace";
 
   // Sam action name for read permission
-  public final String READ_ACTION = "read";
+  public static final String READ_ACTION = "read";
 
   // Sam action name for write permission
-  public final String WRITE_ACTION = "write";
+  public static final String WRITE_ACTION = "write";
 
   // Sam action name for compute  permission
-  public final String COMPUTE_ACTION = "compute";
+  public static final String COMPUTE_ACTION = "compute";
 
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
 
