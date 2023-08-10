@@ -148,9 +148,10 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
-      logger.info(
-          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     RunSetListResponse response;
@@ -180,10 +181,11 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
-      logger.info(
+      String errorMsg =
           getSamForbiddenExceptionMsg(
-              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     captureRequestMetrics(request);
@@ -318,10 +320,11 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
     // check if current user has compute permissions on the workspace
     if (!samService.hasComputePermission()) {
-      logger.info(
+      String errorMsg =
           getSamForbiddenExceptionMsg(
-              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.COMPUTE_ACTION);
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     AbortRunSetResponse aborted = new AbortRunSetResponse();

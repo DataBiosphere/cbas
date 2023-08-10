@@ -56,9 +56,10 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
-      logger.info(
-          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));

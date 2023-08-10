@@ -87,9 +87,10 @@ public class MethodsApiController implements MethodsApi {
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     // check if current user has write permissions on the workspace
     if (!samService.hasWritePermission()) {
-      logger.info(
-          getSamForbiddenExceptionMsg(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.WRITE_ACTION);
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     long requestStartNanos = System.nanoTime();
@@ -211,9 +212,10 @@ public class MethodsApiController implements MethodsApi {
       Boolean showVersions, UUID methodId, UUID methodVersionId) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
-      logger.info(
-          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE));
-      throw new ForbiddenException(SamService.RESOURCE_TYPE_WORKSPACE, SamService.READ_ACTION);
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
     }
 
     List<MethodDetails> methodDetails;
