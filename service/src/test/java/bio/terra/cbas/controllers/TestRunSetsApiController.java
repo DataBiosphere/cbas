@@ -84,6 +84,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -96,7 +97,8 @@ import org.springframework.test.web.servlet.MvcResult;
     classes = {
       RunSetsApiController.class,
       CbasApiConfiguration.class,
-      GlobalExceptionHandler.class
+      GlobalExceptionHandler.class,
+      SamService.class
     })
 class TestRunSetsApiController {
 
@@ -208,7 +210,7 @@ class TestRunSetsApiController {
   @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
-  @MockBean private SamService samService;
+  @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -325,8 +327,8 @@ class TestRunSetsApiController {
     doReturn(mockUser).when(samService).getSamUser();
 
     // setup Sam permission check to return true
-    when(samService.hasReadPermission()).thenReturn(true);
-    when(samService.hasComputePermission()).thenReturn(true);
+    doReturn(true).when(samService).hasReadPermission();
+    doReturn(true).when(samService).hasComputePermission();
   }
 
   @Test
@@ -341,6 +343,8 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    doCallRealMethod().when(samService).hasComputePermission();
     doCallRealMethod().when(samService).getSamUser();
     doReturn(usersApi).when(samService).getUsersApi();
     when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
