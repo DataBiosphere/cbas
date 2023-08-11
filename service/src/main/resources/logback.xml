@@ -3,6 +3,8 @@
   <!--
   This is the basic spring boot config. See:
   https://docs.spring.io/spring-boot/docs/current/reference/html/howto.html#howto-configure-logback-for-logging
+
+  The console log pattern has been modified from the default to include request ID and user ID if present
   -->
   <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint}%replace( %mdc - %msg){'  - ',' '}%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}" />
   <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
