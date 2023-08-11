@@ -158,18 +158,18 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
-  /api/batch/v1/runs/{runId}/status:
+  /api/batch/v1/runs/{runId}/state:
     parameters:
       - $ref: '#/components/parameters/RunId'
     patch:
-      summary: Set workflow run status.
-      operationId: updateRunStatus
+      summary: Updates a workflow run with a state.
+      operationId: updateRunState
       tags: [ runs ]
       requestBody:
-        $ref: '#/components/requestBodies/UpdateRunStatusRequest'
+        $ref: '#/components/requestBodies/UpdateRunStateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/UpdateRunStatusResponse'
+          $ref: '#/components/responses/UpdateRunStateResponse'
         '400':
           $ref: '#/components/responses/UserError'
         '500':
@@ -189,12 +189,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PostMethodRequest'
-    UpdateRunStatusRequest:
+    UpdateRunStateRequest:
       description: Request body to update run status.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RunStatusRequest'
+            $ref: '#/components/schemas/RunStateRequest'
 
   responses:
     PostRunSetResponse:
@@ -227,12 +227,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetListResponse'
-    UpdateRunStatusResponse:
-      description: Update run status response
+    UpdateRunStateResponse:
+      description: Update run state response
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RunStatusResponse'
+            $ref: '#/components/schemas/RunStateResponse'
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
@@ -292,15 +292,15 @@ components:
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
           description: Declarative output definition for writing back to WDS.
-    RunStatusRequest:
+    RunStateRequest:
       type: object
-      required: [runId, status]
+      required: [runId, state]
       properties:
         runId:
           type: string
           format: uuid
-        status:
-          $ref: '#/components/schemas/RunFinalStatus'
+        state:
+          $ref: '#/components/schemas/RunState'
         workflow_output_definitions:
           description: Declarative output definition for writing back to WDS.
           type: array
@@ -763,19 +763,6 @@ components:
         errors:
           type:
             string
-    RunStatusResponse:
-      type: object
-      required: [ run_id ]
-      properties:
-        run_id:
-          type:
-            string
-          format: uuid
-          example: 00000000-0000-0000-0000-000000000000
-        status:
-          $ref: '#/components/schemas/RunFinalStatus'
-        errors:
-          type: string
     RunSetListResponse:
       type: object
       properties:
@@ -899,17 +886,6 @@ components:
         - ERROR
         - CANCELED
         - CANCELING
-      type: string
-    RunFinalStatus:
-      title: RunFinalStatus
-      description: The terminal status that the workflow has reached.
-      example: SUCCEEDED
-      enum:
-        - UNKNOWN
-        - COMPLETE
-        - EXECUTOR_ERROR
-        - SYSTEM_ERROR
-        - CANCELED
       type: string
 
   securitySchemes:
