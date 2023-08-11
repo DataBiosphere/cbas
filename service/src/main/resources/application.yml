@@ -61,7 +61,7 @@ workflow-engines:
 
 wds:
   # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
-  baseUri: "http://localhost:8001"
+  # baseUri: "http://localhost:8001"
   instanceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   apiV: "v0.2"
   debugApiLogging: false
@@ -80,7 +80,7 @@ credentials:
     tokenAcquisitionTimeoutSeconds: 5
     tokenCacheTtlSeconds: 300 # Refresh every 5 minutes
     # For local testing, you can supply a manual token override to avoid token acquisition logic:
-    manualTokenOverride: ""
+    # manualTokenOverride: ""
 
 terra.common:
   tracing:
