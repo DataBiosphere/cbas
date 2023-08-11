@@ -3,17 +3,20 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
+import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
@@ -45,6 +48,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -53,19 +58,23 @@ import org.springframework.stereotype.Controller;
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
   private final DockstoreService dockstoreService;
+  private final SamService samService;
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
+  private static final Logger logger = LoggerFactory.getLogger(MethodsApiController.class);
 
   public MethodsApiController(
       CromwellService cromwellService,
       DockstoreService dockstoreService,
+      SamService samService,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
+    this.samService = samService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
@@ -76,6 +85,14 @@ public class MethodsApiController implements MethodsApi {
 
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
+    // check if current user has write permissions on the workspace
+    if (!samService.hasWritePermission()) {
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
+    }
+
     long requestStartNanos = System.nanoTime();
 
     // validate request
@@ -193,6 +210,13 @@ public class MethodsApiController implements MethodsApi {
   @Override
   public ResponseEntity<MethodListResponse> getMethods(
       Boolean showVersions, UUID methodId, UUID methodVersionId) {
+    // check if current user has read permissions on the workspace
+    if (!samService.hasReadPermission()) {
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
+    }
 
     List<MethodDetails> methodDetails;
 

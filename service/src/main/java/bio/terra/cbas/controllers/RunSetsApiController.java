@@ -5,6 +5,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
+import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
@@ -14,6 +15,7 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -67,6 +69,8 @@ import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.ErrorResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -87,6 +91,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
+  private static final Logger logger = LoggerFactory.getLogger(RunSetsApiController.class);
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -141,6 +146,14 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
+    // check if current user has read permissions on the workspace
+    if (!samService.hasReadPermission()) {
+      String errorMsg =
+          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
+    }
+
     RunSetListResponse response;
 
     List<RunSet> filteredRunSet;
@@ -166,6 +179,15 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    // check if current user has compute permissions on the workspace
+    if (!samService.hasComputePermission()) {
+      String errorMsg =
+          getSamForbiddenExceptionMsg(
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
+    }
+
     captureRequestMetrics(request);
 
     // request validation
@@ -296,6 +318,15 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
+    // check if current user has compute permissions on the workspace
+    if (!samService.hasComputePermission()) {
+      String errorMsg =
+          getSamForbiddenExceptionMsg(
+              SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+      logger.info(errorMsg);
+      throw new ForbiddenException(errorMsg);
+    }
+
     AbortRunSetResponse aborted = new AbortRunSetResponse();
 
     aborted.runSetId(runSetId);

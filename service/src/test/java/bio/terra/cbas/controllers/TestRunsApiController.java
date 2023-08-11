@@ -3,6 +3,7 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
@@ -10,7 +11,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.sam.SamService;
+import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -21,11 +25,15 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
+import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.sam.exception.SamInterruptedException;
+import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -34,7 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
-@ContextConfiguration(classes = RunsApiController.class)
+@ContextConfiguration(classes = {RunsApiController.class, GlobalExceptionHandler.class})
 class TestRunsApiController {
 
   private static final String API = "/api/batch/v1/runs";
@@ -52,6 +60,7 @@ class TestRunsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private SamService samService;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
@@ -121,6 +130,7 @@ class TestRunsApiController {
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(true);
 
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
@@ -143,5 +153,84 @@ class TestRunsApiController {
     assertEquals("outputDefinition", runLog.getWorkflowOutputs());
     assertEquals(
         CbasRunStatus.toCbasApiState(COMPLETE), parsedResponse.getRuns().get(0).getState());
+  }
+
+  @Test
+  void returnErrorForUserWithNoReadAccess() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(false);
+
+    mockMvc
+        .perform(get(API))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'read' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForGetRequestWithoutToken() throws Exception {
+    when(samService.hasReadPermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(get(API))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamApiException() throws Exception {
+    // throw a form of ErrorReportException which is thrown when an ApiException happens in
+    // hasPermission()
+    when(samService.hasReadPermission())
+        .thenThrow(new SamUnauthorizedException("Exception thrown for testing purposes"));
+
+    MvcResult response = mockMvc.perform(get(API)).andExpect(status().isUnauthorized()).andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Exception thrown for testing purposes", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamInterruptedException() throws Exception {
+    // throw SamInterruptedException which is thrown when InterruptedException happens in
+    // hasPermission()
+    when(samService.hasReadPermission())
+        .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
+
+    MvcResult response =
+        mockMvc.perform(get(API)).andExpect(status().isInternalServerError()).andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(500, errorResponse.getStatusCode());
+    assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
   }
 }

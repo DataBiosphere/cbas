@@ -90,3 +90,7 @@ terra.common:
 sam:
   baseUri: "https://sam.dsde-dev.broadinstitute.org/"
   debugApiLogging: false
+  # this should be same as "wds.instanceId"
+  workspaceId: "15f36863-30a5-4cab-91f7-52be439f1175"
+  # for local testing this can be set to false
+  checkAuthAccess: true
