@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.sam;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -15,6 +16,10 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
@@ -23,6 +28,8 @@ import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -37,8 +44,9 @@ class TestSamService {
   private final String validTokenWithReadAccess = "foo-read-access-token";
   private final String validTokenWithWriteAccess = "foo-write-access-token";
   private final String validTokenWithComputeAccess = "foo-compute-access-token";
+  private final String validTokenCausingAccessInterrupt = "moo-access-token";
   private final String expiredTokenValue = "expired-token";
-  private final String tokenCausingInterrupt = "interrupting-cow-moo";
+  private final String tokenCausingUserInterrupt = "interrupting-cow-moo";
   private final String workspaceId = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
@@ -64,15 +72,24 @@ class TestSamService {
         .thenAnswer(
             (Answer<UserStatusInfo>)
                 invocation -> {
-                  if (bearerToken != null
-                      && bearerToken.getToken().equals(tokenWithCorrectAccess)) {
-                    return mockUser;
-                  } else if (bearerToken != null
-                      && bearerToken.getToken().equals(tokenCausingInterrupt)) {
-                    throw new InterruptedException();
-                  } else {
-                    // expired or no token
-                    throw new ApiException(401, "Unauthorized :(");
+                  if (bearerToken == null) {
+                    throw new BeanCreationException(
+                        "BearerToken bean throws error when no token is available.",
+                        new UnauthorizedException("Authorization header missing"));
+                  }
+                  switch (bearerToken.getToken()) {
+                    case tokenWithCorrectAccess:
+                    case validTokenWithNoAccess:
+                    case validTokenWithReadAccess:
+                    case validTokenWithWriteAccess:
+                    case validTokenWithComputeAccess:
+                    case validTokenCausingAccessInterrupt:
+                      return mockUser;
+                    case tokenCausingUserInterrupt:
+                      throw new InterruptedException();
+                    default:
+                      // expired or invalid
+                      throw new ApiException(401, "Unauthorized :(");
                   }
                 });
 
@@ -89,7 +106,8 @@ class TestSamService {
                         || token.equals(validTokenWithWriteAccess)
                         || token.equals(validTokenWithComputeAccess)) return true;
                     if (token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(tokenCausingInterrupt)) throw new InterruptedException();
+                    if (token.equals(validTokenCausingAccessInterrupt))
+                      throw new InterruptedException();
 
                     throw new ApiException(
                         401, "Unauthorized exception thrown for testing purposes");
@@ -111,7 +129,8 @@ class TestSamService {
                         || token.equals(validTokenWithComputeAccess)) return true;
                     if (token.equals(validTokenWithReadAccess)
                         || token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(tokenCausingInterrupt)) throw new InterruptedException();
+                    if (token.equals(validTokenCausingAccessInterrupt))
+                      throw new InterruptedException();
 
                     throw new ApiException(
                         401, "Unauthorized exception thrown for testing purposes");
@@ -133,7 +152,8 @@ class TestSamService {
                     if (token.equals(validTokenWithReadAccess)
                         || token.equals(validTokenWithWriteAccess)
                         || token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(tokenCausingInterrupt)) throw new InterruptedException();
+                    if (token.equals(validTokenCausingAccessInterrupt))
+                      throw new InterruptedException();
 
                     throw new ApiException(
                         401, "Unauthorized exception thrown for testing purposes");
@@ -158,11 +178,15 @@ class TestSamService {
 
   @Test
   void testGetSamUserNoToken() {
-    setTokenValue("");
-    SamUnauthorizedException e =
-        assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
-    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
-    assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
+    BeanCreationException exception =
+        assertThrows(BeanCreationException.class, () -> samService.getSamUser());
+
+    assertTrue(
+        exception
+            .getMessage()
+            .contains("BearerToken bean throws error when no token is available."));
+    assertTrue(exception.getRootCause() instanceof UnauthorizedException);
+    assertEquals("Authorization header missing", exception.getRootCause().getMessage());
   }
 
   @Test
@@ -176,11 +200,51 @@ class TestSamService {
 
   @Test
   void testGetSamUserInterruptingToken() {
-    setTokenValue(tokenCausingInterrupt);
+    setTokenValue(tokenCausingUserInterrupt);
     SamInterruptedException e =
         assertThrows(SamInterruptedException.class, () -> samService.getSamUser());
     assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
+  }
+
+  @Test
+  void testUserIdInLogsWithNoAccess() {
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+    logger.setLevel(Level.DEBUG);
+    logger.addAppender(appender);
+    setTokenValue(validTokenWithNoAccess);
+    samService.hasReadPermission();
+    assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+    assertAll(
+        appender.list.stream()
+            .map(
+                (evt) ->
+                    () -> {
+                      assertTrue(evt.getMessage().contains("user=" + mockUser.getUserSubjectId()));
+                      assertEquals(
+                          mockUser.getUserSubjectId(), evt.getMDCPropertyMap().get("user"));
+                    }));
+  }
+
+  @Test
+  void testUserIdInLogsWithAllAccess() {
+    ListAppender<ILoggingEvent> appender = new ListAppender<>();
+    Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+    logger.setLevel(Level.DEBUG);
+    logger.addAppender(appender);
+    setTokenValue(validTokenWithComputeAccess);
+    samService.hasReadPermission();
+    assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+    assertAll(
+        appender.list.stream()
+            .map(
+                (evt) ->
+                    () -> {
+                      assertTrue(evt.getMessage().contains("user=" + mockUser.getUserSubjectId()));
+                      assertEquals(
+                          mockUser.getUserSubjectId(), evt.getMDCPropertyMap().get("user"));
+                    }));
   }
 
   // tests for checking read, write and compute access for a token with only read access
@@ -280,7 +344,7 @@ class TestSamService {
 
   @Test
   void testHasPermissionForInterruptingToken() {
-    setTokenValue(tokenCausingInterrupt);
+    setTokenValue(validTokenCausingAccessInterrupt);
     SamInterruptedException exception =
         assertThrows(SamInterruptedException.class, () -> samService.hasComputePermission());
     assertEquals(

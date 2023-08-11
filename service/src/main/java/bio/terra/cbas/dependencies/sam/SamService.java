@@ -50,10 +50,10 @@ public class SamService implements HealthCheck {
     if (!samClient.checkAuthAccessWithSam()) return true;
 
     /* Associate user id with log context for this thread/request. This will be included with
-     request ID within any logs for the remainder of the request. See
-     https://github.com/DataBiosphere/terra-common-lib/blob/eaaf6217ec0f024afa45aac14d21c8964c0f27c5/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L129-L132
-     for details on how this is included in cloud logs, and logback.xml for console logs
-     */
+    request ID within any logs for the remainder of the request. See
+    https://github.com/DataBiosphere/terra-common-lib/blob/eaaf6217ec0f024afa45aac14d21c8964c0f27c5/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L129-L132
+    for details on how this is included in cloud logs, and logback.xml for console logs
+    */
     MDC.put("user", getSamUser().getUserSubjectId());
 
     logger.debug(
