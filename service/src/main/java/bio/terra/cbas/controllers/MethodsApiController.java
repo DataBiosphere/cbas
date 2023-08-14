@@ -3,7 +3,6 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
-import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
@@ -48,8 +47,6 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -62,7 +59,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
-  private static final Logger logger = LoggerFactory.getLogger(MethodsApiController.class);
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -87,10 +83,7 @@ public class MethodsApiController implements MethodsApi {
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     // check if current user has write permissions on the workspace
     if (!samService.hasWritePermission()) {
-      String errorMsg =
-          getSamForbiddenExceptionMsg(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
-      logger.info(errorMsg);
-      throw new ForbiddenException(errorMsg);
+      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     long requestStartNanos = System.nanoTime();
@@ -212,10 +205,7 @@ public class MethodsApiController implements MethodsApi {
       Boolean showVersions, UUID methodId, UUID methodVersionId) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
-      String errorMsg =
-          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
-      logger.info(errorMsg);
-      throw new ForbiddenException(errorMsg);
+      throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     List<MethodDetails> methodDetails;

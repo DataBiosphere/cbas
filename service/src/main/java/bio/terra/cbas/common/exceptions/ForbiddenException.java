@@ -6,7 +6,11 @@ import org.springframework.http.HttpStatus;
 
 public class ForbiddenException extends ErrorReportException {
 
-  public ForbiddenException(String errorMsg) {
-    super(errorMsg, new ArrayList<>(), HttpStatus.FORBIDDEN);
+  public ForbiddenException(String samActionType, String samResourceType) {
+    super(
+        "User doesn't have '%s' permission on '%s' resource"
+            .formatted(samActionType, samResourceType),
+        new ArrayList<>(),
+        HttpStatus.FORBIDDEN);
   }
 }

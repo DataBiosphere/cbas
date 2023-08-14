@@ -1,7 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.exceptions.ExceptionUtils.getSamForbiddenExceptionMsg;
-
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
@@ -15,8 +13,6 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.util.List;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,7 +22,6 @@ public class RunsApiController implements RunsApi {
   private final SmartRunsPoller smartPoller;
   private final SamService samService;
   private final RunDao runDao;
-  private static final Logger logger = LoggerFactory.getLogger(RunsApiController.class);
 
   public RunsApiController(RunDao runDao, SmartRunsPoller smartPoller, SamService samService) {
     this.runDao = runDao;
@@ -56,10 +51,7 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
-      String errorMsg =
-          getSamForbiddenExceptionMsg(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
-      logger.info(errorMsg);
-      throw new ForbiddenException(errorMsg);
+      throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
