@@ -20,7 +20,7 @@ public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
     WDS_URL,
-    CROMWELL
+    CROMWELL_URL
   }
 
   private final LoadingCache<DependencyUrlType, String> cache;
@@ -43,7 +43,7 @@ public class DependencyUrlLoader {
               throws DependencyNotAvailableException {
             if (key == DependencyUrlType.WDS_URL) {
               return fetchWdsUrl();
-            } else if (key == DependencyUrlType.CROMWELL) {
+            } else if (key == DependencyUrlType.CROMWELL_URL) {
               return fetchCromwellUrl();
             }
             throw new DependencyNotAvailableException(

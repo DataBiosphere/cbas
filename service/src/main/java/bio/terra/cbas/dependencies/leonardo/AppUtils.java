@@ -34,7 +34,6 @@ public class AppUtils {
   }
 
   int appComparisonFunction(ListAppResponse a, ListAppResponse b) {
-
     // First criteria: Prefer apps with the expected app type.
     // NB: Negative because lower index is better
     int appTypeScoreA = -leonardoServerConfiguration.appTypeNames().indexOf(a.getAppType());
@@ -44,7 +43,8 @@ public class AppUtils {
     }
 
     // Second criteria: Prefer apps with the expected app type name
-    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")) {
+    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")
+        || Objects.requireNonNull(a.getAppName()).contains("wds")) {
       int nameScoreA =
           Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
               ? 1
@@ -139,19 +139,18 @@ public class AppUtils {
                 })
             .toList();
 
-    // Return the highest scoring app:
     return suitableApps.stream()
-        .max(this::appComparisonFunction)
-        .orElseThrow(
-            () ->
-                new DependencyNotAvailableException(
-                    "%s".formatted(appType),
-                    "No suitable, healthy app found for %s (out of %s total apps in this workspace)"
-                        .formatted(appType, apps.size())));
+        .filter(app -> Objects.equals(app.getAppType(), appType))
+        .toList()
+        .get(
+            0); // Currently getting the first instance since there is only one WDS/CROMWELL app per
+    // workspace; Will need to updated when more than one Cromwell instance in the
+    // workspace.
   }
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {
     ListAppResponse foundApp = findBestAppForAppType(apps, AppType.WDS);
+
     @SuppressWarnings("unchecked")
     Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
     if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {
@@ -176,6 +175,7 @@ public class AppUtils {
   public String findUrlForCromwell(List<ListAppResponse> apps)
       throws DependencyNotAvailableException {
     ListAppResponse foundApp = findBestAppForAppType(apps, AppType.CROMWELL);
+
     @SuppressWarnings("unchecked")
     Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
     if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {

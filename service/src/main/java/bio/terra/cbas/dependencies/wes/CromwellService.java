@@ -43,7 +43,7 @@ public class CromwellService implements HealthCheck {
           AzureAccessTokenException {
 
     return cromwellClient
-        .wesAPI(false)
+        .wesAPI()
         .runWorkflow(
             InputGenerator.inputsToJson(params),
             null,
@@ -83,7 +83,7 @@ public class CromwellService implements HealthCheck {
 
   public Object getOutputs(String id)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    return cromwellClient.wesAPI(true).getRunLog(id).getOutputs();
+    return cromwellClient.wesAPI().getRunLog(id).getOutputs();
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
@@ -170,7 +170,7 @@ public class CromwellService implements HealthCheck {
 
   public void cancelRun(Run run)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    cromwellClient.wesAPI(false).cancelRun(run.engineId());
+    cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 
   @Override

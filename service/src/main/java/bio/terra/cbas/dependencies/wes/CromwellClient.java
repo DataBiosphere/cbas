@@ -31,14 +31,15 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  private ApiClient getApiClient(Boolean isReadFunc)
+  private ApiClient getApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri;
 
-    if (isReadFunc) {
+    if (cromwellServerConfiguration.baseUri() != null) {
       uri = cromwellServerConfiguration.baseUri();
     } else {
-      uri = dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL);
+      uri =
+          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
@@ -57,12 +58,12 @@ public class CromwellClient {
     return Optional.ofNullable(this.cromwellServerConfiguration.finalWorkflowLogDir());
   }
 
-  public Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesAPI(Boolean isReadFunc)
+  public Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesAPI()
       throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(getApiClient(isReadFunc));
+    return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(getApiClient());
   }
 
   public EngineApi engineApi() throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new EngineApi(getApiClient(true));
+    return new EngineApi(getApiClient());
   }
 }

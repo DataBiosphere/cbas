@@ -52,7 +52,7 @@ class TestDependencyUrlLoader {
 
     assertEquals(
         discoveredCromwellUrl,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL));
+        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
   }
 
   @Test
@@ -80,7 +80,7 @@ class TestDependencyUrlLoader {
 
     assertEquals(
         discoveredCromwellUrl,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL));
+        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
 
     // Even if the app utils would return something new, the dependency loader returns the cached
     // value:
@@ -117,7 +117,7 @@ class TestDependencyUrlLoader {
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
     assertEquals(
         discoveredCromwellUrl1,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL));
+        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
 
     // Even if the app utils would return something new, the dependency loader returns the cached
     // value:
@@ -129,7 +129,7 @@ class TestDependencyUrlLoader {
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
     assertEquals(
         discoveredCromwellUrl1,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL));
+        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
     // But eventually, the cache expires and we DO get the new value:
     await()
         .atMost(200, MILLISECONDS)
@@ -145,7 +145,7 @@ class TestDependencyUrlLoader {
         .until(
             () ->
                 dependencyUrlLoader.loadDependencyUrl(
-                    DependencyUrlLoader.DependencyUrlType.CROMWELL),
+                    DependencyUrlLoader.DependencyUrlType.CROMWELL_URL),
             equalTo(discoveredCromwellUrl2));
   }
 
