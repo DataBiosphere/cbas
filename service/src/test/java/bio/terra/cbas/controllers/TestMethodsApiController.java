@@ -697,7 +697,8 @@ class TestMethodsApiController {
           0,
           "[]",
           "[]",
-          "FOO");
+          "FOO",
+          "user-foo");
 
   private static final MethodLastRunDetails method2Version1RunsetDetails =
       new MethodLastRunDetails()
@@ -723,7 +724,8 @@ class TestMethodsApiController {
           0,
           "[]",
           "[]",
-          "FOO");
+          "FOO",
+          "user-foo");
 
   private static final MethodLastRunDetails method2Version2RunsetDetails =
       new MethodLastRunDetails()

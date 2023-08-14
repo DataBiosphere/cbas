@@ -60,7 +60,8 @@ class TestRunSetDao {
             0,
             null,
             null,
-            "sample");
+            "sample",
+            "user-foo");
 
     RunSet actual = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000008"));
 

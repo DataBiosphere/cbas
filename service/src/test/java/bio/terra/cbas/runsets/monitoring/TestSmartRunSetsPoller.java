@@ -64,6 +64,7 @@ public class TestSmartRunSetsPoller {
             0,
             null,
             null,
+            null,
             null);
 
     UUID runSetId2 = UUID.randomUUID();
@@ -81,6 +82,7 @@ public class TestSmartRunSetsPoller {
             OffsetDateTime.now().minusMinutes(3),
             1,
             0,
+            null,
             null,
             null,
             null);
@@ -141,6 +143,7 @@ public class TestSmartRunSetsPoller {
             0,
             null,
             null,
+            null,
             null);
 
     RunSet runSetUpdated =
@@ -157,6 +160,7 @@ public class TestSmartRunSetsPoller {
             null,
             2,
             0,
+            null,
             null,
             null,
             null);
@@ -248,6 +252,7 @@ public class TestSmartRunSetsPoller {
             0,
             null,
             null,
+            null,
             null);
 
     RunSet runSetTimestampUpdated =
@@ -264,6 +269,7 @@ public class TestSmartRunSetsPoller {
             OffsetDateTime.now(),
             1,
             0,
+            null,
             null,
             null,
             null);

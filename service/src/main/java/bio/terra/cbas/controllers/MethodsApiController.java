@@ -268,6 +268,7 @@ public class MethodsApiController implements MethodsApi {
             0,
             objectMapper.writeValueAsString(inputs),
             objectMapper.writeValueAsString(outputs),
+            null,
             null);
 
     methodDao.createMethod(method);
