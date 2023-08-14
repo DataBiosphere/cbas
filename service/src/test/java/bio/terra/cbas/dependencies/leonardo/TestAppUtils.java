@@ -136,6 +136,5 @@ class TestAppUtils {
                     "labels": {}
                 }""",
                 Map.of("workspaceId", workspaceId)));
-
   }
 }
