@@ -43,8 +43,7 @@ public class AppUtils {
     }
 
     // Second criteria: Prefer apps with the expected app type name
-    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")
-        || Objects.requireNonNull(a.getAppName()).contains("wds")) {
+    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")) {
       int nameScoreA =
           Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
               ? 1
@@ -85,8 +84,7 @@ public class AppUtils {
    * <p>(<a
    * href="https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147">...</a>)
    */
-  ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType)
-      throws DependencyNotAvailableException {
+  ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType) {
     // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by
     // Leo
     // See here for specific enumerations --
