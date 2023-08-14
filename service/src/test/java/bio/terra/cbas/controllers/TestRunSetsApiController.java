@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -36,6 +38,8 @@ import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
+import bio.terra.cbas.dependencies.sam.SamClient;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
@@ -59,6 +63,8 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
@@ -68,6 +74,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.ApiException;
+import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +86,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -85,7 +95,12 @@ import org.springframework.test.web.servlet.MvcResult;
 
 @WebMvcTest
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=3")
-@ContextConfiguration(classes = {RunSetsApiController.class, CbasApiConfiguration.class})
+@ContextConfiguration(
+    classes = {
+      RunSetsApiController.class,
+      CbasApiConfiguration.class,
+      GlobalExceptionHandler.class
+    })
 class TestRunSetsApiController {
 
   private static final String API = "/api/batch/v1/run_sets";
@@ -185,8 +200,18 @@ class TestRunSetsApiController {
   final String cromwellWorkflowId1 = UUID.randomUUID().toString();
   final String cromwellWorkflowId3 = UUID.randomUUID().toString();
 
+  private final UserStatusInfo mockUser =
+      new UserStatusInfo()
+          .userEmail("realuser@gmail.com")
+          .userSubjectId("user-id-foo")
+          .enabled(true);
+
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
+  @MockBean private BearerToken bearerToken;
+  @MockBean private SamClient samClient;
+  @MockBean private UsersApi usersApi;
+  @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -301,6 +326,36 @@ class TestRunSetsApiController {
                 "ApiException thrown on purpose for testing purposes."));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
+
+    doReturn(mockUser).when(samService).getSamUser();
+  }
+
+  @Test
+  void runSetWithSamException() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    doCallRealMethod().when(samService).getSamUser();
+    doReturn(usersApi).when(samService).getUsersApi();
+    when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
+
+    mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isUnauthorized())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof SamUnauthorizedException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "Error getting user status info from Sam: No token provided",
+                    result.getResolvedException().getMessage()));
   }
 
   @Test
@@ -333,6 +388,7 @@ class TestRunSetsApiController {
     assertEquals(recordType, newRunSetCaptor.getValue().recordType());
     assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
     assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
+    assertEquals(mockUser.getUserSubjectId(), newRunSetCaptor.getValue().userId());
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(runDao, times(3)).createRun(newRunCaptor.capture());
@@ -568,7 +624,7 @@ class TestRunSetsApiController {
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
-            workflowUrl,
+            methodVersionId,
             isCallCachingEnabled,
             inputSourceAsString,
             outputDefinitionAsString,
@@ -681,7 +737,8 @@ class TestRunSetsApiController {
             1,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     RunSet returnedRunSet2 =
         new RunSet(
@@ -712,7 +769,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "BAR");
+            "BAR",
+            mockUser.getUserSubjectId());
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
@@ -781,7 +839,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     Run run1 =
         new Run(
@@ -859,7 +918,8 @@ class TestRunSetsApiController {
             0,
             "inputdefinition",
             "outputDefinition",
-            "FOO");
+            "FOO",
+            mockUser.getUserSubjectId());
 
     Run run1 =
         new Run(

@@ -127,7 +127,8 @@ public class TestSmartRunsPollerFunctional {
           0,
           "inputDefinition",
           outputDefinition,
-          "entityType");
+          "entityType",
+          "user-foo");
 
   final Run runToUpdate1 =
       new Run(
@@ -680,7 +681,8 @@ public class TestSmartRunsPollerFunctional {
             0,
             "inputDefinition",
             outputDefinition,
-            "entityType");
+            "entityType",
+            "user-foo");
 
     Run run =
         new Run(

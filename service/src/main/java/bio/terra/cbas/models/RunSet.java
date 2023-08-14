@@ -18,7 +18,8 @@ public record RunSet(
     Integer errorCount,
     String inputDefinition,
     String outputDefinition,
-    String recordType) {
+    String recordType,
+    String userId) {
 
   // Corresponding table column names in database
   public static final String RUN_SET_ID_COL = "run_set_id";
@@ -35,6 +36,7 @@ public record RunSet(
   public static final String INPUT_DEFINITION_COL = "input_definition";
   public static final String OUTPUT_DEFINITION_COL = "output_definition";
   public static final String RECORD_TYPE_COL = "record_type";
+  public static final String USER_ID_COL = "user_id";
 
   public UUID getMethodVersionId() {
     return methodVersion.methodVersionId();

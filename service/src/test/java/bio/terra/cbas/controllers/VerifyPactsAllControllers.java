@@ -16,6 +16,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +63,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
+  @MockBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private WdsService wdsService;
@@ -159,6 +162,9 @@ class VerifyPactsAllControllers {
     RunId myRunId = new RunId();
     myRunId.setRunId(fixedRunUUID);
     when(cromwellService.submitWorkflow(any(), any(), any())).thenReturn(myRunId);
+    when(samService.getSamUser())
+        .thenReturn(
+            new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
@@ -205,7 +211,8 @@ class VerifyPactsAllControllers {
             1,
             "my input definition string",
             "my output definition string",
-            "myRecordType");
+            "myRecordType",
+            "user-foo");
 
     List<RunSet> response = List.of(targetRunSet);
 
@@ -234,6 +241,7 @@ class VerifyPactsAllControllers {
             null,
             null,
             1,
+            null,
             null,
             null,
             null,
