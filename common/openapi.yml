@@ -159,7 +159,7 @@ paths:
           $ref: '#/components/responses/ServerError'
   /api/batch/v1/run_sets/results:
     post:
-      tags: [ runs ]
+      tags: [ run_sets ]
       summary: Sets states in a run_set upon completion.
       operationId: postRunSetResults
       requestBody:
