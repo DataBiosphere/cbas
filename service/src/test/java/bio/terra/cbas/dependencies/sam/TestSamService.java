@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.sam;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,13 +25,18 @@ import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.stubbing.Answer;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 
 class TestSamService {
@@ -72,7 +76,7 @@ class TestSamService {
         .thenAnswer(
             (Answer<UserStatusInfo>)
                 invocation -> {
-                  if (bearerToken == null) {
+                  if (bearerToken == null || bearerToken.getToken() == null) {
                     throw new BeanCreationException(
                         "BearerToken bean throws error when no token is available.",
                         new UnauthorizedException("Authorization header missing"));
@@ -207,46 +211,6 @@ class TestSamService {
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
   }
 
-  @Test
-  void testUserIdInLogsWithNoAccess() {
-    ListAppender<ILoggingEvent> appender = new ListAppender<>();
-    Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
-    logger.setLevel(Level.DEBUG);
-    logger.addAppender(appender);
-    setTokenValue(validTokenWithNoAccess);
-    samService.hasReadPermission();
-    assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-    assertAll(
-        appender.list.stream()
-            .map(
-                (evt) ->
-                    () -> {
-                      assertTrue(evt.getMessage().contains("user=" + mockUser.getUserSubjectId()));
-                      assertEquals(
-                          mockUser.getUserSubjectId(), evt.getMDCPropertyMap().get("user"));
-                    }));
-  }
-
-  @Test
-  void testUserIdInLogsWithAllAccess() {
-    ListAppender<ILoggingEvent> appender = new ListAppender<>();
-    Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
-    logger.setLevel(Level.DEBUG);
-    logger.addAppender(appender);
-    setTokenValue(validTokenWithComputeAccess);
-    samService.hasReadPermission();
-    assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-    assertAll(
-        appender.list.stream()
-            .map(
-                (evt) ->
-                    () -> {
-                      assertTrue(evt.getMessage().contains("user=" + mockUser.getUserSubjectId()));
-                      assertEquals(
-                          mockUser.getUserSubjectId(), evt.getMDCPropertyMap().get("user"));
-                    }));
-  }
-
   // tests for checking read, write and compute access for a token with only read access
 
   @Test
@@ -351,5 +315,71 @@ class TestSamService {
         "Request interrupted while checking compute permissions on workspace from Sam",
         exception.getMessage());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+  }
+
+  // Tests for including user IDs in logs once permissions have been checked
+
+  @Nested
+  @SpringBootTest(properties = "spring.profiles.active=human-readable-logging")
+  @ExtendWith(OutputCaptureExtension.class)
+  class TestSamReadableLogs {
+
+    @Test
+    void testUserIdInLogsWithNoAccess(CapturedOutput output) {
+      ListAppender<ILoggingEvent> appender = new ListAppender<>();
+      Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+      appender.setContext(logger.getLoggerContext());
+      logger.setLevel(Level.DEBUG);
+      logger.addAppender(appender);
+      setTokenValue(validTokenWithNoAccess);
+      samService.hasReadPermission();
+      assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
+    }
+
+    @Test
+    void testUserIdInLogsWithAllAccess(CapturedOutput output) {
+      ListAppender<ILoggingEvent> appender = new ListAppender<>();
+      Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+      appender.setContext(logger.getLoggerContext());
+      logger.setLevel(Level.DEBUG);
+      logger.addAppender(appender);
+      setTokenValue(validTokenWithComputeAccess);
+      samService.hasReadPermission();
+      assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
+    }
+  }
+
+  @Nested
+  @SpringBootTest(properties = "spring.profiles.active=")
+  @ExtendWith(OutputCaptureExtension.class)
+  class TestSamPlainLogs {
+
+    @Test
+    void testUserIdInPlainLogsWithNoAccess(CapturedOutput output) {
+      ListAppender<ILoggingEvent> appender = new ListAppender<>();
+      Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+      appender.setContext(logger.getLoggerContext());
+      logger.setLevel(Level.DEBUG);
+      logger.addAppender(appender);
+      setTokenValue(validTokenWithNoAccess);
+      samService.hasReadPermission();
+      assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
+    }
+
+    @Test
+    void testUserIdInPlainLogsWithAllAccess(CapturedOutput output) {
+      ListAppender<ILoggingEvent> appender = new ListAppender<>();
+      Logger logger = (Logger) LoggerFactory.getLogger(SamService.class);
+      appender.setContext(logger.getLoggerContext());
+      logger.setLevel(Level.DEBUG);
+      logger.addAppender(appender);
+      setTokenValue(validTokenWithComputeAccess);
+      samService.hasReadPermission();
+      assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
+    }
   }
 }
