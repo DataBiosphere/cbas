@@ -4,7 +4,6 @@ import static bio.terra.cbas.api.RunsApi.log;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
-import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
@@ -30,8 +29,7 @@ public class CromwellService implements HealthCheck {
   private final CromwellClient cromwellClient;
   private static final String API_VERSION = "v1";
 
-  public CromwellService(
-      CromwellClient cromwellClient) {
+  public CromwellService(CromwellClient cromwellClient) {
     this.cromwellClient = cromwellClient;
   }
 
@@ -54,7 +52,8 @@ public class CromwellService implements HealthCheck {
             null);
   }
 
-  public WorkflowQueryResult runSummary(String runId) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public WorkflowQueryResult runSummary(String runId)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     ApiClient client = cromwellClient.getReadApiClient();
     var queryResults =
         cromwellClient
@@ -89,12 +88,16 @@ public class CromwellService implements HealthCheck {
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
-  public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public WorkflowDescription describeWorkflow(String workflowUrl)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     ApiClient client = cromwellClient.getWriteApiClient();
-    return cromwellClient.womtoolApi(client).describe(API_VERSION, null, workflowUrl, null, null, null);
+    return cromwellClient
+        .womtoolApi(client)
+        .describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
-  public String getRunErrors(Run run) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public String getRunErrors(Run run)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
 
     ApiClient client = cromwellClient.getWriteApiClient();
 

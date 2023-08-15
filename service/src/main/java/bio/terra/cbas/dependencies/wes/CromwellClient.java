@@ -8,9 +8,9 @@ import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
-import java.util.Optional;
 import cromwell.client.api.WomtoolApi;
 import cromwell.client.api.WorkflowsApi;
+import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Component;
 
@@ -33,31 +33,36 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-//  private ApiClient getApiClient()
-//      throws DependencyNotAvailableException, AzureAccessTokenException {
-//    String uri;
-//
-//    if (cromwellServerConfiguration.baseUri() != null) {
-//      uri = cromwellServerConfiguration.baseUri();
-//    } else {
-//      uri =
-//          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
-//    }
-//
-//    ApiClient apiClient = new ApiClient().setBasePath(uri);
-//    apiClient.setHttpClient(singletonHttpClient);
-//    apiClient.addDefaultHeader(
-//        "Authorization",
-//        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
-//    // By closing the connection after each request, we avoid the problem of the open connection
-//    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
-//    apiClient.addDefaultHeader("Connection", "close");
-//    apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
-//    return apiClient;
-//  }
+  //  private ApiClient getApiClient()
+  //      throws DependencyNotAvailableException, AzureAccessTokenException {
+  //    String uri;
+  //
+  //    if (cromwellServerConfiguration.baseUri() != null) {
+  //      uri = cromwellServerConfiguration.baseUri();
+  //    } else {
+  //      uri =
+  //
+  // dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
+  //    }
+  //
+  //    ApiClient apiClient = new ApiClient().setBasePath(uri);
+  //    apiClient.setHttpClient(singletonHttpClient);
+  //    apiClient.addDefaultHeader(
+  //        "Authorization",
+  //        "Bearer " +
+  // credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+  //    // By closing the connection after each request, we avoid the problem of the open connection
+  //    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
+  //    apiClient.addDefaultHeader("Connection", "close");
+  //    apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
+  //    return apiClient;
+  //  }
 
-  public ApiClient getWriteApiClient() throws DependencyNotAvailableException, AzureAccessTokenException {
-    String uri = dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_RUNNER_APP_URL);
+  public ApiClient getWriteApiClient()
+      throws DependencyNotAvailableException, AzureAccessTokenException {
+    String uri =
+        dependencyUrlLoader.loadDependencyUrl(
+            DependencyUrlLoader.DependencyUrlType.CROMWELL_RUNNER_APP_URL);
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setHttpClient(singletonHttpClient);
@@ -71,14 +76,16 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getReadApiClient() throws DependencyNotAvailableException, AzureAccessTokenException {
+  public ApiClient getReadApiClient()
+      throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri;
 
     if (cromwellServerConfiguration.baseUri() != null) {
       uri = cromwellServerConfiguration.baseUri();
     } else {
       uri =
-          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WORKFLOWS_APP_URL);
+          dependencyUrlLoader.loadDependencyUrl(
+              DependencyUrlLoader.DependencyUrlType.WORKFLOWS_APP_URL);
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
@@ -95,7 +102,8 @@ public class CromwellClient {
     return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(apiClient);
   }
 
-  public EngineApi engineApi(ApiClient apiClient) throws DependencyNotAvailableException, AzureAccessTokenException {
+  public EngineApi engineApi(ApiClient apiClient)
+      throws DependencyNotAvailableException, AzureAccessTokenException {
     return new EngineApi(apiClient);
   }
 
