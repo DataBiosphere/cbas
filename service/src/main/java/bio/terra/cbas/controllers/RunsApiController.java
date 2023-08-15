@@ -2,7 +2,9 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -18,11 +20,13 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class RunsApiController implements RunsApi {
   private final SmartRunsPoller smartPoller;
+  private final SamService samService;
   private final RunDao runDao;
 
-  public RunsApiController(RunDao runDao, SmartRunsPoller smartPoller) {
+  public RunsApiController(RunDao runDao, SmartRunsPoller smartPoller, SamService samService) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
+    this.samService = samService;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -45,6 +49,10 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
+    // check if current user has read permissions on the workspace
+    if (!samService.hasReadPermission()) {
+      throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
     UpdateResult<Run> updatedRunsResult = smartPoller.updateRuns(queryResults);

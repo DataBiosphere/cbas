@@ -29,4 +29,12 @@ public class SamClient {
     apiClient.setAccessToken(accessToken);
     return apiClient;
   }
+
+  public String getWorkspaceId() {
+    return this.samServerConfiguration.workspaceId();
+  }
+
+  public boolean checkAuthAccessWithSam() {
+    return this.samServerConfiguration.checkAuthAccess();
+  }
 }

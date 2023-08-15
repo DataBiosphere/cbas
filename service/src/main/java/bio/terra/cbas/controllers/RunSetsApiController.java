@@ -14,6 +14,7 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -141,6 +142,11 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
+    // check if current user has read permissions on the workspace
+    if (!samService.hasReadPermission()) {
+      throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
+
     RunSetListResponse response;
 
     List<RunSet> filteredRunSet;
@@ -166,6 +172,11 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    // check if current user has compute permissions on the workspace
+    if (!samService.hasComputePermission()) {
+      throw new ForbiddenException(SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
+
     captureRequestMetrics(request);
 
     // request validation
@@ -296,6 +307,11 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
+    // check if current user has compute permissions on the workspace
+    if (!samService.hasComputePermission()) {
+      throw new ForbiddenException(SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
+
     AbortRunSetResponse aborted = new AbortRunSetResponse();
 
     aborted.runSetId(runSetId);
