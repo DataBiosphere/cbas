@@ -64,10 +64,8 @@ public class RunSetAbortManager {
         failedRunIds.add(run.runId().toString());
         // Add the error message against the run
         run.withErrorMessage(msg);
-      } catch (AzureAccessTokenException e) {
-        log.warn("Unrecognized token", e);
-      } catch (DependencyNotAvailableException e) {
-        log.warn("Dependency not available", e);
+      } catch (AzureAccessTokenException | DependencyNotAvailableException e) {
+        log.warn(e.getMessage());
       }
     }
 
