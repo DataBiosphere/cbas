@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.config.AzureCredentialConfig;
+import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
@@ -45,6 +46,7 @@ import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
+import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
@@ -63,7 +65,9 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,10 +87,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -211,7 +215,7 @@ class TestRunSetsApiController {
   @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
-  @SpyBean private SamService samService;
+  @MockBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -328,6 +332,10 @@ class TestRunSetsApiController {
         .thenReturn(new RunId().runId(cromwellWorkflowId3));
 
     doReturn(mockUser).when(samService).getSamUser();
+
+    // setup Sam permission check to return true
+    when(samService.hasReadPermission()).thenReturn(true);
+    when(samService.hasComputePermission()).thenReturn(true);
   }
 
   @Test
@@ -972,6 +980,192 @@ class TestRunSetsApiController {
         parsedResponse.getErrors());
     assertEquals(1, parsedResponse.getRuns().size());
     assertNotSame(CANCELING, run2.status());
+  }
+
+  @Test
+  void returnErrorForUserWithNoReadAccess() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(false);
+
+    mockMvc
+        .perform(get(API))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'read' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForUserWithNoComputeAccessForPostApi() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(samService.hasComputePermission()).thenReturn(false);
+
+    mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'compute' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForUserWithNoComputeAccessForAbortApi() throws Exception {
+    when(samService.hasComputePermission()).thenReturn(false);
+
+    mockMvc
+        .perform(post(API_ABORT).param("run_set_id", UUID.randomUUID().toString()))
+        .andExpect(status().isForbidden())
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof ForbiddenException))
+        .andExpect(
+            result ->
+                assertEquals(
+                    "User doesn't have 'compute' permission on 'workspace' resource",
+                    result.getResolvedException().getMessage()));
+  }
+
+  @Test
+  void returnErrorForGetRequestWithoutToken() throws Exception {
+    when(samService.hasReadPermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(get(API))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForPostRequestWithoutToken() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(samService.hasComputePermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForAbortRequestWithoutToken() throws Exception {
+    when(samService.hasComputePermission())
+        .thenThrow(
+            new BeanCreationException(
+                "BearerToken bean instantiation failed.",
+                new UnauthorizedException("Authorization header missing")));
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API_ABORT).param("run_set_id", UUID.randomUUID().toString()))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Authorization header missing", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamApiException() throws Exception {
+    // throw a form of ErrorReportException which is thrown when an ApiException happens in
+    // hasPermission()
+    when(samService.hasReadPermission())
+        .thenThrow(new SamUnauthorizedException("Exception thrown for testing purposes"));
+
+    MvcResult response = mockMvc.perform(get(API)).andExpect(status().isUnauthorized()).andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("Exception thrown for testing purposes", errorResponse.getMessage());
+  }
+
+  @Test
+  void returnErrorForSamInterruptedException() throws Exception {
+    // throw SamInterruptedException which is thrown when InterruptedException happens in
+    // hasPermission()
+    when(samService.hasComputePermission())
+        .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
+
+    MvcResult response =
+        mockMvc
+            .perform(post(API_ABORT).param("run_set_id", UUID.randomUUID().toString()))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the exception message is set
+    // properly
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(500, errorResponse.getStatusCode());
+    assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
   }
 }
 
