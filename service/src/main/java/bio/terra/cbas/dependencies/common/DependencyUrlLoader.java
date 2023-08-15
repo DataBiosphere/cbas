@@ -20,7 +20,9 @@ public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
     WDS_URL,
-    CROMWELL_URL
+    CROMWELL_URL,
+    WORKFLOWS_APP_URL,
+    CROMWELL_RUNNER_APP_URL
   }
 
   private final LoadingCache<DependencyUrlType, String> cache;

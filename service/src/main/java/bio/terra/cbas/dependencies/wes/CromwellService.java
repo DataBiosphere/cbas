@@ -9,6 +9,7 @@ import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
@@ -27,14 +28,11 @@ public class CromwellService implements HealthCheck {
 
   private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
-  private final CromwellServerConfiguration cromwellConfig;
-
   private static final String API_VERSION = "v1";
 
   public CromwellService(
-      CromwellClient cromwellClient, CromwellServerConfiguration cromwellConfig) {
+      CromwellClient cromwellClient) {
     this.cromwellClient = cromwellClient;
-    this.cromwellConfig = cromwellConfig;
   }
 
   public RunId submitWorkflow(
@@ -42,8 +40,10 @@ public class CromwellService implements HealthCheck {
       throws ApiException, JsonProcessingException, DependencyNotAvailableException,
           AzureAccessTokenException {
 
+    ApiClient client = cromwellClient.getWriteApiClient();
+
     return cromwellClient
-        .wesAPI()
+        .wesAPI(client)
         .runWorkflow(
             InputGenerator.inputsToJson(params),
             null,
@@ -54,10 +54,11 @@ public class CromwellService implements HealthCheck {
             null);
   }
 
-  public WorkflowQueryResult runSummary(String runId) throws ApiException {
+  public WorkflowQueryResult runSummary(String runId) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+    ApiClient client = cromwellClient.getReadApiClient();
     var queryResults =
-        cromwellConfig
-            .workflowsApi()
+        cromwellClient
+            .workflowsApi(client)
             .queryGet(
                 API_VERSION,
                 null,
@@ -83,18 +84,23 @@ public class CromwellService implements HealthCheck {
 
   public Object getOutputs(String id)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    return cromwellClient.wesAPI().getRunLog(id).getOutputs();
+    ApiClient client = cromwellClient.getWriteApiClient();
+
+    return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
-  public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
-    return cromwellConfig.womtoolApi().describe(API_VERSION, null, workflowUrl, null, null, null);
+  public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+    ApiClient client = cromwellClient.getWriteApiClient();
+    return cromwellClient.womtoolApi(client).describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
-  public String getRunErrors(Run run) throws ApiException {
+  public String getRunErrors(Run run) throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+
+    ApiClient client = cromwellClient.getWriteApiClient();
 
     WorkflowMetadataResponse meta =
-        cromwellConfig
-            .workflowsApi()
+        cromwellClient
+            .workflowsApi(client)
             .metadata(
                 API_VERSION, run.engineId(), Collections.singletonList("failure"), null, null);
 
@@ -170,14 +176,16 @@ public class CromwellService implements HealthCheck {
 
   public void cancelRun(Run run)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    cromwellClient.wesAPI().cancelRun(run.engineId());
+    ApiClient client = cromwellClient.getWriteApiClient();
+    cromwellClient.wesAPI(client).cancelRun(run.engineId());
   }
 
   @Override
   public Result checkHealth() {
     try {
+      ApiClient client = cromwellClient.getReadApiClient();
       // No response, the successful return code is the important thing:
-      cromwellClient.engineApi().engineStatus("v1");
+      cromwellClient.engineApi(client).engineStatus("v1");
       return new Result(true, "Cromwell was reachable");
     } catch (ApiException | DependencyNotAvailableException | AzureAccessTokenException e) {
       return new Result(false, e.getMessage());
