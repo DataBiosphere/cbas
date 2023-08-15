@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.sam;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +41,7 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
 
 class TestSamService {
+  private SamClient samClient;
   @SpyBean private SamService samService;
   @MockBean private BearerToken bearerToken;
 
@@ -62,7 +64,7 @@ class TestSamService {
   void init() throws ApiException {
     UsersApi usersApi = mock(UsersApi.class);
     ResourcesApi resourcesApi = mock(ResourcesApi.class);
-    SamClient samClient = mock(SamClient.class);
+    samClient = mock(SamClient.class);
     ApiClient apiClient = mock(ApiClient.class);
     samService = spy(new SamService(samClient, bearerToken));
 
@@ -209,6 +211,17 @@ class TestSamService {
         assertThrows(SamInterruptedException.class, () -> samService.getSamUser());
     assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
+  }
+
+  @Test
+  void testGetSamUserAuthDisabled() {
+    setTokenValue(tokenWithCorrectAccess);
+    when(samClient.checkAuthAccessWithSam()).thenReturn(false);
+    UserStatusInfo user = samService.getSamUser();
+    assertEquals(new UserStatusInfo(), user);
+    assertNull(user.getUserSubjectId());
+    assertNull(user.getUserEmail());
+    assertNull(user.getEnabled());
   }
 
   // tests for checking read, write and compute access for a token with only read access
