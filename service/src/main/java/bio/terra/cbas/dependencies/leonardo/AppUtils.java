@@ -43,32 +43,16 @@ public class AppUtils {
     }
 
     // Second criteria: Prefer apps with the expected app type name
-    if (Objects.equals(Objects.requireNonNull(a.getAppType()).toString(), "WDS")) {
-      int nameScoreA =
-          Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
-              ? 1
-              : 0;
-      int nameScoreB =
-          Objects.equals(b.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
-              ? 1
-              : 0;
-      if (nameScoreA != nameScoreB) {
-        return nameScoreA - nameScoreB;
-      }
-    } else {
-      int nameScoreA =
-          Objects.equals(
-                  a.getAppName(), "terra-app-%s".formatted(wdsServerConfiguration.instanceId()))
-              ? 1
-              : 0;
-      int nameScoreB =
-          Objects.equals(
-                  b.getAppName(), "terra-app-%s".formatted(wdsServerConfiguration.instanceId()))
-              ? 1
-              : 0;
-      if (nameScoreA != nameScoreB) {
-        return nameScoreA - nameScoreB;
-      }
+    int nameScoreA =
+        Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
+            ? 1
+            : 0;
+    int nameScoreB =
+        Objects.equals(b.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
+            ? 1
+            : 0;
+    if (nameScoreA != nameScoreB) {
+      return nameScoreA - nameScoreB;
     }
 
     // Third criteria: tie-break on whichever is older
@@ -84,7 +68,8 @@ public class AppUtils {
    * <p>(<a
    * href="https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147">...</a>)
    */
-  ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType) {
+  ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType)
+      throws DependencyNotAvailableException {
     // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by
     // Leo
     // See here for specific enumerations --
@@ -136,6 +121,17 @@ public class AppUtils {
                   return a && b && c;
                 })
             .toList();
+
+    if (appType.equals(AppType.WDS)) {
+      return suitableApps.stream()
+          .max(this::appComparisonFunction)
+          .orElseThrow(
+              () ->
+                  new DependencyNotAvailableException(
+                      "WDS",
+                      "No suitable, healthy app found for WDS (out of %s total apps in this workspace)"
+                          .formatted(apps.size())));
+    }
 
     return suitableApps.stream()
         .filter(app -> Objects.equals(app.getAppType(), appType))
