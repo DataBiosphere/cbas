@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.AppStatus;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.AppType;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
@@ -170,9 +171,10 @@ public class AppUtils {
         "WDS in %s app not ready (%s)".formatted(foundApp.getAppName(), foundApp.getStatus()));
   }
 
-  public String findUrlForCromwell(List<ListAppResponse> apps)
+  public String findUrlForCromwell(List<ListAppResponse> apps, DependencyUrlLoader.DependencyUrlType key)
       throws DependencyNotAvailableException {
-    ListAppResponse foundApp = findBestAppForAppType(apps, AppType.CROMWELL);
+    AppType appType = AppType.valueOf(key.toString());
+    ListAppResponse foundApp = findBestAppForAppType(apps, appType);
 
     @SuppressWarnings("unchecked")
     Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());

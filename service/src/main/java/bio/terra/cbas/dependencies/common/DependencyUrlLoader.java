@@ -20,9 +20,9 @@ public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
     WDS_URL,
-    CROMWELL_URL,
-    WORKFLOWS_APP_URL,
-    CROMWELL_RUNNER_APP_URL
+    CROMWELL,
+    WORKFLOWS_APP,
+    CROMWELL_RUNNER_APP
   }
 
   private final LoadingCache<DependencyUrlType, String> cache;
@@ -45,11 +45,9 @@ public class DependencyUrlLoader {
               throws DependencyNotAvailableException {
             if (key == DependencyUrlType.WDS_URL) {
               return fetchWdsUrl();
-            } else if (key == DependencyUrlType.CROMWELL_URL) {
-              return fetchCromwellUrl();
+            } else {
+              return fetchCromwellUrl(key);
             }
-            throw new DependencyNotAvailableException(
-                key.toString(), "Unknown dependency URL type");
           }
         };
 
@@ -68,10 +66,10 @@ public class DependencyUrlLoader {
     }
   }
 
-  private String fetchCromwellUrl() throws DependencyNotAvailableException {
+  private String fetchCromwellUrl(DependencyUrlType key) throws DependencyNotAvailableException {
     try {
       List<ListAppResponse> allApps = leonardoService.getApps();
-      return appUtils.findUrlForCromwell(allApps);
+      return appUtils.findUrlForCromwell(allApps, key);
     } catch (ApiException | AzureAccessTokenException e) {
       throw new DependencyNotAvailableException("Cromwell", "Failed to poll Leonardo for URL", e);
     }
