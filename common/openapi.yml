@@ -157,19 +157,31 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
-
-  /api/batch/v1/runs/{runId}/state:
-    parameters:
-      - $ref: '#/components/parameters/RunId'
-    patch:
-      summary: Updates a workflow run with a state.
-      operationId: updateRunState
+  /api/batch/v1/run_sets/results:
+    post:
       tags: [ runs ]
+      summary: Sets states in a run_set upon completion.
+      operationId: postRunSetResults
       requestBody:
-        $ref: '#/components/requestBodies/UpdateRunStateRequest'
+        $ref: '#/components/requestBodies/PostRunSetResultsRequest'
       responses:
         '200':
-          $ref: '#/components/responses/UpdateRunStateResponse'
+          $ref: '#/components/responses/PostRunSetResultsResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /api/batch/v1/runs/results:
+    post:
+      tags: [ runs ]
+      summary: Sets a run state upon completion.
+      operationId: postRunResults
+      requestBody:
+        $ref: '#/components/requestBodies/PostRunResultsRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostRunResultsResponse'
         '400':
           $ref: '#/components/responses/UserError'
         '500':
@@ -189,12 +201,18 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PostMethodRequest'
-    UpdateRunStateRequest:
-      description: Request body to update run status.
+    PostRunResultsRequest:
+      description: Request body to post run results.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RunStateRequest'
+            $ref: '#/components/schemas/RunResultsRequest'
+    PostRunSetResultsRequest:
+      description: Request body to post results of a run_set.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunSetResultsRequest'
 
   responses:
     PostRunSetResponse:
@@ -227,12 +245,19 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetListResponse'
-    UpdateRunStateResponse:
-      description: Update run state response
+    PostRunResultsResponse:
+      description: Post workflow results response
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RunStateResponse'
+            $ref: '#/components/schemas/RunResultsResponse'
+    PostRunSetResultsResponse:
+      description: Post workflow results response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunResultsResponse'
+
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
@@ -306,6 +331,63 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
+    RunResultsRequest:
+      type: object
+      required: [ run_id, state ]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/RunState'
+        workflow_output_definitions:
+          description: Declarative output definition for writing back to WDS.
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowOutputDefinition'
+    RunSetResultsRequest:
+      type: object
+      required: [ run_set_id, state ]
+      properties:
+        run_set_id:
+          type: string
+          format: uuid
+        state:
+            $ref: '#/components/schemas/RunSetState'
+        workflow_output_definitions:
+          description: Declarative output definition for writing back to WDS.
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowOutputDefinition'
+
+    RunResultsResponse:
+      type: object
+      required: [ run_id, state ]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/RunState'
+        error:
+          type: string
+
+    RunSetResultsResponse:
+      type: object
+      required: [ run_set_id, state ]
+      properties:
+        run_set_id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/RunSetState'
+        runs:
+          type: array
+          items:
+            type: string
+            format: uuid
+        error:
+          type: string
 
     WdsRecordSet:
       type: object
@@ -892,13 +974,3 @@ components:
     bearerAuth:
       type: http
       scheme: bearer
-
-  parameters:
-    RunId:
-      name: runId
-      in: path
-      description: A string to identify a workflow run.
-      required: true
-      schema:
-        type: string
-        format: uuid

@@ -5,8 +5,6 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
-import bio.terra.cbas.model.RunStateRequest;
-import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
@@ -56,11 +54,5 @@ public class RunsApiController implements RunsApi {
     return new ResponseEntity<>(
         new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()),
         HttpStatus.OK);
-  }
-
-  @Override
-  public ResponseEntity<RunStateResponse> updateRunState(UUID runId, RunStateRequest body) {
-    // Not implemented - WM-2088
-    return RunsApi.super.updateRunState(runId, body);
   }
 }
