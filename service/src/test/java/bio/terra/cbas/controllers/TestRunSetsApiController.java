@@ -693,7 +693,7 @@ class TestRunSetsApiController {
     CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
     CromwellClient localTestClient =
         new CromwellClient(localTestConfig, dependencyUrlLoader, credentialLoader);
-    CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
+    CromwellService localtestService = new CromwellService(localTestClient);
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching

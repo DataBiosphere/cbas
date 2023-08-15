@@ -157,6 +157,9 @@ public class SmartRunsPoller {
     } catch (ApiException | IllegalArgumentException e) {
       logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
       return r;
+    } catch (DependencyNotAvailableException | AzureAccessTokenException e) {
+      logger.warn(e.getMessage());
+      return r;
     } finally {
       recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
     }

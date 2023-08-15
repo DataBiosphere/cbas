@@ -9,6 +9,8 @@ import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCba
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -176,7 +178,11 @@ public class MethodsApiController implements MethodsApi {
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch (ApiException | JsonProcessingException | WomtoolValueTypeNotFoundException e) {
+    } catch (ApiException
+        | JsonProcessingException
+        | WomtoolValueTypeNotFoundException
+        | DependencyNotAvailableException
+        | AzureAccessTokenException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",
