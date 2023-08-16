@@ -146,7 +146,7 @@ public class AppUtils {
     ListAppResponse foundApp = findBestAppForAppType(apps, AppType.WDS);
 
     @SuppressWarnings("unchecked")
-    Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
+    Map<String, String> proxyUrls = (foundApp.getProxyUrls());
     if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {
       return Optional.ofNullable(proxyUrls.get("wds"))
           .orElseThrow(
