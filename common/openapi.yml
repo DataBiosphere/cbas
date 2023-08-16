@@ -157,20 +157,6 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
-  /api/batch/v1/run_sets/results:
-    post:
-      tags: [ run_sets ]
-      summary: Sets states in a run_set upon completion.
-      operationId: postRunSetResults
-      requestBody:
-        $ref: '#/components/requestBodies/PostRunSetResultsRequest'
-      responses:
-        '200':
-          $ref: '#/components/responses/PostRunSetResultsResponse'
-        '400':
-          $ref: '#/components/responses/UserError'
-        '500':
-          $ref: '#/components/responses/ServerError'
 
   /api/batch/v1/runs/results:
     post:
@@ -207,12 +193,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunResultsRequest'
-    PostRunSetResultsRequest:
-      description: Request body to post results of a run_set.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RunSetResultsRequest'
 
   responses:
     PostRunSetResponse:
@@ -246,12 +226,6 @@ components:
           schema:
             $ref: '#/components/schemas/RunSetListResponse'
     PostRunResultsResponse:
-      description: Post workflow results response
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RunResultsResponse'
-    PostRunSetResultsResponse:
       description: Post workflow results response
       content:
         application/json:
@@ -345,20 +319,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
-    RunSetResultsRequest:
-      type: object
-      required: [ run_set_id, state ]
-      properties:
-        run_set_id:
-          type: string
-          format: uuid
-        state:
-            $ref: '#/components/schemas/RunSetState'
-        workflow_output_definitions:
-          description: Declarative output definition for writing back to WDS.
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowOutputDefinition'
 
     RunResultsResponse:
       type: object
@@ -369,23 +329,6 @@ components:
           format: uuid
         state:
           $ref: '#/components/schemas/RunState'
-        error:
-          type: string
-
-    RunSetResultsResponse:
-      type: object
-      required: [ run_set_id, state ]
-      properties:
-        run_set_id:
-          type: string
-          format: uuid
-        state:
-          $ref: '#/components/schemas/RunSetState'
-        runs:
-          type: array
-          items:
-            type: string
-            format: uuid
         error:
           type: string
 
