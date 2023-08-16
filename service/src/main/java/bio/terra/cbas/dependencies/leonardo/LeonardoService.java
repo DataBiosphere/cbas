@@ -5,7 +5,7 @@ import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
-import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsV2Api;
+import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.ServiceInfoApi;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.SystemStatus;
@@ -24,8 +24,8 @@ public class LeonardoService implements HealthCheck {
     this.wdsServerConfiguration = wdsServerConfiguration;
   }
 
-  private AppsV2Api getAppsV2Api() throws AzureAccessTokenException {
-    return new AppsV2Api(leonardoClient.getApiClient());
+  private AppsApi getAppsApi() throws AzureAccessTokenException {
+    return new AppsApi(leonardoClient.getApiClient());
   }
 
   private ServiceInfoApi getServiceInfoApi() throws AzureAccessTokenException {
@@ -33,7 +33,7 @@ public class LeonardoService implements HealthCheck {
   }
 
   public List<ListAppResponse> getApps() throws ApiException, AzureAccessTokenException {
-    return getAppsV2Api().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null);
+    return getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null);
   }
 
   @Override
