@@ -291,20 +291,7 @@ components:
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
           description: Declarative output definition for writing back to WDS.
-    RunStateRequest:
-      type: object
-      required: [runId, state]
-      properties:
-        runId:
-          type: string
-          format: uuid
-        state:
-          $ref: '#/components/schemas/RunState'
-        workflow_output_definitions:
-          description: Declarative output definition for writing back to WDS.
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowOutputDefinition'
+
     RunResultsRequest:
       type: object
       required: [ run_id, state ]
@@ -910,8 +897,3 @@ components:
         - CANCELED
         - CANCELING
       type: string
-
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
