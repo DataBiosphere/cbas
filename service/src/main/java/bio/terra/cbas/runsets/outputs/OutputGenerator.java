@@ -11,16 +11,16 @@ import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.runsets.types.CbasValue;
 import bio.terra.cbas.runsets.types.CoercionException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.databiosphere.workspacedata.model.RecordAttributes;
 
 public class OutputGenerator {
 
-  public static RecordAttributes buildOutputs(
+  public static Map<String, Object> buildOutputs(
       List<WorkflowOutputDefinition> outputDefinitions, Object cromwellOutputs)
       throws OutputProcessingException, CoercionException {
-    RecordAttributes outputRecordAttributes = new RecordAttributes();
+    Map<String, Object> outputRecordAttributes = new HashMap<>();
     for (WorkflowOutputDefinition outputDefinition : outputDefinitions) {
 
       String attributeName;

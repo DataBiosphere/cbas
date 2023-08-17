@@ -16,9 +16,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -34,10 +34,10 @@ class TestOutputGeneratorPrimitives {
   @Test
   void stringOutput() throws Exception {
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"Harry Potter\"");
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "String", "foo_name")),
             cromwellOutputs);
@@ -47,10 +47,10 @@ class TestOutputGeneratorPrimitives {
   @Test
   void intOutput() throws Exception {
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "123");
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_id", 123L);
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "Int", "foo_id")), cromwellOutputs);
     assertEquals(expected, actual);
@@ -71,10 +71,10 @@ class TestOutputGeneratorPrimitives {
   @Test
   void booleanOutput() throws Exception {
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "true");
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_valid", true);
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "Boolean", "foo_valid")),
             cromwellOutputs);
@@ -84,10 +84,10 @@ class TestOutputGeneratorPrimitives {
   @Test
   void floatOutput() throws Exception {
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "8.5");
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_rating", 8.5);
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "Float", "foo_rating")),
             cromwellOutputs);
@@ -101,10 +101,10 @@ class TestOutputGeneratorPrimitives {
     List<WorkflowOutputDefinition> outputDefinitions =
         List.of(primitiveOutputDefinition("myWorkflow.out", "File", "foo_rating"));
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_rating", "gs://bucket/file-out");
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    Map<String, Object> actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
     assertEquals(expected, actual);
   }
 
@@ -131,11 +131,11 @@ class TestOutputGeneratorPrimitives {
         multipleCromwellOutputs(
             Map.of("myWorkflow.name", "\"Harry Potter\"", "myWorkflow.rating", "8.5"));
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
     expected.put("foo_rating", 8.5);
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    Map<String, Object> actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
     assertEquals(expected, actual);
   }
 
@@ -150,10 +150,10 @@ class TestOutputGeneratorPrimitives {
         multipleCromwellOutputs(
             Map.of("myWorkflow.name", "\"Harry Potter\"", "myWorkflow.rating", "8.5"));
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    Map<String, Object> actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
     assertEquals(expected, actual);
   }
 

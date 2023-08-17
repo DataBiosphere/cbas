@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorOptionals {
@@ -32,10 +32,10 @@ class TestOutputGeneratorOptionals {
     // No output from Cromwell for 'not_out':
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"Harry Potter\"");
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
     expected.put("sir_not_appearing_in_this_record", null);
 
@@ -50,10 +50,10 @@ class TestOutputGeneratorOptionals {
         multipleCromwellOutputs(
             Map.of("myWorkflow.out", "\"Harry Potter\"", "myworkflow.not_out", "null"));
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
     expected.put("sir_not_appearing_in_this_record", null);
 
@@ -72,10 +72,10 @@ class TestOutputGeneratorOptionals {
                 "myWorkflow.not_out",
                 "\"Tim The Sorcerer\""));
 
-    RecordAttributes actual =
+    Map<String, Object> actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
-    RecordAttributes expected = new RecordAttributes();
+    Map<String, Object> expected = new HashMap<>();
     expected.put("foo_name", "Harry Potter");
     expected.put("sir_not_appearing_in_this_record", "Tim The Sorcerer"); // Yeah, yeah, I know...
     assertEquals(expected, actual);

@@ -39,9 +39,10 @@ import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -260,7 +261,7 @@ public class TestSmartRunsPollerFunctional {
           }
         """;
 
-    RecordAttributes mockAttributes = new RecordAttributes();
+    Map<String, Object> mockAttributes = new HashMap<>();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -342,7 +343,7 @@ public class TestSmartRunsPollerFunctional {
           }
         """;
 
-    RecordAttributes mockAttributes = new RecordAttributes();
+    Map<String, Object> mockAttributes = new HashMap<>();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -360,7 +361,10 @@ public class TestSmartRunsPollerFunctional {
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     String expectedErrorMessage =
-        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Bad WDS update"
+        ("Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Message: Bad WDS update\n"
+                + "HTTP response code: 0\n"
+                + "HTTP response body: null\n"
+                + "HTTP response headers: null")
             .formatted(runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId());
     verify(runsDao)
         .updateRunStatusWithError(
@@ -525,7 +529,7 @@ public class TestSmartRunsPollerFunctional {
         """;
     Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
 
-    RecordAttributes mockAttributes = new RecordAttributes();
+    Map<String, Object> mockAttributes = new HashMap<>();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
 

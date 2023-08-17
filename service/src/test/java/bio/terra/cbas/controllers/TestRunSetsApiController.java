@@ -71,11 +71,11 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -235,11 +235,11 @@ class TestRunSetsApiController {
     final int recordAttributeValue1 = 100;
     final int recordAttributeValue2 = 200;
     final int recordAttributeValue3 = 300;
-    RecordAttributes recordAttributes1 = new RecordAttributes();
+    Map<String, Object> recordAttributes1 = new HashMap<>();
     recordAttributes1.put(recordAttribute, recordAttributeValue1);
-    RecordAttributes recordAttributes2 = new RecordAttributes();
+    Map<String, Object> recordAttributes2 = new HashMap<>();
     recordAttributes2.put(recordAttribute, recordAttributeValue2);
-    RecordAttributes recordAttributes3 = new RecordAttributes();
+    Map<String, Object> recordAttributes3 = new HashMap<>();
     recordAttributes3.put(recordAttribute, recordAttributeValue3);
 
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
@@ -647,7 +647,7 @@ class TestRunSetsApiController {
     final String recordId1 = "MY_RECORD_ID_1";
     final String recordId2 = "MY_RECORD_ID_2";
     final int recordAttributeValue1 = 100;
-    RecordAttributes recordAttributes1 = new RecordAttributes();
+    Map<String, Object> recordAttributes1 = new HashMap<>();
     recordAttributes1.put(recordAttribute, recordAttributeValue1);
 
     String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
@@ -680,7 +680,10 @@ class TestRunSetsApiController {
     assertThat(
         result.getResponse().getContentAsString(),
         containsString(
-            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
+            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=Message: ApiException thrown for testing purposes.\\n"
+                + "HTTP response code: 400\\n"
+                + "HTTP response body: null\\n"
+                + "HTTP response headers: null}"));
   }
 
   @Test
