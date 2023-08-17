@@ -314,11 +314,9 @@ components:
           format: uuid
         state:
           $ref: '#/components/schemas/RunState'
-        workflow_output_definitions:
-          description: Declarative output definition for writing back to WDS.
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowOutputDefinition'
+        outputs:
+          type: object
+          description: Map of output keys to output values
 
     RunResultsResponse:
       type: object
