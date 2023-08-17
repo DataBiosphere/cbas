@@ -70,7 +70,7 @@ wds:
 
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
-  appTypeNames: ['WDS', 'CROMWELL']
+  wdsAppTypeNames: ['WDS', 'CROMWELL']
   dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
   debugApiLogging: false
 

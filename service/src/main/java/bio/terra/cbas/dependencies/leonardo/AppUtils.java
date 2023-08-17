@@ -36,8 +36,8 @@ public class AppUtils {
   int appComparisonFunction(ListAppResponse a, ListAppResponse b) {
     // First criteria: Prefer apps with the expected app type.
     // NB: Negative because lower index is better
-    int appTypeScoreA = -leonardoServerConfiguration.appTypeNames().indexOf(a.getAppType());
-    int appTypeScoreB = -leonardoServerConfiguration.appTypeNames().indexOf(b.getAppType());
+    int appTypeScoreA = -leonardoServerConfiguration.wdsAppTypeNames().indexOf(a.getAppType());
+    int appTypeScoreB = -leonardoServerConfiguration.wdsAppTypeNames().indexOf(b.getAppType());
     if (appTypeScoreA != appTypeScoreB) {
       return appTypeScoreA - appTypeScoreB;
     }
@@ -99,14 +99,14 @@ public class AppUtils {
                         app.getWorkspaceId(),
                         wdsServerConfiguration.instanceId());
                   }
-                  var b = leonardoServerConfiguration.appTypeNames().contains(app.getAppType());
+                  var b = leonardoServerConfiguration.wdsAppTypeNames().contains(app.getAppType());
                   if (!b) {
                     logger.info(
                         "Not using app {} for {} because it is of type {}, not one of {}",
                         app.getAppName(),
                         appType,
                         app.getAppType(),
-                        leonardoServerConfiguration.appTypeNames());
+                        leonardoServerConfiguration.wdsAppTypeNames());
                   }
                   var c = healthyStates.contains(app.getStatus());
                   if (!c) {
