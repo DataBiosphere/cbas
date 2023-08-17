@@ -45,8 +45,7 @@ class TestCromwellClient {
 
     when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
         .thenReturn("TOKEN");
-    when(dependencyUrlLoader.loadDependencyUrl(
-            DependencyUrlLoader.DependencyUrlType.CROMWELL_RUNNER_APP_URL))
+    when(dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL))
         .thenReturn("https://my-cromwell-service:10101/cromwell");
     CromwellClient cromwellClient =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader);

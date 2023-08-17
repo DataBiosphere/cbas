@@ -70,7 +70,7 @@ wds:
 
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
-  appTypeNames: ['WDS', 'CROMWELL', 'WORKFLOWS_APP', 'CROMWELL_RUNNER_APP'] # keeping CROMWELL for backwards compatibility
+  appTypeNames: ['WDS', 'CROMWELL', 'WORKFLOWS_APP', 'CROMWELL_RUNNER_APP'] # keeping CROMWELL type for backwards compatibility
   dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
   debugApiLogging: false
 
