@@ -13,6 +13,7 @@ import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -48,6 +49,13 @@ public class SamService implements HealthCheck {
     // don't check auth access with Sam if "sam.checkAuthAccess" is false
     if (!samClient.checkAuthAccessWithSam()) return true;
 
+    /* Associate user id with log context for this thread/request. This will be included with
+    request ID within any logs for the remainder of the request. See
+    https://github.com/DataBiosphere/terra-common-lib/blob/eaaf6217ec0f024afa45aac14d21c8964c0f27c5/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L129-L132
+    for details on how this is included in cloud logs, and logback.xml for console logs
+    */
+    MDC.put("user", getSamUser().getUserSubjectId());
+
     logger.debug(
         "Checking Sam permission for '{}' resource and '{}' action type for user on workspace '{}'.",
         RESOURCE_TYPE_WORKSPACE,
@@ -82,6 +90,10 @@ public class SamService implements HealthCheck {
 
   // Borrowed from WDS
   public UserStatusInfo getSamUser() throws ErrorReportException {
+    logger.info("Getting sam user");
+    if (!samClient.checkAuthAccessWithSam()) {
+      return new UserStatusInfo(); // Dummy user for local testing
+    }
     UsersApi usersApi = getUsersApi();
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
