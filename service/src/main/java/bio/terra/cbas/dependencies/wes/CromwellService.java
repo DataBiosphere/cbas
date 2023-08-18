@@ -2,6 +2,8 @@ package bio.terra.cbas.dependencies.wes;
 
 import static bio.terra.cbas.api.RunsApi.log;
 
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
@@ -37,7 +39,8 @@ public class CromwellService implements HealthCheck {
 
   public RunId submitWorkflow(
       String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
-      throws ApiException, JsonProcessingException {
+      throws ApiException, JsonProcessingException, DependencyNotAvailableException,
+          AzureAccessTokenException {
 
     return cromwellClient
         .wesAPI()
@@ -78,7 +81,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public Object getOutputs(String id) throws ApiException {
+  public Object getOutputs(String id)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     return cromwellClient.wesAPI().getRunLog(id).getOutputs();
   }
 
@@ -133,8 +137,8 @@ public class CromwellService implements HealthCheck {
    * related to call caching. Users expect that we will always write_to_cache, but only
    * read_from_cache when call caching is enabled. This is how it works in GCP, so we are mirroring
    * the behavior here. write_from_cache should always be true, and read_from_cache should be false
-   * if the user doesn't wish to call cache.
-   * https://cromwell.readthedocs.io/en/stable/wf_options/Overview/ for more info.
+   * if the user doesn't wish to call cache. <a
+   * href="https://cromwell.readthedocs.io/en/stable/wf_options/Overview/">...</a> for more info.
    *
    * @param isCallCachingEnabled Whether the user wishes to run this workflow with call caching.
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
@@ -150,9 +154,7 @@ public class CromwellService implements HealthCheck {
 
     // Path for cromwell to write workflow logs to.
     Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
-    if (finalWorkflowLogDir.isPresent()) {
-      workflowOptions.put("final_workflow_log_dir", finalWorkflowLogDir.get());
-    }
+    finalWorkflowLogDir.ifPresent(s -> workflowOptions.put("final_workflow_log_dir", s));
 
     try {
       return InputGenerator.inputsToJson(workflowOptions);
@@ -166,7 +168,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run) throws ApiException {
+  public void cancelRun(Run run)
+      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
     cromwellClient.wesAPI().cancelRun(run.engineId());
   }
 
@@ -176,7 +179,7 @@ public class CromwellService implements HealthCheck {
       // No response, the successful return code is the important thing:
       cromwellClient.engineApi().engineStatus("v1");
       return new Result(true, "Cromwell was reachable");
-    } catch (ApiException e) {
+    } catch (ApiException | DependencyNotAvailableException | AzureAccessTokenException e) {
       return new Result(false, e.getMessage());
     }
   }

@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.AppStatus;
+import org.broadinstitute.dsde.workbench.client.leonardo.model.AppType;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +34,15 @@ public class AppUtils {
   }
 
   int appComparisonFunction(ListAppResponse a, ListAppResponse b) {
-
-    // First criteria: Prefer apps with the WDS app type.
+    // First criteria: Prefer apps with the expected app type.
     // NB: Negative because lower index is better
-    int appTypeScoreA = -leonardoServerConfiguration.wdsAppTypes().indexOf(a.getAppType());
-    int appTypeScoreB = -leonardoServerConfiguration.wdsAppTypes().indexOf(b.getAppType());
+    int appTypeScoreA = -leonardoServerConfiguration.wdsAppTypeNames().indexOf(a.getAppType());
+    int appTypeScoreB = -leonardoServerConfiguration.wdsAppTypeNames().indexOf(b.getAppType());
     if (appTypeScoreA != appTypeScoreB) {
       return appTypeScoreA - appTypeScoreB;
     }
 
-    // Second criteria: Prefer apps with the WDS name
+    // Second criteria: Prefer apps with the expected app type name
     int nameScoreA =
         Objects.equals(a.getAppName(), "wds-%s".formatted(wdsServerConfiguration.instanceId()))
             ? 1
@@ -68,7 +68,7 @@ public class AppUtils {
    * <p>(<a
    * href="https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147">...</a>)
    */
-  ListAppResponse findBestAppForWds(List<ListAppResponse> apps)
+  ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType)
       throws DependencyNotAvailableException {
     // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by
     // Leo
@@ -93,24 +93,27 @@ public class AppUtils {
                   var a = Objects.equals(app.getWorkspaceId(), wdsServerConfiguration.instanceId());
                   if (!a) {
                     logger.info(
-                        "Not using app {} for WDS because it is in workspace {}, not {}",
+                        "Not using app {} for {} because it is in workspace {}, not {}",
                         app.getAppName(),
+                        appType,
                         app.getWorkspaceId(),
                         wdsServerConfiguration.instanceId());
                   }
-                  var b = leonardoServerConfiguration.wdsAppTypes().contains(app.getAppType());
+                  var b = leonardoServerConfiguration.wdsAppTypeNames().contains(app.getAppType());
                   if (!b) {
                     logger.info(
-                        "Not using app {} for WDS because it is of type {}, not one of {}",
+                        "Not using app {} for {} because it is of type {}, not one of {}",
                         app.getAppName(),
+                        appType,
                         app.getAppType(),
-                        leonardoServerConfiguration.wdsAppTypes());
+                        leonardoServerConfiguration.wdsAppTypeNames());
                   }
                   var c = healthyStates.contains(app.getStatus());
                   if (!c) {
                     logger.info(
-                        "Not using app {} for WDS because it is in state {}, not one of {}",
+                        "Not using app {} for {} because it is in state {}, not one of {}",
                         app.getAppName(),
+                        appType,
                         app.getStatus(),
                         healthyStates);
                   }
@@ -119,21 +122,31 @@ public class AppUtils {
                 })
             .toList();
 
-    // Return the highest scoring app:
+    if (appType.equals(AppType.WDS)) {
+      return suitableApps.stream()
+          .max(this::appComparisonFunction)
+          .orElseThrow(
+              () ->
+                  new DependencyNotAvailableException(
+                      "WDS",
+                      "No suitable, healthy app found for WDS (out of %s total apps in this workspace)"
+                          .formatted(apps.size())));
+    }
+
     return suitableApps.stream()
-        .max(this::appComparisonFunction)
-        .orElseThrow(
-            () ->
-                new DependencyNotAvailableException(
-                    "WDS",
-                    "No suitable, healthy app found for WDS (out of %s total apps in this workspace)"
-                        .formatted(apps.size())));
+        .filter(app -> Objects.equals(app.getAppType(), appType))
+        .toList()
+        .get(
+            0); // Currently getting the first instance since there is only one WDS/CROMWELL app per
+    // workspace; Will need to updated when more than one Cromwell instance in the
+    // workspace.
   }
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {
-    ListAppResponse foundApp = findBestAppForWds(apps);
+    ListAppResponse foundApp = findBestAppForAppType(apps, AppType.WDS);
+
     @SuppressWarnings("unchecked")
-    Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
+    Map<String, String> proxyUrls = (foundApp.getProxyUrls());
     if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {
       return Optional.ofNullable(proxyUrls.get("wds"))
           .orElseThrow(
@@ -151,5 +164,30 @@ public class AppUtils {
     throw new DependencyNotAvailableException(
         "WDS",
         "WDS in %s app not ready (%s)".formatted(foundApp.getAppName(), foundApp.getStatus()));
+  }
+
+  public String findUrlForCromwell(List<ListAppResponse> apps)
+      throws DependencyNotAvailableException {
+    ListAppResponse foundApp = findBestAppForAppType(apps, AppType.CROMWELL);
+
+    @SuppressWarnings("unchecked")
+    Map<String, String> proxyUrls = ((Map<String, String>) foundApp.getProxyUrls());
+    if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {
+      return Optional.ofNullable(proxyUrls.get("cromwell"))
+          .orElseThrow(
+              () ->
+                  new DependencyNotAvailableException(
+                      "Cromwell",
+                      "Cromwell proxy URL not found in %s app (available proxy URLs: %s)"
+                          .formatted(
+                              foundApp.getAppName(),
+                              proxyUrls.keySet().stream()
+                                  .sorted()
+                                  .collect(Collectors.joining(", ")))));
+    }
+
+    throw new DependencyNotAvailableException(
+        "Cromwell",
+        "Cromwell in %s app not ready (%s)".formatted(foundApp.getAppName(), foundApp.getStatus()));
   }
 }

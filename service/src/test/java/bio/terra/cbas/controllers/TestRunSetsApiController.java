@@ -26,13 +26,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
+import bio.terra.cbas.config.AzureCredentialConfig;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
+import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.common.CredentialLoader;
+import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.leonardo.AppUtils;
+import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -80,10 +86,12 @@ import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
@@ -96,7 +104,8 @@ import org.springframework.test.web.servlet.MvcResult;
     classes = {
       RunSetsApiController.class,
       CbasApiConfiguration.class,
-      GlobalExceptionHandler.class
+      GlobalExceptionHandler.class,
+      SamService.class
     })
 class TestRunSetsApiController {
 
@@ -208,7 +217,7 @@ class TestRunSetsApiController {
   @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
-  @MockBean private SamService samService;
+  @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
@@ -219,6 +228,8 @@ class TestRunSetsApiController {
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
+  @Mock private LeonardoService leonardoService;
+  @Mock private AppUtils appUtils;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -325,8 +336,8 @@ class TestRunSetsApiController {
     doReturn(mockUser).when(samService).getSamUser();
 
     // setup Sam permission check to return true
-    when(samService.hasReadPermission()).thenReturn(true);
-    when(samService.hasComputePermission()).thenReturn(true);
+    doReturn(true).when(samService).hasReadPermission();
+    doReturn(true).when(samService).hasComputePermission();
   }
 
   @Test
@@ -341,6 +352,8 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    doCallRealMethod().when(samService).hasComputePermission();
     doCallRealMethod().when(samService).getSamUser();
     doReturn(usersApi).when(samService).getUsersApi();
     when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
@@ -683,7 +696,15 @@ class TestRunSetsApiController {
   void testWorkflowOptionsProperlyConstructed() {
     CromwellServerConfiguration localTestConfig =
         new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
-    CromwellClient localTestClient = new CromwellClient(localTestConfig);
+    var leonardoServerConfiguration =
+        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
+    DependencyUrlLoader dependencyUrlLoader =
+        new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
+    var azureCredentialConfig =
+        new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
+    CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
+    CromwellClient localTestClient =
+        new CromwellClient(localTestConfig, dependencyUrlLoader, credentialLoader);
     CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
 
     // Workflow options should reflect the final workflow log directory.
