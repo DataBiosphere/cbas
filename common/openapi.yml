@@ -288,9 +288,9 @@ components:
 
     RunResultsRequest:
       type: object
-      required: [ run_id, state ]
+      required: [ workflowId, state ]
       properties:
-        run_id:
+        workflowId:
           type: string
           format: uuid
         state:
