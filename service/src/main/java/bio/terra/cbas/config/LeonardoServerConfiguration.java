@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 @ConfigurationProperties(prefix = "leonardo")
 public record LeonardoServerConfiguration(
     String baseUri,
-    List<AppType> wdsAppTypes,
+    List<AppType> wdsAppTypeNames,
     Duration dependencyUrlCacheTtl,
     Boolean debugApiLogging) {
 

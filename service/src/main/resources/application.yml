@@ -56,7 +56,8 @@ cbas:
 
 workflow-engines:
   cromwell:
-    baseUri: "http://localhost:8000"
+    # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
+    # baseUri: "http://localhost:8000"
     debugApiLogging: false
 
 wds:
