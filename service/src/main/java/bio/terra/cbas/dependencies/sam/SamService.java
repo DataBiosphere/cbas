@@ -90,7 +90,6 @@ public class SamService implements HealthCheck {
 
   // Borrowed from WDS
   public UserStatusInfo getSamUser() throws ErrorReportException {
-    logger.info("Getting sam user");
     if (!samClient.checkAuthAccessWithSam()) {
       return new UserStatusInfo(); // Dummy user for local testing
     }
