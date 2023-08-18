@@ -225,12 +225,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetListResponse'
-    PostRunResultsResponse:
-      description: Post workflow results response
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RunResultsResponse'
 
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
@@ -304,18 +298,6 @@ components:
         outputs:
           type: object
           description: Map of output keys to output values
-
-    RunResultsResponse:
-      type: object
-      required: [ run_id, state ]
-      properties:
-        run_id:
-          type: string
-          format: uuid
-        state:
-          $ref: '#/components/schemas/RunState'
-        error:
-          type: string
 
     WdsRecordSet:
       type: object
