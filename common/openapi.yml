@@ -167,7 +167,7 @@ paths:
         $ref: '#/components/requestBodies/PostRunResultsRequest'
       responses:
         '200':
-          $ref: '#/components/responses/PostRunResultsResponse'
+          description: Run status updated successfully
         '400':
           $ref: '#/components/responses/UserError'
         '500':
