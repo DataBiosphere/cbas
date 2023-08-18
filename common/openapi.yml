@@ -158,6 +158,21 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /api/batch/v1/runs/results:
+    post:
+      tags: [ runs ]
+      summary: Sets a run state upon completion.
+      operationId: postRunResults
+      requestBody:
+        $ref: '#/components/requestBodies/PostRunResultsRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PostRunResultsResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
 components:
   requestBodies:
     PostRunSetRequest:
@@ -172,7 +187,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PostMethodRequest'
-
+    PostRunResultsRequest:
+      description: Request body to post run results.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunResultsRequest'
 
   responses:
     PostRunSetResponse:
@@ -205,6 +225,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RunSetListResponse'
+    PostRunResultsResponse:
+      description: Post workflow results response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RunResultsResponse'
+
     SystemStatusResponse:
       description: A JSON description of the subsystems and their statuses.
       content:
@@ -236,7 +263,6 @@ components:
           schema:
             $ref: '#/components/schemas/AbortRunSetResponse'
 
-
   schemas:
     RunSetRequest:
       type: object
@@ -265,6 +291,31 @@ components:
           items:
             $ref: '#/components/schemas/WorkflowOutputDefinition'
           description: Declarative output definition for writing back to WDS.
+
+    RunResultsRequest:
+      type: object
+      required: [ run_id, state ]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/RunState'
+        outputs:
+          type: object
+          description: Map of output keys to output values
+
+    RunResultsResponse:
+      type: object
+      required: [ run_id, state ]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/RunState'
+        error:
+          type: string
 
     WdsRecordSet:
       type: object
