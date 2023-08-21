@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.wes;
 
 import static bio.terra.cbas.api.RunsApi.log;
 
+import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dependencies.common.HealthCheck;
