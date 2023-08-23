@@ -302,7 +302,6 @@ components:
     WdsRecordSet:
       type: object
       properties:
-      properties:
         record_type:
           type: string
           example: FOO

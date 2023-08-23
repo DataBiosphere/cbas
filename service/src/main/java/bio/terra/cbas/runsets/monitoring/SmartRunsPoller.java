@@ -68,12 +68,11 @@ public class SmartRunsPoller {
     return !outputDefinitionList.isEmpty();
   }
 
-  public void updateOutputAttributes(Run run)
+  public void updateOutputAttributes(Run run, Object outputs)
       throws ApiException, JsonProcessingException, WdsServiceException, CoercionException,
           OutputProcessingException, DependencyNotAvailableException, AzureAccessTokenException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
 
@@ -198,11 +197,11 @@ public class SmartRunsPoller {
             // we only write back output attributes to WDS if output definition is not empty. This
             // is to avoid sending empty PATCH requests to WDS
             if (hasOutputDefinition(updatableRun)) {
-              updateOutputAttributes(updatableRun);
+              Object outputs = cromwellService.getOutputs(updatableRun.engineId());
+              updateOutputAttributes(updatableRun, outputs);
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
-
             String errorMessage =
                 "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
                     .formatted(
