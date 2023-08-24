@@ -21,7 +21,7 @@ class TestAppUtils {
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
       new LeonardoServerConfiguration(
-          "baseuri", List.of("WDS", "CROMWELL", "WORKFLOWS_APP", "CROMWELL_RUNNER_APP"), 0, false);
+          "baseuri", List.of("WDS", "CROMWELL"), List.of("CROMWELL_RUNNER_APP", "CROMWELL"), 0, false);
 
   private final WdsServerConfiguration wdsServerConfiguration =
       new WdsServerConfiguration("", workspaceId, "", false);

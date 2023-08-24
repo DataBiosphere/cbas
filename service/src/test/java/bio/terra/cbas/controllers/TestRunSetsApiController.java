@@ -697,7 +697,7 @@ class TestRunSetsApiController {
     CromwellServerConfiguration localTestConfig =
         new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
+        new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
     var azureCredentialConfig =
