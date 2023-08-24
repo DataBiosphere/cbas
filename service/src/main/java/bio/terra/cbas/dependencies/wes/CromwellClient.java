@@ -33,31 +33,6 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  //  private ApiClient getApiClient()
-  //      throws DependencyNotAvailableException, AzureAccessTokenException {
-  //    String uri;
-  //
-  //    if (cromwellServerConfiguration.baseUri() != null) {
-  //      uri = cromwellServerConfiguration.baseUri();
-  //    } else {
-  //      uri =
-  //
-  // dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
-  //    }
-  //
-  //    ApiClient apiClient = new ApiClient().setBasePath(uri);
-  //    apiClient.setHttpClient(singletonHttpClient);
-  //    apiClient.addDefaultHeader(
-  //        "Authorization",
-  //        "Bearer " +
-  // credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
-  //    // By closing the connection after each request, we avoid the problem of the open connection
-  //    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
-  //    apiClient.addDefaultHeader("Connection", "close");
-  //    apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
-  //    return apiClient;
-  //  }
-
   public ApiClient getWriteApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri =
@@ -77,18 +52,16 @@ public class CromwellClient {
 
   public ApiClient getReadApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
-    String uri;
 
-    if (cromwellServerConfiguration.baseUri() != null) {
-      uri = cromwellServerConfiguration.baseUri();
-    } else {
-      uri =
-          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
-    }
-
-    ApiClient apiClient = new ApiClient().setBasePath(uri);
+    ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
+    apiClient.setHttpClient(singletonHttpClient);
+    apiClient.addDefaultHeader(
+        "Authorization",
+        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    // By closing the connection after each request, we avoid the problem of the open connection
+    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
+    apiClient.addDefaultHeader("Connection", "close");
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
-
     return apiClient;
   }
 

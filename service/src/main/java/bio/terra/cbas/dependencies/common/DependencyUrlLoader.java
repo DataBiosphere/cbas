@@ -60,7 +60,8 @@ public class DependencyUrlLoader {
       List<ListAppResponse> allApps = leonardoService.getApps();
       return appUtils.findUrlForWds(allApps);
     } catch (ApiException | AzureAccessTokenException e) {
-      throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
+      throw new DependencyNotAvailableException(
+          "WDS", "Failed to poll Leonardo for URL %s".formatted(e.getMessage()), e);
     }
   }
 
