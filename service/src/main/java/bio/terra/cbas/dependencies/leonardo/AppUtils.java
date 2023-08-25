@@ -140,20 +140,10 @@ public class AppUtils {
                     "%s".formatted(appType.toString()),
                     "No suitable, healthy app found for %s (out of %s total apps in this workspace)"
                         .formatted(appType.toString(), apps.size())));
-
-    //    return suitableApps.stream()
-    //        .filter(app -> Objects.equals(app.getAppType(), appType))
-    //        .toList()
-    // .get(0); // Currently getting the first instance since there is only one WDS/CROMWELL
-    //     app per
-    //     workspace; Will need to updated when more than one Cromwell instance in the
-    //     workspace.
   }
 
   public String findUrlForWds(List<ListAppResponse> apps) throws DependencyNotAvailableException {
     ListAppResponse foundApp = findBestAppForAppType(apps, AppType.WDS);
-    System.out.println(foundApp.getProxyUrls());
-
     @SuppressWarnings("unchecked")
     Map<String, String> proxyUrls = (foundApp.getProxyUrls());
     if (proxyUrls != null && foundApp.getStatus() == AppStatus.RUNNING) {

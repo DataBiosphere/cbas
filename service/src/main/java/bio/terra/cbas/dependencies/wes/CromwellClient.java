@@ -50,8 +50,7 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getReadApiClient()
-      throws DependencyNotAvailableException, AzureAccessTokenException {
+  public ApiClient getReadApiClient() throws AzureAccessTokenException {
 
     ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
     apiClient.setHttpClient(singletonHttpClient);
@@ -73,8 +72,7 @@ public class CromwellClient {
     return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(apiClient);
   }
 
-  public EngineApi engineApi(ApiClient apiClient)
-      throws DependencyNotAvailableException, AzureAccessTokenException {
+  public EngineApi engineApi(ApiClient apiClient) {
     return new EngineApi(apiClient);
   }
 
