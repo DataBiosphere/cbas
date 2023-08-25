@@ -392,6 +392,7 @@ class TestSamService {
       setTokenValue(validTokenWithComputeAccess);
       samService.hasReadPermission();
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
+      System.out.println(output.getOut());
       assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
     }
   }
