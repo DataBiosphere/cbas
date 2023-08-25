@@ -51,8 +51,15 @@ public class CromwellClient {
   }
 
   public ApiClient getReadApiClient() throws AzureAccessTokenException {
+    String uri;
 
-    ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
+    if (!cromwellServerConfiguration.testingBaseUri().isEmpty()) {
+      uri = cromwellServerConfiguration.testingBaseUri();
+    } else {
+      uri = cromwellServerConfiguration.baseUri();
+    }
+
+    ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setHttpClient(singletonHttpClient);
     apiClient.addDefaultHeader(
         "Authorization",

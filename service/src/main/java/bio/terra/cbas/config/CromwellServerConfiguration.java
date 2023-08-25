@@ -4,4 +4,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "workflow-engines.cromwell")
 public record CromwellServerConfiguration(
-    String baseUri, String finalWorkflowLogDir, Boolean debugApiLogging) {}
+    String baseUri, String testingBaseUri, String finalWorkflowLogDir, Boolean debugApiLogging) {}
