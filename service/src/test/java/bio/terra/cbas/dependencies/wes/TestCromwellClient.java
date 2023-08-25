@@ -19,6 +19,7 @@ class TestCromwellClient {
 
   @Mock DependencyUrlLoader dependencyUrlLoader;
   @Mock CredentialLoader credentialLoader;
+
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
     CromwellServerConfiguration cromwellServerConfiguration =
