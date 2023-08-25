@@ -52,8 +52,7 @@ public class CromwellService implements HealthCheck {
             null);
   }
 
-  public WorkflowQueryResult runSummary(String runId)
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public WorkflowQueryResult runSummary(String runId) throws ApiException, AzureAccessTokenException {
     ApiClient client = cromwellClient.getReadApiClient();
     var queryResults =
         cromwellClient
