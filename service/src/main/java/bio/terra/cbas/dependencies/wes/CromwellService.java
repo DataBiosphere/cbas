@@ -190,7 +190,7 @@ public class CromwellService implements HealthCheck {
       // No response, the successful return code is the important thing:
       cromwellClient.engineApi(client).engineStatus("v1");
       return new Result(true, "Cromwell was reachable");
-    } catch (ApiException | DependencyNotAvailableException | AzureAccessTokenException e) {
+    } catch (ApiException | AzureAccessTokenException e) {
       return new Result(false, e.getMessage());
     }
   }
