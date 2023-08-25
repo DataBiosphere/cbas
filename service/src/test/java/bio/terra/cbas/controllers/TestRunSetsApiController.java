@@ -214,7 +214,6 @@ class TestRunSetsApiController {
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
-  @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
   @SpyBean private SamService samService;
@@ -226,7 +225,6 @@ class TestRunSetsApiController {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
-  @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
   @Mock private LeonardoService leonardoService;
   @Mock private AppUtils appUtils;
@@ -695,7 +693,7 @@ class TestRunSetsApiController {
   @Test
   void testWorkflowOptionsProperlyConstructed() {
     CromwellServerConfiguration localTestConfig =
-        new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
+        new CromwellServerConfiguration("my/base/uri", "", "my/final/workflow/log/dir", false);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
     DependencyUrlLoader dependencyUrlLoader =

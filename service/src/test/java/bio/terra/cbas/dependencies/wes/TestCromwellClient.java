@@ -19,13 +19,11 @@ class TestCromwellClient {
 
   @Mock DependencyUrlLoader dependencyUrlLoader;
   @Mock CredentialLoader credentialLoader;
-  @Mock CromwellClient cromwellClient;
-
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
     CromwellServerConfiguration cromwellServerConfiguration =
         new CromwellServerConfiguration(
-            "http://localhost:8000/cromwell", "workflow/log/dir", false);
+            "", "http://localhost:8000/cromwell", "workflow/log/dir", false);
 
     CromwellClient cromwellClient =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader);
@@ -41,7 +39,7 @@ class TestCromwellClient {
   @Test
   void lookupCromwellUrlWhenNecessary() throws Exception {
     CromwellServerConfiguration cromwellServerConfiguration =
-        new CromwellServerConfiguration(null, "workflow/log/dir", false);
+        new CromwellServerConfiguration(null, "", "workflow/log/dir", false);
 
     when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
         .thenReturn("TOKEN");
