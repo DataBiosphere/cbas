@@ -39,10 +39,9 @@ import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -261,7 +260,7 @@ public class TestSmartRunsPollerFunctional {
           }
         """;
 
-    Map<String, Object> mockAttributes = new HashMap<>();
+    RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -343,7 +342,7 @@ public class TestSmartRunsPollerFunctional {
           }
         """;
 
-    Map<String, Object> mockAttributes = new HashMap<>();
+    RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -529,7 +528,7 @@ public class TestSmartRunsPollerFunctional {
         """;
     Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
 
-    Map<String, Object> mockAttributes = new HashMap<>();
+    RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
 

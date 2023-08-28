@@ -7,9 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorArrays {
@@ -36,7 +36,7 @@ class TestOutputGeneratorArrays {
     Map<String, Object> actual =
         OutputGenerator.buildOutputs(arrayOutputDefinitions(), cromwellOutputs);
 
-    Map<String, Object> expected = new HashMap<>();
+    RecordAttributes expected = new RecordAttributes();
     expected.put("look_and_say", List.of(1L, 11L, 21L, 1211L, 111221L, 312211L, 13112221L));
     expected.put("sir_not_appearing_in_this_record", List.of());
 
