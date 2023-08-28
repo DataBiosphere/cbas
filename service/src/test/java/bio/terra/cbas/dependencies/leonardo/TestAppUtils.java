@@ -78,7 +78,7 @@ class TestAppUtils {
   @Test
   void preferSpecificallyNamedApp() throws Exception {
     List<ListAppResponse> apps =
-        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, otherNamedCromwellApp));
+        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, separatedWdsApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
     assertEquals(anticipatedWdsUrl("wds"), au.findUrlForWds(apps));
