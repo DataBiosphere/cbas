@@ -27,8 +27,7 @@ class TestOutputGeneratorMaps {
     Object cromwellOutputs =
         singleCromwellOutput("myWorkflow.look_and_say", "{ \"one\": 1, \"two\": 2 }");
 
-    RecordAttributes actual =
-        OutputGenerator.buildOutputs(mapOutputDefinitions(), cromwellOutputs);
+    RecordAttributes actual = OutputGenerator.buildOutputs(mapOutputDefinitions(), cromwellOutputs);
 
     RecordAttributes expected = new RecordAttributes();
     expected.put("look_and_say", Map.of("one", 1L, "two", 2L));
