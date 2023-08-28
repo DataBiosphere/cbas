@@ -72,8 +72,7 @@ public class SmartRunsPoller {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     Object outputs = cromwellService.getOutputs(run.engineId());
-    RecordAttributes outputParamDef =
-        OutputGenerator.buildOutputs(outputDefinitionList, outputs);
+    RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
 
     logger.info(

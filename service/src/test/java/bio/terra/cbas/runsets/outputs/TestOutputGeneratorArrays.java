@@ -33,7 +33,7 @@ class TestOutputGeneratorArrays {
                 "myWorkflow.look_and_say", "[1, 11, 21, 1211, 111221, 312211, 13112221]",
                 "myWorkflow.out_empty_array", "[]"));
 
-    Map<String, Object> actual =
+    RecordAttributes actual =
         OutputGenerator.buildOutputs(arrayOutputDefinitions(), cromwellOutputs);
 
     RecordAttributes expected = new RecordAttributes();

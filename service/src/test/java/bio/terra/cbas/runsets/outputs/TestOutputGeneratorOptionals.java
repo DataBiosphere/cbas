@@ -50,7 +50,7 @@ class TestOutputGeneratorOptionals {
         multipleCromwellOutputs(
             Map.of("myWorkflow.out", "\"Harry Potter\"", "myworkflow.not_out", "null"));
 
-    Map<String, Object> actual =
+    RecordAttributes actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
     RecordAttributes expected = new RecordAttributes();
@@ -72,7 +72,7 @@ class TestOutputGeneratorOptionals {
                 "myWorkflow.not_out",
                 "\"Tim The Sorcerer\""));
 
-    Map<String, Object> actual =
+    RecordAttributes actual =
         OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
 
     RecordAttributes expected = new RecordAttributes();
