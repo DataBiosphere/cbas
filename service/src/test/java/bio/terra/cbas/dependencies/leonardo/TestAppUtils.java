@@ -135,7 +135,7 @@ class TestAppUtils {
     List<ListAppResponse> apps = List.of(cromwellListAppResponse, cromwellRunnerAppResponse);
 
     AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
-    assertEquals(anticipatedCromwellUrl("cromwell-runner-app"), au.findUrlForCromwell(apps));
+    assertEquals(anticipatedCromwellUrl("cromwell-runner"), au.findUrlForCromwell(apps));
   }
 
   @Test
@@ -151,7 +151,7 @@ class TestAppUtils {
     List<ListAppResponse> apps = List.of(cromwellRunnerAppResponse, separatedWdsApp);
 
     AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
-    assertEquals(anticipatedCromwellUrl("cromwell-runner-app"), au.findUrlForCromwell(apps));
+    assertEquals(anticipatedCromwellUrl("cromwell-runner"), au.findUrlForCromwell(apps));
   }
 
   private void permuteAndTest(List<ListAppResponse> apps, String expectedUrl) throws Exception {
@@ -484,11 +484,9 @@ class TestAppUtils {
                     "errors": [],
                     "status": "RUNNING",
                     "proxyUrls": {
-                        "cbas": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-app-${workspaceId}/cbas",
-                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-app-${workspaceId}/",
-                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-app-${workspaceId}/cromwell"
+                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-${workspaceId}/cromwell"
                     },
-                    "appName": "cromwell-runner-app-${workspaceId}",
+                    "appName": "cromwell-runner-${workspaceId}",
                     "appType": "CROMWELL_RUNNER_APP",
                     "diskName": null,
                     "auditInfo": {
@@ -520,9 +518,7 @@ class TestAppUtils {
                     "errors": [],
                     "status": "RUNNING",
                     "proxyUrls": {
-                        "cbas": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cbas",
-                        "cbas-ui": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/",
-                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cromwell"
+                        "cromwell-reader": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cromwell"
                     },
                     "appName": "terra-app-${workspaceId}",
                     "appType": "WORKFLOWS_APP",
@@ -533,7 +529,7 @@ class TestAppUtils {
                         "destroyedDate": null,
                         "dateAccessed": "2023-02-09T16:01:36.660590Z"
                     },
-                    "accessScope": null,
+                    "accessScope": "WORKSPACE_SHARED",
                     "labels": {}
                 }""",
                 Map.of("workspaceId", workspaceId)));

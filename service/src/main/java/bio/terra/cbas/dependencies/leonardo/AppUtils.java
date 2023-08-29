@@ -63,25 +63,30 @@ public class AppUtils {
   }
 
   /**
-   * Invokes logic to determine the appropriate app for WDS. If WDS is not running, a URL will not
-   * be present, in this case we return empty string Note: This logic is similar to how DataTable
-   * finds WDS app in Terra UI
+   * Invokes logic to determine the appropriate app for WDS and CROMWELL. If app is not running, a
+   * URL will not be present, in this case we return empty string Note: This logic is similar to how
+   * DataTable finds WDS app in Terra UI
    *
    * <p>(<a
    * href="https://github.com/DataBiosphere/terra-ui/blob/ac13bdf3954788ca7c8fd27b8fd4cfc755f150ff/src/libs/ajax/data-table-providers/WdsDataTableProvider.ts#L94-L147">...</a>)
    */
   ListAppResponse findBestAppForAppType(List<ListAppResponse> apps, AppType appType)
       throws DependencyNotAvailableException {
-    // WDS looks for Kubernetes deployment statuses (such as RUNNING or PROVISIONING), expressed by
+    // WDS and Cromwell apps look for Kubernetes deployment statuses (such as RUNNING or
+    // PROVISIONING), expressed by
     // Leo
     // See here for specific enumerations --
     // https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
-    // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' -- if WDS is healthy and
+    // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' or
+    // 'terra-app-${app.workspaceId}' -- if app is healthy and
     // running, there should only be one app RUNNING
     // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an
-    // OK state for WDS
+    // OK state for Leonardo apps
     List<AppType> appTypeList;
 
+    // WDS and CROMWELL apps will get their proxy urls from a different group of app types (located
+    // in application.yml). Because of this, we need to identify the app type we need a url for, and
+    // get the url from the correct group of relevant apps.
     if (appType.equals(AppType.WDS)) {
       appTypeList = leonardoServerConfiguration.wdsAppTypeNames();
     } else {
