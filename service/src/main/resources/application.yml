@@ -95,3 +95,6 @@ sam:
   workspaceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   # for local testing this can be set to false
   checkAuthAccess: true
+
+pactbroker:
+  host: localhost:9292

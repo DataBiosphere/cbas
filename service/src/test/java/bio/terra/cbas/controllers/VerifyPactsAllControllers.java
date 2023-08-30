@@ -54,7 +54,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
 @ContextConfiguration(
-    classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
+    classes = {
+      RunSetsApiController.class,
+      MethodsApiController.class,
+      CbasApiConfiguration.class,
+      GlobalExceptionHandler.class
+    })
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowInputs=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowOutputs=40")
