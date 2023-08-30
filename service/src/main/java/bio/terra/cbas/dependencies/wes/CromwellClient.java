@@ -33,16 +33,14 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public ApiClient getWriteApiClient()
-      throws DependencyNotAvailableException, AzureAccessTokenException {
+  public ApiClient getWriteApiClient(String accessToken) throws DependencyNotAvailableException {
     String uri =
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
+    apiClient.setAccessToken(accessToken);
     apiClient.setHttpClient(singletonHttpClient);
-    apiClient.addDefaultHeader(
-        "Authorization",
-        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
@@ -68,6 +66,12 @@ public class CromwellClient {
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
+    return apiClient;
+  }
+
+  public ApiClient getReadApiClient(String accessToken) throws AzureAccessTokenException {
+    ApiClient apiClient = getReadApiClient();
+    apiClient.setAccessToken(accessToken);
     return apiClient;
   }
 

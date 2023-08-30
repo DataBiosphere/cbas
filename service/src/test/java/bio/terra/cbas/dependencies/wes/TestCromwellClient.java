@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
@@ -19,6 +20,7 @@ class TestCromwellClient {
 
   @Mock DependencyUrlLoader dependencyUrlLoader;
   @Mock CredentialLoader credentialLoader;
+  @Mock BearerToken bearerToken;
 
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
@@ -28,7 +30,7 @@ class TestCromwellClient {
 
     CromwellClient cromwellClient =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader);
-    ApiClient mockApiClient = cromwellClient.getReadApiClient();
+    ApiClient mockApiClient = cromwellClient.getReadApiClient(bearerToken.getToken());
 
     EngineApi engineApi =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader)
@@ -42,14 +44,14 @@ class TestCromwellClient {
     CromwellServerConfiguration cromwellServerConfiguration =
         new CromwellServerConfiguration(null, "", "workflow/log/dir", false);
 
-    when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
-        .thenReturn("TOKEN");
+    //    when(credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN))
+    //        .thenReturn("TOKEN");
     when(dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL))
         .thenReturn("https://my-cromwell-service:10101/cromwell");
     CromwellClient cromwellClient =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader);
 
-    ApiClient mockApiClient = cromwellClient.getWriteApiClient();
+    ApiClient mockApiClient = cromwellClient.getWriteApiClient(bearerToken.getToken());
 
     Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader, credentialLoader)

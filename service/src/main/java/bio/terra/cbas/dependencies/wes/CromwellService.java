@@ -7,6 +7,7 @@ import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
@@ -29,8 +30,12 @@ public class CromwellService implements HealthCheck {
   private final CromwellClient cromwellClient;
   private static final String API_VERSION = "v1";
 
-  public CromwellService(CromwellClient cromwellClient) {
+  private final BearerToken bearerToken;
+
+  public CromwellService(CromwellClient cromwellClient, BearerToken bearerToken) {
+
     this.cromwellClient = cromwellClient;
+    this.bearerToken = bearerToken;
   }
 
   public RunId submitWorkflow(
@@ -38,7 +43,7 @@ public class CromwellService implements HealthCheck {
       throws ApiException, JsonProcessingException, DependencyNotAvailableException,
           AzureAccessTokenException {
 
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
 
     return cromwellClient
         .wesAPI(client)
@@ -54,7 +59,7 @@ public class CromwellService implements HealthCheck {
 
   public WorkflowQueryResult runSummary(String runId)
       throws ApiException, AzureAccessTokenException {
-    ApiClient client = cromwellClient.getReadApiClient();
+    ApiClient client = cromwellClient.getReadApiClient(bearerToken.getToken());
     var queryResults =
         cromwellClient
             .workflowsApi(client)
@@ -83,14 +88,14 @@ public class CromwellService implements HealthCheck {
 
   public Object getOutputs(String id)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
 
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
     return cromwellClient
         .womtoolApi(client)
         .describe(API_VERSION, null, workflowUrl, null, null, null);
@@ -99,7 +104,7 @@ public class CromwellService implements HealthCheck {
   public String getRunErrors(Run run)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
 
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
 
     WorkflowMetadataResponse meta =
         cromwellClient
@@ -179,7 +184,7 @@ public class CromwellService implements HealthCheck {
 
   public void cancelRun(Run run)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
     cromwellClient.wesAPI(client).cancelRun(run.engineId());
   }
 

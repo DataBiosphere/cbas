@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import bio.terra.common.iam.BearerToken;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ class TestWdsClient {
 
   @Mock DependencyUrlLoader dependencyUrlLoader;
   @Mock CredentialLoader credentialLoader;
+  @Mock BearerToken bearerToken;
 
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
@@ -28,7 +30,8 @@ class TestWdsClient {
         .thenReturn("TOKEN");
 
     RecordsApi recordsApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader).recordsApi();
+        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader)
+            .recordsApi(bearerToken.getToken());
 
     assertEquals("http://localhost:8001/wds", recordsApi.getApiClient().getBasePath());
   }

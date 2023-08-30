@@ -3,19 +3,19 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.cbas.dependencies.common.HealthCheck;
+import bio.terra.common.iam.BearerToken;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
-import org.databiosphere.workspacedata.model.VersionResponse;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WdsService implements HealthCheck {
+public class WdsService {
 
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
+  private final BearerToken bearerToken;
 
   private final RetryTemplate listenerResetRetryTemplate;
 
@@ -24,10 +24,12 @@ public class WdsService implements HealthCheck {
   public WdsService(
       WdsClient wdsClient,
       WdsServerConfiguration wdsServerConfiguration,
-      RetryTemplate listenerResetRetryTemplate) {
+      RetryTemplate listenerResetRetryTemplate,
+      BearerToken bearerToken) {
     this.wdsClient = wdsClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.listenerResetRetryTemplate = listenerResetRetryTemplate;
+    this.bearerToken = bearerToken;
   }
 
   public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {
@@ -35,7 +37,7 @@ public class WdsService implements HealthCheck {
         listenerResetRetryTemplate,
         () ->
             wdsClient
-                .recordsApi()
+                .recordsApi(bearerToken.getToken())
                 .getRecord(
                     wdsServerConfiguration.instanceId(),
                     wdsServerConfiguration.apiV(),
@@ -49,7 +51,7 @@ public class WdsService implements HealthCheck {
         listenerResetRetryTemplate,
         () -> {
           wdsClient
-              .recordsApi()
+              .recordsApi(bearerToken.getToken())
               .updateRecord(
                   request,
                   wdsServerConfiguration.instanceId(),
@@ -60,18 +62,19 @@ public class WdsService implements HealthCheck {
         });
   }
 
-  @Override
-  public Result checkHealth() {
-    try {
-      VersionResponse result =
-          executionWithRetryTemplate(
-              listenerResetRetryTemplate, () -> wdsClient.generalWdsInformationApi().versionGet());
-      return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
-    } catch (WdsServiceException e) {
-      logger.error("WDS health check failed", e);
-      return new Result(false, e.getMessage());
-    }
-  }
+  //  @Override
+  //  public Result checkHealth() {
+  //    try {
+  //      VersionResponse result =
+  //          executionWithRetryTemplate(
+  //              listenerResetRetryTemplate, () ->
+  // wdsClient.generalWdsInformationApi().versionGet());
+  //      return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
+  //    } catch (WdsServiceException e) {
+  //      logger.error("WDS health check failed", e);
+  //      return new Result(false, e.getMessage());
+  //    }
+  //  }
 
   interface WdsAction<T> {
     T execute() throws ApiException, DependencyNotAvailableException, AzureAccessTokenException;

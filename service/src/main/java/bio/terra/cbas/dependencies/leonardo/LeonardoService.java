@@ -34,7 +34,7 @@ public class LeonardoService implements HealthCheck {
   }
 
   private ServiceInfoApi getServiceInfoApi() throws AzureAccessTokenException {
-    return new ServiceInfoApi(leonardoClient.getApiClient(bearerToken.getToken()));
+    return new ServiceInfoApi(leonardoClient.getApiClient());
   }
 
   public List<ListAppResponse> getApps() throws ApiException, AzureAccessTokenException {

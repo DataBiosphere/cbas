@@ -56,8 +56,16 @@ public class WdsClient {
     return apiClient;
   }
 
-  RecordsApi recordsApi() throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new RecordsApi(getApiClient());
+  public ApiClient getApiClient(String accessToken)
+      throws DependencyNotAvailableException, AzureAccessTokenException {
+    ApiClient apiClient = getApiClient();
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
+  }
+
+  RecordsApi recordsApi(String accessToken)
+      throws DependencyNotAvailableException, AzureAccessTokenException {
+    return new RecordsApi(getApiClient(accessToken));
   }
 
   GeneralWdsInformationApi generalWdsInformationApi()
