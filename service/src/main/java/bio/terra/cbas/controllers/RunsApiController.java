@@ -3,6 +3,8 @@ package bio.terra.cbas.controllers;
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
+import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
+import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.RunLog;
@@ -11,10 +13,11 @@ import bio.terra.cbas.model.RunResultsRequest;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
-import bio.terra.cbas.runsets.exceptions.RunResultsInvalidStatusException;
-import bio.terra.cbas.runsets.monitoring.RunResultsManager;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
+import bio.terra.cbas.runsets.results.RunResultsManager;
+import bio.terra.cbas.runsets.results.RunResultsUpdateResponse;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -86,13 +89,21 @@ public class RunsApiController implements RunsApi {
     CbasRunStatus resultsStatus = CbasRunStatus.fromValue(body.getState());
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
-      throw new RunResultsInvalidStatusException(
+      throw new InvalidStatusTypeException(
           String.format(
               "Results can not be posted for a non-terminal workflow state {}.", resultsStatus));
     }
 
+    // lookup runID in database
+    Optional<Run> runRecord =
+        runDao.getRuns(new RunDao.RunsFilters(runId, null)).stream().findFirst();
+    if (!runRecord.isPresent()) {
+      throw new RunNotFoundException(String.format("Workflow ID {} is not found.", runId));
+    }
+
     // perform workflow completion work
-    runResultsManager.updateResults(runId, resultsStatus, body.getOutputs());
-    return new ResponseEntity<>(HttpStatus.OK);
+    RunResultsUpdateResponse response =
+        runResultsManager.updateResults(runRecord.get(), resultsStatus, body.getOutputs());
+    return new ResponseEntity<>(response.toHttpStatus());
   }
 }

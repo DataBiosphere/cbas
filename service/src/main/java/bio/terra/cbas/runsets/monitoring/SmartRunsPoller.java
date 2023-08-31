@@ -41,7 +41,6 @@ public class SmartRunsPoller {
 
   private final CromwellService cromwellService;
   private final RunDao runDao;
-
   private final WdsService wdsService;
   private final ObjectMapper objectMapper;
 
