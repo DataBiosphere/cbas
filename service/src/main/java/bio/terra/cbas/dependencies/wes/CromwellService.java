@@ -95,10 +95,9 @@ public class CromwellService implements HealthCheck {
         .describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
-  public String getRunErrors(Run run)
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public String getRunErrors(Run run) throws ApiException, AzureAccessTokenException {
 
-    ApiClient client = cromwellClient.getWriteApiClient();
+    ApiClient client = cromwellClient.getReadApiClient();
 
     WorkflowMetadataResponse meta =
         cromwellClient

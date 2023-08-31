@@ -43,9 +43,11 @@ public class DependencyUrlLoader {
               throws DependencyNotAvailableException {
             if (key == DependencyUrlType.WDS_URL) {
               return fetchWdsUrl();
-            } else {
+            } else if (key == DependencyUrlType.CROMWELL_URL) {
               return fetchCromwellUrl();
             }
+            throw new DependencyNotAvailableException(
+                key.toString(), "Unknown dependency URL type");
           }
         };
 

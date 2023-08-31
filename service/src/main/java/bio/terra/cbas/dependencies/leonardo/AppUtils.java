@@ -78,7 +78,7 @@ public class AppUtils {
     // See here for specific enumerations --
     // https://github.com/DataBiosphere/leonardo/blob/develop/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
     // look explicitly for a RUNNING app named 'wds-${app.workspaceId}' or
-    // 'terra-app-${app.workspaceId}' -- if app is healthy and
+    // 'terra-app-<random_uuid>' -- if app is healthy and
     // running, there should only be one app RUNNING
     // an app may be in the 'PROVISIONING', 'STOPPED', 'STOPPING', which can still be deemed as an
     // OK state for Leonardo apps
@@ -175,8 +175,8 @@ public class AppUtils {
     ListAppResponse foundApp = findBestAppForAppType(apps, AppType.CROMWELL);
     Object proxyUrl;
 
-    if (Objects.requireNonNull(foundApp.getProxyUrls()).containsKey("cromwell-writer")) {
-      proxyUrl = "cromwell-writer";
+    if (foundApp.getAppType() == AppType.CROMWELL_RUNNER_APP) {
+      proxyUrl = "cromwell-runner";
     } else {
       proxyUrl = "cromwell";
     }

@@ -37,8 +37,8 @@ public class CromwellClient {
       throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri;
 
-    if (!cromwellServerConfiguration.testingBaseUri().isEmpty()) {
-      uri = cromwellServerConfiguration.testingBaseUri();
+    if (!cromwellServerConfiguration.fetchCromwellUrlFromLeo()) {
+      uri = cromwellServerConfiguration.baseUri();
     } else {
       uri =
           dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
@@ -56,15 +56,8 @@ public class CromwellClient {
   }
 
   public ApiClient getReadApiClient() throws AzureAccessTokenException {
-    String uri;
 
-    if (!cromwellServerConfiguration.testingBaseUri().isEmpty()) {
-      uri = cromwellServerConfiguration.testingBaseUri();
-    } else {
-      uri = cromwellServerConfiguration.baseUri();
-    }
-
-    ApiClient apiClient = new ApiClient().setBasePath(uri);
+    ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
     apiClient.setHttpClient(singletonHttpClient);
     apiClient.addDefaultHeader(
         "Authorization",
