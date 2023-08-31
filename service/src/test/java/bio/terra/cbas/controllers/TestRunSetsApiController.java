@@ -695,7 +695,7 @@ class TestRunSetsApiController {
   @Test
   void testWorkflowOptionsProperlyConstructed() {
     CromwellServerConfiguration localTestConfig =
-        new CromwellServerConfiguration("my/base/uri", "", "my/final/workflow/log/dir", false);
+        new CromwellServerConfiguration("my/base/uri", null, "my/final/workflow/log/dir", false);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
     DependencyUrlLoader dependencyUrlLoader =

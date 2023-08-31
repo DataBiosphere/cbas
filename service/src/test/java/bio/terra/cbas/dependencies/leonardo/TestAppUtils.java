@@ -484,7 +484,7 @@ class TestAppUtils {
                     "errors": [],
                     "status": "RUNNING",
                     "proxyUrls": {
-                        "cromwell": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-${workspaceId}/cromwell"
+                        "cromwell-runner": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-${workspaceId}/cromwell"
                     },
                     "appName": "cromwell-runner-${workspaceId}",
                     "appType": "CROMWELL_RUNNER_APP",
