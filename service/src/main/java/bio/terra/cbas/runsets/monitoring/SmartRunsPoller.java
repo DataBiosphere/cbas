@@ -8,6 +8,7 @@ import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -200,14 +201,13 @@ public class SmartRunsPoller {
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
-
             String errorMessage =
                 "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
                     .formatted(
                         updatableRun.recordId(),
                         updatableRun.runId(),
                         updatableRun.engineId(),
-                        e.getMessage());
+                        WdsClientUtils.extractErrorMessage(e.getMessage()));
             logger.error(errorMessage, e);
             errors.add(errorMessage);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;

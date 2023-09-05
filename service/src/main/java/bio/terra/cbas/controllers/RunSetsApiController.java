@@ -24,6 +24,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
+import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
@@ -64,7 +65,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -401,23 +401,6 @@ public class RunSetsApiController implements RunSetsApi {
     return errorList;
   }
 
-  private String getErrorMessage(ApiException exception) {
-    // attempt to parse a human-readable error message out of
-    // ApiException's formatted-string getMessage(). We want the %s in:
-    // "Message: %s\nHTTP response code:..."
-    if (exception.getMessage() == null) {
-      return exception.toString();
-    }
-    String excMsg = exception.getMessage();
-    int endPos = excMsg.indexOf("HTTP response code: ");
-    // if the exception message starts with "Message: ",
-    // endPos will be at least 9 characters from the start
-    if (endPos > 9 && excMsg.startsWith("Message: ")) {
-      return excMsg.substring(9, endPos - 1);
-    }
-    return excMsg;
-  }
-
   private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
     String recordType = request.getWdsRecords().getRecordType();
 
@@ -428,7 +411,11 @@ public class RunSetsApiController implements RunSetsApi {
         recordResponses.add(wdsService.getRecord(recordType, recordId));
       } catch (WdsServiceApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, getErrorMessage(e.getCause()));
+        log.warn("e.getMessage(): " + e.getMessage());
+        log.warn(
+            "wdsService.extractErrorMessage(e.getMessage()): "
+                + WdsClientUtils.extractErrorMessage(e.getMessage()));
+        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
       } catch (WdsServiceException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, e.getMessage());
