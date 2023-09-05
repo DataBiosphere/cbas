@@ -4,7 +4,9 @@ public class WdsClientUtils {
 
   /**
    * Given an ApiException message from the WDS client, attempt to parse a human-readable error out
-   * of the formatted message
+   * of the formatted message. ApiException.getMessage() returns a String in the format: "Message:
+   * %s%nHTTP response code: %s%nHTTP response body: %s%nHTTP response headers: %s" and we'd like to
+   * get just that first %s, representing the actual message.
    *
    * @param excMsg the WDS client exception message
    * @return the human-readable string, or the identity if it could not be parsed
