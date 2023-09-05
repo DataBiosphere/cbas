@@ -56,5 +56,4 @@ public class TestWdsClientUtils {
     String actual = WdsClientUtils.extractErrorMessage(input);
     assertEquals(expected, actual);
   }
-
 }
