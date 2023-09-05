@@ -26,6 +26,7 @@ class TestDependencyUrlLoader {
 
   @Mock private LeonardoService leonardoService;
   @Mock private AppUtils appUtils;
+  @Mock String cromwellUri;
 
   @Test
   void fetchesUrlsAppropriately() throws Exception {
@@ -50,9 +51,7 @@ class TestDependencyUrlLoader {
         discoveredWdsUrl,
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
 
-    assertEquals(
-        discoveredCromwellUrl,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
+    assertEquals(discoveredCromwellUrl, cromwellUri);
   }
 
   @Test
@@ -63,11 +62,9 @@ class TestDependencyUrlLoader {
     // between the mocks.
     List<ListAppResponse> dummyListAppResponse = List.of(new ListAppResponse());
     String discoveredWdsUrl = "https://wds.com/prefix/wds";
-    String discoveredCromwellUrl = "https://cromwell.com/prefix/cromwell";
 
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
-    when(appUtils.findUrlForCromwell(dummyListAppResponse)).thenReturn(discoveredCromwellUrl);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
 
@@ -77,10 +74,6 @@ class TestDependencyUrlLoader {
     assertEquals(
         discoveredWdsUrl,
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
-
-    assertEquals(
-        discoveredCromwellUrl,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
 
     // Even if the app utils would return something new, the dependency loader returns the cached
     // value:
@@ -99,12 +92,8 @@ class TestDependencyUrlLoader {
     String discoveredWdsUrl1 = "https://wds.com/prefix/wds";
     String discoveredWdsUrl2 = "https://new-wds.com/prefix/wds";
 
-    String discoveredCromwellUrl1 = "https://cromwell.com/prefix/cromwell";
-    String discoveredCromwellUrl2 = "https://new-cromwell.com/prefix/cromwell";
-
     when(leonardoService.getApps()).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl1);
-    when(appUtils.findUrlForCromwell(dummyListAppResponse)).thenReturn(discoveredCromwellUrl1);
 
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMillis(100), false);
@@ -115,21 +104,15 @@ class TestDependencyUrlLoader {
     assertEquals(
         discoveredWdsUrl1,
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
-    assertEquals(
-        discoveredCromwellUrl1,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
 
     // Even if the app utils would return something new, the dependency loader returns the cached
     // value:
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl2);
-    when(appUtils.findUrlForCromwell(dummyListAppResponse)).thenReturn(discoveredCromwellUrl2);
 
     assertEquals(
         discoveredWdsUrl1,
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
-    assertEquals(
-        discoveredCromwellUrl1,
-        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
+
     // But eventually, the cache expires and we DO get the new value:
     await()
         .atMost(200, MILLISECONDS)
@@ -138,15 +121,6 @@ class TestDependencyUrlLoader {
                 dependencyUrlLoader.loadDependencyUrl(
                     DependencyUrlLoader.DependencyUrlType.WDS_URL),
             equalTo(discoveredWdsUrl2));
-
-    // For Cromwell:
-    await()
-        .atMost(200, MILLISECONDS)
-        .until(
-            () ->
-                dependencyUrlLoader.loadDependencyUrl(
-                    DependencyUrlLoader.DependencyUrlType.CROMWELL_URL),
-            equalTo(discoveredCromwellUrl2));
   }
 
   @Test
