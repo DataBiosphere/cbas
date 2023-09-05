@@ -20,7 +20,12 @@ class TestAppUtils {
   private final String workspaceId = UUID.randomUUID().toString();
 
   private final LeonardoServerConfiguration leonardoServerConfiguration =
-      new LeonardoServerConfiguration("baseuri", List.of("WDS", "CROMWELL"), 0, false);
+      new LeonardoServerConfiguration(
+          "baseuri",
+          List.of("WDS", "CROMWELL"),
+          List.of("CROMWELL_RUNNER_APP", "CROMWELL"),
+          0,
+          false);
 
   private final WdsServerConfiguration wdsServerConfiguration =
       new WdsServerConfiguration("", workspaceId, "", false);
@@ -32,6 +37,8 @@ class TestAppUtils {
   private final ListAppResponse otherNamedCromwellApp;
   private final ListAppResponse otherNamedCromwellAppProvisioning;
   private final ListAppResponse separatedWorkflowsApp;
+  private final ListAppResponse cromwellRunnerAppResponse;
+  private final ListAppResponse workflowsAppResponse;
 
   private final AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
 
@@ -71,7 +78,7 @@ class TestAppUtils {
   @Test
   void preferSpecificallyNamedApp() throws Exception {
     List<ListAppResponse> apps =
-        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, otherNamedCromwellApp));
+        new java.util.ArrayList<>(List.of(combinedWdsInCromwellApp, separatedWdsApp));
     // Shuffle to make sure the initial ordering isn't relevant:
     Collections.shuffle(apps);
     assertEquals(anticipatedWdsUrl("wds"), au.findUrlForWds(apps));
@@ -121,6 +128,30 @@ class TestAppUtils {
     Collections.shuffle(apps);
 
     assertThrows(DependencyNotAvailableException.class, () -> au.findUrlForWds(apps));
+  }
+
+  @Test
+  void findCromwellRunnerUrlInCombinedResponse() throws Exception {
+    List<ListAppResponse> apps = List.of(cromwellListAppResponse, cromwellRunnerAppResponse);
+
+    AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
+    assertEquals(anticipatedCromwellUrl("cromwell-runner"), au.findUrlForCromwell(apps));
+  }
+
+  @Test
+  void findCromwellUrlInCombinedWDSApp() throws Exception {
+    List<ListAppResponse> apps = List.of(cromwellListAppResponse, separatedWdsApp);
+
+    AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
+    assertEquals(anticipatedCromwellUrl("terra-app"), au.findUrlForCromwell(apps));
+  }
+
+  @Test
+  void findCromwellRunnerUrlInCombinedWDSApp() throws Exception {
+    List<ListAppResponse> apps = List.of(cromwellRunnerAppResponse, separatedWdsApp);
+
+    AppUtils au = new AppUtils(leonardoServerConfiguration, wdsServerConfiguration);
+    assertEquals(anticipatedCromwellUrl("cromwell-runner"), au.findUrlForCromwell(apps));
   }
 
   private void permuteAndTest(List<ListAppResponse> apps, String expectedUrl) throws Exception {
@@ -431,6 +462,74 @@ class TestAppUtils {
                         "dateAccessed": "2023-02-09T16:01:36.660590Z"
                     },
                     "accessScope": null,
+                    "labels": {}
+                }""",
+                Map.of("workspaceId", workspaceId)));
+
+    cromwellRunnerAppResponse =
+        ListAppResponse.fromJson(
+            StringSubstitutor.replace(
+                """
+                {
+                    "workspaceId": "${workspaceId}",
+                    "cloudContext": {
+                        "cloudProvider": "AZURE",
+                        "cloudResource": "blah-blah-blah"
+                    },
+                    "kubernetesRuntimeConfig": {
+                        "numNodes": 1,
+                        "machineType": "Standard_A2_v2",
+                        "autoscalingEnabled": false
+                    },
+                    "errors": [],
+                    "status": "RUNNING",
+                    "proxyUrls": {
+                        "cromwell-runner": "https://lzblahblahblah.servicebus.windows.net/cromwell-runner-${workspaceId}/cromwell"
+                    },
+                    "appName": "cromwell-runner-${workspaceId}",
+                    "appType": "CROMWELL_RUNNER_APP",
+                    "diskName": null,
+                    "auditInfo": {
+                        "creator": "me@broadinstitute.org",
+                        "createdDate": "2023-02-09T16:01:36.660590Z",
+                        "destroyedDate": null,
+                        "dateAccessed": "2023-02-09T16:01:36.660590Z"
+                    },
+                    "accessScope": null,
+                    "labels": {}
+                }""",
+                Map.of("workspaceId", workspaceId)));
+
+    workflowsAppResponse =
+        ListAppResponse.fromJson(
+            StringSubstitutor.replace(
+                """
+                {
+                    "workspaceId": "${workspaceId}",
+                    "cloudContext": {
+                        "cloudProvider": "AZURE",
+                        "cloudResource": "blah-blah-blah"
+                    },
+                    "kubernetesRuntimeConfig": {
+                        "numNodes": 1,
+                        "machineType": "Standard_A2_v2",
+                        "autoscalingEnabled": false
+                    },
+                    "errors": [],
+                    "status": "RUNNING",
+                    "proxyUrls": {
+                        "cromwell-reader": "https://lzblahblahblah.servicebus.windows.net/terra-app-${workspaceId}/cromwell"
+                    },
+                    "appName": "terra-app-${workspaceId}",
+                    "appType": "WORKFLOWS_APP",
+                    "diskName": null,
+                    "auditInfo": {
+                        "creator": "me@broadinstitute.org",
+                        "createdDate": "2023-02-09T16:01:36.660590Z",
+                        "destroyedDate": null,
+                        "dateAccessed": "2023-02-09T16:01:36.660590Z"
+                    },
+                    "accessScope": "WORKSPACE_SHARED",
                     "labels": {}
                 }""",
                 Map.of("workspaceId", workspaceId)));

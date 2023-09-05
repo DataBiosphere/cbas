@@ -6,7 +6,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompleti
 
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
@@ -70,7 +69,7 @@ public class SmartRunsPoller {
 
   public void updateOutputAttributes(Run run)
       throws ApiException, JsonProcessingException, WdsServiceException, CoercionException,
-          OutputProcessingException, DependencyNotAvailableException, AzureAccessTokenException {
+          OutputProcessingException, AzureAccessTokenException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     Object outputs = cromwellService.getOutputs(run.engineId());
@@ -156,6 +155,9 @@ public class SmartRunsPoller {
       newWorkflowSummary = cromwellService.runSummary(r.engineId());
     } catch (ApiException | IllegalArgumentException e) {
       logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
+      return r;
+    } catch (AzureAccessTokenException e) {
+      logger.warn(e.getMessage());
       return r;
     } finally {
       recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);

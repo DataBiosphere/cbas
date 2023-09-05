@@ -214,9 +214,9 @@ class TestRunSetsApiController {
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
-  @MockBean private BearerToken bearerToken;
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
+  @MockBean private BearerToken bearerToken;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
@@ -695,9 +695,9 @@ class TestRunSetsApiController {
   @Test
   void testWorkflowOptionsProperlyConstructed() {
     CromwellServerConfiguration localTestConfig =
-        new CromwellServerConfiguration("my/base/uri", "my/final/workflow/log/dir", false);
+        new CromwellServerConfiguration("my/base/uri", null, "my/final/workflow/log/dir", false);
     var leonardoServerConfiguration =
-        new LeonardoServerConfiguration("", List.of(), Duration.ofMinutes(10), false);
+        new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
     var azureCredentialConfig =
@@ -705,7 +705,7 @@ class TestRunSetsApiController {
     CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
     CromwellClient localTestClient =
         new CromwellClient(localTestConfig, dependencyUrlLoader, credentialLoader);
-    CromwellService localtestService = new CromwellService(localTestClient, localTestConfig);
+    CromwellService localtestService = new CromwellService(localTestClient);
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching
