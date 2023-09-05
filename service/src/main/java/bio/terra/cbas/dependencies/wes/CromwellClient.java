@@ -1,10 +1,8 @@
 package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
-import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
@@ -18,34 +16,32 @@ import org.springframework.stereotype.Component;
 public class CromwellClient {
 
   private final CromwellServerConfiguration cromwellServerConfiguration;
-  private final DependencyUrlLoader dependencyUrlLoader;
   private final CredentialLoader credentialLoader;
 
   private final OkHttpClient singletonHttpClient;
+  private final String cromwellUri;
 
   public CromwellClient(
       CromwellServerConfiguration cromwellServerConfiguration,
-      DependencyUrlLoader dependencyUrlLoader,
-      CredentialLoader credentialLoader) {
+      CredentialLoader credentialLoader,
+      String cromwellUri) {
     this.cromwellServerConfiguration = cromwellServerConfiguration;
-    this.dependencyUrlLoader = dependencyUrlLoader;
     this.credentialLoader = credentialLoader;
+    this.cromwellUri = cromwellUri;
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public ApiClient getWriteApiClient(String accessToken) throws DependencyNotAvailableException {
+  public ApiClient getWriteApiClient(String accessToken) {
     String uri;
 
     if (!cromwellServerConfiguration.fetchCromwellUrlFromLeo()) {
       uri = cromwellServerConfiguration.baseUri();
     } else {
-      uri =
-          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
+      uri = cromwellUri;
     }
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setAccessToken(accessToken);
     apiClient.setHttpClient(singletonHttpClient);
-    apiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
@@ -57,9 +53,6 @@ public class CromwellClient {
 
     ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
     apiClient.setHttpClient(singletonHttpClient);
-    apiClient.addDefaultHeader(
-        "Authorization",
-        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");

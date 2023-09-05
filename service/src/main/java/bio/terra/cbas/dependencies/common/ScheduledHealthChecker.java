@@ -30,7 +30,6 @@ public class ScheduledHealthChecker {
     this.healthCheckStatuses = new ConcurrentHashMap<>();
     this.healthCheckSystems =
         Map.of(
-            // "cromwell", cromwellService,
             "leonardo", leonardoService,
             "sam", samService);
   }

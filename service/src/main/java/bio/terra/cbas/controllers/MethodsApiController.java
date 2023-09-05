@@ -10,6 +10,7 @@ import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.dao.MethodDao;
@@ -190,6 +191,7 @@ public class MethodsApiController implements MethodsApi {
     } catch (ApiException
         | JsonProcessingException
         | WomtoolValueTypeNotFoundException
+        | DependencyNotAvailableException
         | AzureAccessTokenException e) {
       String errorMsg =
           String.format(

@@ -19,8 +19,7 @@ import org.springframework.stereotype.Component;
 public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
-    WDS_URL,
-    CROMWELL_URL
+    WDS_URL
   }
 
   private final LoadingCache<DependencyUrlType, String> cache;
@@ -43,8 +42,6 @@ public class DependencyUrlLoader {
               throws DependencyNotAvailableException {
             if (key == DependencyUrlType.WDS_URL) {
               return fetchWdsUrl();
-            } else if (key == DependencyUrlType.CROMWELL_URL) {
-              return fetchCromwellUrl();
             }
             throw new DependencyNotAvailableException(
                 key.toString(), "Unknown dependency URL type");
@@ -63,15 +60,6 @@ public class DependencyUrlLoader {
       return appUtils.findUrlForWds(allApps);
     } catch (ApiException | AzureAccessTokenException e) {
       throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
-    }
-  }
-
-  private String fetchCromwellUrl() throws DependencyNotAvailableException {
-    try {
-      List<ListAppResponse> allApps = leonardoService.getApps();
-      return appUtils.findUrlForCromwell(allApps);
-    } catch (ApiException | AzureAccessTokenException e) {
-      throw new DependencyNotAvailableException("Cromwell", "Failed to poll Leonardo for URL", e);
     }
   }
 

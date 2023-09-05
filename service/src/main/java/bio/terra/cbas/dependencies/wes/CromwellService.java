@@ -86,8 +86,7 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public Object getOutputs(String id)
-      throws ApiException,AzureAccessTokenException {
+  public Object getOutputs(String id) throws ApiException, AzureAccessTokenException {
     ApiClient client = cromwellClient.getReadApiClient();
 
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();

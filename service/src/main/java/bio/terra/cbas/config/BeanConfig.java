@@ -1,5 +1,9 @@
 package bio.terra.cbas.config;
 
+import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.dependencies.leonardo.AppUtils;
+import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -9,7 +13,10 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
+import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -40,5 +47,17 @@ public class BeanConfig {
   @RequestScope
   public BearerToken bearerToken(HttpServletRequest request) {
     return new BearerTokenFactory().from(request);
+  }
+
+  @Bean("cromwellUri")
+  @RequestScope
+  public String cromwellUri(LeonardoService leonardoService, AppUtils appUtils)
+      throws DependencyNotAvailableException {
+    try {
+      List<ListAppResponse> allApps = leonardoService.getApps();
+      return appUtils.findUrlForCromwell(allApps);
+    } catch (ApiException | AzureAccessTokenException e) {
+      throw new DependencyNotAvailableException("Cromwell", "Failed to poll Leonardo for URL", e);
+    }
   }
 }

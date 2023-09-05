@@ -704,7 +704,7 @@ class TestRunSetsApiController {
         new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
     CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
     CromwellClient localTestClient =
-        new CromwellClient(localTestConfig, dependencyUrlLoader, credentialLoader);
+        new CromwellClient(localTestConfig, credentialLoader, "cromwell/uri/");
     CromwellService localtestService = new CromwellService(localTestClient, bearerToken);
 
     // Workflow options should reflect the final workflow log directory.
