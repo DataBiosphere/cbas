@@ -52,7 +52,6 @@ import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import cromwell.client.model.RunId;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -66,7 +65,6 @@ import java.util.Objects;
 import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.ErrorResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -404,17 +402,20 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private String getErrorMessage(ApiException exception) {
-    Gson gson = new Gson();
-    try {
-      ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
-      if (error != null) {
-        return error.getMessage();
-      } else {
-        return exception.getMessage();
-      }
-    } catch (Exception e) {
-      return exception.getMessage();
+    // attempt to parse a human-readable error message out of
+    // ApiException's formatted-string getMessage(). We want the %s in:
+    // "Message: %s\nHTTP response code:..."
+    if (exception.getMessage() == null) {
+      return exception.toString();
     }
+    String excMsg = exception.getMessage();
+    int endPos = excMsg.indexOf("HTTP response code: ");
+    // if the exception message starts with "Message: ",
+    // endPos will be at least 9 characters from the start
+    if (endPos > 9 && excMsg.startsWith("Message: ")) {
+      return excMsg.substring(9, endPos - 1);
+    }
+    return excMsg;
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {

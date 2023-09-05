@@ -680,10 +680,7 @@ class TestRunSetsApiController {
     assertThat(
         result.getResponse().getContentAsString(),
         containsString(
-            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=Message: ApiException thrown for testing purposes.\\n"
-                + "HTTP response code: 400\\n"
-                + "HTTP response body: null\\n"
-                + "HTTP response headers: null}"));
+            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
   }
 
   @Test
