@@ -201,6 +201,7 @@ public class SmartRunsPoller {
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
+
             String errorMessage =
                 "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
                     .formatted(
