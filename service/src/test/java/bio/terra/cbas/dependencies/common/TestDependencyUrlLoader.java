@@ -26,7 +26,6 @@ class TestDependencyUrlLoader {
 
   @Mock private LeonardoService leonardoService;
   @Mock private AppUtils appUtils;
-  @Mock String cromwellUri;
 
   @Test
   void fetchesUrlsAppropriately() throws Exception {
@@ -51,7 +50,9 @@ class TestDependencyUrlLoader {
         discoveredWdsUrl,
         dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL));
 
-    assertEquals(discoveredCromwellUrl, cromwellUri);
+    assertEquals(
+        discoveredCromwellUrl,
+        dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL));
   }
 
   @Test
