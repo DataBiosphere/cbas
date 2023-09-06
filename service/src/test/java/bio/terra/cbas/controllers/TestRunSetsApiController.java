@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.config.AzureCredentialConfig;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
@@ -701,8 +700,6 @@ class TestRunSetsApiController {
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
-    var azureCredentialConfig =
-        new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
     CromwellClient localTestClient = new CromwellClient(localTestConfig, dependencyUrlLoader);
     CromwellService localtestService =
         new CromwellService(localTestClient, bearerToken, cromwellClient);
