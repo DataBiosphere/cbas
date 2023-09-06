@@ -230,7 +230,6 @@ class TestRunSetsApiController {
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
   @Mock private LeonardoService leonardoService;
-
   @Mock private AppUtils appUtils;
 
   // This mockMVC is what we use to test API requests and responses:
