@@ -34,7 +34,6 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
@@ -71,6 +70,7 @@ import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.ApiClient;
 import cromwell.client.model.RunId;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -217,6 +217,7 @@ class TestRunSetsApiController {
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
   @MockBean private BearerToken bearerToken;
+  @MockBean private ApiClient cromwellClient;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
@@ -229,6 +230,7 @@ class TestRunSetsApiController {
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
   @Mock private LeonardoService leonardoService;
+
   @Mock private AppUtils appUtils;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -702,10 +704,9 @@ class TestRunSetsApiController {
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
     var azureCredentialConfig =
         new AzureCredentialConfig(Duration.ZERO, Duration.ofMillis(100), null);
-    CredentialLoader credentialLoader = new CredentialLoader(azureCredentialConfig);
-    CromwellClient localTestClient =
-        new CromwellClient(localTestConfig, credentialLoader, "cromwell/uri/");
-    CromwellService localtestService = new CromwellService(localTestClient, bearerToken);
+    CromwellClient localTestClient = new CromwellClient(localTestConfig, dependencyUrlLoader);
+    CromwellService localtestService =
+        new CromwellService(localTestClient, bearerToken, cromwellClient);
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching

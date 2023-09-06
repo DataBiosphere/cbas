@@ -31,11 +31,14 @@ public class CromwellService implements HealthCheck {
   private static final String API_VERSION = "v1";
 
   private final BearerToken bearerToken;
+  private final ApiClient cromwellWriteClient;
 
-  public CromwellService(CromwellClient cromwellClient, BearerToken bearerToken) {
+  public CromwellService(
+      CromwellClient cromwellClient, BearerToken bearerToken, ApiClient cromwellWriteClient) {
 
     this.cromwellClient = cromwellClient;
     this.bearerToken = bearerToken;
+    this.cromwellWriteClient = cromwellWriteClient;
   }
 
   public RunId submitWorkflow(
@@ -43,10 +46,8 @@ public class CromwellService implements HealthCheck {
       throws ApiException, JsonProcessingException, DependencyNotAvailableException,
           AzureAccessTokenException {
 
-    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
-
     return cromwellClient
-        .wesAPI(client)
+        .wesAPI(cromwellWriteClient)
         .runWorkflow(
             InputGenerator.inputsToJson(params),
             null,
@@ -182,8 +183,7 @@ public class CromwellService implements HealthCheck {
 
   public void cancelRun(Run run)
       throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
-    ApiClient client = cromwellClient.getWriteApiClient(bearerToken.getToken());
-    cromwellClient.wesAPI(client).cancelRun(run.engineId());
+    cromwellClient.wesAPI(cromwellWriteClient).cancelRun(run.engineId());
   }
 
   @Override

@@ -1,8 +1,9 @@
 package bio.terra.cbas.dependencies.wes;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
-import bio.terra.cbas.dependencies.common.CredentialLoader;
+import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
@@ -16,28 +17,27 @@ import org.springframework.stereotype.Component;
 public class CromwellClient {
 
   private final CromwellServerConfiguration cromwellServerConfiguration;
-  private final CredentialLoader credentialLoader;
+  private final DependencyUrlLoader dependencyUrlLoader;
 
   private final OkHttpClient singletonHttpClient;
-  private final String cromwellUri;
 
   public CromwellClient(
       CromwellServerConfiguration cromwellServerConfiguration,
-      CredentialLoader credentialLoader,
-      String cromwellUri) {
+      DependencyUrlLoader dependencyUrlLoader) {
     this.cromwellServerConfiguration = cromwellServerConfiguration;
-    this.credentialLoader = credentialLoader;
-    this.cromwellUri = cromwellUri;
+    this.dependencyUrlLoader = dependencyUrlLoader;
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public ApiClient getWriteApiClient(String accessToken) {
+  public ApiClient getWriteApiClient(String accessToken) throws DependencyNotAvailableException {
     String uri;
 
     if (!cromwellServerConfiguration.fetchCromwellUrlFromLeo()) {
       uri = cromwellServerConfiguration.baseUri();
     } else {
-      uri = cromwellUri;
+      uri =
+          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
+      ;
     }
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setAccessToken(accessToken);
