@@ -86,7 +86,7 @@ public class RunsApiController implements RunsApi {
 
     // validate request
     UUID runId = body.getWorkflowId();
-    CbasRunStatus resultsStatus = CbasRunStatus.fromValue(body.getState());
+    CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState());
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
       throw new InvalidStatusTypeException(

@@ -21,7 +21,6 @@ import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunResultsRequest;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -252,8 +251,7 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.COMPLETE), any()))
         .thenReturn(new RunResultsUpdateResponse(true, ""));
 
-    var requestBody =
-        new RunResultsRequest().workflowId(returnedRun.runId()).state(RunState.COMPLETE);
+    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Succeeded");
 
     MvcResult result =
         mockMvc
@@ -274,8 +272,7 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
-    var requestBody =
-        new RunResultsRequest().workflowId(returnedRun.runId()).state(RunState.SYSTEM_ERROR);
+    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Failed");
 
     MvcResult result =
         mockMvc
@@ -296,8 +293,7 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
         .thenReturn(new RunResultsUpdateResponse(true, "Failed to update outputs."));
 
-    var requestBody =
-        new RunResultsRequest().workflowId(returnedRun.runId()).state(RunState.SYSTEM_ERROR);
+    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Aborted");
 
     MvcResult result =
         mockMvc
@@ -315,8 +311,7 @@ class TestRunsApiController {
   void runResultsUpdateReturnsForbiddenWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
 
-    var requestBody =
-        new RunResultsRequest().workflowId(updatedRun.runId()).state(RunState.SYSTEM_ERROR);
+    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Aborted");
 
     MvcResult result =
         mockMvc
@@ -334,8 +329,7 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorOnNonTerminalStatus() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
 
-    var requestBody =
-        new RunResultsRequest().workflowId(updatedRun.runId()).state(RunState.INITIALIZING);
+    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("INITIALIZING");
 
     MvcResult result =
         mockMvc
@@ -355,8 +349,8 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
-    var requestBody =
-        new RunResultsRequest().workflowId(updatedRun.runId()).state(RunState.COMPLETE);
+    var requestBody = new RunResultsRequest()
+        .workflowId(updatedRun.runId()).state("Succeeded");
 
     MvcResult result =
         mockMvc

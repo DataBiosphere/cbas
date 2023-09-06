@@ -4,7 +4,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.RunDao;
-import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
@@ -22,10 +21,7 @@ public class RunResultsManager {
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RunResultsManager.class);
 
   public RunResultsManager(
-      RunSetDao runSetDao,
-      RunDao runDao,
-      SmartRunsPoller smartRunsPoller,
-      CromwellService cromwellService) {
+      RunDao runDao, SmartRunsPoller smartRunsPoller, CromwellService cromwellService) {
     this.runDao = runDao;
     this.smartRunsPoller = smartRunsPoller;
     this.cromwellService = cromwellService;

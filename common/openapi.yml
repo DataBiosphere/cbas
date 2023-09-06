@@ -294,7 +294,7 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/RunState'
+          type: string
         outputs:
           type: object
           description: Map of output keys to output values
