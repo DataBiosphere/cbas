@@ -349,8 +349,7 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
-    var requestBody = new RunResultsRequest()
-        .workflowId(updatedRun.runId()).state("Succeeded");
+    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded");
 
     MvcResult result =
         mockMvc

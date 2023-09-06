@@ -30,7 +30,7 @@ public class RunResultsManager {
   public RunResultsUpdateResponse updateResults(
       Run updatableRun, CbasRunStatus status, Object outputs) {
     OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
-    ;
+
     long updateResultsStartNanos = System.nanoTime();
     boolean updateResultsSuccess = false;
 
@@ -39,7 +39,10 @@ public class RunResultsManager {
       if (updatableRun.status() != updatedRunState) {
         ArrayList<String> errors = new ArrayList<>();
 
-        if (updatedRunState == CbasRunStatus.COMPLETE) {
+        if (updatedRunState == CbasRunStatus.COMPLETE && outputs != null) {
+          // Assuming that outputs should be saved only if passed via results.
+          // If outputs were not passed with results,
+          // Then no explicit pull for outputs from Cromwell will be made.
           String errorMessage = saveRunOutputs(updatableRun, outputs);
           if (errorMessage != null && !errorMessage.isEmpty()) {
             errors.add(errorMessage);
@@ -51,6 +54,7 @@ public class RunResultsManager {
             errors.addAll(cromwellErrors);
           }
         }
+
         // Save the updated run record in database
         logger.info(
             "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
@@ -73,17 +77,19 @@ public class RunResultsManager {
                   updatableRun.errorMessages());
         }
         if (changes == 1) {
+          updateResultsSuccess = true;
           updatableRun =
               updatableRun
                   .withStatus(updatedRunState)
                   .withLastModified(engineChangedTimestamp)
                   .withLastPolled(OffsetDateTime.now());
         } else {
-          logger.warn(
-              "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              updatedRunState);
+          String databaseUpdateErrorMessage =
+              "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."
+                  .formatted(updatableRun.runId(), updatableRun.status(), updatedRunState);
+          logger.warn(databaseUpdateErrorMessage);
+          // Overriding all previous errors as they are not relevant for the reported result.
+          updatableRun = updatableRun.withErrorMessages(databaseUpdateErrorMessage);
         }
       } else {
         // if run status hasn't changed, only update last polled(modified) timestamp
@@ -102,6 +108,9 @@ public class RunResultsManager {
     return new RunResultsUpdateResponse(updateResultsSuccess, updatableRun.errorMessages());
   }
 
+  /*
+   The method checks if output definitions are associated with run and makes updates
+  */
   private String saveRunOutputs(Run updatableRun, Object outputs) {
     try {
       // we only write back output attributes to WDS if output definition is not empty.
