@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 public record LeonardoServerConfiguration(
     String baseUri,
     List<AppType> wdsAppTypeNames,
+    List<AppType> cromwellRunnerAppTypeNames,
     Duration dependencyUrlCacheTtl,
     Boolean debugApiLogging) {
 
@@ -21,13 +22,16 @@ public record LeonardoServerConfiguration(
   public LeonardoServerConfiguration(
       String baseUri,
       List<String> wdsAppTypeNames,
+      List<String> cromwellRunnerAppTypeNames,
       long dependencyUrlCacheTtlSeconds,
       Boolean debugApiLogging) {
     this(
         baseUri,
         wdsAppTypeNames.stream().map(AppType::fromValue).toList(),
+        cromwellRunnerAppTypeNames.stream().map(AppType::fromValue).toList(),
         Duration.ofSeconds(dependencyUrlCacheTtlSeconds),
         debugApiLogging);
     log.info("Setting wdsAppTypes={}", wdsAppTypeNames);
+    log.info("Setting cromwellRunnerAppTypeNames={}", cromwellRunnerAppTypeNames);
   }
 }

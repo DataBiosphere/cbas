@@ -56,8 +56,11 @@ cbas:
 
 workflow-engines:
   cromwell:
+    # This value comes from the config.
+    baseUri: "http://localhost:8000"
+    # Set this value to false for local testing.
+    fetchCromwellUrlFromLeo: true
     # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
-    # baseUri: "http://localhost:8000"
     debugApiLogging: false
 
 wds:
@@ -69,7 +72,10 @@ wds:
 
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
-  wdsAppTypeNames: ['WDS', 'CROMWELL']
+  # The below appTypeNames are in priority order for the named app type. This order is necessary for
+  # the appComparisonFunction() located in AppUtils.java for selecting the best app for each app type.
+  wdsAppTypeNames: ['WDS', 'CROMWELL'] # keeping CROMWELL type for backwards compatibility
+  cromwellRunnerAppTypeNames: ['CROMWELL_RUNNER_APP', 'CROMWELL'] # keeping CROMWELL type for backwards compatibility
   dependencyUrlCacheTtlSeconds: 300 # Refresh every 5 minutes
   debugApiLogging: false
 

@@ -54,7 +54,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest
 @ContextConfiguration(
-    classes = {RunSetsApiController.class, MethodsApiController.class, CbasApiConfiguration.class})
+    classes = {
+      RunSetsApiController.class,
+      MethodsApiController.class,
+      CbasApiConfiguration.class,
+      GlobalExceptionHandler.class
+    })
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowInputs=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowOutputs=40")
@@ -104,6 +109,21 @@ class VerifyPactsAllControllers {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
+  @State({"user has read permission"})
+  public void setReadPermission() throws Exception {
+    when(samService.hasReadPermission()).thenReturn(true);
+  }
+
+  @State({"user has write permission"})
+  public void setWritePermission() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+  }
+
+  @State({"user has compute permission"})
+  public void setComputePermission() throws Exception {
+    when(samService.hasComputePermission()).thenReturn(true);
+  }
+
   @State({"ready to fetch recordId FOO1 from recordType FOO from wdsService"})
   public void initializeFooDataTable() throws Exception {
 
@@ -132,8 +152,6 @@ class VerifyPactsAllControllers {
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl");
 
     // Arrange DAO responses
-    when(samService.hasWritePermission()).thenReturn(true);
-
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
@@ -167,7 +185,6 @@ class VerifyPactsAllControllers {
     when(samService.getSamUser())
         .thenReturn(
             new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
-    when(samService.hasComputePermission()).thenReturn(true);
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
@@ -219,8 +236,6 @@ class VerifyPactsAllControllers {
 
     List<RunSet> response = List.of(targetRunSet);
 
-    when(samService.hasReadPermission()).thenReturn(true);
-
     when(runSetDao.getRunSetWithMethodId(
             eq(UUID.fromString("00000000-0000-0000-0000-000000000009"))))
         .thenReturn(targetRunSet);
@@ -267,8 +282,6 @@ class VerifyPactsAllControllers {
     AbortRequestDetails abortDetails = new AbortRequestDetails();
     abortDetails.setFailedIds(List.of());
     abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
-
-    when(samService.hasComputePermission()).thenReturn(true);
 
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))

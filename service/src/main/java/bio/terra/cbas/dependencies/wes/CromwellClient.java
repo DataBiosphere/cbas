@@ -8,6 +8,8 @@ import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
+import cromwell.client.api.WomtoolApi;
+import cromwell.client.api.WorkflowsApi;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.springframework.stereotype.Component;
@@ -31,18 +33,31 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  private ApiClient getApiClient()
+  public ApiClient getWriteApiClient()
       throws DependencyNotAvailableException, AzureAccessTokenException {
     String uri;
 
-    if (cromwellServerConfiguration.baseUri() != null) {
+    if (!cromwellServerConfiguration.fetchCromwellUrlFromLeo()) {
       uri = cromwellServerConfiguration.baseUri();
     } else {
       uri =
           dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
     }
-
     ApiClient apiClient = new ApiClient().setBasePath(uri);
+    apiClient.setHttpClient(singletonHttpClient);
+    apiClient.addDefaultHeader(
+        "Authorization",
+        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    // By closing the connection after each request, we avoid the problem of the open connection
+    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
+    apiClient.addDefaultHeader("Connection", "close");
+    apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
+    return apiClient;
+  }
+
+  public ApiClient getReadApiClient() throws AzureAccessTokenException {
+
+    ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
     apiClient.setHttpClient(singletonHttpClient);
     apiClient.addDefaultHeader(
         "Authorization",
@@ -58,12 +73,19 @@ public class CromwellClient {
     return Optional.ofNullable(this.cromwellServerConfiguration.finalWorkflowLogDir());
   }
 
-  public Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesAPI()
-      throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(getApiClient());
+  public Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesAPI(ApiClient apiClient) {
+    return new Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi(apiClient);
   }
 
-  public EngineApi engineApi() throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new EngineApi(getApiClient());
+  public EngineApi engineApi(ApiClient apiClient) {
+    return new EngineApi(apiClient);
+  }
+
+  public WorkflowsApi workflowsApi(ApiClient apiClient) {
+    return new WorkflowsApi(apiClient);
+  }
+
+  public WomtoolApi womtoolApi(ApiClient apiClient) {
+    return new WomtoolApi(apiClient);
   }
 }
