@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.wes;
 
 import static bio.terra.cbas.api.RunsApi.log;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
@@ -56,8 +55,7 @@ public class CromwellService implements HealthCheck {
             null);
   }
 
-  public WorkflowQueryResult runSummary(String runId)
-      throws ApiException, AzureAccessTokenException {
+  public WorkflowQueryResult runSummary(String runId) throws ApiException {
     ApiClient client = cromwellClient.getReadApiClient(bearerToken.getToken());
     var queryResults =
         cromwellClient
@@ -91,8 +89,7 @@ public class CromwellService implements HealthCheck {
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
-  public WorkflowDescription describeWorkflow(String workflowUrl)
-      throws ApiException, AzureAccessTokenException {
+  public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
     ApiClient client = cromwellClient.getReadApiClient();
     return cromwellClient
         .womtoolApi(client)
