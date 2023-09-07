@@ -89,6 +89,53 @@ class TestRunResultsManagerUnit {
   }
 
   @Test
+  void updateRunResultsNoStatusChangeNoOutputsUpdateDateTime() throws JsonProcessingException {
+    RunResultsManager runResultsManager =
+        new RunResultsManager(runDao, smartRunsPoller, cromwellService);
+
+    UUID runId1 = UUID.randomUUID();
+    Run run1Incomplete = createTestRun(runId1, COMPLETE);
+
+    // Set up mocks:
+    when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
+    when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(1);
+
+    // Run the results update:
+    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, null);
+
+    // Validate the results:
+    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    verify(runDao, times(1)).updateLastPolledTimestamp(runId1);
+    verify(smartRunsPoller, times(0)).hasOutputDefinition(run1Incomplete);
+    assertEquals(new RunResultsUpdateResponse(true, null), result);
+  }
+
+  @Test
+  void updateRunResultsNoStatusChangeNoOutputsUpdateDateTimeNoRecord()
+      throws JsonProcessingException {
+    RunResultsManager runResultsManager =
+        new RunResultsManager(runDao, smartRunsPoller, cromwellService);
+
+    UUID runId1 = UUID.randomUUID();
+    Run run1Incomplete = createTestRun(runId1, COMPLETE);
+
+    // Set up mocks:
+    when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
+    when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(0);
+
+    // Run the results update:
+    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, null);
+
+    // Validate the results:
+    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    verify(runDao, times(1)).updateLastPolledTimestamp(runId1);
+    verify(smartRunsPoller, times(0)).hasOutputDefinition(run1Incomplete);
+    assertEquals(new RunResultsUpdateResponse(true, null), result);
+  }
+
+  @Test
   void updateRunResultsSucceededNoOutputsNoRecordsToUpdate() throws JsonProcessingException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
@@ -146,6 +193,34 @@ class TestRunResultsManagerUnit {
   }
 
   @Test
+  void updateRunResultsSucceededWithEmptyOutputsSavedWarns()
+      throws JsonProcessingException, WdsServiceException, OutputProcessingException,
+          CoercionException {
+    RunResultsManager runResultsManager =
+        new RunResultsManager(runDao, smartRunsPoller, cromwellService);
+
+    UUID runId1 = UUID.randomUUID();
+    Run run1Incomplete = createTestRun(runId1, RUNNING);
+
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+    Object cromwellOutputs = object.fromJson(emptyOutputs, RunLog.class).getOutputs();
+
+    // Set up mocks:
+    when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
+    when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
+        .thenReturn(1);
+    when(smartRunsPoller.hasOutputDefinition(run1Incomplete)).thenReturn(true);
+    // Run the results update:
+    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
+    // Validate the results:
+    verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
+    assertEquals(new RunResultsUpdateResponse(true, null), result);
+  }
+
+  @Test
   void updateRunResultsSucceededWithOutputsErrorProcessingSavedRecord()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
           CoercionException {
@@ -175,19 +250,13 @@ class TestRunResultsManagerUnit {
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
     verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
 
-    assertEquals(
-        new RunResultsUpdateResponse(
-            true,
-            "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Output processing error"
-                .formatted(
-                    run1Incomplete.recordId(), run1Incomplete.runId(), run1Incomplete.engineId())),
-        result);
+    assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
 
   @Test
-  void updateRunResultsSucceededWithEmptyOutputsSavedWarns()
+  void updateRunResultsFailedErrorsPulled()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
-          CoercionException {
+          CoercionException, ApiException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
 
@@ -200,17 +269,18 @@ class TestRunResultsManagerUnit {
 
     // Set up mocks:
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
-    when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
+    when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
-    when(smartRunsPoller.hasOutputDefinition(run1Incomplete)).thenReturn(true);
+    when(cromwellService.getRunErrors(run1Incomplete)).thenReturn("Run execution error");
 
     // Run the results update:
-    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
+    var result = runResultsManager.updateResults(run1Incomplete, SYSTEM_ERROR, cromwellOutputs);
 
     // Validate the results:
-    verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
-    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
-    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
+    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(1))
+        .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
+    verify(smartRunsPoller, times(0)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
 

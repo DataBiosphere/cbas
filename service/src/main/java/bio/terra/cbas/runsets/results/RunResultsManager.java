@@ -145,6 +145,7 @@ public class RunResultsManager {
   private RunResultsUpdateResponse updateDatabaseRunStatus(
       Run updatableRun, CbasRunStatus updatedRunState, ArrayList<String> errors) {
     OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
+    String databaseUpdateErrorMessage = null;
     boolean updateResultsSuccess = false;
     int changes;
 
@@ -181,13 +182,11 @@ public class RunResultsManager {
               .withLastModified(engineChangedTimestamp)
               .withLastPolled(OffsetDateTime.now());
     } else {
-      String databaseUpdateErrorMessage =
+      databaseUpdateErrorMessage =
           "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."
               .formatted(updatableRun.runId(), updatableRun.status(), updatedRunState);
       logger.warn(databaseUpdateErrorMessage);
-      // Overriding all previous errors as they are not relevant for the reported result.
-      updatableRun = updatableRun.withErrorMessages(databaseUpdateErrorMessage);
     }
-    return new RunResultsUpdateResponse(updateResultsSuccess, updatableRun.errorMessages());
+    return new RunResultsUpdateResponse(updateResultsSuccess, databaseUpdateErrorMessage);
   }
 }
