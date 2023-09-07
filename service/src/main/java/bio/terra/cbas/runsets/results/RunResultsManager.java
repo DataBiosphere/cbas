@@ -31,7 +31,7 @@ public class RunResultsManager {
       Run updatableRun, CbasRunStatus status, Object outputs) {
     long updateResultsStartNanos = System.nanoTime();
     boolean updateResultsSuccess = false;
-    RunResultsUpdateResponse response = null;
+    RunResultsUpdateResponse response;
 
     try {
       var updatedRunState = status;
@@ -176,11 +176,6 @@ public class RunResultsManager {
     }
     if (changes == 1) {
       updateResultsSuccess = true;
-      updatableRun =
-          updatableRun
-              .withStatus(updatedRunState)
-              .withLastModified(engineChangedTimestamp)
-              .withLastPolled(OffsetDateTime.now());
     } else {
       databaseUpdateErrorMessage =
           "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."

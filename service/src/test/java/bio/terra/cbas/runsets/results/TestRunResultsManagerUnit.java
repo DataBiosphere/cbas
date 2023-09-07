@@ -240,15 +240,13 @@ class TestRunResultsManagerUnit {
         .when(smartRunsPoller)
         .updateOutputAttributes(run1Incomplete, cromwellOutputs);
     // Run the results update:
-    var result =
-        runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
+    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(1))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
-    verify(smartRunsPoller, times(1))
-        .updateOutputAttributes(run1Incomplete, cromwellOutputs);
+    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
 
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
