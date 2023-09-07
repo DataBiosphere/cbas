@@ -7,45 +7,39 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = RunResultsManager.class)
-public class TestRunResultsUpdateResponse {
+class TestRunResultsUpdateResponse {
 
   @Test
   void toHttpStatusSuccess() {
-    RunResultsUpdateResponse response = new RunResultsUpdateResponse(true, null);
-    HttpStatus httpStatus = response.toHttpStatus();
-    // Validate the result
-    assertEquals(HttpStatus.OK, httpStatus);
+    assertHttpStatus(HttpStatus.OK, true, null);
   }
 
   @Test
   void toHttpStatusNoMessagesSuccess() {
-    RunResultsUpdateResponse response = new RunResultsUpdateResponse(true, "");
-    HttpStatus httpStatus = response.toHttpStatus();
-    // Validate the result
-    assertEquals(HttpStatus.OK, httpStatus);
+    assertHttpStatus(HttpStatus.OK, true, "");
   }
 
   @Test
   void toHttpStatusErrorMessages() {
-    RunResultsUpdateResponse response = new RunResultsUpdateResponse(true, "error");
-    HttpStatus httpStatus = response.toHttpStatus();
-    // Validate the result
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, httpStatus);
+    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, true, "error");
   }
 
   @Test
   void toHttpStatusNoSuccessErrorMessages() {
-    RunResultsUpdateResponse response = new RunResultsUpdateResponse(false, "error");
-    HttpStatus httpStatus = response.toHttpStatus();
-    // Validate the result
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, httpStatus);
+    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, false, "error");
   }
 
   @Test
   void toHttpStatusNoSuccessNoErrorMessages() {
-    RunResultsUpdateResponse response = new RunResultsUpdateResponse(false, "");
+    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
+  }
+
+  private void assertHttpStatus(
+      HttpStatus expectedHttpStatus, boolean responseSuccess, String responseErrorMessage) {
+    RunResultsUpdateResponse response =
+        new RunResultsUpdateResponse(responseSuccess, responseErrorMessage);
     HttpStatus httpStatus = response.toHttpStatus();
     // Validate the result
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, httpStatus);
+    assertEquals(expectedHttpStatus, httpStatus);
   }
 }

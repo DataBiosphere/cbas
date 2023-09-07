@@ -90,15 +90,15 @@ public class RunsApiController implements RunsApi {
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
       throw new InvalidStatusTypeException(
-          String.format(
-              "Results can not be posted for a non-terminal workflow state {}.", resultsStatus));
+          "Results can not be posted for a non-terminal workflow state %s."
+              .formatted(resultsStatus));
     }
 
     // lookup runID in database
     Optional<Run> runRecord =
         runDao.getRuns(new RunDao.RunsFilters(runId, null)).stream().findFirst();
     if (!runRecord.isPresent()) {
-      throw new RunNotFoundException(String.format("Workflow ID {} is not found.", runId));
+      throw new RunNotFoundException("Workflow ID %s is not found.".formatted(runId));
     }
 
     // perform workflow completion work

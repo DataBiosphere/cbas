@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = RunResultsManager.class)
-public class TestRunResultsManagerUnit {
+class TestRunResultsManagerUnit {
 
   private SmartRunsPoller smartRunsPoller;
   private CromwellService cromwellService;
@@ -84,7 +84,7 @@ public class TestRunResultsManagerUnit {
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), eq(COMPLETE), any(), anyString());
-    verify(smartRunsPoller, times(0)).hasOutputDefinition(eq(run1Incomplete));
+    verify(smartRunsPoller, times(0)).hasOutputDefinition(run1Incomplete);
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
 
@@ -107,7 +107,7 @@ public class TestRunResultsManagerUnit {
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), eq(COMPLETE), any(), anyString());
-    verify(smartRunsPoller, times(0)).hasOutputDefinition(eq(run1Incomplete));
+    verify(smartRunsPoller, times(0)).hasOutputDefinition(run1Incomplete);
     assertEquals(
         new RunResultsUpdateResponse(
             false,
@@ -134,23 +134,21 @@ public class TestRunResultsManagerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(1);
-    when(smartRunsPoller.hasOutputDefinition(eq(run1Incomplete))).thenReturn(true);
+    when(smartRunsPoller.hasOutputDefinition(run1Incomplete)).thenReturn(true);
     // Run the results update:
     var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
-    verify(smartRunsPoller, times(1))
-        .updateOutputAttributes(eq(run1Incomplete), eq(cromwellOutputs));
+    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
 
   @Test
   void updateRunResultsSucceededWithOutputsErrorProcessingSavedRecord()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
-          DependencyNotAvailableException, CoercionException, AzureAccessTokenException,
-          ApiException {
+          CoercionException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
 
@@ -164,10 +162,10 @@ public class TestRunResultsManagerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
-    when(smartRunsPoller.hasOutputDefinition(eq(run1Incomplete))).thenReturn(true);
+    when(smartRunsPoller.hasOutputDefinition(run1Incomplete)).thenReturn(true);
     doThrow(new OutputProcessingException("Output processing error"))
         .when(smartRunsPoller)
-        .updateOutputAttributes(eq(run1Incomplete), eq(cromwellOutputs));
+        .updateOutputAttributes(run1Incomplete, cromwellOutputs);
     // Run the results update:
     var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
 
@@ -175,8 +173,7 @@ public class TestRunResultsManagerUnit {
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(1))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
-    verify(smartRunsPoller, times(1))
-        .updateOutputAttributes(eq(run1Incomplete), eq(cromwellOutputs));
+    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
 
     assertEquals(
         new RunResultsUpdateResponse(
@@ -190,8 +187,7 @@ public class TestRunResultsManagerUnit {
   @Test
   void updateRunResultsSucceededWithEmptyOutputsSavedWarns()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
-          DependencyNotAvailableException, CoercionException, AzureAccessTokenException,
-          ApiException {
+          CoercionException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
 
@@ -206,15 +202,15 @@ public class TestRunResultsManagerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(1);
-    when(smartRunsPoller.hasOutputDefinition(eq(run1Incomplete))).thenReturn(true);
+    when(smartRunsPoller.hasOutputDefinition(run1Incomplete)).thenReturn(true);
 
     // Run the results update:
     var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
-    verify(smartRunsPoller, times(1))
-        .updateOutputAttributes(eq(run1Incomplete), eq(cromwellOutputs));
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
 

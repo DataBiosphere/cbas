@@ -5,8 +5,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
 import bio.terra.cbas.common.MetricsUtil;
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
@@ -68,8 +66,8 @@ public class SmartRunsPoller {
   }
 
   public void updateOutputAttributes(Run run, Object outputs)
-      throws ApiException, JsonProcessingException, WdsServiceException, CoercionException,
-          OutputProcessingException, DependencyNotAvailableException, AzureAccessTokenException {
+      throws JsonProcessingException, WdsServiceException, CoercionException,
+          OutputProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);

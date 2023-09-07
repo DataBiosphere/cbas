@@ -29,9 +29,10 @@ public class RunResultsManager {
 
   public RunResultsUpdateResponse updateResults(
       Run updatableRun, CbasRunStatus status, Object outputs) {
-    OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
     long updateResultsStartNanos = System.nanoTime();
     boolean updateResultsSuccess = false;
+    RunResultsUpdateResponse response = null;
+
     try {
       var updatedRunState = status;
 
@@ -44,6 +45,7 @@ public class RunResultsManager {
             updatableRun.engineId(),
             updatableRun.status());
         var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
+        updateResultsSuccess = true;
         if (changes != 1) {
           logger.warn(
               "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
@@ -51,8 +53,9 @@ public class RunResultsManager {
               updatableRun.status(),
               changes);
         }
-        return new RunResultsUpdateResponse(true, null);
+        response = new RunResultsUpdateResponse(updateResultsSuccess, updatableRun.errorMessages());
       } else {
+        // Pull workflow completion information and save run outputs
         ArrayList<String> errors = new ArrayList<>();
 
         // Saving run outputs for a Successful status only.
@@ -65,6 +68,7 @@ public class RunResultsManager {
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
         } else if (updatedRunState.inErrorState()) {
+          // Pull Cromwell errors for a run
           var cromwellErrors = getRunErrors(updatableRun);
           if (!cromwellErrors.isEmpty()) {
             errors.addAll(cromwellErrors);
@@ -72,52 +76,12 @@ public class RunResultsManager {
         }
 
         // Save the updated run record in database.
-        int changes;
-        if (errors.isEmpty()) {
-          logger.info(
-              "Updating status of Run {} (engine ID {}) from {} to {} with no errors",
-              updatableRun.runId(),
-              updatableRun.engineId(),
-              updatableRun.status(),
-              updatedRunState);
-          changes =
-              runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineChangedTimestamp);
-        } else {
-          logger.info(
-              "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
-              updatableRun.runId(),
-              updatableRun.engineId(),
-              updatableRun.status(),
-              updatedRunState,
-              errors.size());
-          updatableRun = updatableRun.withErrorMessages(String.join(", ", errors));
-          changes =
-              runDao.updateRunStatusWithError(
-                  updatableRun.runId(),
-                  updatedRunState,
-                  engineChangedTimestamp,
-                  updatableRun.errorMessages());
-        }
-        if (changes == 1) {
-          updateResultsSuccess = true;
-          updatableRun =
-              updatableRun
-                  .withStatus(updatedRunState)
-                  .withLastModified(engineChangedTimestamp)
-                  .withLastPolled(OffsetDateTime.now());
-        } else {
-          String databaseUpdateErrorMessage =
-              "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."
-                  .formatted(updatableRun.runId(), updatableRun.status(), updatedRunState);
-          logger.warn(databaseUpdateErrorMessage);
-          // Overriding all previous errors as they are not relevant for the reported result.
-          updatableRun = updatableRun.withErrorMessages(databaseUpdateErrorMessage);
-        }
+        response = updateDatabaseRunStatus(updatableRun, updatedRunState, errors);
       }
     } finally {
       recordMethodCompletion(updateResultsStartNanos, updateResultsSuccess);
     }
-    return new RunResultsUpdateResponse(updateResultsSuccess, updatableRun.errorMessages());
+    return response;
   }
 
   /*
@@ -176,5 +140,54 @@ public class RunResultsManager {
       errors.add(errorMessage);
     }
     return errors;
+  }
+
+  private RunResultsUpdateResponse updateDatabaseRunStatus(
+      Run updatableRun, CbasRunStatus updatedRunState, ArrayList<String> errors) {
+    OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
+    boolean updateResultsSuccess = false;
+    int changes;
+
+    if (errors.isEmpty()) {
+      logger.info(
+          "Updating status of Run {} (engine ID {}) from {} to {} with no errors",
+          updatableRun.runId(),
+          updatableRun.engineId(),
+          updatableRun.status(),
+          updatedRunState);
+      changes =
+          runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineChangedTimestamp);
+    } else {
+      logger.info(
+          "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
+          updatableRun.runId(),
+          updatableRun.engineId(),
+          updatableRun.status(),
+          updatedRunState,
+          errors.size());
+      updatableRun = updatableRun.withErrorMessages(String.join(", ", errors));
+      changes =
+          runDao.updateRunStatusWithError(
+              updatableRun.runId(),
+              updatedRunState,
+              engineChangedTimestamp,
+              updatableRun.errorMessages());
+    }
+    if (changes == 1) {
+      updateResultsSuccess = true;
+      updatableRun =
+          updatableRun
+              .withStatus(updatedRunState)
+              .withLastModified(engineChangedTimestamp)
+              .withLastPolled(OffsetDateTime.now());
+    } else {
+      String databaseUpdateErrorMessage =
+          "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."
+              .formatted(updatableRun.runId(), updatableRun.status(), updatedRunState);
+      logger.warn(databaseUpdateErrorMessage);
+      // Overriding all previous errors as they are not relevant for the reported result.
+      updatableRun = updatableRun.withErrorMessages(databaseUpdateErrorMessage);
+    }
+    return new RunResultsUpdateResponse(updateResultsSuccess, updatableRun.errorMessages());
   }
 }
