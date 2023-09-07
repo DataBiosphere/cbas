@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
@@ -166,8 +165,7 @@ class TestRunResultsManagerUnit {
   @Test
   void updateRunResultsSucceededWithOutputsSaved()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
-          DependencyNotAvailableException, CoercionException, AzureAccessTokenException,
-          ApiException {
+          CoercionException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
 
@@ -242,13 +240,15 @@ class TestRunResultsManagerUnit {
         .when(smartRunsPoller)
         .updateOutputAttributes(run1Incomplete, cromwellOutputs);
     // Run the results update:
-    var result = runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
+    var result =
+        runResultsManager.updateResults(run1Incomplete, COMPLETE, cromwellOutputs);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(1))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
-    verify(smartRunsPoller, times(1)).updateOutputAttributes(run1Incomplete, cromwellOutputs);
+    verify(smartRunsPoller, times(1))
+        .updateOutputAttributes(run1Incomplete, cromwellOutputs);
 
     assertEquals(new RunResultsUpdateResponse(true, null), result);
   }
@@ -256,7 +256,7 @@ class TestRunResultsManagerUnit {
   @Test
   void updateRunResultsFailedErrorsPulled()
       throws JsonProcessingException, WdsServiceException, OutputProcessingException,
-          CoercionException, ApiException {
+          CoercionException, ApiException, AzureAccessTokenException {
     RunResultsManager runResultsManager =
         new RunResultsManager(runDao, smartRunsPoller, cromwellService);
 
