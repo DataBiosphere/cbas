@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.wes;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
@@ -37,7 +36,6 @@ public class CromwellClient {
     } else {
       uri =
           dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
-      ;
     }
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setAccessToken(accessToken);
@@ -49,7 +47,7 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getReadApiClient() throws AzureAccessTokenException {
+  public ApiClient getReadApiClient() {
 
     ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
     apiClient.setHttpClient(singletonHttpClient);
@@ -60,7 +58,7 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getReadApiClient(String accessToken) throws AzureAccessTokenException {
+  public ApiClient getReadApiClient(String accessToken) {
     ApiClient apiClient = getReadApiClient();
     apiClient.setAccessToken(accessToken);
     return apiClient;

@@ -3,7 +3,6 @@ package bio.terra.cbas.dependencies.wes;
 import static bio.terra.cbas.api.RunsApi.log;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
@@ -43,8 +42,7 @@ public class CromwellService implements HealthCheck {
 
   public RunId submitWorkflow(
       String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
-      throws ApiException, JsonProcessingException, DependencyNotAvailableException,
-          AzureAccessTokenException {
+      throws ApiException, JsonProcessingException {
 
     return cromwellClient
         .wesAPI(cromwellWriteClient)
@@ -87,21 +85,21 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public Object getOutputs(String id) throws ApiException, AzureAccessTokenException {
+  public Object getOutputs(String id) throws ApiException {
     ApiClient client = cromwellClient.getReadApiClient();
 
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl)
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+      throws ApiException, AzureAccessTokenException {
     ApiClient client = cromwellClient.getReadApiClient();
     return cromwellClient
         .womtoolApi(client)
         .describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
-  public String getRunErrors(Run run) throws ApiException, AzureAccessTokenException {
+  public String getRunErrors(Run run) throws ApiException {
 
     ApiClient client = cromwellClient.getReadApiClient();
 
@@ -181,8 +179,7 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run)
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  public void cancelRun(Run run) throws ApiException {
     cromwellClient.wesAPI(cromwellWriteClient).cancelRun(run.engineId());
   }
 
@@ -193,7 +190,7 @@ public class CromwellService implements HealthCheck {
       // No response, the successful return code is the important thing:
       cromwellClient.engineApi(client).engineStatus("v1");
       return new Result(true, "Cromwell was reachable");
-    } catch (ApiException | AzureAccessTokenException e) {
+    } catch (ApiException e) {
       return new Result(false, e.getMessage());
     }
   }

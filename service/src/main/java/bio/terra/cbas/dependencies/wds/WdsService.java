@@ -19,8 +19,6 @@ public class WdsService {
 
   private final RetryTemplate listenerResetRetryTemplate;
 
-  private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WdsService.class);
-
   public WdsService(
       WdsClient wdsClient,
       WdsServerConfiguration wdsServerConfiguration,
@@ -61,20 +59,6 @@ public class WdsService {
           return null;
         });
   }
-
-  //  @Override
-  //  public Result checkHealth() {
-  //    try {
-  //      VersionResponse result =
-  //          executionWithRetryTemplate(
-  //              listenerResetRetryTemplate, () ->
-  // wdsClient.generalWdsInformationApi().versionGet());
-  //      return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
-  //    } catch (WdsServiceException e) {
-  //      logger.error("WDS health check failed", e);
-  //      return new Result(false, e.getMessage());
-  //    }
-  //  }
 
   interface WdsAction<T> {
     T execute() throws ApiException, DependencyNotAvailableException, AzureAccessTokenException;
