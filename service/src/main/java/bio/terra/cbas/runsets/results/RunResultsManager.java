@@ -30,19 +30,35 @@ public class RunResultsManager {
   public RunResultsUpdateResponse updateResults(
       Run updatableRun, CbasRunStatus status, Object outputs) {
     OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
-
     long updateResultsStartNanos = System.nanoTime();
     boolean updateResultsSuccess = false;
-
     try {
       var updatedRunState = status;
-      if (updatableRun.status() != updatedRunState) {
+
+      if (updatableRun.status() == updatedRunState && outputs == null) {
+        // Status is already up-to-date, there are no outputs to save.
+        // Only update last polled timestamp.
+        logger.info(
+            "Update last polled timestamp for Run {} (engine ID {}) in status {}.",
+            updatableRun.runId(),
+            updatableRun.engineId(),
+            updatableRun.status());
+        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
+        if (changes != 1) {
+          logger.warn(
+              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
+              updatableRun.runId(),
+              updatableRun.status(),
+              changes);
+        }
+        return new RunResultsUpdateResponse(true, null);
+      } else {
         ArrayList<String> errors = new ArrayList<>();
 
+        // Saving run outputs for a Successful status only.
         if (updatedRunState == CbasRunStatus.COMPLETE && outputs != null) {
-          // Assuming that outputs should be saved only if passed via results.
-          // If outputs were not passed with results,
-          // Then no explicit pull for outputs from Cromwell will be made.
+          // Assuming that if no outputs were not passed with results,
+          // Then no explicit pull should be made for outputs from Cromwell.
           String errorMessage = saveRunOutputs(updatableRun, outputs);
           if (errorMessage != null && !errorMessage.isEmpty()) {
             errors.add(errorMessage);
@@ -55,19 +71,25 @@ public class RunResultsManager {
           }
         }
 
-        // Save the updated run record in database
-        logger.info(
-            "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
-            updatableRun.runId(),
-            updatableRun.engineId(),
-            updatableRun.status(),
-            updatedRunState,
-            errors.size());
+        // Save the updated run record in database.
         int changes;
         if (errors.isEmpty()) {
+          logger.info(
+              "Updating status of Run {} (engine ID {}) from {} to {} with no errors",
+              updatableRun.runId(),
+              updatableRun.engineId(),
+              updatableRun.status(),
+              updatedRunState);
           changes =
               runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineChangedTimestamp);
         } else {
+          logger.info(
+              "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
+              updatableRun.runId(),
+              updatableRun.engineId(),
+              updatableRun.status(),
+              updatedRunState,
+              errors.size());
           updatableRun = updatableRun.withErrorMessages(String.join(", ", errors));
           changes =
               runDao.updateRunStatusWithError(
@@ -91,16 +113,6 @@ public class RunResultsManager {
           // Overriding all previous errors as they are not relevant for the reported result.
           updatableRun = updatableRun.withErrorMessages(databaseUpdateErrorMessage);
         }
-      } else {
-        // if run status hasn't changed, only update last polled(modified) timestamp
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
-        if (changes != 1) {
-          logger.warn(
-              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              changes);
-        }
       }
     } finally {
       recordMethodCompletion(updateResultsStartNanos, updateResultsSuccess);
@@ -109,7 +121,9 @@ public class RunResultsManager {
   }
 
   /*
-   The method checks if output definitions are associated with run and makes updates
+   The method checks if output definitions are associated with run and makes updates.
+   If outputs passed as arguments are null, but the workflow has the output definitions,
+   then call to Cromwell will be made to pull the outputs.
   */
   private String saveRunOutputs(Run updatableRun, Object outputs) {
     try {
@@ -145,7 +159,9 @@ public class RunResultsManager {
 
   private ArrayList<String> getRunErrors(Run updatableRun) {
     ArrayList<String> errors = new ArrayList<>();
-
+    // This is a copy from SmartRunsPoller until we remove
+    // workflow completion handling from a SmartRunsPoller.
+    // Pending task [WM-2090].
     try {
       // Retrieve error from Cromwell
       String message = cromwellService.getRunErrors(updatableRun);
