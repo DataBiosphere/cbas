@@ -1,8 +1,8 @@
 package bio.terra.cbas.dependencies.wes;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.common.iam.BearerToken;
@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TestCromwellClient {
   @Mock BearerToken bearerToken;
   @Mock DependencyUrlLoader dependencyUrlLoader;
+  @Mock cromwell.client.ApiClient cromwellWriteClient;
 
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
@@ -37,15 +38,14 @@ class TestCromwellClient {
   }
 
   @Test
-  void lookupCromwellUrlWhenNecessary() throws DependencyNotAvailableException {
+  void lookupCromwellUrlWhenNecessary() {
     String cromwellUri = "https://my-cromwell-service:10101/cromwell";
     CromwellServerConfiguration cromwellServerConfiguration =
         new CromwellServerConfiguration(null, true, "workflow/log/dir", false);
 
-    CromwellClient cromwellClient =
-        new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader);
+    ApiClient mockApiClient = cromwellWriteClient;
 
-    ApiClient mockApiClient = cromwellClient.getWriteApiClient(bearerToken.getToken());
+    when(mockApiClient.getBasePath()).thenReturn(cromwellUri);
 
     Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi wesApi =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader).wesAPI(mockApiClient);
