@@ -190,7 +190,7 @@ public class SmartRunsPoller {
   with a workflow completion handling from a SmartRunsPoller.
   Pending task [WM-2090].
    */
-  public ArrayList<String> getWorkflowErrors(Run updatableRun) {
+  public List<String> getWorkflowErrors(Run updatableRun) {
     ArrayList<String> errors = new ArrayList<>();
     try {
       // Retrieve error from Cromwell

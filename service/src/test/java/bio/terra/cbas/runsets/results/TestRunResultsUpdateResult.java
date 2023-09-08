@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = RunResultsManager.class)
-class TestRunResultsUpdateResponse {
+@ContextConfiguration(classes = RunResultsUpdateResult.class)
+class TestRunResultsUpdateResult {
 
   @Test
   void toHttpStatusSuccess() {

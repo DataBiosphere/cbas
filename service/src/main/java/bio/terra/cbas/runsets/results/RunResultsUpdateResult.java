@@ -1,6 +1,5 @@
 package bio.terra.cbas.runsets.results;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import org.springframework.http.HttpStatus;
 
 public enum RunResultsUpdateResult {
@@ -11,11 +10,6 @@ public enum RunResultsUpdateResult {
 
   RunResultsUpdateResult(String value) {
     this.value = value;
-  }
-
-  @JsonValue
-  public String getValue() {
-    return value;
   }
 
   @Override
