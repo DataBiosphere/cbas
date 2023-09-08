@@ -35,7 +35,7 @@ public class WdsService {
         listenerResetRetryTemplate,
         () ->
             wdsClient
-                .recordsApi(bearerToken.getToken())
+                .recordsApi()
                 .getRecord(
                     wdsServerConfiguration.instanceId(),
                     wdsServerConfiguration.apiV(),
@@ -49,7 +49,7 @@ public class WdsService {
         listenerResetRetryTemplate,
         () -> {
           wdsClient
-              .recordsApi(bearerToken.getToken())
+              .recordsApi()
               .updateRecord(
                   request,
                   wdsServerConfiguration.instanceId(),

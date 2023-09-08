@@ -30,8 +30,7 @@ class TestWdsClient {
         .thenReturn("TOKEN");
 
     RecordsApi recordsApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader)
-            .recordsApi(bearerToken.getToken());
+        new WdsClient(wdsServerConfiguration, dependencyUrlLoader, credentialLoader).recordsApi();
 
     assertEquals("http://localhost:8001/wds", recordsApi.getApiClient().getBasePath());
   }

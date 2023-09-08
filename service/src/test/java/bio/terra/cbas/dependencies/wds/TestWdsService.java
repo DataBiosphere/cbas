@@ -36,7 +36,7 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi(bearerToken.getToken())).thenReturn(recordsApi);
+    when(wdsClient.recordsApi()).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new ProcessingException("Processing exception"))
         .thenReturn(expectedResponse);
@@ -58,7 +58,7 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi(bearerToken.getToken())).thenReturn(recordsApi);
+    when(wdsClient.recordsApi()).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new ProcessingException("Processing exception"))
         .thenThrow(new ProcessingException("Processing exception"))
@@ -79,7 +79,7 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi(bearerToken.getToken())).thenReturn(recordsApi);
+    when(wdsClient.recordsApi()).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new RuntimeException("Other exception"));
 
