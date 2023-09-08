@@ -7,20 +7,16 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.RetryConfig;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.common.iam.BearerToken;
 import java.util.UUID;
 import javax.ws.rs.ProcessingException;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TestWdsService {
-
-  @Mock BearerToken bearerToken;
   final String baseUri = "http://baseurl.com";
   final String instanceId = UUID.randomUUID().toString();
   final String apiV = "v1";
@@ -42,11 +38,7 @@ class TestWdsService {
         .thenReturn(expectedResponse);
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
 
     assertEquals(expectedResponse, wdsService.getRecord("FOO", "foo1"));
   }
@@ -65,11 +57,7 @@ class TestWdsService {
         .thenThrow(new ProcessingException("Processing exception"));
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
 
     assertThrows(ProcessingException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }
@@ -84,11 +72,7 @@ class TestWdsService {
         .thenThrow(new RuntimeException("Other exception"));
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
 
     assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }

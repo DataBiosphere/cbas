@@ -3,7 +3,6 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.common.iam.BearerToken;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -15,19 +14,15 @@ public class WdsService {
 
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
-  private final BearerToken bearerToken;
-
   private final RetryTemplate listenerResetRetryTemplate;
 
   public WdsService(
       WdsClient wdsClient,
       WdsServerConfiguration wdsServerConfiguration,
-      RetryTemplate listenerResetRetryTemplate,
-      BearerToken bearerToken) {
+      RetryTemplate listenerResetRetryTemplate) {
     this.wdsClient = wdsClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.listenerResetRetryTemplate = listenerResetRetryTemplate;
-    this.bearerToken = bearerToken;
   }
 
   public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {

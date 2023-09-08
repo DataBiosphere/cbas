@@ -31,7 +31,8 @@ public class ScheduledHealthChecker {
     this.healthCheckSystems =
         Map.of(
             "leonardo", leonardoService,
-            "sam", samService);
+            "sam", samService,
+            "cromwell", cromwellService);
   }
 
   @Scheduled(

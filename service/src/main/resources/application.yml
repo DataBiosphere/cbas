@@ -1,6 +1,5 @@
 logging:
   level.bio.terra.cbas: ${BATCHANALYSIS_LOG_LEVEL:info}
-  pattern.level: '%X{requestId} %5p'
 
 server:
   compression:
