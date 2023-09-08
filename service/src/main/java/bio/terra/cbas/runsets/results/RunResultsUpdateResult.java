@@ -7,7 +7,7 @@ public enum RunResultsUpdateResult {
   SUCCESS("UPDATED_SUCCESSFULLY"),
   ERROR("RETRIABLE_ERROR"),
   FATAL("FATAL_ERROR");
-  private String value;
+  private final String value;
 
   RunResultsUpdateResult(String value) {
     this.value = value;
@@ -24,7 +24,7 @@ public enum RunResultsUpdateResult {
   }
 
   public HttpStatus toHttpStatus() {
-    if (SUCCESS.toString() == this.value) {
+    if (SUCCESS.toString().equalsIgnoreCase(this.value)) {
       return HttpStatus.OK;
     } else {
       return HttpStatus.INTERNAL_SERVER_ERROR;

@@ -280,9 +280,7 @@ class TestRunResultsManagerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
-    ArrayList<String> errors = new ArrayList<String>();
-    errors.add("Workflow error1");
-    errors.add("Workflow error2");
+    ArrayList<String> errors = createResultGetWorkflowErrors();
     when(smartRunsPoller.getWorkflowErrors(any())).thenReturn(errors);
 
     // Run the results update:
@@ -313,9 +311,7 @@ class TestRunResultsManagerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(0);
-    ArrayList<String> errors = new ArrayList<String>();
-    errors.add("Workflow error1");
-    errors.add("Workflow error2");
+    ArrayList<String> errors = createResultGetWorkflowErrors();
     when(smartRunsPoller.getWorkflowErrors(any())).thenReturn(errors);
 
     // Run the results update:
@@ -336,5 +332,12 @@ class TestRunResultsManagerUnit {
     OffsetDateTime submissionTimestamp1 = DateUtils.currentTimeInUTC();
     return new Run(
         runId, engineId1, null, recordId1, submissionTimestamp1, status, null, null, null);
+  }
+
+  private ArrayList<String> createResultGetWorkflowErrors() {
+    ArrayList<String> errors = new ArrayList<>();
+    errors.add("Workflow error1");
+    errors.add("Workflow error2");
+    return errors;
   }
 }
