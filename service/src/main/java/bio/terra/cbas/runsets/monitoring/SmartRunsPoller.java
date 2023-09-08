@@ -184,6 +184,29 @@ public class SmartRunsPoller {
     }
   }
 
+  /*
+  Method getWorkflowErrors is a reusable code from SmartRunsPoller that we'll move
+  with a workflow completion handling from a SmartRunsPoller.
+  Pending task [WM-2090].
+   */
+  public ArrayList<String> getWorkflowErrors(Run updatableRun) {
+    ArrayList<String> errors = new ArrayList<>();
+    try {
+      // Retrieve error from Cromwell
+      String message = cromwellService.getRunErrors(updatableRun);
+      if (!message.isEmpty()) {
+        errors.add(message);
+      }
+    } catch (Exception e) {
+      String errorMessage =
+          "Error fetching Cromwell-level error from Cromwell for run %s"
+              .formatted(updatableRun.runId());
+      logger.error(errorMessage, e);
+      errors.add(errorMessage);
+    }
+    return errors;
+  }
+
   private Run updateDatabaseRunStatus(
       CbasRunStatus status, OffsetDateTime engineStatusChanged, Run updatableRun) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
@@ -216,18 +239,9 @@ public class SmartRunsPoller {
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
         } else if (updatedRunState.inErrorState()) {
-          try {
-            // Retrieve error from Cromwell
-            String message = cromwellService.getRunErrors(updatableRun);
-            if (!message.isEmpty()) {
-              errors.add(message);
-            }
-          } catch (Exception e) {
-            String errorMessage =
-                "Error fetching Cromwell-level error from Cromwell for run %s"
-                    .formatted(updatableRun.runId());
-            logger.error(errorMessage, e);
-            errors.add(errorMessage);
+          var cromwellErrors = getWorkflowErrors(updatableRun);
+          if (cromwellErrors != null && !cromwellErrors.isEmpty()) {
+            errors.addAll(cromwellErrors);
           }
         }
         logger.info(

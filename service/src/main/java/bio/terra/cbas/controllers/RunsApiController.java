@@ -4,6 +4,7 @@ import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
+import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.sam.SamService;
@@ -15,7 +16,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunResultsManager;
-import bio.terra.cbas.runsets.results.RunResultsUpdateResponse;
+import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -78,12 +79,6 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<Void> postRunResults(RunResultsRequest body) {
-    // validate user permission
-    // check if current user has read permissions on the workspace
-    if (!samService.hasWritePermission()) {
-      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
-    }
-
     // validate request
     UUID runId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState());
@@ -101,9 +96,23 @@ public class RunsApiController implements RunsApi {
       throw new RunNotFoundException("Workflow ID %s is not found.".formatted(runId));
     }
 
+    if (resultsStatus == CbasRunStatus.COMPLETE && body.getOutputs() == null) {
+      throw new MissingRunOutputsException(
+          "Outputs are required for a successfully completed workflow ID %s.".formatted(runId));
+    }
+
+    // validate user permission
+    // check if current user has write permissions on the workspace
+    if (!samService.hasWritePermission()) {
+      // This is a corner case when user got kicked off write permission while running a workflow.
+      // Nor this service, nor API caller can remediate the situation.
+      // Therefore, we update Status in database to SYSTEM_ERROR and return OK response.
+      resultsStatus = CbasRunStatus.SYSTEM_ERROR;
+    }
+
     // perform workflow completion work
-    RunResultsUpdateResponse response =
+    RunResultsUpdateResult result =
         runResultsManager.updateResults(runRecord.get(), resultsStatus, body.getOutputs());
-    return new ResponseEntity<>(response.toHttpStatus());
+    return new ResponseEntity<>(result.toHttpStatus());
   }
 }

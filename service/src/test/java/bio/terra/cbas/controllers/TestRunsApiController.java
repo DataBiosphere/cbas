@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
+import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.sam.SamService;
@@ -30,7 +31,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunResultsManager;
-import bio.terra.cbas.runsets.results.RunResultsUpdateResponse;
+import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -248,10 +249,11 @@ class TestRunsApiController {
   void runResultsUpdateReturnsSuccessOnTerminalStatus() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.COMPLETE), any()))
-        .thenReturn(new RunResultsUpdateResponse(true, ""));
+    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any()))
+        .thenReturn(RunResultsUpdateResult.SUCCESS);
 
-    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Succeeded");
+    var requestBody =
+        new RunResultsRequest().workflowId(returnedRun.runId()).state("Succeeded").outputs("{}");
 
     MvcResult result =
         mockMvc
@@ -291,7 +293,7 @@ class TestRunsApiController {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
-        .thenReturn(new RunResultsUpdateResponse(true, "Failed to update outputs."));
+        .thenReturn(RunResultsUpdateResult.ERROR);
 
     var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Aborted");
 
@@ -308,8 +310,11 @@ class TestRunsApiController {
   }
 
   @Test
-  void runResultsUpdateReturnsForbiddenWhenUserHasNoPermission() throws Exception {
+  void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
+        .thenReturn(RunResultsUpdateResult.SUCCESS);
 
     var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Aborted");
 
@@ -319,7 +324,7 @@ class TestRunsApiController {
                 post(API_RESULTS)
                     .content(objectMapper.writeValueAsString(requestBody))
                     .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isForbidden())
+            .andExpect(status().isOk())
             .andReturn();
 
     assertEquals(0, result.getResponse().getContentLength());
@@ -349,7 +354,8 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
-    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded");
+    var requestBody =
+        new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded").outputs("{}");
 
     MvcResult result =
         mockMvc
@@ -359,6 +365,26 @@ class TestRunsApiController {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isBadRequest())
             .andExpect(r -> assertTrue(r.getResolvedException() instanceof RunNotFoundException))
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(
+                r -> assertTrue(r.getResolvedException() instanceof MissingRunOutputsException))
             .andReturn();
 
     assertEquals(0, result.getResponse().getContentLength());

@@ -11,34 +11,21 @@ class TestRunResultsUpdateResponse {
 
   @Test
   void toHttpStatusSuccess() {
-    assertHttpStatus(HttpStatus.OK, true, null);
-  }
-
-  @Test
-  void toHttpStatusNoMessagesSuccess() {
-    assertHttpStatus(HttpStatus.OK, true, "");
+    assertHttpStatus(HttpStatus.OK, RunResultsUpdateResult.SUCCESS);
   }
 
   @Test
   void toHttpStatusErrorMessages() {
-    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, true, "error");
+    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, RunResultsUpdateResult.ERROR);
   }
 
   @Test
   void toHttpStatusNoSuccessErrorMessages() {
-    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, false, "error");
+    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, RunResultsUpdateResult.FATAL);
   }
 
-  @Test
-  void toHttpStatusNoSuccessNoErrorMessages() {
-    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, false, "");
-  }
-
-  private void assertHttpStatus(
-      HttpStatus expectedHttpStatus, boolean responseSuccess, String responseErrorMessage) {
-    RunResultsUpdateResponse response =
-        new RunResultsUpdateResponse(responseSuccess, responseErrorMessage);
-    HttpStatus httpStatus = response.toHttpStatus();
+  private void assertHttpStatus(HttpStatus expectedHttpStatus, RunResultsUpdateResult result) {
+    HttpStatus httpStatus = result.toHttpStatus();
     // Validate the result
     assertEquals(expectedHttpStatus, httpStatus);
   }
