@@ -9,6 +9,7 @@ import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -233,7 +234,7 @@ public class SmartRunsPoller {
                         updatableRun.recordId(),
                         updatableRun.runId(),
                         updatableRun.engineId(),
-                        e.getMessage());
+                        WdsClientUtils.extractErrorMessage(e.getMessage()));
             logger.error(errorMessage, e);
             errors.add(errorMessage);
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;

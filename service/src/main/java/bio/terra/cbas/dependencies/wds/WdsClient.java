@@ -6,7 +6,7 @@ import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import java.util.Optional;
-import javax.ws.rs.client.Client;
+import okhttp3.OkHttpClient;
 import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
@@ -20,7 +20,7 @@ public class WdsClient {
 
   private final CredentialLoader credentialLoader;
 
-  private final Client singletonHttpClient;
+  private final OkHttpClient singletonHttpClient;
 
   public WdsClient(
       WdsServerConfiguration wdsServerConfiguration,
@@ -29,7 +29,7 @@ public class WdsClient {
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.dependencyUrlLoader = dependencyUrlLoader;
     this.credentialLoader = credentialLoader;
-    singletonHttpClient = new ApiClient().getHttpClient();
+    singletonHttpClient = new ApiClient().getHttpClient().newBuilder().build();
   }
 
   protected ApiClient getApiClient()

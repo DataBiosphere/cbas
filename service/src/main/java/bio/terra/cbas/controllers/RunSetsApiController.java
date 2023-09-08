@@ -26,6 +26,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
+import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
@@ -54,7 +55,6 @@ import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import cromwell.client.model.RunId;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -67,8 +67,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.databiosphere.workspacedata.client.ApiException;
-import org.databiosphere.workspacedata.model.ErrorResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -405,20 +403,6 @@ public class RunSetsApiController implements RunSetsApi {
     return errorList;
   }
 
-  private String getErrorMessage(ApiException exception) {
-    Gson gson = new Gson();
-    try {
-      ErrorResponse error = gson.fromJson(exception.getResponseBody(), ErrorResponse.class);
-      if (error != null) {
-        return error.getMessage();
-      } else {
-        return exception.getMessage();
-      }
-    } catch (Exception e) {
-      return exception.getMessage();
-    }
-  }
-
   private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
     String recordType = request.getWdsRecords().getRecordType();
 
@@ -429,7 +413,7 @@ public class RunSetsApiController implements RunSetsApi {
         recordResponses.add(wdsService.getRecord(recordType, recordId));
       } catch (WdsServiceApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, getErrorMessage(e.getCause()));
+        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
       } catch (WdsServiceException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, e.getMessage());
