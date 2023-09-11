@@ -47,7 +47,7 @@ public class BeanConfig {
   @Bean("cromwellWriteClient")
   @RequestScope
   public cromwell.client.ApiClient cromwellWriteClient(
-      HttpServletRequest request, BearerToken bearerToken, CromwellClient cromwellClient)
+      BearerToken bearerToken, CromwellClient cromwellClient)
       throws DependencyNotAvailableException {
 
     return cromwellClient.getWriteApiClient(bearerToken.getToken());
