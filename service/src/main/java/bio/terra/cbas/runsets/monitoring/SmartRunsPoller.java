@@ -160,7 +160,7 @@ public class SmartRunsPoller {
       recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
     }
 
-    CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+    CbasRunStatus newStatus = CbasRunStatus.UNKNOWN;
     if (newWorkflowSummary != null) {
       newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
     }
