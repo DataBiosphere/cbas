@@ -3,6 +3,7 @@ package bio.terra.cbas.dependencies.leonardo;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
+import bio.terra.common.iam.BearerToken;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
@@ -15,17 +16,21 @@ import org.springframework.stereotype.Component;
 public class LeonardoService implements HealthCheck {
 
   private final LeonardoClient leonardoClient;
+  private final BearerToken bearerToken;
 
   private final WdsServerConfiguration wdsServerConfiguration;
 
   public LeonardoService(
-      LeonardoClient leonardoClient, WdsServerConfiguration wdsServerConfiguration) {
+      LeonardoClient leonardoClient,
+      WdsServerConfiguration wdsServerConfiguration,
+      BearerToken bearerToken) {
     this.leonardoClient = leonardoClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
+    this.bearerToken = bearerToken;
   }
 
   private AppsApi getAppsApi() throws AzureAccessTokenException {
-    return new AppsApi(leonardoClient.getApiClient());
+    return new AppsApi(leonardoClient.getApiClient(bearerToken.getToken()));
   }
 
   private ServiceInfoApi getServiceInfoApi() throws AzureAccessTokenException {

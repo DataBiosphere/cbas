@@ -71,7 +71,7 @@ public class DependencyUrlLoader {
       List<ListAppResponse> allApps = leonardoService.getApps();
       return appUtils.findUrlForCromwell(allApps);
     } catch (ApiException | AzureAccessTokenException e) {
-      throw new DependencyNotAvailableException("Cromwell", "Failed to poll Leonardo for URL", e);
+      throw new DependencyNotAvailableException("CROMWELL", "Failed to poll Leonardo for URL", e);
     }
   }
 

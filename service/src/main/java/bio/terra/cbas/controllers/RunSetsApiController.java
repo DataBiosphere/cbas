@@ -14,8 +14,6 @@ import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
@@ -510,9 +508,7 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn(errorMsg, e);
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, errorMsg + e.getMessage()));
-      } catch (InputProcessingException
-          | AzureAccessTokenException
-          | DependencyNotAvailableException e) {
+      } catch (InputProcessingException e) {
         log.warn(e.getMessage());
         runStateResponseList.add(
             storeRun(runId, null, runSet, record.getId(), SYSTEM_ERROR, e.getMessage()));

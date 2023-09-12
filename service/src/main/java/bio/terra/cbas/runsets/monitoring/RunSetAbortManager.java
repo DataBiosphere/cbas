@@ -3,8 +3,6 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.api.RunSetsApi.log;
 import static bio.terra.cbas.models.CbasRunStatus.NON_TERMINAL_STATES;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -64,8 +62,6 @@ public class RunSetAbortManager {
         failedRunIds.add(run.runId().toString());
         // Add the error message against the run
         run.withErrorMessage(msg);
-      } catch (AzureAccessTokenException | DependencyNotAvailableException e) {
-        log.warn(e.getMessage());
       }
     }
 

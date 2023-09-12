@@ -1,5 +1,7 @@
 package bio.terra.cbas.config;
 
+import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -40,5 +42,14 @@ public class BeanConfig {
   @RequestScope
   public BearerToken bearerToken(HttpServletRequest request) {
     return new BearerTokenFactory().from(request);
+  }
+
+  @Bean("cromwellWriteClient")
+  @RequestScope
+  public cromwell.client.ApiClient cromwellWriteClient(
+      BearerToken bearerToken, CromwellClient cromwellClient)
+      throws DependencyNotAvailableException {
+
+    return cromwellClient.getWriteApiClient(bearerToken.getToken());
   }
 }

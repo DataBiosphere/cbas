@@ -26,4 +26,10 @@ public class LeonardoClient {
     apiClient.setDebugging(leonardoServerConfiguration.debugApiLogging());
     return apiClient;
   }
+
+  public ApiClient getApiClient(String accessToken) throws AzureAccessTokenException {
+    ApiClient apiClient = getApiClient();
+    apiClient.setAccessToken(accessToken);
+    return apiClient;
+  }
 }
