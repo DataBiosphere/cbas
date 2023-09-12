@@ -701,8 +701,7 @@ class TestRunSetsApiController {
     DependencyUrlLoader dependencyUrlLoader =
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
     CromwellClient localTestClient = new CromwellClient(localTestConfig, dependencyUrlLoader);
-    CromwellService localtestService =
-        new CromwellService(localTestClient, bearerToken, cromwellClient);
+    CromwellService localtestService = new CromwellService(localTestClient, cromwellClient);
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching

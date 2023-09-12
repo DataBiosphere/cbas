@@ -5,7 +5,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
-import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
@@ -16,19 +15,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TestCromwellClient {
-  @Mock BearerToken bearerToken;
   @Mock DependencyUrlLoader dependencyUrlLoader;
   @Mock cromwell.client.ApiClient cromwellWriteClient;
 
   @Test
-  void useConfiguredUrlIfAvailable() throws Exception {
+  void useConfiguredUrlIfAvailable() {
     CromwellServerConfiguration cromwellServerConfiguration =
         new CromwellServerConfiguration(
             "http://localhost:8000/cromwell", null, "workflow/log/dir", false);
 
     CromwellClient cromwellClient =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader);
-    ApiClient mockApiClient = cromwellClient.getReadApiClient(bearerToken.getToken());
+    ApiClient mockApiClient = cromwellClient.getReadApiClient();
 
     EngineApi engineApi =
         new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader)
