@@ -58,12 +58,6 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getReadApiClient(String accessToken) {
-    ApiClient apiClient = getReadApiClient();
-    apiClient.setAccessToken(accessToken);
-    return apiClient;
-  }
-
   public Optional<String> getFinalWorkflowLogDirOption() {
     return Optional.ofNullable(this.cromwellServerConfiguration.finalWorkflowLogDir());
   }

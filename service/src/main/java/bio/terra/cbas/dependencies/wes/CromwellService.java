@@ -5,7 +5,6 @@ import static bio.terra.cbas.api.RunsApi.log;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
-import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
@@ -27,15 +26,11 @@ public class CromwellService implements HealthCheck {
   private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
   private static final String API_VERSION = "v1";
-
-  private final BearerToken bearerToken;
   private final ApiClient cromwellWriteClient;
 
-  public CromwellService(
-      CromwellClient cromwellClient, BearerToken bearerToken, ApiClient cromwellWriteClient) {
+  public CromwellService(CromwellClient cromwellClient, ApiClient cromwellWriteClient) {
 
     this.cromwellClient = cromwellClient;
-    this.bearerToken = bearerToken;
     this.cromwellWriteClient = cromwellWriteClient;
   }
 
@@ -56,7 +51,7 @@ public class CromwellService implements HealthCheck {
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
-    ApiClient client = cromwellClient.getReadApiClient(bearerToken.getToken());
+    ApiClient client = cromwellClient.getReadApiClient();
     var queryResults =
         cromwellClient
             .workflowsApi(client)
