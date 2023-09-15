@@ -1,9 +1,9 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.models.CbasRunStatus.CANCELING;
+import static bio.terra.cbas.models.CbasRunStatus.INITIALIZING;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
-import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
@@ -410,11 +410,11 @@ class TestRunSetsApiController {
     // check Runs 1 & 3 were successfully submitted
     assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
     assertEquals(cromwellWorkflowId1, capturedRuns.get(0).engineId());
-    assertEquals(UNKNOWN, capturedRuns.get(0).status());
+    assertEquals(INITIALIZING, capturedRuns.get(0).status());
     assertEquals(recordId1, capturedRuns.get(0).recordId());
     assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
     assertEquals(cromwellWorkflowId3, capturedRuns.get(2).engineId());
-    assertEquals(UNKNOWN, capturedRuns.get(2).status());
+    assertEquals(INITIALIZING, capturedRuns.get(2).status());
     assertEquals(recordId3, capturedRuns.get(2).recordId());
     // check Run 2 is in failed state
     assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());

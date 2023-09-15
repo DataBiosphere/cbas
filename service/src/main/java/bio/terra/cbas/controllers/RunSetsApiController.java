@@ -8,8 +8,8 @@ import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.model.RunSetState.ERROR;
 import static bio.terra.cbas.model.RunSetState.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.INITIALIZING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
-import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
@@ -484,7 +484,8 @@ public class RunSetsApiController implements RunSetsApi {
             cromwellService.submitWorkflow(rawMethodUrl, workflowInputs, workflowOptionsJson);
 
         runStateResponseList.add(
-            storeRun(runId, workflowResponse.getRunId(), runSet, record.getId(), UNKNOWN, null));
+            storeRun(
+                runId, workflowResponse.getRunId(), runSet, record.getId(), INITIALIZING, null));
       } catch (CoercionException e) {
         String errorMsg =
             String.format(
