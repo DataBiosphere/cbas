@@ -12,8 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -39,8 +37,7 @@ class TestRunSetAbortManager {
   @MockBean private CromwellService cromwellService;
 
   @Test
-  void testRunSetAbort()
-      throws ApiException, DependencyNotAvailableException, AzureAccessTokenException {
+  void testRunSetAbort() throws ApiException {
     RunSetAbortManager runSetAbortManager =
         new RunSetAbortManager(runSetDao, runDao, cromwellService);
 

@@ -6,7 +6,7 @@ TODO: Complete me! Should be of similar quality to the ECM documentation.
 
 For compliance reasons, all pull requests **must** be submitted with a Jira ID in the pull request title.
 You should include the Jira ID near the beginning of the title for better readability.
-For example: "[WM-1992] add statement to README.md and DEVELOPMENT.md about including Jira IDs in PR titles" 
+For example: "[WM-1992] add statement to README.md and DEVELOPMENT.md about including Jira IDs in PR titles"
 
 If there is more than one relevant ticket, include all of their Jira IDs.
 For example: "WM-1997, WM-2002, WM-2005: Fix for many bugs with the same root cause"
@@ -185,9 +185,10 @@ Then navigate to the Swagger: `http://localhost:8080/swagger-ui.html`
 
 New images are built and pushed automatically each time a PR is merged. Developers may
 want to do this manually in order to test in-development CBAS versions in non-local
-environments. 
+environments.
 
 First, log into GCP using `gcloud auth login`. You need this to authenticate to push the image.
+You may also need to run `gcloud auth configure-docker` prior to pushing the image.
 
 ```
 TAG="my-custom-image-name"

@@ -3,23 +3,18 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.cbas.dependencies.common.HealthCheck;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
-import org.databiosphere.workspacedata.model.VersionResponse;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WdsService implements HealthCheck {
+public class WdsService {
 
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
-
   private final RetryTemplate listenerResetRetryTemplate;
-
-  private final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(WdsService.class);
 
   public WdsService(
       WdsClient wdsClient,
@@ -58,19 +53,6 @@ public class WdsService implements HealthCheck {
                   id);
           return null;
         });
-  }
-
-  @Override
-  public Result checkHealth() {
-    try {
-      VersionResponse result =
-          executionWithRetryTemplate(
-              listenerResetRetryTemplate, () -> wdsClient.generalWdsInformationApi().versionGet());
-      return new Result(true, "WDS version is %s".formatted(result.getBuild().getVersion()));
-    } catch (WdsServiceException e) {
-      logger.error("WDS health check failed", e);
-      return new Result(false, e.getMessage());
-    }
   }
 
   interface WdsAction<T> {

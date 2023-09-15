@@ -5,7 +5,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
 import bio.terra.cbas.common.MetricsUtil;
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
@@ -156,14 +155,11 @@ public class SmartRunsPoller {
     } catch (ApiException | IllegalArgumentException e) {
       logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
       return r;
-    } catch (AzureAccessTokenException e) {
-      logger.warn(e.getMessage());
-      return r;
     } finally {
       recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
     }
 
-    CbasRunStatus newStatus = CbasRunStatus.INITIALIZING;
+    CbasRunStatus newStatus = CbasRunStatus.UNKNOWN;
     if (newWorkflowSummary != null) {
       newStatus = CbasRunStatus.fromCromwellStatus(newWorkflowSummary.getStatus());
     }
