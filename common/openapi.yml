@@ -294,15 +294,10 @@ components:
           type: string
           format: uuid
         state:
-          $ref: '#/components/schemas/WorkflowTerminalState'
+          $ref: '#/components/schemas/RunState'
         outputs:
           type: object
           description: Map of output keys to output values
-        failures:
-          type: array
-          items:
-            type: string
-          description: A list of strings describing the workflow's failures if the workflow failed.
 
     WdsRecordSet:
       type: object
@@ -883,12 +878,4 @@ components:
         - ERROR
         - CANCELED
         - CANCELING
-      type: string
-    WorkflowTerminalState:
-      title: WorkflowTerminalState
-      example: Succeeded
-      enum:
-        - Succeeded
-        - Failed
-        - Aborted
       type: string

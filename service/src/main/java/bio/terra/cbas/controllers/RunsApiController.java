@@ -3,22 +3,15 @@ package bio.terra.cbas.controllers;
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
-import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
-import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
-import bio.terra.cbas.model.RunResultsRequest;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
-import bio.terra.cbas.runsets.results.RunCompletionHandler;
-import bio.terra.cbas.runsets.results.RunCompletionResult;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +22,11 @@ public class RunsApiController implements RunsApi {
   private final SmartRunsPoller smartPoller;
   private final SamService samService;
   private final RunDao runDao;
-  private final RunCompletionHandler runCompletionHandler;
 
-  public RunsApiController(
-      RunDao runDao,
-      SmartRunsPoller smartPoller,
-      SamService samService,
-      RunCompletionHandler runCompletionHandler) {
+  public RunsApiController(RunDao runDao, SmartRunsPoller smartPoller, SamService samService) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
-    this.runCompletionHandler = runCompletionHandler;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -75,45 +62,5 @@ public class RunsApiController implements RunsApi {
     return new ResponseEntity<>(
         new RunLogResponse().runs(responseList).fullyUpdated(updatedRunsResult.fullyUpdated()),
         HttpStatus.OK);
-  }
-
-  @Override
-  public ResponseEntity<Void> postRunResults(RunResultsRequest body) {
-    // validate request
-    UUID runId = body.getWorkflowId();
-    CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
-    if (!resultsStatus.isTerminal()) {
-      // only terminal status can be reported
-      throw new InvalidStatusTypeException(
-          "Results can not be posted for a non-terminal workflow state %s."
-              .formatted(resultsStatus));
-    }
-
-    // lookup runID in database
-    Optional<Run> runRecord =
-        runDao.getRuns(new RunDao.RunsFilters(runId, null)).stream().findFirst();
-    if (!runRecord.isPresent()) {
-      throw new RunNotFoundException("Workflow ID %s is not found.".formatted(runId));
-    }
-
-    if (resultsStatus == CbasRunStatus.COMPLETE && body.getOutputs() == null) {
-      throw new MissingRunOutputsException(
-          "Outputs are required for a successfully completed workflow ID %s.".formatted(runId));
-    }
-
-    // validate user permission
-    // check if current user has write permissions on the workspace
-    if (!samService.hasWritePermission()) {
-      // This is a corner case when user got kicked off write permission while running a workflow.
-      // Nor this service, nor API caller can remediate the situation.
-      // Therefore, we update Status in database to SYSTEM_ERROR and return OK response.
-      resultsStatus = CbasRunStatus.SYSTEM_ERROR;
-    }
-
-    // perform workflow completion work
-    RunCompletionResult result =
-        runCompletionHandler.updateResults(
-            runRecord.get(), resultsStatus, body.getOutputs(), body.getFailures());
-    return new ResponseEntity<>(result.toHttpStatus());
   }
 }
