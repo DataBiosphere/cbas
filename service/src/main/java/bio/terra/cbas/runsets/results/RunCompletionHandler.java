@@ -3,26 +3,67 @@ package bio.terra.cbas.runsets.results;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.dependencies.wds.WdsServiceException;
+import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
-import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
+import bio.terra.cbas.runsets.outputs.OutputGenerator;
+import bio.terra.cbas.runsets.types.CoercionException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.databiosphere.workspacedata.model.RecordAttributes;
+import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RunCompletionHandler {
   private final RunDao runDao;
-  private final SmartRunsPoller smartRunsPoller;
+  private final WdsService wdsService;
+  private final ObjectMapper objectMapper;
   private static final org.slf4j.Logger logger =
       LoggerFactory.getLogger(RunCompletionHandler.class);
 
-  public RunCompletionHandler(RunDao runDao, SmartRunsPoller smartRunsPoller) {
+  public RunCompletionHandler(RunDao runDao, WdsService wdsService, ObjectMapper objectMapper) {
     this.runDao = runDao;
-    this.smartRunsPoller = smartRunsPoller;
+    this.wdsService = wdsService;
+    this.objectMapper = objectMapper;
+  }
+
+  /*
+  The copy of SmartRunsPoller code.
+  Refactoring SmartRunsPoller will be covered in [WM-2090].
+   */
+  public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
+    List<WorkflowOutputDefinition> outputDefinitionList =
+        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
+    return !outputDefinitionList.isEmpty();
+  }
+
+  /*
+  The copy of SmartRunsPoller code.
+  Refactoring SmartRunsPoller will be covered in [WM-2090].
+   */
+  public void updateOutputAttributes(Run run, Object outputs)
+      throws JsonProcessingException, WdsServiceException, CoercionException,
+          OutputProcessingException {
+
+    List<WorkflowOutputDefinition> outputDefinitionList =
+        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
+    RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
+    RecordRequest request = new RecordRequest().attributes(outputParamDef);
+
+    logger.info(
+        "Updating output attributes for Record ID {} from Run {}.", run.recordId(), run.engineId());
+
+    wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
   }
 
   public RunCompletionResult updateResults(
@@ -66,7 +107,7 @@ public class RunCompletionHandler {
           // If this is the last attempt to save workflow outputs,
           // update run info in database with an error.
           // Otherwise, we should return internal error to caller.
-          // Spike for handling final/fatal error is [WM-]
+          // TODO - handling OutputProcessingException as User Error will be covered in [WM-2090]
           errors.add(errorMessage);
           updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
@@ -93,8 +134,8 @@ public class RunCompletionHandler {
   private String saveWorkflowOutputs(Run updatableRun, Object outputs) {
     try {
       // we only write back output attributes to WDS if output definition is not empty.
-      if (smartRunsPoller.hasOutputDefinition(updatableRun)) {
-        smartRunsPoller.updateOutputAttributes(updatableRun, outputs);
+      if (hasOutputDefinition(updatableRun)) {
+        updateOutputAttributes(updatableRun, outputs);
       }
     } catch (Exception e) {
       // log error and mark Run as Failed
