@@ -9,14 +9,19 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
+import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
+import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
+import bio.terra.cbas.model.RunResultsRequest;
+import bio.terra.cbas.model.WorkflowTerminalState;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -25,11 +30,14 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
+import bio.terra.cbas.runsets.results.RunCompletionHandler;
+import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -37,6 +45,7 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -46,6 +55,7 @@ import org.springframework.test.web.servlet.MvcResult;
 class TestRunsApiController {
 
   private static final String API = "/api/batch/v1/runs";
+  private static final String API_RESULTS = "/api/batch/v1/runs/results";
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -53,6 +63,7 @@ class TestRunsApiController {
   // The smart poller does most of the clever update logic, so we can test that separately. This
   // test just needs to make sure we call it properly and respect its updates
   @MockBean private SmartRunsPoller smartRunsPoller;
+  @MockBean private RunCompletionHandler runsResultsManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -232,5 +243,144 @@ class TestRunsApiController {
 
     assertEquals(500, errorResponse.getStatusCode());
     assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
+  }
+
+  @Test
+  void runResultsUpdateReturnsSuccessOnTerminalStatus() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(returnedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("{}");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnSystemErrorWhenUpdateThrows() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+        .thenThrow(new RuntimeException("Failed to connect to database"));
+
+    var requestBody =
+        new RunResultsRequest().workflowId(returnedRun.runId()).state(WorkflowTerminalState.FAILED);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnSystemErrorWhenUpdateErrors() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+        .thenReturn(RunCompletionResult.ERROR);
+
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(returnedRun.runId())
+            .state(WorkflowTerminalState.ABORTED);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(false);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var requestBody =
+        new RunResultsRequest().workflowId(updatedRun.runId()).state(WorkflowTerminalState.ABORTED);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(updatedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("{}");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(r -> assertTrue(r.getResolvedException() instanceof RunNotFoundException))
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(updatedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(
+                r -> assertTrue(r.getResolvedException() instanceof MissingRunOutputsException))
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
   }
 }

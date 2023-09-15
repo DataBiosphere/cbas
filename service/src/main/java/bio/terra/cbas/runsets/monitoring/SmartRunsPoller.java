@@ -40,7 +40,6 @@ public class SmartRunsPoller {
 
   private final CromwellService cromwellService;
   private final RunDao runDao;
-
   private final WdsService wdsService;
   private final ObjectMapper objectMapper;
 
@@ -67,12 +66,12 @@ public class SmartRunsPoller {
     return !outputDefinitionList.isEmpty();
   }
 
-  public void updateOutputAttributes(Run run)
-      throws ApiException, JsonProcessingException, WdsServiceException, CoercionException,
+  public void updateOutputAttributes(Run run, Object outputs)
+      throws JsonProcessingException, WdsServiceException, CoercionException,
           OutputProcessingException {
+
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    Object outputs = cromwellService.getOutputs(run.engineId());
     RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
     RecordRequest request = new RecordRequest().attributes(outputParamDef);
 
@@ -182,6 +181,29 @@ public class SmartRunsPoller {
     }
   }
 
+  /*
+  Method getWorkflowErrors is a reusable code from SmartRunsPoller that we'll move
+  with a workflow completion handling from a SmartRunsPoller.
+  Pending task [WM-2090].
+   */
+  public List<String> getWorkflowErrors(Run updatableRun) {
+    ArrayList<String> errors = new ArrayList<>();
+    try {
+      // Retrieve error from Cromwell
+      String message = cromwellService.getRunErrors(updatableRun);
+      if (!message.isEmpty()) {
+        errors.add(message);
+      }
+    } catch (Exception e) {
+      String errorMessage =
+          "Error fetching Cromwell-level error from Cromwell for run %s"
+              .formatted(updatableRun.runId());
+      logger.error(errorMessage, e);
+      errors.add(errorMessage);
+    }
+    return errors;
+  }
+
   private Run updateDatabaseRunStatus(
       CbasRunStatus status, OffsetDateTime engineStatusChanged, Run updatableRun) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
@@ -197,11 +219,11 @@ public class SmartRunsPoller {
             // we only write back output attributes to WDS if output definition is not empty. This
             // is to avoid sending empty PATCH requests to WDS
             if (hasOutputDefinition(updatableRun)) {
-              updateOutputAttributes(updatableRun);
+              Object outputs = cromwellService.getOutputs(updatableRun.engineId());
+              updateOutputAttributes(updatableRun, outputs);
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
-
             String errorMessage =
                 "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
                     .formatted(
@@ -214,18 +236,9 @@ public class SmartRunsPoller {
             updatedRunState = CbasRunStatus.SYSTEM_ERROR;
           }
         } else if (updatedRunState.inErrorState()) {
-          try {
-            // Retrieve error from Cromwell
-            String message = cromwellService.getRunErrors(updatableRun);
-            if (!message.isEmpty()) {
-              errors.add(message);
-            }
-          } catch (Exception e) {
-            String errorMessage =
-                "Error fetching Cromwell-level error from Cromwell for run %s"
-                    .formatted(updatableRun.runId());
-            logger.error(errorMessage, e);
-            errors.add(errorMessage);
+          var cromwellErrors = getWorkflowErrors(updatableRun);
+          if (cromwellErrors != null && !cromwellErrors.isEmpty()) {
+            errors.addAll(cromwellErrors);
           }
         }
         logger.info(
