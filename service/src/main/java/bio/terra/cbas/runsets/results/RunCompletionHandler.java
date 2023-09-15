@@ -13,12 +13,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RunResultsManager {
+public class RunCompletionHandler {
   private final RunDao runDao;
   private final SmartRunsPoller smartRunsPoller;
-  private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RunResultsManager.class);
+  private static final org.slf4j.Logger logger =
+      LoggerFactory.getLogger(RunCompletionHandler.class);
 
-  public RunResultsManager(RunDao runDao, SmartRunsPoller smartRunsPoller) {
+  public RunCompletionHandler(RunDao runDao, SmartRunsPoller smartRunsPoller) {
     this.runDao = runDao;
     this.smartRunsPoller = smartRunsPoller;
   }

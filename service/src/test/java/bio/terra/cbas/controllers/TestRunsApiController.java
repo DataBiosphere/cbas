@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
 import bio.terra.cbas.dao.RunDao;
@@ -22,6 +21,7 @@ import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunResultsRequest;
+import bio.terra.cbas.model.WorkflowTerminalState;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -30,7 +30,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
-import bio.terra.cbas.runsets.results.RunResultsManager;
+import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
@@ -63,7 +63,7 @@ class TestRunsApiController {
   // The smart poller does most of the clever update logic, so we can test that separately. This
   // test just needs to make sure we call it properly and respect its updates
   @MockBean private SmartRunsPoller smartRunsPoller;
-  @MockBean private RunResultsManager runsResultsManager;
+  @MockBean private RunCompletionHandler runsResultsManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -253,7 +253,10 @@ class TestRunsApiController {
         .thenReturn(RunResultsUpdateResult.SUCCESS);
 
     var requestBody =
-        new RunResultsRequest().workflowId(returnedRun.runId()).state("Succeeded").outputs("{}");
+        new RunResultsRequest()
+            .workflowId(returnedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("{}");
 
     MvcResult result =
         mockMvc
@@ -274,7 +277,8 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
-    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Failed");
+    var requestBody =
+        new RunResultsRequest().workflowId(returnedRun.runId()).state(WorkflowTerminalState.FAILED);
 
     MvcResult result =
         mockMvc
@@ -295,7 +299,10 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
         .thenReturn(RunResultsUpdateResult.ERROR);
 
-    var requestBody = new RunResultsRequest().workflowId(returnedRun.runId()).state("Aborted");
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(returnedRun.runId())
+            .state(WorkflowTerminalState.ABORTED);
 
     MvcResult result =
         mockMvc
@@ -316,7 +323,8 @@ class TestRunsApiController {
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
         .thenReturn(RunResultsUpdateResult.SUCCESS);
 
-    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Aborted");
+    var requestBody =
+        new RunResultsRequest().workflowId(updatedRun.runId()).state(WorkflowTerminalState.ABORTED);
 
     MvcResult result =
         mockMvc
@@ -331,31 +339,14 @@ class TestRunsApiController {
   }
 
   @Test
-  void runResultsUpdateReturnsUserErrorOnNonTerminalStatus() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
-
-    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("INITIALIZING");
-
-    MvcResult result =
-        mockMvc
-            .perform(
-                post(API_RESULTS)
-                    .content(objectMapper.writeValueAsString(requestBody))
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isBadRequest())
-            .andExpect(
-                r -> assertTrue(r.getResolvedException() instanceof InvalidStatusTypeException))
-            .andReturn();
-
-    assertEquals(0, result.getResponse().getContentLength());
-  }
-
-  @Test
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
     var requestBody =
-        new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded").outputs("{}");
+        new RunResultsRequest()
+            .workflowId(updatedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("{}");
 
     MvcResult result =
         mockMvc
@@ -374,7 +365,10 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    var requestBody = new RunResultsRequest().workflowId(updatedRun.runId()).state("Succeeded");
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(updatedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED);
 
     MvcResult result =
         mockMvc

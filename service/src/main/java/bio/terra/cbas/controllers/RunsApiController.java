@@ -15,7 +15,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
-import bio.terra.cbas.runsets.results.RunResultsManager;
+import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
 import java.util.List;
 import java.util.Optional;
@@ -29,17 +29,17 @@ public class RunsApiController implements RunsApi {
   private final SmartRunsPoller smartPoller;
   private final SamService samService;
   private final RunDao runDao;
-  private final RunResultsManager runResultsManager;
+  private final RunCompletionHandler runCompletionHandler;
 
   public RunsApiController(
       RunDao runDao,
       SmartRunsPoller smartPoller,
       SamService samService,
-      RunResultsManager runResultsManager) {
+      RunCompletionHandler runCompletionHandler) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
-    this.runResultsManager = runResultsManager;
+    this.runCompletionHandler = runCompletionHandler;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -81,7 +81,7 @@ public class RunsApiController implements RunsApi {
   public ResponseEntity<Void> postRunResults(RunResultsRequest body) {
     // validate request
     UUID runId = body.getWorkflowId();
-    CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState());
+    CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
       throw new InvalidStatusTypeException(
@@ -112,7 +112,7 @@ public class RunsApiController implements RunsApi {
 
     // perform workflow completion work
     RunResultsUpdateResult result =
-        runResultsManager.updateResults(runRecord.get(), resultsStatus, body.getOutputs());
+        runCompletionHandler.updateResults(runRecord.get(), resultsStatus, body.getOutputs());
     return new ResponseEntity<>(result.toHttpStatus());
   }
 }
