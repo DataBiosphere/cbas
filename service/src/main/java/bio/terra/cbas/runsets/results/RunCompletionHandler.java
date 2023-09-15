@@ -9,6 +9,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -24,15 +25,15 @@ public class RunCompletionHandler {
     this.smartRunsPoller = smartRunsPoller;
   }
 
-  public RunResultsUpdateResult updateResults(
-      Run updatableRun, CbasRunStatus status, Object outputs) {
+  public RunCompletionResult updateResults(
+      Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
     long updateResultsStartNanos = System.nanoTime();
-    RunResultsUpdateResult updateResult = RunResultsUpdateResult.ERROR;
+    RunCompletionResult updateResult = RunCompletionResult.ERROR;
 
     try {
       var updatedRunState = status;
 
-      if (updatableRun.status() == updatedRunState && outputs == null) {
+      if (updatableRun.status() == updatedRunState && workflowOutputs == null) {
         // Status is already up-to-date, there are no outputs to save.
         // Only update last polled timestamp.
         logger.info(
@@ -48,19 +49,19 @@ public class RunCompletionHandler {
               updatableRun.runId(),
               updatableRun.status(),
               changes);
-          return RunResultsUpdateResult.ERROR;
+          return RunCompletionResult.ERROR;
         }
-        return RunResultsUpdateResult.SUCCESS;
+        return RunCompletionResult.SUCCESS;
       }
 
       // Pull workflow completion information and save run outputs
       ArrayList<String> errors = new ArrayList<>();
 
       // Saving run outputs for a Successful status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE && outputs != null) {
+      if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
-        String errorMessage = saveWorkflowOutputs(updatableRun, outputs);
+        String errorMessage = saveWorkflowOutputs(updatableRun, workflowOutputs);
         if (errorMessage != null && !errorMessage.isEmpty()) {
           // If this is the last attempt to save workflow outputs,
           // update run info in database with an error.
@@ -70,20 +71,15 @@ public class RunCompletionHandler {
           updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
       } else if (updatedRunState.inErrorState()) {
-        // Pull Cromwell errors for a run.
-        // If request would have errors in the body, we can avoid this round trip.
-        // [WM-2090] to address this issue.
-        var cromwellErrors = smartRunsPoller.getWorkflowErrors(updatableRun);
-        if (cromwellErrors != null && !cromwellErrors.isEmpty()) {
-          errors.addAll(cromwellErrors);
+        if (workflowErrors != null && !workflowErrors.isEmpty()) {
+          errors.addAll(workflowErrors);
         }
       }
 
       // Save the updated run record in database.
       updateResult = updateDatabaseRunStatus(updatableRun, updatedRunState, errors);
     } finally {
-      recordMethodCompletion(
-          updateResultsStartNanos, RunResultsUpdateResult.SUCCESS == updateResult);
+      recordMethodCompletion(updateResultsStartNanos, RunCompletionResult.SUCCESS == updateResult);
     }
     // we should not come here
     return updateResult;
@@ -115,7 +111,7 @@ public class RunCompletionHandler {
     return null;
   }
 
-  private RunResultsUpdateResult updateDatabaseRunStatus(
+  private RunCompletionResult updateDatabaseRunStatus(
       Run updatableRun, CbasRunStatus updatedRunState, ArrayList<String> errors) {
     OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
     int changes;
@@ -146,13 +142,13 @@ public class RunCompletionHandler {
               updatableRun.errorMessages());
     }
     if (changes == 1) {
-      return RunResultsUpdateResult.SUCCESS;
+      return RunCompletionResult.SUCCESS;
     }
 
     String databaseUpdateErrorMessage =
         "Run %s was attempted to update status from %s to %s but no DB rows were changed by the query."
             .formatted(updatableRun.runId(), updatableRun.status(), updatedRunState);
     logger.warn(databaseUpdateErrorMessage);
-    return RunResultsUpdateResult.ERROR;
+    return RunCompletionResult.ERROR;
   }
 }

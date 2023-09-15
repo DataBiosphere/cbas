@@ -31,7 +31,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
-import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
+import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -249,8 +249,8 @@ class TestRunsApiController {
   void runResultsUpdateReturnsSuccessOnTerminalStatus() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any()))
-        .thenReturn(RunResultsUpdateResult.SUCCESS);
+    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
         new RunResultsRequest()
@@ -274,7 +274,7 @@ class TestRunsApiController {
   void runResultsUpdateReturnSystemErrorWhenUpdateThrows() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
     var requestBody =
@@ -296,8 +296,8 @@ class TestRunsApiController {
   void runResultsUpdateReturnSystemErrorWhenUpdateErrors() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
-        .thenReturn(RunResultsUpdateResult.ERROR);
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+        .thenReturn(RunCompletionResult.ERROR);
 
     var requestBody =
         new RunResultsRequest()
@@ -320,8 +320,8 @@ class TestRunsApiController {
   void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any()))
-        .thenReturn(RunResultsUpdateResult.SUCCESS);
+    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
         new RunResultsRequest().workflowId(updatedRun.runId()).state(WorkflowTerminalState.ABORTED);

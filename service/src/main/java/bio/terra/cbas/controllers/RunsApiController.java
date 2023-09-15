@@ -16,7 +16,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
-import bio.terra.cbas.runsets.results.RunResultsUpdateResult;
+import bio.terra.cbas.runsets.results.RunCompletionResult;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -111,8 +111,9 @@ public class RunsApiController implements RunsApi {
     }
 
     // perform workflow completion work
-    RunResultsUpdateResult result =
-        runCompletionHandler.updateResults(runRecord.get(), resultsStatus, body.getOutputs());
+    RunCompletionResult result =
+        runCompletionHandler.updateResults(
+            runRecord.get(), resultsStatus, body.getOutputs(), body.getFailures());
     return new ResponseEntity<>(result.toHttpStatus());
   }
 }

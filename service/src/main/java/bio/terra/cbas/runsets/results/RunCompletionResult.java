@@ -2,13 +2,13 @@ package bio.terra.cbas.runsets.results;
 
 import org.springframework.http.HttpStatus;
 
-public enum RunResultsUpdateResult {
+public enum RunCompletionResult {
   SUCCESS("UPDATED_SUCCESSFULLY"),
   ERROR("RETRIABLE_ERROR"),
   FATAL("FATAL_ERROR");
   private final String value;
 
-  RunResultsUpdateResult(String value) {
+  RunCompletionResult(String value) {
     this.value = value;
   }
 
