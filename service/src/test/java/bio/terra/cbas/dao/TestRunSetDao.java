@@ -63,6 +63,8 @@ class TestRunSetDao {
 
   @BeforeAll
   void init() {
+    methodDao.createMethod(method);
+    methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(runSet);
   }
 
