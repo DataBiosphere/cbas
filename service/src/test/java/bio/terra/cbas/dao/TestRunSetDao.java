@@ -9,6 +9,7 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,15 +56,18 @@ class TestRunSetDao {
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           0,
           0,
-          null,
-          null,
+          "[]",
+          "[]",
           "sample",
           "user-foo");
 
+  @BeforeAll
+  void init() {
+    runSetDao.createRunSet(runSet);
+  }
+
   @Test
   void retrievesSingleRunSet() {
-    runSetDao.createRunSet(runSet);
-
     RunSet actual = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000008"));
 
     assertEquals(runSet.runSetId(), actual.runSetId());
@@ -79,8 +83,6 @@ class TestRunSetDao {
 
   @Test
   void retrievesAllRunSets() {
-    runSetDao.createRunSet(runSet);
-
     // DB has no non-templated run sets, so it will return empty list
     List<RunSet> runSets = runSetDao.getRunSets(null, false);
     assertEquals(0, runSets.size());
