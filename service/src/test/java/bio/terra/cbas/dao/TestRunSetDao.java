@@ -22,46 +22,47 @@ class TestRunSetDao {
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
 
+  Method method =
+      new Method(
+          UUID.fromString("00000000-0000-0000-0000-000000000008"),
+          "fetch_sra_to_bam",
+          "fetch_sra_to_bam",
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null,
+          "Github");
+
+  MethodVersion methodVersion =
+      new MethodVersion(
+          UUID.fromString("80000000-0000-0000-0000-000000000008"),
+          method,
+          "1.0",
+          "fetch_sra_to_bam sample submission",
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null,
+          "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl");
+
+  RunSet runSet =
+      new RunSet(
+          UUID.fromString("10000000-0000-0000-0000-000000000008"),
+          methodVersion,
+          "fetch_sra_to_bam workflow",
+          "fetch_sra_to_bam sample submission",
+          false,
+          true,
+          CbasRunSetStatus.COMPLETE,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          0,
+          0,
+          null,
+          null,
+          "sample",
+          "user-foo");
+
   @Test
   void retrievesSingleRunSet() {
-
-    Method method =
-        new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000008"),
-            "fetch_sra_to_bam",
-            "fetch_sra_to_bam",
-            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-            null,
-            "Github");
-
-    MethodVersion methodVersion =
-        new MethodVersion(
-            UUID.fromString("80000000-0000-0000-0000-000000000008"),
-            method,
-            "1.0",
-            "fetch_sra_to_bam sample submission",
-            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-            null,
-            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl");
-
-    RunSet runSet =
-        new RunSet(
-            UUID.fromString("10000000-0000-0000-0000-000000000008"),
-            methodVersion,
-            "fetch_sra_to_bam workflow",
-            "fetch_sra_to_bam sample submission",
-            false,
-            true,
-            CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-            0,
-            0,
-            null,
-            null,
-            "sample",
-            "user-foo");
+    runSetDao.createRunSet(runSet);
 
     RunSet actual = runSetDao.getRunSet(UUID.fromString("10000000-0000-0000-0000-000000000008"));
 
@@ -78,11 +79,13 @@ class TestRunSetDao {
 
   @Test
   void retrievesAllRunSets() {
+    runSetDao.createRunSet(runSet);
+
     // DB has no non-templated run sets, so it will return empty list
     List<RunSet> runSets = runSetDao.getRunSets(null, false);
     assertEquals(0, runSets.size());
 
     List<RunSet> templateRunSets = runSetDao.getRunSets(2, true);
-    assertEquals(2, templateRunSets.size());
+    assertEquals(1, templateRunSets.size());
   }
 }
