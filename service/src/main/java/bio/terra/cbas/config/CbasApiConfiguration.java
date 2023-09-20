@@ -12,6 +12,7 @@ public class CbasApiConfiguration {
   private int maxSmartPollRunUpdateSeconds;
   private int maxSmartPollRunSetUpdateSeconds;
   private int minSecondsBetweenRunStatusPolls;
+  private int maxWorkflowsInBatch;
 
   public void setRunSetsMaximumRecordIds(int runSetsMaximumRecordIds) {
     this.runSetsMaximumRecordIds = runSetsMaximumRecordIds;
@@ -59,5 +60,13 @@ public class CbasApiConfiguration {
 
   public void setMinSecondsBetweenRunStatusPolls(int minSecondsBetweenRunStatusPolls) {
     this.minSecondsBetweenRunStatusPolls = minSecondsBetweenRunStatusPolls;
+  }
+
+  public int getMaxWorkflowsInBatch() {
+    return maxWorkflowsInBatch;
+  }
+
+  public void setMaxWorkflowsInBatch(int maxWorkflowsInBatch) {
+    this.maxWorkflowsInBatch = maxWorkflowsInBatch;
   }
 }

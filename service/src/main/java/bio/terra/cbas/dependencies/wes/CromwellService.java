@@ -11,6 +11,7 @@ import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowDescription;
+import cromwell.client.model.WorkflowIdAndStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
@@ -18,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,6 +35,42 @@ public class CromwellService implements HealthCheck {
 
     this.cromwellClient = cromwellClient;
     this.cromwellWriteClient = cromwellWriteClient;
+  }
+
+  public List<WorkflowIdAndStatus> submitWorkflowBatch(
+      String workflowUrl,
+      Map<UUID, Map<String, Object>> requestedIdToWorkflowInput,
+      String workflowOptionsJson)
+      throws ApiException {
+
+    List<UUID> requestedIdOrder = requestedIdToWorkflowInput.keySet().stream().toList();
+
+    return cromwellClient
+        .workflowsApi(cromwellWriteClient)
+        .submitBatch(
+            API_VERSION,
+            requestedIdOrder.stream()
+                .map(
+                    requestId -> {
+                      try {
+                        return InputGenerator.inputsToJson(
+                            requestedIdToWorkflowInput.get(requestId));
+                      } catch (JsonProcessingException e) {
+                        throw new IllegalStateException(e.getMessage());
+                      }
+                    })
+                .collect(Collectors.joining(",", "[", "]")),
+            null,
+            workflowUrl,
+            null,
+            workflowOptionsJson,
+            null,
+            null,
+            null,
+            null,
+            requestedIdOrder.stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(",", "[", "]")));
   }
 
   public RunId submitWorkflow(

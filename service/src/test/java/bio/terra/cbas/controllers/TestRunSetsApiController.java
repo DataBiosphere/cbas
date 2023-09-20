@@ -71,6 +71,7 @@ import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiClient;
 import cromwell.client.model.RunId;
+import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -203,6 +204,7 @@ class TestRunSetsApiController {
   final String recordId3 = "MY_RECORD_ID_3";
 
   final String cromwellWorkflowId1 = UUID.randomUUID().toString();
+  final String cromwellWorkflowId2 = UUID.randomUUID().toString();
   final String cromwellWorkflowId3 = UUID.randomUUID().toString();
 
   private final UserStatusInfo mockUser =
@@ -324,6 +326,26 @@ class TestRunSetsApiController {
     when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
         .thenReturn(mockToolDescriptor);
 
+    UUID runSetUUID = UUID.randomUUID();
+    UUID run1UUID = UUID.randomUUID();
+    UUID run2UUID = UUID.randomUUID();
+    UUID run3UUID = UUID.randomUUID();
+    when(uuidSource.generateUUID())
+        .thenReturn(
+            runSetUUID,
+            UUID.fromString(cromwellWorkflowId1),
+            UUID.fromString(cromwellWorkflowId2),
+            UUID.fromString(cromwellWorkflowId3),
+            run1UUID,
+            run2UUID,
+            run3UUID);
+
+    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any()))
+        .thenReturn(
+            List.of(
+                new WorkflowIdAndStatus().id(cromwellWorkflowId1).status("Submitted"),
+                new WorkflowIdAndStatus().id(cromwellWorkflowId2).status("Failed"),
+                new WorkflowIdAndStatus().id(cromwellWorkflowId3).status("Submitted")));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), any()))
         .thenReturn(new RunId().runId(cromwellWorkflowId1));
     when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), any()))
@@ -418,13 +440,12 @@ class TestRunSetsApiController {
     assertEquals(recordId3, capturedRuns.get(2).recordId());
     // check Run 2 is in failed state
     assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
-    assertNull(capturedRuns.get(1).engineId());
+    assertEquals(cromwellWorkflowId2, capturedRuns.get(1).engineId());
     assertEquals(SYSTEM_ERROR, capturedRuns.get(1).status());
     assertEquals(recordId2, capturedRuns.get(1).recordId());
     assertThat(
         capturedRuns.get(1).errorMessages(),
-        containsString(
-            "Cromwell submission failed for Record ID MY_RECORD_ID_2. ApiException: Message: ApiException thrown on purpose for testing purposes"));
+        containsString("Cromwell submission failed for Record ID MY_RECORD_ID_2."));
 
     // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
     assertThat(
@@ -444,6 +465,11 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
+    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any()))
+        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1).status("Submitted")));
+    when(uuidSource.generateUUID())
+        .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
+
     when(runDao.createRun(any())).thenReturn(1);
 
     MvcResult result =
@@ -459,7 +485,7 @@ class TestRunSetsApiController {
 
     // verify dockstoreService and cromwellService methods were called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflow(eq(workflowUrl), any(), any());
+    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any());
 
     assertNull(response.getErrors());
   }
