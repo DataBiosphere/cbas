@@ -486,48 +486,67 @@ public class RunSetsApiController implements RunSetsApi {
               .map(requestedId -> Map.entry(requestedId, uuidSource.generateUUID()))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+      // Build the inputs set from workflow parameter definitions and the fetched record
+      Map<UUID, String> requestedIdToWorkflowInput =
+          requestedIdToRecord.entrySet().stream()
+              .map(
+                  entry -> {
+                    try {
+                      return Map.entry(
+                          entry.getKey(),
+                          InputGenerator.inputsToJson(
+                              InputGenerator.buildInputs(
+                                  request.getWorkflowInputDefinitions(), entry.getValue())));
+                    } catch (CoercionException e) {
+                      String errorMsg =
+                          String.format(
+                              "Input generation failed for record %s. Coercion error: %s",
+                              entry.getValue().getId(), e.getMessage());
+                      log.warn(errorMsg, e);
+                      runStateResponseList.add(
+                          storeRun(
+                              requestedIdToRunId.get(entry.getKey()),
+                              null,
+                              runSet,
+                              entry.getValue().getId(),
+                              SYSTEM_ERROR,
+                              errorMsg + e.getMessage()));
+                    } catch (InputProcessingException e) {
+                      log.warn(e.getMessage());
+                      runStateResponseList.add(
+                          storeRun(
+                              requestedIdToRunId.get(entry.getKey()),
+                              null,
+                              runSet,
+                              entry.getValue().getId(),
+                              SYSTEM_ERROR,
+                              e.getMessage()));
+                    } catch (JsonProcessingException e) {
+                      // Should be super rare that jackson cannot convert an object to Json...
+                      String errorMsg =
+                          String.format(
+                              "Failed to convert inputs object to JSON for batch in RunSet %s.",
+                              runSet.runSetId());
+                      log.warn(errorMsg, e);
+                      runStateResponseList.add(
+                          storeRun(
+                              requestedIdToRunId.get(entry.getKey()),
+                              null,
+                              runSet,
+                              entry.getValue().getId(),
+                              SYSTEM_ERROR,
+                              errorMsg + e.getMessage()));
+                    }
+                    return null;
+                  })
+              .filter(inputs -> !Objects.isNull(inputs))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+      if (requestedIdToWorkflowInput.isEmpty()) {
+        return runStateResponseList;
+      }
+
       try {
-
-        // Build the inputs set from workflow parameter definitions and the fetched record
-        Map<UUID, Map<String, Object>> requestedIdToWorkflowInput =
-            requestedIdToRecord.entrySet().stream()
-                .map(
-                    entry -> {
-                      try {
-                        return Map.entry(
-                            entry.getKey(),
-                            InputGenerator.buildInputs(
-                                request.getWorkflowInputDefinitions(), entry.getValue()));
-                      } catch (CoercionException e) {
-                        String errorMsg =
-                            String.format(
-                                "Input generation failed for record %s. Coercion error: %s",
-                                entry.getValue().getId(), e.getMessage());
-                        log.warn(errorMsg, e);
-                        runStateResponseList.add(
-                            storeRun(
-                                requestedIdToRunId.get(entry.getKey()),
-                                null,
-                                runSet,
-                                entry.getValue().getId(),
-                                SYSTEM_ERROR,
-                                errorMsg + e.getMessage()));
-                      } catch (InputProcessingException e) {
-                        log.warn(e.getMessage());
-                        runStateResponseList.add(
-                            storeRun(
-                                requestedIdToRunId.get(entry.getKey()),
-                                null,
-                                runSet,
-                                entry.getValue().getId(),
-                                SYSTEM_ERROR,
-                                e.getMessage()));
-                      }
-                      return null;
-                    })
-                .filter(inputs -> !Objects.isNull(inputs))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
         // Submit the workflow, get its ID and store the Run to database
         submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
@@ -538,21 +557,13 @@ public class RunSetsApiController implements RunSetsApi {
                 .map(
                     idAndStatus -> {
                       UUID requestedId = UUID.fromString(idAndStatus.getId());
-                      boolean failedToSubmitRun = idAndStatus.getStatus().equals("Failed");
-                      CbasRunStatus status = failedToSubmitRun ? SYSTEM_ERROR : INITIALIZING;
-                      String errors =
-                          failedToSubmitRun
-                              ? String.format(
-                                  "Cromwell submission failed for Record ID %s.",
-                                  requestedIdToRecord.get(requestedId).getId())
-                              : null;
                       return storeRun(
                           requestedIdToRunId.get(requestedId),
-                          requestedId.toString(),
+                          idAndStatus.getId(),
                           runSet,
                           requestedIdToRecord.get(requestedId).getId(),
-                          status,
-                          errors);
+                          INITIALIZING,
+                          null);
                     })
                 .toList());
       } catch (cromwell.client.ApiException e) {
@@ -562,26 +573,7 @@ public class RunSetsApiController implements RunSetsApi {
                 runSet.runSetId());
         log.warn(errorMsg, e);
         runStateResponseList.addAll(
-            requestedIdToRunId.keySet().stream()
-                .map(
-                    requestedId ->
-                        storeRun(
-                            requestedIdToRunId.get(requestedId),
-                            null,
-                            runSet,
-                            requestedIdToRecord.get(requestedId).getId(),
-                            SYSTEM_ERROR,
-                            errorMsg + e.getMessage()))
-                .toList());
-      } catch (IllegalStateException e) {
-        // Should be super rare that jackson cannot convert an object to Json...
-        String errorMsg =
-            String.format(
-                "Failed to convert inputs object to JSON for batch in RunSet %s.",
-                runSet.runSetId());
-        log.warn(errorMsg, e);
-        runStateResponseList.addAll(
-            requestedIdToRunId.keySet().stream()
+            requestedIdToWorkflowInput.keySet().stream()
                 .map(
                     requestedId ->
                         storeRun(

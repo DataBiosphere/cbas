@@ -34,6 +34,7 @@ import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowDescription;
+import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -175,13 +176,16 @@ class VerifyPactsAllControllers {
   public HashMap<String, String> initializeOneRunSet() throws Exception {
     String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
     String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
+    String fixedCromwellRunUUID = "33333333-3333-3333-3333-333333333333";
     when(uuidSource.generateUUID())
         .thenReturn(UUID.fromString(fixedRunSetUUID))
+        .thenReturn(UUID.fromString(fixedCromwellRunUUID))
         .thenReturn(UUID.fromString(fixedRunUUID));
 
     RunId myRunId = new RunId();
     myRunId.setRunId(fixedRunUUID);
-    when(cromwellService.submitWorkflow(any(), any(), any())).thenReturn(myRunId);
+    when(cromwellService.submitWorkflowBatch(any(), any(), any()))
+        .thenReturn(List.of(new WorkflowIdAndStatus().id(fixedCromwellRunUUID)));
     when(samService.getSamUser())
         .thenReturn(
             new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));

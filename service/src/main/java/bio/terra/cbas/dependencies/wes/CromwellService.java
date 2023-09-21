@@ -9,7 +9,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
-import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowIdAndStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
@@ -38,11 +37,10 @@ public class CromwellService implements HealthCheck {
   }
 
   public List<WorkflowIdAndStatus> submitWorkflowBatch(
-      String workflowUrl,
-      Map<UUID, Map<String, Object>> requestedIdToWorkflowInput,
-      String workflowOptionsJson)
+      String workflowUrl, Map<UUID, String> requestedIdToWorkflowInput, String workflowOptionsJson)
       throws ApiException {
 
+    // Ensure the order of inputs and ids passed to the endpoint are identical
     List<UUID> requestedIdOrder = requestedIdToWorkflowInput.keySet().stream().toList();
 
     return cromwellClient
@@ -50,15 +48,7 @@ public class CromwellService implements HealthCheck {
         .submitBatch(
             API_VERSION,
             requestedIdOrder.stream()
-                .map(
-                    requestId -> {
-                      try {
-                        return InputGenerator.inputsToJson(
-                            requestedIdToWorkflowInput.get(requestId));
-                      } catch (JsonProcessingException e) {
-                        throw new IllegalStateException(e.getMessage());
-                      }
-                    })
+                .map(requestedIdToWorkflowInput::get)
                 .collect(Collectors.joining(",", "[", "]")),
             null,
             workflowUrl,
@@ -71,22 +61,6 @@ public class CromwellService implements HealthCheck {
             requestedIdOrder.stream()
                 .map(UUID::toString)
                 .collect(Collectors.joining(",", "[", "]")));
-  }
-
-  public RunId submitWorkflow(
-      String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
-      throws ApiException, JsonProcessingException {
-
-    return cromwellClient
-        .wesAPI(cromwellWriteClient)
-        .runWorkflow(
-            InputGenerator.inputsToJson(params),
-            null,
-            null,
-            null,
-            workflowOptionsJson,
-            workflowUrl,
-            null);
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {

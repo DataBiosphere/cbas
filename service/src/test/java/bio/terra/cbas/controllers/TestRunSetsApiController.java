@@ -7,6 +7,7 @@ import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -70,14 +71,16 @@ import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiClient;
-import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -120,6 +123,7 @@ class TestRunSetsApiController {
   private final String dockstoreWorkflowUrl = "github.com/broadinstitute/cromwell/hello.wdl";
   private final String recordType = "MY_RECORD_TYPE";
   private final String recordAttribute = "MY_RECORD_ATTRIBUTE";
+  private final String recordAttribute2 = "OTHER_RECORD_ATTRIBUTE";
   private final String outputDefinitionAsString =
       """
       [ {
@@ -206,6 +210,7 @@ class TestRunSetsApiController {
   final String cromwellWorkflowId1 = UUID.randomUUID().toString();
   final String cromwellWorkflowId2 = UUID.randomUUID().toString();
   final String cromwellWorkflowId3 = UUID.randomUUID().toString();
+  final String runSetUUID = UUID.randomUUID().toString();
 
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
@@ -248,10 +253,13 @@ class TestRunSetsApiController {
     final int recordAttributeValue3 = 300;
     RecordAttributes recordAttributes1 = new RecordAttributes();
     recordAttributes1.put(recordAttribute, recordAttributeValue1);
+    recordAttributes1.put(recordAttribute2, recordAttributeValue1);
     RecordAttributes recordAttributes2 = new RecordAttributes();
     recordAttributes2.put(recordAttribute, recordAttributeValue2);
+    recordAttributes2.put(recordAttribute2, "not a number");
     RecordAttributes recordAttributes3 = new RecordAttributes();
     recordAttributes3.put(recordAttribute, recordAttributeValue3);
+    recordAttributes3.put(recordAttribute2, recordAttributeValue3);
 
     HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
     workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
@@ -326,13 +334,12 @@ class TestRunSetsApiController {
     when(dockstoreService.descriptorGetV1(dockstoreWorkflowUrl, "develop"))
         .thenReturn(mockToolDescriptor);
 
-    UUID runSetUUID = UUID.randomUUID();
     UUID run1UUID = UUID.randomUUID();
     UUID run2UUID = UUID.randomUUID();
     UUID run3UUID = UUID.randomUUID();
     when(uuidSource.generateUUID())
         .thenReturn(
-            runSetUUID,
+            UUID.fromString(runSetUUID),
             UUID.fromString(cromwellWorkflowId1),
             UUID.fromString(cromwellWorkflowId2),
             UUID.fromString(cromwellWorkflowId3),
@@ -341,19 +348,13 @@ class TestRunSetsApiController {
             run3UUID);
 
     when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any()))
-        .thenReturn(
-            List.of(
-                new WorkflowIdAndStatus().id(cromwellWorkflowId1).status("Submitted"),
-                new WorkflowIdAndStatus().id(cromwellWorkflowId2).status("Failed"),
-                new WorkflowIdAndStatus().id(cromwellWorkflowId3).status("Submitted")));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap1), any()))
-        .thenReturn(new RunId().runId(cromwellWorkflowId1));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap2), any()))
-        .thenThrow(
-            new cromwell.client.ApiException(
-                "ApiException thrown on purpose for testing purposes."));
-    when(cromwellService.submitWorkflow(eq(workflowUrl), eq(workflowInputsMap3), any()))
-        .thenReturn(new RunId().runId(cromwellWorkflowId3));
+        .thenAnswer(
+            invocation -> {
+              Map<UUID, String> requestedIdToWorkflowInput = invocation.getArgument(1);
+              return requestedIdToWorkflowInput.keySet().stream()
+                  .map(id -> new WorkflowIdAndStatus().id(id.toString()))
+                  .toList();
+            });
 
     doReturn(mockUser).when(samService).getSamUser();
 
@@ -394,7 +395,9 @@ class TestRunSetsApiController {
 
   @Test
   void runSetWith1FailedRunTest() throws Exception {
-    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    final String optionalInputSourceString =
+        "{ \"type\" : \"record_lookup\", \"record_attribute\" : \"%s\" }"
+            .formatted(recordAttribute2);
     String request =
         requestTemplate.formatted(
             methodVersionId,
@@ -429,23 +432,104 @@ class TestRunSetsApiController {
     when(runDao.createRun(any())).thenReturn(1);
     List<Run> capturedRuns = newRunCaptor.getAllValues();
     assertEquals(3, capturedRuns.size());
-    // check Runs 1 & 3 were successfully submitted
+    // check Run 2 is in failed state (will be captured first)
     assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
-    assertEquals(cromwellWorkflowId1, capturedRuns.get(0).engineId());
-    assertEquals(INITIALIZING, capturedRuns.get(0).status());
-    assertEquals(recordId1, capturedRuns.get(0).recordId());
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
-    assertEquals(cromwellWorkflowId3, capturedRuns.get(2).engineId());
-    assertEquals(INITIALIZING, capturedRuns.get(2).status());
-    assertEquals(recordId3, capturedRuns.get(2).recordId());
-    // check Run 2 is in failed state
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
-    assertEquals(cromwellWorkflowId2, capturedRuns.get(1).engineId());
-    assertEquals(SYSTEM_ERROR, capturedRuns.get(1).status());
-    assertEquals(recordId2, capturedRuns.get(1).recordId());
+    assertNull(capturedRuns.get(0).engineId());
+    assertEquals(SYSTEM_ERROR, capturedRuns.get(0).status());
+    assertEquals(recordId2, capturedRuns.get(0).recordId());
     assertThat(
-        capturedRuns.get(1).errorMessages(),
-        containsString("Cromwell submission failed for Record ID MY_RECORD_ID_2."));
+        capturedRuns.get(0).errorMessages(),
+        containsString("Input generation failed for record MY_RECORD_ID_2. Coercion error: "));
+    // check Runs 1 & 3 were successfully submitted
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
+    assertEquals(INITIALIZING, capturedRuns.get(1).status());
+    assertEquals(INITIALIZING, capturedRuns.get(2).status());
+
+    // Run storage order is currently not guaranteed
+    if (capturedRuns.get(1).engineId().equals(cromwellWorkflowId1)) {
+      assertEquals(recordId1, capturedRuns.get(1).recordId());
+      assertEquals(cromwellWorkflowId3, capturedRuns.get(2).engineId());
+      assertEquals(recordId3, capturedRuns.get(2).recordId());
+    } else {
+      assertEquals(recordId1, capturedRuns.get(2).recordId());
+      assertEquals(cromwellWorkflowId3, capturedRuns.get(1).engineId());
+      assertEquals(recordId3, capturedRuns.get(1).recordId());
+    }
+
+    // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
+    assertThat(
+        newRunCaptor.getValue().submissionTimestamp(),
+        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
+  void runSetWithFailedCromwellCall() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null}";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any()))
+        .thenThrow(
+            new cromwell.client.ApiException(
+                "ApiException thrown on purpose for testing purposes."));
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
+    verify(runSetDao).createRunSet(newRunSetCaptor.capture());
+    assertEquals(methodVersionId, newRunSetCaptor.getValue().methodVersion().methodVersionId());
+    assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().methodId());
+    assertEquals(recordType, newRunSetCaptor.getValue().recordType());
+    assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
+    assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
+    assertEquals(mockUser.getUserSubjectId(), newRunSetCaptor.getValue().userId());
+
+    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
+    verify(runDao, times(3)).createRun(newRunCaptor.capture());
+    when(runDao.createRun(any())).thenReturn(1);
+    List<Run> capturedRuns = newRunCaptor.getAllValues();
+    assertEquals(3, capturedRuns.size());
+
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
+    assertNull(capturedRuns.get(0).engineId());
+    assertEquals(SYSTEM_ERROR, capturedRuns.get(0).status());
+
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
+    assertNull(capturedRuns.get(1).engineId());
+    assertEquals(SYSTEM_ERROR, capturedRuns.get(1).status());
+
+    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
+    assertNull(capturedRuns.get(2).engineId());
+    assertEquals(SYSTEM_ERROR, capturedRuns.get(2).status());
+
+    Set<String> recordIds = Set.of(recordId1, recordId2, recordId3);
+    assertEquals(recordIds, capturedRuns.stream().map(Run::recordId).collect(Collectors.toSet()));
+    assertAll(
+        capturedRuns.stream()
+            .map(
+                run ->
+                    () ->
+                        assertThat(
+                            run.errorMessages(),
+                            containsString(
+                                "Cromwell submission failed for batch in RunSet %s. ApiException: "
+                                    .formatted(runSetUUID)))));
 
     // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
     assertThat(
@@ -466,7 +550,7 @@ class TestRunSetsApiController {
             "[ \"%s\" ]".formatted(recordId1));
 
     when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any()))
-        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1).status("Submitted")));
+        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1)));
     when(uuidSource.generateUUID())
         .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
 
