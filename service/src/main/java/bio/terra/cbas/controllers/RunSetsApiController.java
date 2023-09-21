@@ -475,8 +475,6 @@ public class RunSetsApiController implements RunSetsApi {
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
-      List<WorkflowIdAndStatus> submitWorkflowBatchResponse;
-
       Map<UUID, RecordResponse> requestedIdToRecord =
           batch.stream()
               .map(singleRecord -> Map.entry(uuidSource.generateUUID(), singleRecord))
@@ -547,8 +545,8 @@ public class RunSetsApiController implements RunSetsApi {
       }
 
       try {
-        // Submit the workflow, get its ID and store the Run to database
-        submitWorkflowBatchResponse =
+        // Submit the workflows and store the Runs to database
+        List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
                 rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson);
 

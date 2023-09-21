@@ -32,7 +32,6 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.OffsetDateTime;
@@ -64,6 +63,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @TestPropertySource(properties = "cbas.cbas-api.runSetsMaximumRecordIds=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowInputs=100")
 @TestPropertySource(properties = "cbas.cbas-api.maxWorkflowOutputs=40")
+@TestPropertySource(properties = "cbas.cbas-api.maxWorkflowsInBatch=100")
 @Provider("cbas")
 @PactBroker()
 class VerifyPactsAllControllers {
@@ -182,8 +182,6 @@ class VerifyPactsAllControllers {
         .thenReturn(UUID.fromString(fixedCromwellRunUUID))
         .thenReturn(UUID.fromString(fixedRunUUID));
 
-    RunId myRunId = new RunId();
-    myRunId.setRunId(fixedRunUUID);
     when(cromwellService.submitWorkflowBatch(any(), any(), any()))
         .thenReturn(List.of(new WorkflowIdAndStatus().id(fixedCromwellRunUUID)));
     when(samService.getSamUser())
