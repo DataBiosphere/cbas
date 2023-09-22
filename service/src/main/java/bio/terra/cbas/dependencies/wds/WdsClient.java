@@ -1,13 +1,10 @@
 package bio.terra.cbas.dependencies.wds;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.cbas.dependencies.common.CredentialLoader;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
-import org.databiosphere.workspacedata.api.GeneralWdsInformationApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.stereotype.Component;
@@ -18,22 +15,16 @@ public class WdsClient {
   private final WdsServerConfiguration wdsServerConfiguration;
   private final DependencyUrlLoader dependencyUrlLoader;
 
-  private final CredentialLoader credentialLoader;
-
   private final OkHttpClient singletonHttpClient;
 
   public WdsClient(
-      WdsServerConfiguration wdsServerConfiguration,
-      DependencyUrlLoader dependencyUrlLoader,
-      CredentialLoader credentialLoader) {
+      WdsServerConfiguration wdsServerConfiguration, DependencyUrlLoader dependencyUrlLoader) {
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.dependencyUrlLoader = dependencyUrlLoader;
-    this.credentialLoader = credentialLoader;
     singletonHttpClient = new ApiClient().getHttpClient().newBuilder().build();
   }
 
-  protected ApiClient getApiClient()
-      throws DependencyNotAvailableException, AzureAccessTokenException {
+  protected ApiClient getApiClient(String accessToken) throws DependencyNotAvailableException {
 
     String uri;
 
@@ -46,9 +37,7 @@ public class WdsClient {
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setHttpClient(singletonHttpClient);
-    apiClient.addDefaultHeader(
-        "Authorization",
-        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
+    apiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
@@ -56,12 +45,7 @@ public class WdsClient {
     return apiClient;
   }
 
-  RecordsApi recordsApi() throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new RecordsApi(getApiClient());
-  }
-
-  GeneralWdsInformationApi generalWdsInformationApi()
-      throws DependencyNotAvailableException, AzureAccessTokenException {
-    return new GeneralWdsInformationApi(getApiClient());
+  RecordsApi recordsApi(String accessToken) throws DependencyNotAvailableException {
+    return new RecordsApi(getApiClient(accessToken));
   }
 }
