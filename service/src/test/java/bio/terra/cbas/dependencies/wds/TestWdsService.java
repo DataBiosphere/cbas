@@ -2,11 +2,13 @@ package bio.terra.cbas.dependencies.wds;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.RetryConfig;
 import bio.terra.cbas.config.WdsServerConfiguration;
+import bio.terra.common.iam.BearerToken;
 import java.util.UUID;
 import javax.ws.rs.ProcessingException;
 import org.databiosphere.workspacedata.api.RecordsApi;
@@ -25,6 +27,8 @@ class TestWdsService {
 
   final RetryConfig retryConfig = new RetryConfig();
 
+  final BearerToken bearerToken = new BearerToken("");
+
   @Test
   void processingExceptionRetriesEventuallySucceed() throws Exception {
 
@@ -32,13 +36,17 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi()).thenReturn(recordsApi);
+    when(wdsClient.recordsApi(any())).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new ProcessingException("Processing exception"))
         .thenReturn(expectedResponse);
 
     WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
+        new WdsService(
+            wdsClient,
+            wdsServerConfiguration,
+            retryConfig.listenerResetRetryTemplate(),
+            bearerToken);
 
     assertEquals(expectedResponse, wdsService.getRecord("FOO", "foo1"));
   }
@@ -50,14 +58,18 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi()).thenReturn(recordsApi);
+    when(wdsClient.recordsApi(any())).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new ProcessingException("Processing exception"))
         .thenThrow(new ProcessingException("Processing exception"))
         .thenThrow(new ProcessingException("Processing exception"));
 
     WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
+        new WdsService(
+            wdsClient,
+            wdsServerConfiguration,
+            retryConfig.listenerResetRetryTemplate(),
+            bearerToken);
 
     assertThrows(ProcessingException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }
@@ -67,12 +79,16 @@ class TestWdsService {
 
     WdsClient wdsClient = mock(WdsClient.class);
     RecordsApi recordsApi = mock(RecordsApi.class);
-    when(wdsClient.recordsApi()).thenReturn(recordsApi);
+    when(wdsClient.recordsApi(any())).thenReturn(recordsApi);
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new RuntimeException("Other exception"));
 
     WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, retryConfig.listenerResetRetryTemplate());
+        new WdsService(
+            wdsClient,
+            wdsServerConfiguration,
+            retryConfig.listenerResetRetryTemplate(),
+            bearerToken);
 
     assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }

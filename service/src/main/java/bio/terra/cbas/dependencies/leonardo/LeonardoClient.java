@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.leonardo;
 
 import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
-import bio.terra.cbas.dependencies.common.CredentialLoader;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiClient;
 import org.springframework.stereotype.Component;
 
@@ -10,25 +9,19 @@ import org.springframework.stereotype.Component;
 public class LeonardoClient {
 
   private final LeonardoServerConfiguration leonardoServerConfiguration;
-  private final CredentialLoader credentialLoader;
 
-  public LeonardoClient(
-      LeonardoServerConfiguration leonardoServerConfiguration, CredentialLoader credentialLoader) {
+  public LeonardoClient(LeonardoServerConfiguration leonardoServerConfiguration) {
     this.leonardoServerConfiguration = leonardoServerConfiguration;
-    this.credentialLoader = credentialLoader;
   }
 
-  public ApiClient getApiClient() throws AzureAccessTokenException {
+  public ApiClient getUnauthorizedApiClient() {
     var apiClient = new ApiClient().setBasePath(leonardoServerConfiguration.baseUri());
-    apiClient.addDefaultHeader(
-        "Authorization",
-        "Bearer " + credentialLoader.getCredential(CredentialLoader.CredentialType.AZURE_TOKEN));
     apiClient.setDebugging(leonardoServerConfiguration.debugApiLogging());
     return apiClient;
   }
 
   public ApiClient getApiClient(String accessToken) throws AzureAccessTokenException {
-    ApiClient apiClient = getApiClient();
+    ApiClient apiClient = getUnauthorizedApiClient();
     apiClient.setAccessToken(accessToken);
     return apiClient;
   }
