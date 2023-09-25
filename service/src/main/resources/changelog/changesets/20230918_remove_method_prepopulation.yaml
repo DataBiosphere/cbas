@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: "remove fetch_sra_to_bam workflow"
+      author: scottdil
+      preConditions:
+        - onFail: MARK_RAN # Skips over the changeset but mark it as executed.
+        - sqlCheck:
+            expectedResult: 1 # Only delete if it hasn't been run before (template is only runset)
+            sql: SELECT COUNT(run_set_id) FROM run_set WHERE method_version_id='80000000-0000-0000-0000-000000000008'
+      changes:
+        - delete:
+            tableName: run_set
+            where: method_version_id='80000000-0000-0000-0000-000000000008'
+        - delete:
+            tableName: method_version
+            where: method_version_id='80000000-0000-0000-0000-000000000008'
+        - delete:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000008'
+
+  - changeSet:
+      id: "remove assemble_refbased workflow"
+      author: scottdil
+      preConditions:
+        - onFail: MARK_RAN # Skips over the changeset but mark it as executed.
+        - sqlCheck:
+            expectedResult: 1 # Only delete if it hasn't been run before (template is only runset)
+            sql: SELECT COUNT(run_set_id) FROM run_set WHERE method_version_id='50000000-0000-0000-0000-000000000005'
+      changes:
+        - delete:
+            tableName: run_set
+            where: run_set_id='10000000-0000-0000-0000-000000000005'
+        - delete:
+            tableName: method_version
+            where: method_version_id='50000000-0000-0000-0000-000000000005'
+        - delete:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000005'
+
+  - changeSet:
+      id: "remove sarscov2_nextstrain workflow"
+      author: scottdil
+      preConditions:
+        - onFail: MARK_RAN # Skips over the changeset but mark it as executed.
+        - sqlCheck:
+            expectedResult: 1 # Only delete if it hasn't been run before (template is only runset)
+            sql: SELECT COUNT(run_set_id) FROM run_set WHERE method_version_id='60000000-0000-0000-0000-000000000006'
+      changes:
+        - delete:
+            tableName: run_set
+            where: run_set_id='10000000-0000-0000-0000-000000000006'
+        - delete:
+            tableName: method_version
+            where: method_version_id='60000000-0000-0000-0000-000000000006'
+        - delete:
+            tableName: method
+            where: method_id='00000000-0000-0000-0000-000000000006'
