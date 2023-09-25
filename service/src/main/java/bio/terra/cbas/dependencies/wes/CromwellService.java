@@ -9,8 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
-import cromwell.client.model.RunId;
 import cromwell.client.model.WorkflowDescription;
+import cromwell.client.model.WorkflowIdAndStatus;
 import cromwell.client.model.WorkflowMetadataResponse;
 import cromwell.client.model.WorkflowQueryResult;
 import java.util.Collections;
@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,20 +36,31 @@ public class CromwellService implements HealthCheck {
     this.cromwellWriteClient = cromwellWriteClient;
   }
 
-  public RunId submitWorkflow(
-      String workflowUrl, Map<String, Object> params, String workflowOptionsJson)
-      throws ApiException, JsonProcessingException {
+  public List<WorkflowIdAndStatus> submitWorkflowBatch(
+      String workflowUrl, Map<UUID, String> requestedIdToWorkflowInput, String workflowOptionsJson)
+      throws ApiException {
+
+    // Ensure the order of inputs and ids passed to the endpoint are identical
+    List<UUID> requestedIdOrder = requestedIdToWorkflowInput.keySet().stream().toList();
 
     return cromwellClient
-        .wesAPI(cromwellWriteClient)
-        .runWorkflow(
-            InputGenerator.inputsToJson(params),
+        .workflowsApi(cromwellWriteClient)
+        .submitBatch(
+            API_VERSION,
+            requestedIdOrder.stream()
+                .map(requestedIdToWorkflowInput::get)
+                .collect(Collectors.joining(",", "[", "]")),
             null,
-            null,
+            workflowUrl,
             null,
             workflowOptionsJson,
-            workflowUrl,
-            null);
+            null,
+            null,
+            null,
+            null,
+            requestedIdOrder.stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(",", "[", "]")));
   }
 
   public WorkflowQueryResult runSummary(String runId) throws ApiException {
