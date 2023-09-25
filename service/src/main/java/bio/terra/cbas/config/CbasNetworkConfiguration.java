@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "cbas.network")
 public class CbasNetworkConfiguration {
 
-  public String externalUri;
+  private String externalUri;
 
   public Optional<String> getCallbackUri() {
     if (externalUri == null || externalUri.isEmpty()) {
