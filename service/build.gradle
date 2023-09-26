@@ -34,6 +34,7 @@ dependencies {
     implementation 'com.azure:azure-core-management:1.10.2'
     implementation 'com.azure:azure-identity:1.9.1'
     implementation 'com.azure:azure-identity-extensions:1.1.4'
+    implementation 'com.microsoft.azure:applicationinsights-runtime-attach:3.4.17'
 
     implementation project(':dockstore-client')
 

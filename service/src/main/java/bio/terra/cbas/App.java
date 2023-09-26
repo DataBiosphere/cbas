@@ -2,6 +2,7 @@ package bio.terra.cbas;
 
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.common.logging.LoggingInitializer;
+import com.microsoft.applicationinsights.attach.ApplicationInsights;
 import javax.sql.DataSource;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -50,6 +51,7 @@ public class App {
   }
 
   public static void main(String[] args) {
+    ApplicationInsights.attach();
     new SpringApplicationBuilder(App.class).initializers(new LoggingInitializer()).run(args);
     MetricsUtil.registerAllViews();
   }
