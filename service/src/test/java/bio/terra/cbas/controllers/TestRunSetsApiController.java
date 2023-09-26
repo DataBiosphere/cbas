@@ -813,7 +813,7 @@ class TestRunSetsApiController {
         new DependencyUrlLoader(leonardoService, appUtils, leonardoServerConfiguration);
     CromwellClient localTestClient = new CromwellClient(localTestConfig, dependencyUrlLoader);
     CbasNetworkConfiguration cbasNetworkConfiguration = new CbasNetworkConfiguration();
-    cbasNetworkConfiguration.setExternalUri("http://localhost:8080");
+    cbasNetworkConfiguration.setExternalUri("http://localhost:8080/");
     CromwellService localtestService =
         new CromwellService(localTestClient, cromwellClient, cbasNetworkConfiguration);
 
@@ -821,10 +821,10 @@ class TestRunSetsApiController {
     // write_to_cache should always be true. read_from_cache should match the provided call caching
     // option.
     String expected =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"workflow_callback_uri\":\"http://localhost:8080api/batch/v1/runs/results\",\"write_to_cache\":true}";
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
     assertEquals(expected, localtestService.buildWorkflowOptionsJson(true));
     String expectedFalse =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"workflow_callback_uri\":\"http://localhost:8080api/batch/v1/runs/results\",\"write_to_cache\":true}";
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
     assertEquals(expectedFalse, localtestService.buildWorkflowOptionsJson(false));
 
     // Test that the workflow options are properly constructed when the external uri is not set.
