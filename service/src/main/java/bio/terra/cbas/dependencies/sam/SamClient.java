@@ -2,8 +2,10 @@ package bio.terra.cbas.dependencies.sam;
 
 import bio.terra.cbas.config.SamServerConfiguration;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.springframework.stereotype.Component;
+import java.util.List;
 
 @Component
 public class SamClient {
@@ -13,7 +15,7 @@ public class SamClient {
 
   public SamClient(SamServerConfiguration samServerConfiguration) {
     this.samServerConfiguration = samServerConfiguration;
-    this.singletonHttpClient = new ApiClient().getHttpClient();
+    this.singletonHttpClient = new ApiClient().getHttpClient().newBuilder().protocols(List.of(Protocol.HTTP_1_1)).build();
   }
 
   public ApiClient getApiClient() {
