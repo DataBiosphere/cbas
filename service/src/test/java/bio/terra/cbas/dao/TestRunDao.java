@@ -28,8 +28,8 @@ class TestRunDao {
   Method method =
       new Method(
           UUID.randomUUID(),
-          "fetch_sra_to_bam",
-          "fetch_sra_to_bam",
+          "fetch_sra_to_bam_run_test",
+          "fetch_sra_to_bam_run_test",
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null,
           "Github");
@@ -48,8 +48,8 @@ class TestRunDao {
       new RunSet(
           UUID.randomUUID(),
           methodVersion,
-          "fetch_sra_to_bam workflow",
-          "fetch_sra_to_bam sample submission",
+          "fetch_sra_to_bam_run_test workflow",
+          "fetch_sra_to_bam_run_test sample submission",
           false,
           true,
           CbasRunSetStatus.RUNNING,
