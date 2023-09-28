@@ -90,8 +90,7 @@ public class RunsApiController implements RunsApi {
     }
 
     // lookup runID in database
-    Optional<Run> runRecord =
-        runDao.getRuns(new RunDao.RunsFilters(runId, null)).stream().findFirst();
+    Optional<Run> runRecord = runDao.getRunByIdIfExists(runId);
     if (!runRecord.isPresent()) {
       throw new RunNotFoundException("Workflow ID %s is not found.".formatted(runId));
     }

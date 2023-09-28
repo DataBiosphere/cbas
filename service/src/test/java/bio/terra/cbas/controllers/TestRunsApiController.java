@@ -37,8 +37,8 @@ import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanCreationException;
@@ -248,7 +248,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnsSuccessOnTerminalStatus() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
-    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(returnedRun));
     when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
@@ -273,7 +273,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnSystemErrorWhenUpdateThrows() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
-    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(returnedRun));
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
@@ -295,7 +295,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnSystemErrorWhenUpdateErrors() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
-    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(returnedRun));
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
         .thenReturn(RunCompletionResult.ERROR);
 
@@ -319,7 +319,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
-    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(returnedRun));
     when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
@@ -341,7 +341,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
-    when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.empty());
     var requestBody =
         new RunResultsRequest()
             .workflowId(updatedRun.runId())
@@ -364,7 +364,7 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
-    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(returnedRun));
     var requestBody =
         new RunResultsRequest()
             .workflowId(updatedRun.runId())
