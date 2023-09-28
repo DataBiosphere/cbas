@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.springframework.http.HttpStatus;
 
 public abstract class LeonardoServiceException extends ErrorReportException {
-  public LeonardoServiceException(String message) {
+  protected LeonardoServiceException(String message) {
     super(message, new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

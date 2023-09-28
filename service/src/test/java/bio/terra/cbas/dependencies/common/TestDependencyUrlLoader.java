@@ -12,6 +12,7 @@ import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
+import bio.terra.cbas.dependencies.leonardo.LeonardoServiceApiException;
 import java.time.Duration;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
@@ -126,7 +127,8 @@ class TestDependencyUrlLoader {
 
   @Test
   void wrapsExceptionsFromLeonardo() throws Exception {
-    when(leonardoService.getApps()).thenThrow(new ApiException("Bad Leonardo!"));
+    when(leonardoService.getApps())
+        .thenThrow(new LeonardoServiceApiException(new ApiException(400, "Bad Leonardo!")));
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
 
@@ -141,7 +143,11 @@ class TestDependencyUrlLoader {
                     DependencyUrlLoader.DependencyUrlType.WDS_URL));
 
     assertEquals(
-        "Dependency not available: WDS. Failed to poll Leonardo for URL", thrown.getMessage());
+        "Dependency not available: WDS. Failed to poll Leonardo for URL\n%s"
+            .formatted(thrown.getCause().getMessage()),
+        thrown.getMessage());
+    assertTrue(thrown.getMessage().contains("400"));
+    assertTrue(thrown.getMessage().contains("Bad Leonardo!"));
     assertTrue(thrown.getCause().getMessage().contains("Bad Leonardo!"));
   }
 
