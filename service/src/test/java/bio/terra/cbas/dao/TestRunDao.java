@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -11,6 +12,7 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -79,24 +81,62 @@ class TestRunDao {
   void init() {
     methodDao.createMethod(method);
     methodVersionDao.createMethodVersion(methodVersion);
-    runSetDao.createRunSet(runSet);
-    runDao.createRun(run);
+  }
+
+  @AfterAll
+  void cleanup() {
+    try {
+      int recordsMethodVersionDeleted =
+          methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
+      int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
+
+      assertEquals(1, recordsMethodDeleted);
+      assertEquals(1, recordsMethodVersionDeleted);
+    } catch (Exception ex) {
+      fail("Failure while removing test method record from a database", ex);
+    }
   }
 
   @Test
   void getRunByIdIfExistsRetrievesSingleRun() {
-    Optional<Run> result = runDao.getRunByIdIfExists(run.runId());
-    Run actual = result.get();
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
 
-    assertEquals(run.runSet().runSetId(), actual.runSet().runSetId());
-    assertEquals(run.runId(), actual.runId());
-    assertEquals(run.engineId(), actual.engineId());
-    assertEquals(run.errorMessages(), actual.errorMessages());
-    assertEquals(run.status(), actual.status());
+      Optional<Run> result = runDao.getRunByIdIfExists(run.runId());
+      Run actual = result.get();
+
+      assertEquals(run.runSet().runSetId(), actual.runSet().runSetId());
+      assertEquals(run.runId(), actual.runId());
+      assertEquals(run.engineId(), actual.engineId());
+      assertEquals(run.errorMessages(), actual.errorMessages());
+      assertEquals(run.status(), actual.status());
+    } finally {
+      try {
+        runDao.deleteRun(run.runId());
+        runSetDao.deleteRunSets(runSet.runSetId());
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
   }
 
   @Test
   void getRunByIdIfExistsRunIdNotFound() {
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
+
+      Optional<Run> result = runDao.getRunByIdIfExists(UUID.randomUUID());
+      assertEquals(Optional.empty(), result);
+    } finally {
+      try {
+        runDao.deleteRun(run.runId());
+        runSetDao.deleteRunSets(runSet.runSetId());
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
     Optional<Run> result = runDao.getRunByIdIfExists(UUID.randomUUID());
     assertEquals(Optional.empty(), result);
   }
