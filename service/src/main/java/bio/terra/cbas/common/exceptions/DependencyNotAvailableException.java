@@ -8,8 +8,6 @@ public class DependencyNotAvailableException extends ErrorReportException {
   }
 
   public DependencyNotAvailableException(String dependency, String context, Throwable reason) {
-    super(
-        "Dependency not available: %s. %s%n%s".formatted(dependency, context, reason.getMessage()),
-        reason);
+    super("Dependency not available: %s. %s".formatted(dependency, context), reason);
   }
 }

@@ -143,12 +143,10 @@ class TestDependencyUrlLoader {
                     DependencyUrlLoader.DependencyUrlType.WDS_URL));
 
     assertEquals(
-        "Dependency not available: WDS. Failed to poll Leonardo for URL\n%s"
-            .formatted(thrown.getCause().getMessage()),
-        thrown.getMessage());
-    assertTrue(thrown.getMessage().contains("400"));
-    assertTrue(thrown.getMessage().contains("Bad Leonardo!"));
-    assertTrue(thrown.getCause().getMessage().contains("Bad Leonardo!"));
+        "Dependency not available: WDS. Failed to poll Leonardo for URL", thrown.getMessage());
+    assertTrue(
+        thrown.getCause().getMessage().contains("Leonardo returned an unsuccessful status code"));
+    assertTrue(thrown.getCause().getCause().getMessage().contains("Bad Leonardo!"));
   }
 
   @Test
