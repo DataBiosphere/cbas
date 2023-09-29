@@ -137,7 +137,8 @@ class TestRunDao {
       runSetDao.createRunSet(runSet);
       runDao.createRun(run);
 
-      List<Run> result = runDao.getRuns(new RunDao.RunsFilters(run.runSet().runSetId(), null, run.engineId()));
+      List<Run> result =
+          runDao.getRuns(new RunDao.RunsFilters(run.runSet().runSetId(), null, run.engineId()));
       assertNotNull(result);
       assertEquals(1, (long) result.size());
       assertTrue(result.stream().findFirst().isPresent());
