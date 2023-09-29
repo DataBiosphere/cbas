@@ -85,7 +85,7 @@ public class RunsApiController implements RunsApi {
 
     log.info(
         "Processing workflow callback for run ID %s with status %s."
-            .formatted(runId, resultsStatus));
+            .formatted(engineId, resultsStatus));
 
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
