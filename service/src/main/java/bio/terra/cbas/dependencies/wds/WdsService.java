@@ -79,6 +79,8 @@ public class WdsService {
             return action.execute();
           } catch (ApiException e) {
             throw new WdsServiceApiException(e);
+          } catch (DependencyNotAvailableException e) {
+            throw new WdsServiceNotAvailableException(e);
           }
         });
   }
