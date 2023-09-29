@@ -39,12 +39,27 @@ class TestRunsFilters {
   }
 
   @Test
+  void emptyRunFilters4() {
+    RunsFilters filters = new RunsFilters(null, List.of(), null);
+    assertEquals(new WhereClause(List.of(), Map.of()), filters.buildWhereClause());
+  }
+
+  @Test
   void runSetId() {
     UUID uuid = UUID.randomUUID();
     RunsFilters filters = new RunsFilters(uuid, null);
     WhereClause actual = filters.buildWhereClause();
     assertEquals("WHERE (run.run_set_id = :runSetId)", actual.toString());
     assertEquals(Map.of("runSetId", uuid), actual.params());
+  }
+
+  @Test
+  void engineId() {
+    String engineId = UUID.randomUUID().toString();
+    RunsFilters filters = new RunsFilters(null, null, engineId);
+    WhereClause actual = filters.buildWhereClause();
+    assertEquals("WHERE (run.engine_id = :engineId)", actual.toString());
+    assertEquals(Map.of("engineId", engineId), actual.params());
   }
 
   @Test
@@ -86,6 +101,29 @@ class TestRunsFilters {
         new HashSet<>(actual.params().values()));
     assertEquals(
         Set.of("status_0", "status_1", "status_2", "status_3", "status_4", "status_5"),
+        actual.params().keySet());
+  }
+
+  @Test
+  void filterRawNonTerminalStatesAndEngineId() {
+
+    // Unsorted NON_TERMINAL_STATES is the more likely use case.
+    RunsFilters filters = new RunsFilters(null, CbasRunStatus.NON_TERMINAL_STATES, "engineId_1");
+    WhereClause actual = filters.buildWhereClause();
+    assertEquals(
+        "WHERE (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5)) AND (run.engine_id = :engineId)",
+        actual.toString());
+
+    // We can't assert any ordering on which status ends up in which 'status_0'...'status_5'
+    // placeholder,
+    // but we can make sure all the right keys and values are in the map in SOME order...
+    assertEquals(
+        CbasRunStatus.NON_TERMINAL_STATES.stream()
+            .map(CbasRunStatus::toString)
+            .collect(Collectors.toSet()),
+        new HashSet<>(actual.params().values()));
+    assertEquals(
+        Set.of("status_0", "status_1", "status_2", "status_3", "status_4", "status_5", "engine_id"),
         actual.params().keySet());
   }
 

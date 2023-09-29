@@ -15,11 +15,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -52,18 +49,6 @@ public class RunDao {
     String sql = RUN_SELECT_SQL + whereClause;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());
-  }
-
-  public Optional<Run> getRunByIdIfExists(UUID runId) {
-    String sql = RUN_SELECT_SQL + " WHERE run_id = :run_id";
-    MapSqlParameterSource params = new MapSqlParameterSource().addValue(Run.RUN_ID_COL, runId);
-    try {
-      Run result =
-          DataAccessUtils.requiredSingleResult(jdbcTemplate.query(sql, params, new RunMapper()));
-      return Optional.of(result);
-    } catch (EmptyResultDataAccessException e) {
-      return Optional.empty();
-    }
   }
 
   public Map<CbasRunStatus, StatusCountRecord> getRunStatusCounts(RunsFilters filters) {
@@ -151,13 +136,19 @@ public class RunDao {
             Map.of(Run.RUN_ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
-  public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
+  public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses, String engineId) {
+    public RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
+      this(runSetId, statuses, null);
+    }
+
     public static RunsFilters empty() {
-      return new RunsFilters(null, null);
+      return new RunsFilters(null, null, null);
     }
 
     public WhereClause buildWhereClause() {
-      if (runSetId == null && (statuses == null || statuses.isEmpty())) {
+      if (runSetId == null
+          && (statuses == null || statuses.isEmpty())
+          && (engineId == null || engineId.isEmpty())) {
         return new WhereClause(List.of(), Map.of());
       } else {
         List<String> conditions = new LinkedList<>();
@@ -173,6 +164,10 @@ public class RunDao {
           conditions.add(
               "run.status in (%s)".formatted(placeholderMapping.getSqlPlaceholderList()));
           params.putAll(placeholderMapping.getPlaceholderToValueMap());
+        }
+        if (engineId != null && !engineId.isEmpty()) {
+          conditions.add("run.engine_id = :engineId");
+          params.put("engineId", engineId);
         }
         return new WhereClause(conditions, params);
       }

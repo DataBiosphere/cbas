@@ -34,7 +34,6 @@ import cromwell.client.model.RunLog;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,7 +92,7 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
+    when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(1);
 
@@ -115,7 +114,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, SYSTEM_ERROR);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(1);
 
     // Run the results update:
@@ -137,7 +135,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, SYSTEM_ERROR);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(0);
 
     // Run the results update:
@@ -159,7 +156,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(0);
     // Run the results update:
@@ -184,7 +180,6 @@ class TestRunCompletionHandlerUnit {
     Object cromwellOutputs = object.fromJson(outputs, RunLog.class).getOutputs();
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(1);
     // Run the results update:
@@ -213,7 +208,6 @@ class TestRunCompletionHandlerUnit {
     Object cromwellOutputs = object.fromJson(emptyOutputs, RunLog.class).getOutputs();
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
         .thenReturn(1);
     // Run the results update:
@@ -243,7 +237,6 @@ class TestRunCompletionHandlerUnit {
     List<String> failures = createWorkflowErrorsList();
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
     doThrow(new RuntimeException("Some WDS error"))
@@ -274,7 +267,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(SYSTEM_ERROR), any())).thenReturn(1);
 
     // Run the results update:
@@ -301,7 +293,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
     List<String> errors = createWorkflowErrorsList();
@@ -330,7 +321,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(0);
     List<String> errors = createWorkflowErrorsList();
@@ -359,7 +349,6 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, null, RUNNING);
 
     // Set up mocks:
-    when(runDao.getRunByIdIfExists(any())).thenReturn(Optional.of(run1Incomplete));
     when(runDao.updateRunStatus(eq(runId1), eq(SYSTEM_ERROR), any())).thenReturn(1);
     List<String> failures = Collections.emptyList();
 
