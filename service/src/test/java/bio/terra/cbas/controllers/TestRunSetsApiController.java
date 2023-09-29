@@ -67,6 +67,7 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
@@ -223,6 +224,7 @@ class TestRunSetsApiController {
   // later):
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
+  @MockBean private BearerToken bearerToken;
   @MockBean private ApiClient cromwellClient;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
