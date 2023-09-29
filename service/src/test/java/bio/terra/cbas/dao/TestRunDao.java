@@ -123,8 +123,8 @@ class TestRunDao {
         int runsDeleted = runDao.deleteRun(run.runId());
         int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
 
-        assertEquals(runsDeleted, 1);
-        assertEquals(runSetsDeleted, 1);
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
       } catch (Exception ex) {
         fail("Failure while removing test run from a database", ex);
       }
@@ -155,8 +155,8 @@ class TestRunDao {
         int runsDeleted = runDao.deleteRun(run.runId());
         int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
 
-        assertEquals(runsDeleted, 1);
-        assertEquals(runSetsDeleted, 1);
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
       } catch (Exception ex) {
         fail("Failure while removing test run from a database", ex);
       }
@@ -177,8 +177,8 @@ class TestRunDao {
         int runsDeleted = runDao.deleteRun(run.runId());
         int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
 
-        assertEquals(runsDeleted, 1);
-        assertEquals(runSetsDeleted, 1);
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
       } catch (Exception ex) {
         fail("Failure while removing test run from a database", ex);
       }
