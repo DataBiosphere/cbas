@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.wes;
 
 import static bio.terra.cbas.api.RunsApi.log;
 
+import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
@@ -30,10 +31,15 @@ public class CromwellService implements HealthCheck {
   private static final String API_VERSION = "v1";
   private final ApiClient cromwellWriteClient;
 
-  public CromwellService(CromwellClient cromwellClient, ApiClient cromwellWriteClient) {
+  private final CbasNetworkConfiguration cbasNetworkConfiguration;
 
+  public CromwellService(
+      CromwellClient cromwellClient,
+      ApiClient cromwellWriteClient,
+      CbasNetworkConfiguration cbasNetworkConfiguration) {
     this.cromwellClient = cromwellClient;
     this.cromwellWriteClient = cromwellWriteClient;
+    this.cbasNetworkConfiguration = cbasNetworkConfiguration;
   }
 
   public List<WorkflowIdAndStatus> submitWorkflowBatch(
@@ -167,6 +173,11 @@ public class CromwellService implements HealthCheck {
             Map.ofEntries(
                 Map.entry("write_to_cache", true),
                 Map.entry("read_from_cache", isCallCachingEnabled)));
+
+    // Request a callback, if we know our own URL:
+    cbasNetworkConfiguration
+        .getCallbackUri()
+        .ifPresent(s -> workflowOptions.put("workflow_callback_uri", s));
 
     // Path for cromwell to write workflow logs to.
     Optional<String> finalWorkflowLogDir = cromwellClient.getFinalWorkflowLogDirOption();
