@@ -26,6 +26,11 @@ import org.springframework.stereotype.Repository;
 public class RunDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
+  // SQL query for reading Run records.
+  private static final String RUN_SELECT_SQL =
+      "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
+          + " INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+          + " INNER JOIN method ON method_version.method_id = method.method_id ";
 
   public RunDao(NamedParameterJdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
@@ -41,11 +46,7 @@ public class RunDao {
   public List<Run> getRuns(RunsFilters filters) {
     WhereClause whereClause = filters.buildWhereClause();
 
-    String sql =
-        "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
-            + " INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-            + " INNER JOIN method ON method_version.method_id = method.method_id "
-            + whereClause;
+    String sql = RUN_SELECT_SQL + whereClause;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());
   }
@@ -135,13 +136,19 @@ public class RunDao {
             Map.of(Run.RUN_ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
   }
 
-  public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
+  public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses, String engineId) {
+    public RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
+      this(runSetId, statuses, null);
+    }
+
     public static RunsFilters empty() {
-      return new RunsFilters(null, null);
+      return new RunsFilters(null, null, null);
     }
 
     public WhereClause buildWhereClause() {
-      if (runSetId == null && (statuses == null || statuses.isEmpty())) {
+      if (runSetId == null
+          && (statuses == null || statuses.isEmpty())
+          && (engineId == null || engineId.isEmpty())) {
         return new WhereClause(List.of(), Map.of());
       } else {
         List<String> conditions = new LinkedList<>();
@@ -157,6 +164,10 @@ public class RunDao {
           conditions.add(
               "run.status in (%s)".formatted(placeholderMapping.getSqlPlaceholderList()));
           params.putAll(placeholderMapping.getPlaceholderToValueMap());
+        }
+        if (engineId != null && !engineId.isEmpty()) {
+          conditions.add("run.engine_id = :engineId");
+          params.put("engineId", engineId);
         }
         return new WhereClause(conditions, params);
       }
@@ -182,6 +193,11 @@ public class RunDao {
 
   public record StatusCountRecord(
       CbasRunStatus status, Integer count, OffsetDateTime lastModified) {}
+
+  public int deleteRun(UUID runId) {
+    return jdbcTemplate.update(
+        "DELETE FROM run WHERE run_id = :run_id", new MapSqlParameterSource(Run.RUN_ID_COL, runId));
+  }
 
   private static class StatusCountMapper implements RowMapper<StatusCountRecord> {
     public StatusCountRecord mapRow(ResultSet rs, int rowNum) throws SQLException {

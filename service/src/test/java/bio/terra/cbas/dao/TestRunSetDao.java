@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
@@ -9,6 +10,7 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -66,6 +68,22 @@ class TestRunSetDao {
     methodDao.createMethod(method);
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(runSet);
+  }
+
+  @AfterAll
+  void cleanup() {
+    try {
+      int recordsRunSetDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+      int recordsMethodVersionDeleted =
+          methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
+      int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
+
+      assertEquals(1, recordsRunSetDeleted);
+      assertEquals(1, recordsMethodDeleted);
+      assertEquals(1, recordsMethodVersionDeleted);
+    } catch (Exception ex) {
+      fail("Failure while removing test run set record from a database", ex);
+    }
   }
 
   @Test

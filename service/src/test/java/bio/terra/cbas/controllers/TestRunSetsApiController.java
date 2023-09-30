@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,9 +77,9 @@ import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -262,16 +263,6 @@ class TestRunSetsApiController {
     recordAttributes3.put(recordAttribute, recordAttributeValue3);
     recordAttributes3.put(recordAttribute2, recordAttributeValue3);
 
-    HashMap<String, Object> workflowInputsMap1 = new HashMap<>();
-    workflowInputsMap1.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap1.put("myworkflow.mycall.inputname2", 100L);
-    HashMap<String, Object> workflowInputsMap2 = new HashMap<>();
-    workflowInputsMap2.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap2.put("myworkflow.mycall.inputname2", 200L);
-    HashMap<String, Object> workflowInputsMap3 = new HashMap<>();
-    workflowInputsMap3.put("myworkflow.mycall.inputname1", "literal value");
-    workflowInputsMap3.put("myworkflow.mycall.inputname2", 300L);
-
     ToolDescriptor mockToolDescriptor = new ToolDescriptor();
     mockToolDescriptor.setDescriptor("mock descriptor");
     mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
@@ -391,7 +382,7 @@ class TestRunSetsApiController {
             result ->
                 assertEquals(
                     "Error getting user status info from Sam: No token provided",
-                    result.getResolvedException().getMessage()));
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
@@ -418,6 +409,7 @@ class TestRunSetsApiController {
     RunSetStateResponse response =
         objectMapper.readValue(
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNotNull(response);
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
@@ -491,6 +483,7 @@ class TestRunSetsApiController {
     RunSetStateResponse response =
         objectMapper.readValue(
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNotNull(response);
 
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
     verify(runSetDao).createRunSet(newRunSetCaptor.capture());
@@ -686,6 +679,7 @@ class TestRunSetsApiController {
     RunSetStateResponse responseOptionalNone =
         objectMapper.readValue(
             resultOptionalNone.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNotNull(responseOptionalNone);
   }
 
   @Test
@@ -714,6 +708,7 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             resultOptionalRecordLookup.getResponse().getContentAsString(),
             RunSetStateResponse.class);
+    assertNotNull(responseOptionalRecordLookup);
   }
 
   @Test
@@ -739,6 +734,7 @@ class TestRunSetsApiController {
     RunSetStateResponse responseOptionalLiteral =
         objectMapper.readValue(
             resultOptionalLiteral.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNotNull(responseOptionalLiteral);
   }
 
   @Test
@@ -1115,7 +1111,7 @@ class TestRunSetsApiController {
             result ->
                 assertEquals(
                     "User doesn't have 'read' permission on 'workspace' resource",
-                    result.getResolvedException().getMessage()));
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
@@ -1141,7 +1137,7 @@ class TestRunSetsApiController {
             result ->
                 assertEquals(
                     "User doesn't have 'compute' permission on 'workspace' resource",
-                    result.getResolvedException().getMessage()));
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
@@ -1157,7 +1153,7 @@ class TestRunSetsApiController {
             result ->
                 assertEquals(
                     "User doesn't have 'compute' permission on 'workspace' resource",
-                    result.getResolvedException().getMessage()));
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
