@@ -76,39 +76,52 @@ public class RunCompletionHandler {
 
       if (updatableRun.status() == updatedRunState && workflowOutputs == null) {
         // Status is already up-to-date, there are no outputs to save.
-        // Only update last polled timestamp.
-        logger.info(
-            "Update last modified timestamp for Run {} (engine ID {}) in status {}.",
-            updatableRun.runId(),
-            updatableRun.engineId(),
-            updatableRun.status());
-
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
-        if (changes != 1) {
-          logger.warn(
-              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              changes);
-          return RunCompletionResult.ERROR;
-        }
-        return RunCompletionResult.SUCCESS;
+        return updateDatabaseRunStatusOnly(updatableRun);
       }
 
       // Pull workflow completion information and save run outputs
       ArrayList<String> errors = new ArrayList<>();
 
-      // Saving run outputs for a Successful status only.
+      // Saving run outputs for a Successful terminal status only.
       if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
-        String errorMessage = saveWorkflowOutputs(updatableRun, workflowOutputs);
-        if (errorMessage != null && !errorMessage.isEmpty()) {
+        String errorMessage; // = saveWorkflowOutputs(updatableRun, workflowOutputs);
+
+        try {
+          // we only write back output attributes to WDS if output definition is not empty.
+          if (hasOutputDefinition(updatableRun)) {
+            updateOutputAttributes(updatableRun, workflowOutputs);
+          }
+        } catch (OutputProcessingException | JsonProcessingException | CoercionException e) {
+          // log error and return validation exception in case
+          // the json schema of output is not as expected.
+          errorMessage =
+              "Error while processing workflow output attributes for record %s from run %s (engine workflow ID %s): %s"
+                  .formatted(
+                      updatableRun.recordId(),
+                      updatableRun.runId(),
+                      updatableRun.engineId(),
+                      e.getMessage());
+          logger.error(errorMessage, e);
+          // The error is not retryable, therefore return a validation error result.
+          return RunCompletionResult.VALIDATION;
+        } catch (Exception e) {
+          // log WDS or other Runtime error and mark Run as Failed.
+          errorMessage =
+              "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
+                  .formatted(
+                      updatableRun.recordId(),
+                      updatableRun.runId(),
+                      updatableRun.engineId(),
+                      e.getMessage());
+          logger.error(errorMessage, e);
+          errors.add(errorMessage);
+        }
+        if (errors != null && !errors.isEmpty()) {
           // If this is the last attempt to save workflow outputs,
           // update run info in database with an error.
           // Otherwise, we should return internal error to caller.
-          // TODO - handling OutputProcessingException as User Error will be covered in [WM-2090]
-          errors.add(errorMessage);
           updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
       } else if (updatedRunState.inErrorState()) {
@@ -150,6 +163,26 @@ public class RunCompletionHandler {
       return errorMessage;
     }
     return null;
+  }
+
+  private RunCompletionResult updateDatabaseRunStatusOnly(Run updatableRun) {
+    // Only update last polled timestamp.
+    logger.info(
+        "Update last modified timestamp for Run {} (engine ID {}) in status {}.",
+        updatableRun.runId(),
+        updatableRun.engineId(),
+        updatableRun.status());
+
+    var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
+    if (changes != 1) {
+      logger.warn(
+          "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
+          updatableRun.runId(),
+          updatableRun.status(),
+          changes);
+      return RunCompletionResult.ERROR;
+    }
+    return RunCompletionResult.SUCCESS;
   }
 
   private RunCompletionResult updateDatabaseRunStatus(

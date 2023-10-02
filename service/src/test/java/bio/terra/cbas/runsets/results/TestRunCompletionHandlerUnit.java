@@ -220,11 +220,11 @@ class TestRunCompletionHandlerUnit {
         runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, null);
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
-    verify(runDao, times(1))
+    verify(runDao, times(0))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
     verify(wdsService, times(0)).updateRecord(any(), any(), any());
 
-    assertEquals(RunCompletionResult.ERROR, result);
+    assertEquals(RunCompletionResult.VALIDATION, result);
   }
 
   @Test
