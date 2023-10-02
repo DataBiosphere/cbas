@@ -13,9 +13,12 @@ import java.util.UUID;
 import javax.ws.rs.ProcessingException;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class TestWdsService {
@@ -26,8 +29,16 @@ class TestWdsService {
       new WdsServerConfiguration(baseUri, instanceId, apiV, false);
 
   final RetryConfig retryConfig = new RetryConfig();
+  RetryTemplate template = retryConfig.listenerResetRetryTemplate();
 
   final BearerToken bearerToken = new BearerToken("");
+
+  @BeforeEach
+  void init() {
+    FixedBackOffPolicy smallerBackoff = new FixedBackOffPolicy();
+    smallerBackoff.setBackOffPeriod(5L); // 5 ms
+    template.setBackOffPolicy(smallerBackoff);
+  }
 
   @Test
   void processingExceptionRetriesEventuallySucceed() throws Exception {
@@ -42,11 +53,7 @@ class TestWdsService {
         .thenReturn(expectedResponse);
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
 
     assertEquals(expectedResponse, wdsService.getRecord("FOO", "foo1"));
   }
@@ -65,11 +72,7 @@ class TestWdsService {
         .thenThrow(new ProcessingException("Processing exception"));
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
 
     assertThrows(ProcessingException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }
@@ -84,11 +87,7 @@ class TestWdsService {
         .thenThrow(new RuntimeException("Other exception"));
 
     WdsService wdsService =
-        new WdsService(
-            wdsClient,
-            wdsServerConfiguration,
-            retryConfig.listenerResetRetryTemplate(),
-            bearerToken);
+        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
 
     assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1"));
   }

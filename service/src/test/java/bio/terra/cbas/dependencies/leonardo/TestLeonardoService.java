@@ -16,10 +16,13 @@ import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class TestLeonardoService {
@@ -28,6 +31,7 @@ class TestLeonardoService {
       new WdsServerConfiguration("baseUri", workspaceId, "v1", false);
 
   final RetryConfig retryConfig = new RetryConfig();
+  RetryTemplate template = retryConfig.listenerResetRetryTemplate();
 
   final BearerToken bearerToken = new BearerToken("");
 
@@ -36,8 +40,15 @@ class TestLeonardoService {
         throw new SocketTimeoutException("Timeout");
       };
 
+  @BeforeEach
+  void init() {
+    FixedBackOffPolicy smallerBackoff = new FixedBackOffPolicy();
+    smallerBackoff.setBackOffPeriod(5L); // 5 ms
+    template.setBackOffPolicy(smallerBackoff);
+  }
+
   @Test
-  void processingExceptionRetriesEventuallySucceed() throws Exception {
+  void socketExceptionRetriesEventuallySucceed() throws Exception {
     List<ListAppResponse> expectedResponse = List.of(new ListAppResponse());
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
@@ -47,12 +58,7 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(
-            new LeonardoService(
-                leonardoClient,
-                wdsServerConfiguration,
-                retryConfig.listenerResetRetryTemplate(),
-                bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
@@ -60,7 +66,7 @@ class TestLeonardoService {
   }
 
   @Test
-  void processingExceptionRetriesEventuallyFail() throws Exception {
+  void socketExceptionRetriesEventuallyFail() throws Exception {
     List<ListAppResponse> expectedResponse = List.of(new ListAppResponse());
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
@@ -72,12 +78,7 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(
-            new LeonardoService(
-                leonardoClient,
-                wdsServerConfiguration,
-                retryConfig.listenerResetRetryTemplate(),
-                bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
@@ -97,12 +98,7 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(
-            new LeonardoService(
-                leonardoClient,
-                wdsServerConfiguration,
-                retryConfig.listenerResetRetryTemplate(),
-                bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
