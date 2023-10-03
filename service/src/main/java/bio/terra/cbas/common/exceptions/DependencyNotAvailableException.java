@@ -1,6 +1,8 @@
 package bio.terra.cbas.common.exceptions;
 
-public class DependencyNotAvailableException extends Exception {
+import bio.terra.common.exception.ErrorReportException;
+
+public class DependencyNotAvailableException extends ErrorReportException {
   public DependencyNotAvailableException(String dependency, String context) {
     super("Dependency not available: %s. %s".formatted(dependency, context));
   }

@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.leonardo;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiClient;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ public class LeonardoClient {
     return apiClient;
   }
 
-  public ApiClient getApiClient(String accessToken) throws AzureAccessTokenException {
+  public ApiClient getApiClient(String accessToken) {
     ApiClient apiClient = getUnauthorizedApiClient();
     apiClient.setAccessToken(accessToken);
     return apiClient;
