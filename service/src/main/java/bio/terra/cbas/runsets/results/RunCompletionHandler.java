@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
@@ -66,6 +67,7 @@ public class RunCompletionHandler {
     wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
   }
 
+  @SuppressWarnings("unchecked")
   public RunCompletionResult updateResults(
       Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
     long updateResultsStartNanos = System.nanoTime();
@@ -82,7 +84,9 @@ public class RunCompletionHandler {
       ArrayList<String> errors = new ArrayList<>();
 
       // Saving run outputs for a Successful terminal status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
+      if (updatedRunState == CbasRunStatus.COMPLETE
+          && workflowOutputs != null
+          && !((Map<String, Object>) workflowOutputs).isEmpty()) {
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
         String errorMessage;

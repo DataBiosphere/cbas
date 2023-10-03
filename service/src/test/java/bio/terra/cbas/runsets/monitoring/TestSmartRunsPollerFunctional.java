@@ -3,23 +3,17 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.EXECUTOR_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
-import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
@@ -28,7 +22,6 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -263,7 +256,7 @@ public class TestSmartRunsPollerFunctional {
     Gson object = new Gson();
     RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
     when(cromwellService.getOutputs(runningRunEngineId1)).thenReturn(parseRunLog.getOutputs());
-
+    when(runCompletionHandler.hasOutputDefinition(runToUpdate1)).thenReturn(true);
     when(runsDao.updateRunStatus(eq(runToUpdate1.runId()), eq(COMPLETE), any())).thenReturn(1);
 
     var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
@@ -275,6 +268,7 @@ public class TestSmartRunsPollerFunctional {
             eq(runToUpdate1.runId()),
             eq(COMPLETE),
             any()); // (verify that error messages are received from Cromwell)
+    verify(runCompletionHandler).hasOutputDefinition(runToUpdate1);
     verify(runCompletionHandler).updateOutputAttributes(eq(runToUpdate1), any());
 
     // Make sure the already-completed workflow isn't re-updated:

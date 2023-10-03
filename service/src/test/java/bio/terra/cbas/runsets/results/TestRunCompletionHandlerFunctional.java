@@ -185,6 +185,34 @@ public class TestRunCompletionHandlerFunctional {
   }
 
   @Test
+  void updatingOutputSucceeds() throws Exception {
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+
+    // output name is purposely misspelled so that attaching output fails
+    String rawOutputs =
+        """
+        {
+            "outputs": {
+              "wf_hello.hello.salutation": "Hello batch!"
+            }
+          }
+        """;
+
+    Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
+
+    RecordAttributes mockAttributes = new RecordAttributes();
+    mockAttributes.put("foo_name", "Hello batch!");
+    RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
+
+    runCompletionHandler.updateOutputAttributes(runToUpdate1, cromwellOutputs);
+
+    // verify that results update failed as attaching outputs failed
+    verify(wdsService)
+        .updateRecord(mockRequest, runToUpdate1.runSet().recordType(), runToUpdate1.recordId());
+  }
+
+  @Test
   void updatingOutputFails_MisspelledOutputs() throws Exception {
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
