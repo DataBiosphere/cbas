@@ -16,6 +16,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
@@ -297,88 +298,6 @@ public class TestSmartRunsPollerFunctional {
   }
 
   @Test
-  void updatingOutputFails_UpdatingDataTable() throws Exception {
-    when(cromwellService.runSummary(runningRunEngineId1))
-        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Succeeded"));
-
-    String runLogValue =
-        """
-        {
-            "outputs": {
-              "wf_hello.hello.salutation": "Hello batch!"
-            },
-            "request": {
-              "tags": {},
-              "workflow_engine_parameters": {},
-              "workflow_params": {
-                "wf_hello.hello.addressee": "batch"
-              },
-              "workflow_type": "None supplied",
-              "workflow_type_version": "None supplied"
-            },
-            "run_id": "c38181fd-e4df-4fa2-b2ba-a71090b6d97c",
-            "run_log": {
-              "end_time": "2022-10-04T15:54:49.142Z",
-              "name": "wf_hello",
-              "start_time": "2022-10-04T15:54:32.280Z"
-            },
-            "state": "COMPLETE",
-            "task_logs": [
-              {
-                "end_time": "2022-10-04T15:54:47.411Z",
-                "exit_code": 0,
-                "name": "wf_hello.hello",
-                "start_time": "2022-10-04T15:54:33.837Z",
-                "stderr": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stderr",
-                "stdout": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stdout"
-              }
-            ]
-          }
-        """;
-
-    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
-    Gson object = new Gson();
-    RunLog parseRunLog = object.fromJson(runLogValue, RunLog.class);
-    when(cromwellService.getOutputs(runningRunEngineId1)).thenReturn(parseRunLog.getOutputs());
-    doThrow(
-            new WdsServiceApiException(
-                new org.databiosphere.workspacedata.client.ApiException("Bad WDS update")))
-        .when(runCompletionHandler)
-        .updateOutputAttributes(runToUpdate1, parseRunLog.getOutputs());
-    when(runsDao.updateRunStatusWithError(eq(runningRunId1), eq(SYSTEM_ERROR), any(), any()))
-        .thenReturn(1);
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
-
-    verify(cromwellService).runSummary(runningRunEngineId1);
-    String expectedErrorMessage =
-        "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Bad WDS update"
-            .formatted(runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId());
-    verify(runsDao)
-        .updateRunStatusWithError(
-            eq(runToUpdate1.runId()),
-            eq(SYSTEM_ERROR),
-            any(),
-            eq(expectedErrorMessage)); // (verify that error messages are recorded)
-    verify(runCompletionHandler).updateOutputAttributes(eq(runToUpdate1), any());
-
-    assertEquals(2, actual.updatedList().size());
-    assertEquals(
-        SYSTEM_ERROR,
-        actual.updatedList().stream()
-            .filter(r -> r.runId().equals(runningRunId1))
-            .toList()
-            .get(0)
-            .status());
-    assertEquals(
-        expectedErrorMessage,
-        actual.updatedList().stream()
-            .filter(r -> r.runId().equals(runningRunId1))
-            .toList()
-            .get(0)
-            .errorMessages());
-  }
-
-  @Test
   void pollRunsInLeastRecentlyPolledOrder() throws Exception {
     when(cromwellService.runSummary(runningRunEngineId1))
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Running"));
@@ -488,92 +407,6 @@ public class TestSmartRunsPollerFunctional {
   }
 
   @Test
-  void updatingOutputFails_InputMissing() throws Exception {
-    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
-    Gson object = new Gson();
-
-    // output name is purposely misspelled so that attaching output fails
-    String misspelledRawOutputs =
-        """
-        {
-            "outputs": {
-              "wf_hello.hello.salutationz": "Hello batch!"
-            }
-          }
-        """;
-
-    Object misspelledCromwellOutputs =
-        object.fromJson(misspelledRawOutputs, RunLog.class).getOutputs();
-
-    String rawOutputs =
-        """
-        {
-            "outputs": {
-              "wf_hello.hello.salutation": "Hello batch!"
-            }
-          }
-        """;
-    Object cromwellOutputs = object.fromJson(rawOutputs, RunLog.class).getOutputs();
-
-    when(cromwellService.getOutputs(runningRunEngineId1)).thenReturn(misspelledCromwellOutputs);
-    when(cromwellService.getOutputs(runningRunEngineId2)).thenReturn(cromwellOutputs);
-    when(cromwellService.runSummary(runningRunEngineId1))
-        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Succeeded"));
-    when(cromwellService.runSummary(runningRunEngineId2))
-        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId2).status("Succeeded"));
-    when(runsDao.updateRunStatusWithError(eq(runToUpdate1.runId()), eq(SYSTEM_ERROR), any(), any()))
-        .thenReturn(1);
-    when(runsDao.updateRunStatus(eq(runToUpdate2.runId()), eq(COMPLETE), any())).thenReturn(1);
-
-    var actual =
-        smartRunsPoller.updateRuns(List.of(runToUpdate1, runToUpdate2, runAlreadyCompleted));
-
-    // verify that Run is marked as Failed as attaching outputs failed
-    verify(cromwellService).runSummary(runningRunEngineId1);
-    verify(runsDao)
-        .updateRunStatusWithError(
-            eq(runToUpdate1.runId()),
-            eq(SYSTEM_ERROR),
-            any(),
-            eq(
-                "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): Output wf_hello.hello.salutation not found in workflow outputs."
-                    .formatted(
-                        runToUpdate1.recordId(), runToUpdate1.runId(), runToUpdate1.engineId())));
-    verify(runCompletionHandler, never()).updateOutputAttributes(eq(runToUpdate1), any());
-
-    // verify that second Run whose status could be updated has been updated
-    verify(cromwellService).runSummary(runningRunEngineId2);
-    verify(runsDao).updateRunStatus(eq(runToUpdate2.runId()), eq(COMPLETE), any());
-    verify(runCompletionHandler).updateOutputAttributes(eq(runToUpdate2), any());
-
-    // Make sure the already-completed workflow isn't re-updated:
-    verify(runsDao, never()).updateRunStatus(eq(runAlreadyCompleted.runId()), eq(COMPLETE), any());
-
-    assertEquals(3, actual.updatedList().size());
-    assertEquals(
-        SYSTEM_ERROR,
-        actual.updatedList().stream()
-            .filter(r -> r.runId().equals(runningRunId1))
-            .toList()
-            .get(0)
-            .status());
-    assertEquals(
-        COMPLETE,
-        actual.updatedList().stream()
-            .filter(r -> r.runId().equals(runningRunId2))
-            .toList()
-            .get(0)
-            .status());
-    assertEquals(
-        COMPLETE,
-        actual.updatedList().stream()
-            .filter(r -> r.runId().equals(completedRunId))
-            .toList()
-            .get(0)
-            .status());
-  }
-
-  @Test
   void databaseUpdatedWithCromwellError() throws Exception {
 
     String cromwellError =
@@ -626,60 +459,5 @@ public class TestSmartRunsPollerFunctional {
             .toList()
             .get(0)
             .errorMessages());
-  }
-
-  @Test
-  void hasOutputDefinitionReturnsTrue() throws JsonProcessingException {
-    assertTrue(runCompletionHandler.hasOutputDefinition(runToUpdate1));
-  }
-
-  @Test
-  void hasOutputDefinitionReturnsFalse() throws JsonProcessingException {
-    String outputDefinition = "[]";
-    RunSet outputLessRunSet =
-        new RunSet(
-            UUID.randomUUID(),
-            new MethodVersion(
-                UUID.randomUUID(),
-                new Method(
-                    UUID.randomUUID(),
-                    "methodName",
-                    "methodDescription",
-                    methodCreatedTime,
-                    UUID.randomUUID(),
-                    "method source"),
-                "version name",
-                "version description",
-                methodCreatedTime,
-                UUID.randomUUID(),
-                "file:///method/source/url"),
-            "runSetName",
-            "runSetDescription",
-            true,
-            false,
-            CbasRunSetStatus.UNKNOWN,
-            runSubmittedTime,
-            runSubmittedTime,
-            runSubmittedTime,
-            0,
-            0,
-            "inputDefinition",
-            outputDefinition,
-            "entityType",
-            "user-foo");
-
-    Run run =
-        new Run(
-            runningRunId1,
-            runningRunEngineId1,
-            outputLessRunSet,
-            runningRunEntityId1,
-            runSubmittedTime,
-            RUNNING,
-            runningRunStatusUpdateTime,
-            runningRunStatusUpdateTime,
-            errorMessages);
-
-    assertFalse(runCompletionHandler.hasOutputDefinition(run));
   }
 }

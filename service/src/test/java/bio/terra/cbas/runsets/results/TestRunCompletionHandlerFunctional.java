@@ -63,7 +63,6 @@ public class TestRunCompletionHandlerFunctional {
   private RunDao runsDao;
   private WdsService wdsService;
   private RunCompletionHandler runCompletionHandler;
-
   static String outputDefinition =
       """
         [
@@ -74,8 +73,42 @@ public class TestRunCompletionHandlerFunctional {
           }
         ]
       """;
+  static String runLogValue =
+      """
+          {
+              "outputs": {
+                "wf_hello.hello.salutation": "Hello batch!"
+              },
+              "request": {
+                "tags": {},
+                "workflow_engine_parameters": {},
+                "workflow_params": {
+                  "wf_hello.hello.addressee": "batch"
+                },
+                "workflow_type": "None supplied",
+                "workflow_type_version": "None supplied"
+              },
+              "run_id": "c38181fd-e4df-4fa2-b2ba-a71090b6d97c",
+              "run_log": {
+                "end_time": "2022-10-04T15:54:49.142Z",
+                "name": "wf_hello",
+                "start_time": "2022-10-04T15:54:32.280Z"
+              },
+              "state": "COMPLETE",
+              "task_logs": [
+                {
+                  "end_time": "2022-10-04T15:54:47.411Z",
+                  "exit_code": 0,
+                  "name": "wf_hello.hello",
+                  "start_time": "2022-10-04T15:54:33.837Z",
+                  "stderr": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stderr",
+                  "stdout": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stdout"
+                }
+              ]
+            }
+          """;
   private static final UUID runSetId = UUID.randomUUID();
-  private static final RunSet runSet =
+  private static final RunSet runSet1 =
       new RunSet(
           runSetId,
           new MethodVersion(
@@ -111,20 +144,8 @@ public class TestRunCompletionHandlerFunctional {
       new Run(
           runningRunId1,
           runningRunEngineId1,
-          runSet,
+          runSet1,
           runningRunEntityId1,
-          runSubmittedTime,
-          RUNNING,
-          runningRunStatusUpdateTime,
-          runningRunStatusUpdateTime,
-          errorMessages);
-
-  final Run runToUpdate2 =
-      new Run(
-          runningRunId2,
-          runningRunEngineId2,
-          runSet,
-          runningRunEntityId2,
           runSubmittedTime,
           RUNNING,
           runningRunStatusUpdateTime,
@@ -140,40 +161,6 @@ public class TestRunCompletionHandlerFunctional {
 
   @Test
   void updatingOutputFails_UpdatingDataTable() throws Exception {
-    String runLogValue =
-        """
-            {
-                "outputs": {
-                  "wf_hello.hello.salutation": "Hello batch!"
-                },
-                "request": {
-                  "tags": {},
-                  "workflow_engine_parameters": {},
-                  "workflow_params": {
-                    "wf_hello.hello.addressee": "batch"
-                  },
-                  "workflow_type": "None supplied",
-                  "workflow_type_version": "None supplied"
-                },
-                "run_id": "c38181fd-e4df-4fa2-b2ba-a71090b6d97c",
-                "run_log": {
-                  "end_time": "2022-10-04T15:54:49.142Z",
-                  "name": "wf_hello",
-                  "start_time": "2022-10-04T15:54:32.280Z"
-                },
-                "state": "COMPLETE",
-                "task_logs": [
-                  {
-                    "end_time": "2022-10-04T15:54:47.411Z",
-                    "exit_code": 0,
-                    "name": "wf_hello.hello",
-                    "start_time": "2022-10-04T15:54:33.837Z",
-                    "stderr": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stderr",
-                    "stdout": "/Users/kpierre/repos/cromwell/cromwell-executions/wf_hello/c38181fd-e4df-4fa2-b2ba-a71090b6d97c/call-hello/execution/stdout"
-                  }
-                ]
-              }
-            """;
 
     RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
@@ -198,7 +185,7 @@ public class TestRunCompletionHandlerFunctional {
   }
 
   @Test
-  void updatingOutputFails_InputMissing() throws Exception {
+  void updatingOutputFails_MisspelledOutputs() throws Exception {
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
 
@@ -221,7 +208,7 @@ public class TestRunCompletionHandlerFunctional {
 
     Assertions.assertThrows(
         OutputProcessingException.class,
-        () -> runCompletionHandler.updateOutputAttributes(runToUpdate2, misspelledCromwellOutputs));
+        () -> runCompletionHandler.updateOutputAttributes(runToUpdate1, misspelledCromwellOutputs));
 
     // verify that results update failed as attaching outputs failed
     verify(runsDao, never()).updateRunStatusWithError(any(), any(), any(), any());

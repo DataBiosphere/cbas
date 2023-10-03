@@ -70,7 +70,6 @@ public class RunCompletionHandler {
       Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
     long updateResultsStartNanos = System.nanoTime();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
-
     try {
       var updatedRunState = status;
 
@@ -86,10 +85,10 @@ public class RunCompletionHandler {
       if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
-        String errorMessage; // = saveWorkflowOutputs(updatableRun, workflowOutputs);
+        String errorMessage;
 
         try {
-          // we only write back output attributes to WDS if output definition is not empty.
+          // we only write back output attributes to WDS when output definition is not empty.
           if (hasOutputDefinition(updatableRun)) {
             updateOutputAttributes(updatableRun, workflowOutputs);
           }
@@ -104,7 +103,7 @@ public class RunCompletionHandler {
                       updatableRun.engineId(),
                       e.getMessage());
           logger.error(errorMessage, e);
-          // The error is not retryable, therefore return a validation error result.
+          // This error is not retryable, therefore return a validation error result.
           return RunCompletionResult.VALIDATION;
         } catch (Exception e) {
           // log WDS or other Runtime error and mark Run as Failed.
@@ -118,7 +117,8 @@ public class RunCompletionHandler {
           logger.error(errorMessage, e);
           errors.add(errorMessage);
         }
-        if (errors != null && !errors.isEmpty()) {
+
+        if (!errors.isEmpty()) {
           // If this is the last attempt to save workflow outputs,
           // update run info in database with an error.
           // Otherwise, we should return internal error to caller.
@@ -137,32 +137,6 @@ public class RunCompletionHandler {
     }
     // we should not come here
     return updateResult;
-  }
-
-  /*
-   The method checks if output definitions are associated with run and makes updates.
-   If outputs passed as arguments are null, but the workflow has the output definitions,
-   then call to Cromwell will be made to pull the outputs.
-  */
-  private String saveWorkflowOutputs(Run updatableRun, Object outputs) {
-    try {
-      // we only write back output attributes to WDS if output definition is not empty.
-      if (hasOutputDefinition(updatableRun)) {
-        updateOutputAttributes(updatableRun, outputs);
-      }
-    } catch (Exception e) {
-      // log error and mark Run as Failed
-      String errorMessage =
-          "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
-              .formatted(
-                  updatableRun.recordId(),
-                  updatableRun.runId(),
-                  updatableRun.engineId(),
-                  e.getMessage());
-      logger.error(errorMessage, e);
-      return errorMessage;
-    }
-    return null;
   }
 
   private RunCompletionResult updateDatabaseRunStatusOnly(Run updatableRun) {

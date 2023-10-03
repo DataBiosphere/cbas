@@ -62,6 +62,7 @@ class TestRunCompletionHandlerUnit {
           }
         ]
       """;
+
   static String outputs =
       """
         {
@@ -198,7 +199,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceededWithUnexpectedEmptyOutputsSavedWithError()
+  void updateRunCompletionReturnValidationErrorWhenUnexpectedEmptyOutputsError()
       throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
@@ -245,6 +246,7 @@ class TestRunCompletionHandlerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
+    // WDS throws
     doThrow(new RuntimeException("Some WDS error"))
         .when(wdsService)
         .updateRecord(any(), any(), any());
@@ -261,7 +263,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceedFailuresNull() {
+  void updateRunCompletionSucceededWithEmptyOutputsNoFailures() {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
 
