@@ -17,6 +17,7 @@ import org.databiosphere.workspacedata.model.RecordAttributes;
 
 public class OutputGenerator {
 
+  @SuppressWarnings("unchecked")
   public static RecordAttributes buildOutputs(
       List<WorkflowOutputDefinition> outputDefinitions, Object cromwellOutputs)
       throws OutputProcessingException, CoercionException {

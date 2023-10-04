@@ -62,6 +62,7 @@ class TestRunCompletionHandlerUnit {
           }
         ]
       """;
+
   static String outputs =
       """
         {
@@ -198,8 +199,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceededWithUnexpectedEmptyOutputsSavedWithError()
-      throws WdsServiceException {
+  void updateRunCompletionSucceededWithEmptyOutputs() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
@@ -219,12 +219,12 @@ class TestRunCompletionHandlerUnit {
     var result =
         runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, null);
     // Validate the results:
-    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
-    verify(runDao, times(1))
+    verify(runDao, times(1)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(0))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
     verify(wdsService, times(0)).updateRecord(any(), any(), any());
 
-    assertEquals(RunCompletionResult.ERROR, result);
+    assertEquals(RunCompletionResult.SUCCESS, result);
   }
 
   @Test
@@ -245,6 +245,7 @@ class TestRunCompletionHandlerUnit {
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
         .thenReturn(1);
+    // WDS throws
     doThrow(new RuntimeException("Some WDS error"))
         .when(wdsService)
         .updateRecord(any(), any(), any());
@@ -261,7 +262,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceedFailuresNull() {
+  void updateRunCompletionSucceededWithEmptyOutputsNoFailures() {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
 

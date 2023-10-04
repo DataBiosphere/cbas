@@ -5,23 +5,15 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
 import bio.terra.cbas.common.MetricsUtil;
-import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsClientUtils;
-import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
-import bio.terra.cbas.runsets.outputs.OutputGenerator;
-import bio.terra.cbas.runsets.types.CoercionException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.Duration;
@@ -30,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import org.databiosphere.workspacedata.model.RecordAttributes;
-import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
@@ -40,9 +30,7 @@ public class SmartRunsPoller {
 
   private final CromwellService cromwellService;
   private final RunDao runDao;
-  private final WdsService wdsService;
-  private final ObjectMapper objectMapper;
-
+  private final RunCompletionHandler runCompletionHandler;
   private final CbasApiConfiguration cbasApiConfiguration;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunsPoller.class);
@@ -50,35 +38,12 @@ public class SmartRunsPoller {
   public SmartRunsPoller(
       CromwellService cromwellService,
       RunDao runDao,
-      WdsService wdsService,
-      ObjectMapper objectMapper,
+      RunCompletionHandler runCompletionHandler,
       CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
     this.runDao = runDao;
-    this.wdsService = wdsService;
-    this.objectMapper = objectMapper;
+    this.runCompletionHandler = runCompletionHandler;
     this.cbasApiConfiguration = cbasApiConfiguration;
-  }
-
-  public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
-    List<WorkflowOutputDefinition> outputDefinitionList =
-        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    return !outputDefinitionList.isEmpty();
-  }
-
-  public void updateOutputAttributes(Run run, Object outputs)
-      throws JsonProcessingException, WdsServiceException, CoercionException,
-          OutputProcessingException {
-
-    List<WorkflowOutputDefinition> outputDefinitionList =
-        objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
-    RecordRequest request = new RecordRequest().attributes(outputParamDef);
-
-    logger.info(
-        "Updating output attributes for Record ID {} from Run {}.", run.recordId(), run.engineId());
-
-    wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
   }
 
   /**
@@ -181,12 +146,7 @@ public class SmartRunsPoller {
     }
   }
 
-  /*
-  Method getWorkflowErrors is a reusable code from SmartRunsPoller that we'll move
-  with a workflow completion handling from a SmartRunsPoller.
-  Pending task [WM-2090].
-   */
-  public List<String> getWorkflowErrors(Run updatableRun) {
+  private List<String> getWorkflowErrors(Run updatableRun) {
     ArrayList<String> errors = new ArrayList<>();
     try {
       // Retrieve error from Cromwell
@@ -218,9 +178,9 @@ public class SmartRunsPoller {
           try {
             // we only write back output attributes to WDS if output definition is not empty. This
             // is to avoid sending empty PATCH requests to WDS
-            if (hasOutputDefinition(updatableRun)) {
+            if (runCompletionHandler.hasOutputDefinition(updatableRun)) {
               Object outputs = cromwellService.getOutputs(updatableRun.engineId());
-              updateOutputAttributes(updatableRun, outputs);
+              runCompletionHandler.updateOutputAttributes(updatableRun, outputs);
             }
           } catch (Exception e) {
             // log error and mark Run as Failed
@@ -237,7 +197,7 @@ public class SmartRunsPoller {
           }
         } else if (updatedRunState.inErrorState()) {
           var cromwellErrors = getWorkflowErrors(updatableRun);
-          if (cromwellErrors != null && !cromwellErrors.isEmpty()) {
+          if (!cromwellErrors.isEmpty()) {
             errors.addAll(cromwellErrors);
           }
         }
