@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = RunCompletionHandler.class)
-public class TestRunCompletionHandlerFunctional {
+class TestRunCompletionHandlerFunctional {
 
   private static final OffsetDateTime methodCreatedTime = OffsetDateTime.now();
   private static final OffsetDateTime runSubmittedTime = OffsetDateTime.now();
