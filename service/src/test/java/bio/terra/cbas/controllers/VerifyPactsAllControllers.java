@@ -30,7 +30,6 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
-import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
@@ -82,7 +81,6 @@ class VerifyPactsAllControllers {
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
   @Autowired private ObjectMapper objectMapper;
-  @MockBean private RunCompletionHandler runCompletionHandler;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
