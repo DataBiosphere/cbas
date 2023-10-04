@@ -1,6 +1,7 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.retry.RetryLoggingListener;
+import java.net.SocketTimeoutException;
 import javax.ws.rs.ProcessingException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +32,8 @@ public class RetryConfig {
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
-          if (exception instanceof ProcessingException) {
+          if (exception instanceof ProcessingException
+              || exception instanceof SocketTimeoutException) {
             return srp;
           } else {
             return new NeverRetryPolicy();

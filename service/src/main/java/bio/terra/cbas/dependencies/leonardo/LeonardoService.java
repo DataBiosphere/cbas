@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.leonardo;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.common.iam.BearerToken;
@@ -10,6 +9,7 @@ import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.ServiceInfoApi;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.SystemStatus;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,28 +17,33 @@ public class LeonardoService implements HealthCheck {
 
   private final LeonardoClient leonardoClient;
   private final BearerToken bearerToken;
+  private final RetryTemplate listenerResetRetryTemplate;
 
   private final WdsServerConfiguration wdsServerConfiguration;
 
   public LeonardoService(
       LeonardoClient leonardoClient,
       WdsServerConfiguration wdsServerConfiguration,
+      RetryTemplate listenerResetRetryTemplate,
       BearerToken bearerToken) {
     this.leonardoClient = leonardoClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
+    this.listenerResetRetryTemplate = listenerResetRetryTemplate;
     this.bearerToken = bearerToken;
   }
 
-  private AppsApi getAppsApi() throws AzureAccessTokenException {
+  AppsApi getAppsApi() {
     return new AppsApi(leonardoClient.getApiClient(bearerToken.getToken()));
   }
 
-  private ServiceInfoApi getServiceInfoApi() throws AzureAccessTokenException {
+  private ServiceInfoApi getServiceInfoApi() {
     return new ServiceInfoApi(leonardoClient.getUnauthorizedApiClient());
   }
 
-  public List<ListAppResponse> getApps() throws ApiException, AzureAccessTokenException {
-    return getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null);
+  public List<ListAppResponse> getApps() throws LeonardoServiceException {
+    return executionWithRetryTemplate(
+        listenerResetRetryTemplate,
+        () -> getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null));
   }
 
   @Override
@@ -46,8 +51,26 @@ public class LeonardoService implements HealthCheck {
     try {
       SystemStatus result = getServiceInfoApi().getSystemStatus();
       return new Result(result.getOk(), result.toString());
-    } catch (ApiException | AzureAccessTokenException e) {
+    } catch (ApiException e) {
       return new Result(false, e.getMessage());
     }
+  }
+
+  interface LeonardoAction<T> {
+    T execute() throws org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
+  }
+
+  static <T> T executionWithRetryTemplate(
+      RetryTemplate retryTemplate, LeonardoService.LeonardoAction<T> action)
+      throws LeonardoServiceException {
+
+    return retryTemplate.execute(
+        context -> {
+          try {
+            return action.execute();
+          } catch (org.broadinstitute.dsde.workbench.client.leonardo.ApiException e) {
+            throw new LeonardoServiceApiException(e);
+          }
+        });
   }
 }

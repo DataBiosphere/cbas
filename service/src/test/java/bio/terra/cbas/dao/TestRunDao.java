@@ -1,146 +1,193 @@
 package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import bio.terra.cbas.dao.RunDao.RunsFilters;
-import bio.terra.cbas.dao.util.WhereClause;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import java.util.HashSet;
+import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
+import bio.terra.cbas.models.Run;
+import bio.terra.cbas.models.RunSet;
+import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestRunDao {
+  @Autowired RunDao runDao;
+  @Autowired RunSetDao runSetDao;
+  @Autowired MethodDao methodDao;
+  @Autowired MethodVersionDao methodVersionDao;
 
-  // Sort the NON_TERMINAL_STATES so that we can guarantee the order (based on enum ordination):
-  // UNKNOWN, QUEUED, INITIALIZING, RUNNING, PAUSED, CANCELING
-  private static final List<CbasRunStatus> sortedNonTerminalStatuses =
-      CbasRunStatus.NON_TERMINAL_STATES.stream().sorted().toList();
+  Method method =
+      new Method(
+          UUID.randomUUID(),
+          "fetch_sra_to_bam_run_test",
+          "fetch_sra_to_bam_run_test",
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null,
+          "Github");
 
-  @Test
-  void emptyRunFilters() {
-    RunsFilters filters = RunsFilters.empty();
-    assertEquals(new WhereClause(List.of(), Map.of()), filters.buildWhereClause());
+  MethodVersion methodVersion =
+      new MethodVersion(
+          UUID.randomUUID(),
+          method,
+          "1.0",
+          "fetch_sra_to_bam sample submission",
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null,
+          "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl");
+
+  RunSet runSet =
+      new RunSet(
+          UUID.randomUUID(),
+          methodVersion,
+          "fetch_sra_to_bam_run_test workflow",
+          "fetch_sra_to_bam_run_test sample submission",
+          false,
+          true,
+          CbasRunSetStatus.RUNNING,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          0,
+          0,
+          "[]",
+          "[]",
+          "sample",
+          "user-foo");
+
+  Run run =
+      new Run(
+          UUID.randomUUID(),
+          UUID.randomUUID().toString(),
+          runSet,
+          null,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          CbasRunStatus.INITIALIZING,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null);
+
+  @BeforeAll
+  void init() {
+    methodDao.createMethod(method);
+    methodVersionDao.createMethodVersion(methodVersion);
+  }
+
+  @AfterAll
+  void cleanup() {
+    try {
+      int recordsMethodVersionDeleted =
+          methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
+      int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
+
+      assertEquals(1, recordsMethodDeleted);
+      assertEquals(1, recordsMethodVersionDeleted);
+    } catch (Exception ex) {
+      fail("Failure while removing test method record from a database", ex);
+    }
   }
 
   @Test
-  void emptyRunFilters2() {
-    RunsFilters filters = new RunsFilters(null, null);
-    assertEquals(new WhereClause(List.of(), Map.of()), filters.buildWhereClause());
+  void getRunByEngineIdIfExistsRetrievesSingleRun() {
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
+
+      List<Run> result = runDao.getRuns(new RunDao.RunsFilters(null, null, run.engineId()));
+      assertNotNull(result);
+      assertEquals(1, (long) result.size());
+      assertTrue(result.stream().findFirst().isPresent());
+
+      Run actual = result.stream().findFirst().get();
+
+      assertEquals(run.runSet().runSetId(), actual.runSet().runSetId());
+      assertEquals(run.runId(), actual.runId());
+      assertEquals(run.engineId(), actual.engineId());
+      assertEquals(run.errorMessages(), actual.errorMessages());
+      assertEquals(run.status(), actual.status());
+    } finally {
+      try {
+        int runsDeleted = runDao.deleteRun(run.runId());
+        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
   }
 
   @Test
-  void emptyRunFilters3() {
-    RunsFilters filters = new RunsFilters(null, List.of());
-    assertEquals(new WhereClause(List.of(), Map.of()), filters.buildWhereClause());
+  void getRunBySetRunIdAndEngineIdIfExistsRetrievesSingleRun() {
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
+
+      List<Run> result =
+          runDao.getRuns(new RunDao.RunsFilters(run.runSet().runSetId(), null, run.engineId()));
+      assertNotNull(result);
+      assertEquals(1, (long) result.size());
+      assertTrue(result.stream().findFirst().isPresent());
+
+      Run actual = result.stream().findFirst().get();
+
+      assertEquals(run.runSet().runSetId(), actual.runSet().runSetId());
+      assertEquals(run.runId(), actual.runId());
+      assertEquals(run.engineId(), actual.engineId());
+      assertEquals(run.errorMessages(), actual.errorMessages());
+      assertEquals(run.status(), actual.status());
+    } finally {
+      try {
+        int runsDeleted = runDao.deleteRun(run.runId());
+        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
   }
 
   @Test
-  void runSetId() {
-    UUID uuid = UUID.randomUUID();
-    RunsFilters filters = new RunsFilters(uuid, null);
-    WhereClause actual = filters.buildWhereClause();
-    assertEquals("WHERE (run.run_set_id = :runSetId)", actual.toString());
-    assertEquals(Map.of("runSetId", uuid), actual.params());
+  void getRunByEngineIdIfExistsEngineIdNotFound() {
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
+
+      List<Run> result =
+          runDao.getRuns(new RunDao.RunsFilters(null, null, UUID.randomUUID().toString()));
+      assertEquals(Collections.emptyList(), result);
+    } finally {
+      try {
+        int runsDeleted = runDao.deleteRun(run.runId());
+        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
   }
 
   @Test
-  void filterSortedNonTerminalStates() {
-
-    RunsFilters filters = new RunsFilters(null, sortedNonTerminalStatuses);
-    WhereClause actual = filters.buildWhereClause();
-    assertEquals(
-        "WHERE (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
-        actual.toString());
-    assertEquals(
-        Map.of(
-            "status_0", "UNKNOWN",
-            "status_1", "QUEUED",
-            "status_2", "INITIALIZING",
-            "status_3", "RUNNING",
-            "status_4", "PAUSED",
-            "status_5", "CANCELING"),
-        actual.params());
-  }
-
-  @Test
-  void filterRawNonTerminalStates() {
-
-    // Unsorted NON_TERMINAL_STATES is the more likely use case.
-    RunsFilters filters = new RunsFilters(null, CbasRunStatus.NON_TERMINAL_STATES);
-    WhereClause actual = filters.buildWhereClause();
-    assertEquals(
-        "WHERE (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
-        actual.toString());
-
-    // We can't assert any ordering on which status ends up in which 'status_0'...'status_5'
-    // placeholder,
-    // but we can make sure all the right keys and values are in the map in SOME order...
-    assertEquals(
-        CbasRunStatus.NON_TERMINAL_STATES.stream()
-            .map(CbasRunStatus::toString)
-            .collect(Collectors.toSet()),
-        new HashSet<>(actual.params().values()));
-    assertEquals(
-        Set.of("status_0", "status_1", "status_2", "status_3", "status_4", "status_5"),
-        actual.params().keySet());
-  }
-
-  @Test
-  void filterRunSetIdAndSortedNonTerminalStatuses() {
-    UUID uuid = UUID.randomUUID();
-    RunsFilters filters = new RunsFilters(uuid, sortedNonTerminalStatuses);
-    WhereClause actual = filters.buildWhereClause();
-
-    assertEquals(
-        "WHERE (run.run_set_id = :runSetId) AND (run.status in (:status_0,:status_1,:status_2,:status_3,:status_4,:status_5))",
-        actual.toString());
-    assertEquals(
-        Map.of(
-            "runSetId", uuid,
-            "status_0", "UNKNOWN",
-            "status_1", "QUEUED",
-            "status_2", "INITIALIZING",
-            "status_3", "RUNNING",
-            "status_4", "PAUSED",
-            "status_5", "CANCELING"),
-        actual.params());
-  }
-
-  @Test
-  void truncateTooShortMessage() {
-    String message = "This is a short message";
-    String actual = RunDao.truncatedErrorMessage(message);
-    assertEquals(message, actual);
-    assertEquals(23, actual.length());
-  }
-
-  @Test
-  void truncateExactLengthMessage() {
-
-    String inputString = "a".repeat(1000);
-    String actual = RunDao.truncatedErrorMessage(inputString);
-
-    assertEquals(inputString, actual);
-    assertEquals(1000, actual.length());
-  }
-
-  @Test
-  void truncateTooLongMessage() {
-
-    String inputString = "a".repeat(1025);
-    String expectedString = "a".repeat(1000);
-
-    String actual = RunDao.truncatedErrorMessage(inputString);
-
-    assertEquals(expectedString, actual);
-    assertEquals(1000, actual.length());
+  void getRunByEngineIdIfExistsNullEngineIdNotFound() {
+    List<Run> result = runDao.getRuns(new RunDao.RunsFilters(null, null, null));
+    assertEquals(Collections.emptyList(), result);
   }
 }

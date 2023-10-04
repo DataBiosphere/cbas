@@ -125,4 +125,10 @@ public class RunSetDao {
     String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
+
+  public int deleteRunSets(UUID runSetId) {
+    return jdbcTemplate.update(
+        "DELETE FROM run_set WHERE run_set_id = :run_set_id",
+        new MapSqlParameterSource(RunSet.RUN_SET_ID_COL, runSetId));
+  }
 }

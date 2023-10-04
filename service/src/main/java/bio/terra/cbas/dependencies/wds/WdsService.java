@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.wds;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.common.iam.BearerToken;
@@ -61,7 +60,7 @@ public class WdsService {
   }
 
   interface WdsAction<T> {
-    T execute() throws ApiException, DependencyNotAvailableException, AzureAccessTokenException;
+    T execute() throws ApiException, DependencyNotAvailableException;
   }
 
   @SuppressWarnings("java:S125") // The comment here isn't "commented code"
@@ -82,8 +81,6 @@ public class WdsService {
             throw new WdsServiceApiException(e);
           } catch (DependencyNotAvailableException e) {
             throw new WdsServiceNotAvailableException(e);
-          } catch (AzureAccessTokenException e) {
-            throw new WdsTokenNotAvailableException(e);
           }
         });
   }

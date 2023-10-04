@@ -1,16 +1,16 @@
 package bio.terra.cbas.dependencies.common;
 
-import bio.terra.cbas.common.exceptions.AzureAccessTokenException;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
+import bio.terra.cbas.dependencies.leonardo.LeonardoServiceException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
 import org.broadinstitute.dsde.workbench.client.leonardo.model.ListAppResponse;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -61,7 +61,7 @@ public class DependencyUrlLoader {
     try {
       List<ListAppResponse> allApps = leonardoService.getApps();
       return appUtils.findUrlForWds(allApps);
-    } catch (ApiException | AzureAccessTokenException e) {
+    } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
     }
   }
@@ -70,7 +70,7 @@ public class DependencyUrlLoader {
     try {
       List<ListAppResponse> allApps = leonardoService.getApps();
       return appUtils.findUrlForCromwell(allApps);
-    } catch (ApiException | AzureAccessTokenException e) {
+    } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("CROMWELL", "Failed to poll Leonardo for URL", e);
     }
   }
@@ -79,7 +79,7 @@ public class DependencyUrlLoader {
       throws DependencyNotAvailableException {
     try {
       return cache.get(urlType);
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | UncheckedExecutionException e) {
       if (e.getCause() instanceof DependencyNotAvailableException dnae) {
         throw dnae;
       } else {

@@ -80,12 +80,12 @@ public class RunsApiController implements RunsApi {
   @Override
   public ResponseEntity<Void> postRunResults(RunResultsRequest body) {
     // validate request
-    UUID runId = body.getWorkflowId();
+    UUID engineId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
 
     log.info(
         "Processing workflow callback for run ID %s with status %s."
-            .formatted(runId, resultsStatus));
+            .formatted(engineId, resultsStatus));
 
     if (!resultsStatus.isTerminal()) {
       // only terminal status can be reported
@@ -96,14 +96,16 @@ public class RunsApiController implements RunsApi {
 
     // lookup runID in database
     Optional<Run> runRecord =
-        runDao.getRuns(new RunDao.RunsFilters(runId, null)).stream().findFirst();
+        runDao.getRuns(new RunDao.RunsFilters(null, null, engineId.toString())).stream()
+            .findFirst();
     if (!runRecord.isPresent()) {
-      throw new RunNotFoundException("Workflow ID %s is not found.".formatted(runId));
+      throw new RunNotFoundException(
+          "Workflow ID with engine ID %s is not found.".formatted(engineId));
     }
 
     if (resultsStatus == CbasRunStatus.COMPLETE && body.getOutputs() == null) {
       throw new MissingRunOutputsException(
-          "Outputs are required for a successfully completed workflow ID %s.".formatted(runId));
+          "Outputs are required for a successfully completed workflow ID %s.".formatted(engineId));
     }
 
     // validate user permission

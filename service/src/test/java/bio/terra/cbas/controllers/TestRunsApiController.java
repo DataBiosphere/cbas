@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.BeanCreationException;
@@ -179,7 +180,7 @@ class TestRunsApiController {
             result ->
                 assertEquals(
                     "User doesn't have 'read' permission on 'workspace' resource",
-                    result.getResolvedException().getMessage()));
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
