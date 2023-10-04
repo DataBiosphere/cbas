@@ -67,7 +67,6 @@ public class RunCompletionHandler {
     wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
   }
 
-  @SuppressWarnings("unchecked")
   public RunCompletionResult updateResults(
       Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
     long updateResultsStartNanos = System.nanoTime();
@@ -84,34 +83,18 @@ public class RunCompletionHandler {
       ArrayList<String> errors = new ArrayList<>();
 
       // Saving run outputs for a Successful terminal status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE
-          && workflowOutputs != null
-          && !((Map<String, Object>) workflowOutputs).isEmpty()) {
+      if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
+
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
-        String errorMessage;
-
         try {
-          // we only write back output attributes to WDS when output definition is not empty.
-          if (hasOutputDefinition(updatableRun)) {
-            updateOutputAttributes(updatableRun, workflowOutputs);
+          boolean processedSuccessfully = saveWorkflowOutputsToWds(updatableRun, workflowOutputs);
+          if (!processedSuccessfully) {
+            return RunCompletionResult.VALIDATION;
           }
-        } catch (OutputProcessingException | JsonProcessingException | CoercionException e) {
-          // log error and return validation exception in case
-          // the json schema of output is not as expected.
-          errorMessage =
-              "Error while processing workflow output attributes for record %s from run %s (engine workflow ID %s): %s"
-                  .formatted(
-                      updatableRun.recordId(),
-                      updatableRun.runId(),
-                      updatableRun.engineId(),
-                      e.getMessage());
-          logger.error(errorMessage, e);
-          // This error is not retryable, therefore return a validation error result.
-          return RunCompletionResult.VALIDATION;
         } catch (Exception e) {
           // log WDS or other Runtime error and mark Run as Failed.
-          errorMessage =
+          String errorMessage =
               "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
                   .formatted(
                       updatableRun.recordId(),
@@ -123,9 +106,7 @@ public class RunCompletionHandler {
         }
 
         if (!errors.isEmpty()) {
-          // If this is the last attempt to save workflow outputs,
-          // update run info in database with an error.
-          // Otherwise, we should return internal error to caller.
+          // Update run info in database with an error.
           updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
       } else if (updatedRunState.inErrorState()) {
@@ -133,7 +114,6 @@ public class RunCompletionHandler {
           errors.addAll(workflowErrors);
         }
       }
-
       // Save the updated run record in database.
       updateResult = updateDatabaseRunStatus(updatableRun, updatedRunState, errors);
     } finally {
@@ -141,6 +121,32 @@ public class RunCompletionHandler {
     }
     // we should not come here
     return updateResult;
+  }
+
+  @SuppressWarnings("unchecked")
+  private boolean saveWorkflowOutputsToWds(Run updatableRun, Object workflowOutputs)
+      throws WdsServiceException {
+    try {
+      // we only write back output attributes to WDS when output definition is not empty
+      // and the workflow outputs contain items.
+      if (!((Map<String, Object>) workflowOutputs).isEmpty() && hasOutputDefinition(updatableRun)) {
+        updateOutputAttributes(updatableRun, workflowOutputs);
+      }
+    } catch (OutputProcessingException | JsonProcessingException | CoercionException e) {
+      // log error and return validation exception in case
+      // the json schema of output is not as expected.
+      String errorMessage =
+          "Error while processing workflow output attributes for record %s from run %s (engine workflow ID %s): %s"
+              .formatted(
+                  updatableRun.recordId(),
+                  updatableRun.runId(),
+                  updatableRun.engineId(),
+                  e.getMessage());
+      logger.error(errorMessage, e);
+      // This error is not retryable, therefore returns false to indicate a validation error result.
+      return false;
+    }
+    return true;
   }
 
   private RunCompletionResult updateDatabaseRunStatusOnly(Run updatableRun) {

@@ -72,6 +72,14 @@ class TestRunCompletionHandlerUnit {
         }
         """;
 
+  static String outputsToThrow =
+      """
+        {
+            "outputs": {
+              "wf_hello.hello.salutations": "Hello batch!"
+            }
+        }
+        """;
   static String emptyOutputs = """
         {
             "outputs":{}
@@ -223,8 +231,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceededWithOutputsErrorProcessingSavedRecord()
-      throws WdsServiceException {
+  void updateRunCompletionSucceededWhenWdsThrowsSavedStatusWithErrors() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
@@ -253,6 +260,36 @@ class TestRunCompletionHandlerUnit {
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
 
     assertEquals(RunCompletionResult.SUCCESS, result);
+  }
+
+  @Test
+  void updateRunCompletionReturnsValidationWithOutputsErrorProcessing() throws WdsServiceException {
+    RunCompletionHandler runCompletionHandler =
+        new RunCompletionHandler(runDao, wdsService, objectMapper);
+    // Set up run to expect non-empty outputs
+    RunSet runSet = createRunSet(UUID.randomUUID());
+    UUID runId1 = UUID.randomUUID();
+    Run run1Incomplete = createTestRun(runId1, runSet, RUNNING);
+    // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
+    Gson object = new Gson();
+    Object cromwellOutputs = object.fromJson(outputsToThrow, RunLog.class).getOutputs();
+    List<String> failures = createWorkflowErrorsList();
+
+    // Set up mocks:
+    when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString()))
+        .thenReturn(1);
+
+    // Run the results update:
+    var result =
+        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, failures);
+
+    // Validate the results:
+    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(0))
+        .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
+
+    assertEquals(RunCompletionResult.VALIDATION, result);
   }
 
   @Test
