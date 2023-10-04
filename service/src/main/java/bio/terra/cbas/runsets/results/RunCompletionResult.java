@@ -20,6 +20,8 @@ public enum RunCompletionResult {
   public HttpStatus toHttpStatus() {
     if (SUCCESS.toString().equalsIgnoreCase(this.value)) {
       return HttpStatus.OK;
+    } else if (VALIDATION.toString().equalsIgnoreCase(this.value)) {
+      return HttpStatus.BAD_REQUEST;
     } else {
       return HttpStatus.INTERNAL_SERVER_ERROR;
     }

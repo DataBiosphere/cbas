@@ -318,6 +318,31 @@ class TestRunsApiController {
   }
 
   @Test
+  void runResultsUpdateReturnUserErrorWhenValidationErrors() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any()))
+        .thenReturn(RunCompletionResult.VALIDATION);
+
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(returnedRun.runId())
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("[]");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
   void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
