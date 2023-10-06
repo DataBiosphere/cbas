@@ -1,0 +1,37 @@
+{
+  "run_set_name": "test-workflow-1",
+  "run_set_description": "test workflow",
+  "method_version_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "call_caching_enabled": true,
+  "wds_records": {
+    "record_type": "FOO",
+    "record_ids": [
+      "F0011111-1111-1111-1111-111111111111"
+    ]
+  },
+  "workflow_input_definitions": [
+    {
+      "input_name": "workflow_input_foo_rating",
+      "input_type": {
+        "type": "record_lookup",
+        "primitive_type": "String"
+      },
+      "source": {
+        "type": "record_lookup",
+        "record_attribute": "record_field_foo_rating"
+      }
+    }
+  ],
+  "workflow_output_definitions": [
+    {
+      "output_name": "workflow_output_foo_rating",
+      "output_type": {
+        "type": "record_lookup",
+        "primitive_type": "String"
+      },
+      "destination": {
+        "type": "record_update"
+      }
+    }
+  ]
+}
