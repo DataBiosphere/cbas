@@ -1,5 +1,5 @@
 {
-  "run_set_name": "test-workflow-1",
+  "run_set_name": "no-tasks-workflow",
   "run_set_description": "test workflow",
   "method_version_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "call_caching_enabled": true,

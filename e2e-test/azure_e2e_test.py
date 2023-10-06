@@ -78,12 +78,12 @@ def upload_wds_data(wds_url, workspace_id, tsv_file_name, record_name):
 
 
 def create_cbas_method(cbas_url, workspace_id):
-    method_name = "test_method_1"
+    method_name = "no-tasks-workflow"
     # TODO: figure out the method for testing
     request_body = {
         "method_name": method_name,
         "method_source": "GitHub",
-        "method_url": "https://github.com/broadinstitute/cromwell/blob/develop/wdl/transforms/draft3/src/test/cases/static_value_workflow.wdl",
+        "method_url": "https://raw.githubusercontent.com/DataBiosphere/cbas/sps_azure_e2e_test/e2e-test/resources/no-tasks-workflow.wdl",
         "method_version": "develop"
     }
 
@@ -123,7 +123,7 @@ def get_method_version_id(cbas_url, method_id):
     response = json.loads(response.text)
 
     # the method version we want should be the first element in the array
-    retrun response['methods'][0]['method_versions'][0]['method_version_id']
+    return response['methods'][0]['method_versions'][0]['method_version_id']
 
 
 def start():
@@ -153,12 +153,12 @@ def start():
 
     # Upload data to workspace
     # check that WDS is ready; if not exit the test
-    # print(f"Checking to see if WDS app is ready to upload data for workspace {workspace_id}")
-    # wds_url = get_app_url(workspace_id, 'WDS', 'wds')
-    # if wds_url == "":
-    #     print(f"WDS app not ready or errored out for workspace {workspace_id}")
-    #     exit(1)
-    # upload_wds_data(wds_url, workspace_id, "resources/e2e-testing-sra.tsv", "test2")
+    print(f"Checking to see if WDS app is ready to upload data for workspace {workspace_id}")
+    wds_url = get_app_url(workspace_id, 'WDS', 'wds')
+    if wds_url == "":
+        print(f"WDS app not ready or errored out for workspace {workspace_id}")
+        exit(1)
+    upload_wds_data(wds_url, workspace_id, "resources/cbas-e2e-test-data.tsv", "test-data")
 
     # Submit workflow to CBAS
     print(f"Checking to see if WORKFLOWS app is ready to submit workflow in workspace {workspace_id}")
@@ -168,7 +168,7 @@ def start():
         exit(1)
 
     # create a new method
-    method_id = "bed79b6c-037c-4466-9df6-35d051b9394a" # create_cbas_method(cbas_url, workspace_id) TODO -- this should be reverted
+    method_id = create_cbas_method(cbas_url, workspace_id) # TODO -- this should be reverted
     method_version_id = get_method_version_id(cbas_url, method_id)
 
 

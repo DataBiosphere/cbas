@@ -1,6 +1,6 @@
 version 1.0
 
-workflow no-tasks {
+workflow no_tasks {
   input {
     String name
     String id
