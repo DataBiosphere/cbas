@@ -1,5 +1,6 @@
 package bio.terra.cbas.runsets.results;
 
+import static bio.terra.cbas.models.CbasRunStatus.CANCELED;
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
@@ -37,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = RunCompletionHandler.class)
@@ -98,7 +100,8 @@ class TestRunCompletionHandlerUnit {
         new RunCompletionHandler(runDao, wdsService, objectMapper);
 
     UUID runId1 = UUID.randomUUID();
-    Run run1Incomplete = createTestRun(runId1, null, RUNNING);
+    RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
+    Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
 
     // Set up mocks:
     when(runDao.getRuns(any())).thenReturn(List.of(run1Incomplete));
@@ -106,7 +109,8 @@ class TestRunCompletionHandlerUnit {
         .thenReturn(1);
 
     // Run the results update:
-    var result = runCompletionHandler.updateResults(run1Incomplete, COMPLETE, null, null);
+    var result =
+        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, null, Collections.emptyList());
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
@@ -115,23 +119,24 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionNoStatusChangeNoOutputsUpdateDateTime() {
+  void updateRunCompletionWorkflowErrorsRecordedDateTime() {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
-
+    var errorList = List.of("error1", "error 2");
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, null, SYSTEM_ERROR);
 
     // Set up mocks:
-    when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(1);
+    when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), any())).thenReturn(1);
 
     // Run the results update:
-    var result = runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, null, null);
-
+    var result = runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, null, errorList);
+    ArgumentCaptor<String> errors = ArgumentCaptor.forClass(String.class);
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
-    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
-    verify(runDao, times(1)).updateLastPolledTimestamp(runId1);
+    verify(runDao, times(1)).updateRunStatusWithError(eq(runId1), any(), any(), errors.capture());
+    verify(runDao, times(0)).updateLastPolledTimestamp(runId1);
+    assertEquals("error1, error 2", errors.getValue());
     assertEquals(RunCompletionResult.SUCCESS, result);
   }
 
@@ -157,23 +162,72 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void updateRunCompletionSucceededNoOutputsNoRecordsToUpdate() {
+  void updateRunCompletionSucceededNoOutputsNoErrorsToUpdate() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
-
     UUID runId1 = UUID.randomUUID();
-    Run run1Incomplete = createTestRun(runId1, null, RUNNING);
+    RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
+    Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
 
     // Set up mocks:
-    when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.COMPLETE), isA(OffsetDateTime.class)))
-        .thenReturn(0);
+    when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.CANCELED), isA(OffsetDateTime.class)))
+        .thenReturn(1);
     // Run the results update:
-    var result = runCompletionHandler.updateResults(run1Incomplete, COMPLETE, null, null);
+    var result =
+        runCompletionHandler.updateResults(
+            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList());
 
     // Validate the results:
-    verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
-    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), eq(COMPLETE), any(), anyString());
+    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(CANCELED), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    assertEquals(RunCompletionResult.SUCCESS, result);
+  }
+
+  @Test
+  void updateRunCompletionSucceededNoStatusUpdate() throws WdsServiceException {
+    RunCompletionHandler runCompletionHandler =
+        new RunCompletionHandler(runDao, wdsService, objectMapper);
+    UUID runId1 = UUID.randomUUID();
+    RunSet runSet1 = createRunSet(UUID.randomUUID(), outputDefinition);
+    Run run1Incomplete = createTestRun(runId1, runSet1, CANCELED);
+
+    // Set up mocks:
+    when(runDao.updateLastPolledTimestamp(eq(runId1))).thenReturn(1);
+    // Run the results update:
+    var result =
+        runCompletionHandler.updateResults(
+            run1Incomplete, CbasRunStatus.CANCELED, "[]", Collections.emptyList());
+
+    // Validate the results:
+    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(runDao, times(1)).updateLastPolledTimestamp(eq(runId1));
+    verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
+    assertEquals(RunCompletionResult.SUCCESS, result);
+  }
+
+  @Test
+  void updateRunCompletionFailedNoRecordsUpdated() {
+    RunCompletionHandler runCompletionHandler =
+        new RunCompletionHandler(runDao, wdsService, objectMapper);
+    UUID runId1 = UUID.randomUUID();
+    RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
+    Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
+
+    // Set up mocks:
+    when(runDao.updateRunStatus(eq(runId1), eq(CbasRunStatus.CANCELED), isA(OffsetDateTime.class)))
+        .thenReturn(0);
+    // Run the results update:
+    var result =
+        runCompletionHandler.updateResults(
+            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList());
+
+    // Validate the results:
+    verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(CANCELED), any());
+    verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
     assertEquals(RunCompletionResult.ERROR, result);
+    assertEquals(RUNNING, run1Incomplete.status());
   }
 
   @Test
@@ -181,9 +235,9 @@ class TestRunCompletionHandlerUnit {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
-    RunSet runSet = createRunSet(UUID.randomUUID());
+    RunSet runSet1 = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
-    Run run1Incomplete = createTestRun(runId1, runSet, RUNNING);
+    Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
     Object cromwellOutputs = object.fromJson(outputs, RunLog.class).getOutputs();
@@ -207,7 +261,7 @@ class TestRunCompletionHandlerUnit {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
-    RunSet runSet = createRunSet(UUID.randomUUID());
+    RunSet runSet = createRunSet(UUID.randomUUID(), "[]");
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, runSet, RUNNING);
 
@@ -235,7 +289,7 @@ class TestRunCompletionHandlerUnit {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
-    RunSet runSet = createRunSet(UUID.randomUUID());
+    RunSet runSet = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, runSet, RUNNING);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -267,7 +321,7 @@ class TestRunCompletionHandlerUnit {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper);
     // Set up run to expect non-empty outputs
-    RunSet runSet = createRunSet(UUID.randomUUID());
+    RunSet runSet = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, runSet, RUNNING);
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
@@ -411,7 +465,7 @@ class TestRunCompletionHandlerUnit {
         runId, engineId1, runSet, recordId1, submissionTimestamp1, status, null, null, null);
   }
 
-  private RunSet createRunSet(UUID runSetId) {
+  private RunSet createRunSet(UUID runSetId, String outputDefinition) {
     return new RunSet(
         runSetId,
         new MethodVersion(

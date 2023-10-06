@@ -6,7 +6,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompleti
 
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.config.CbasApiConfiguration;
-import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -14,6 +13,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
+import bio.terra.cbas.runsets.results.RunCompletionResult;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.Duration;
@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 public class SmartRunsPoller {
 
   private final CromwellService cromwellService;
-  private final RunDao runDao;
   private final RunCompletionHandler runCompletionHandler;
   private final CbasApiConfiguration cbasApiConfiguration;
 
@@ -37,11 +36,9 @@ public class SmartRunsPoller {
 
   public SmartRunsPoller(
       CromwellService cromwellService,
-      RunDao runDao,
       RunCompletionHandler runCompletionHandler,
       CbasApiConfiguration cbasApiConfiguration) {
     this.cromwellService = cromwellService;
-    this.runDao = runDao;
     this.runCompletionHandler = runCompletionHandler;
     this.cbasApiConfiguration = cbasApiConfiguration;
   }
@@ -168,83 +165,40 @@ public class SmartRunsPoller {
       CbasRunStatus status, OffsetDateTime engineStatusChanged, Run updatableRun) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
     boolean updateDatabaseRunStatusSuccess = false;
+    ArrayList<String> errors = new ArrayList<>();
+    Object outputs = null;
 
     try {
       var updatedRunState = status;
-      if (updatableRun.status() != updatedRunState) {
-        ArrayList<String> errors = new ArrayList<>();
-
-        if (updatedRunState == CbasRunStatus.COMPLETE) {
-          try {
-            // we only write back output attributes to WDS if output definition is not empty. This
-            // is to avoid sending empty PATCH requests to WDS
-            if (runCompletionHandler.hasOutputDefinition(updatableRun)) {
-              Object outputs = cromwellService.getOutputs(updatableRun.engineId());
-              runCompletionHandler.updateOutputAttributes(updatableRun, outputs);
-            }
-          } catch (Exception e) {
-            // log error and mark Run as Failed
-            String errorMessage =
-                "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
-                    .formatted(
-                        updatableRun.recordId(),
-                        updatableRun.runId(),
-                        updatableRun.engineId(),
-                        WdsClientUtils.extractErrorMessage(e.getMessage()));
-            logger.error(errorMessage, e);
-            errors.add(errorMessage);
-            updatedRunState = CbasRunStatus.SYSTEM_ERROR;
-          }
-        } else if (updatedRunState.inErrorState()) {
-          var cromwellErrors = getWorkflowErrors(updatableRun);
-          if (!cromwellErrors.isEmpty()) {
-            errors.addAll(cromwellErrors);
-          }
+      if (updatedRunState == CbasRunStatus.COMPLETE) {
+        // Retrieve workflow outputs
+        try {
+          outputs = cromwellService.getOutputs(updatableRun.engineId());
+        } catch (Exception e) {
+          // log error and mark Run as Failed
+          String errorMessage =
+              "Error while retrieving workflow outputs for record %s from run %s (engine workflow ID %s): %s"
+                  .formatted(
+                      updatableRun.recordId(),
+                      updatableRun.runId(),
+                      updatableRun.engineId(),
+                      WdsClientUtils.extractErrorMessage(e.getMessage()));
+          logger.error(errorMessage, e);
+          errors.add(errorMessage);
+          updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
-        logger.info(
-            "Updating status of Run {} (engine ID {}) from {} to {} with {} errors",
-            updatableRun.runId(),
-            updatableRun.engineId(),
-            updatableRun.status(),
-            updatedRunState,
-            errors.size());
-        int changes;
-        if (errors.isEmpty()) {
-          changes =
-              runDao.updateRunStatus(updatableRun.runId(), updatedRunState, engineStatusChanged);
-        } else {
-          updatableRun = updatableRun.withErrorMessages(String.join(", ", errors));
-          changes =
-              runDao.updateRunStatusWithError(
-                  updatableRun.runId(),
-                  updatedRunState,
-                  engineStatusChanged,
-                  updatableRun.errorMessages());
-        }
-        if (changes == 1) {
-          updatableRun =
-              updatableRun
-                  .withStatus(updatedRunState)
-                  .withLastModified(engineStatusChanged)
-                  .withLastPolled(OffsetDateTime.now());
-        } else {
-          logger.warn(
-              "Run {} was identified for updating status from {} to {} but no DB rows were changed by the query.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              updatedRunState);
-        }
-      } else {
-        // if run status hasn't changed, only update last polled timestamp
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
-        if (changes != 1) {
-          logger.warn(
-              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              changes);
+      } else if (updatedRunState.inErrorState()) {
+        // Retrieve workflow errors
+        var cromwellErrors = getWorkflowErrors(updatableRun);
+        if (!cromwellErrors.isEmpty()) {
+          errors.addAll(cromwellErrors);
         }
       }
+      // Call Run Completion handler to update results
+      var updateResult =
+          runCompletionHandler.updateResults(
+              updatableRun, updatedRunState, outputs, errors, engineStatusChanged);
+      updateDatabaseRunStatusSuccess = (updateResult == RunCompletionResult.SUCCESS);
     } finally {
       recordMethodCompletion(updateDatabaseRunStatusStartNanos, updateDatabaseRunStatusSuccess);
     }

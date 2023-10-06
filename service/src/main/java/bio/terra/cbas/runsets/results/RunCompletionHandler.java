@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.slf4j.LoggerFactory;
@@ -69,13 +68,25 @@ public class RunCompletionHandler {
 
   public RunCompletionResult updateResults(
       Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
+    return updateResults(
+        updatableRun, status, workflowOutputs, workflowErrors, DateUtils.currentTimeInUTC());
+  }
+
+  public RunCompletionResult updateResults(
+      Run updatableRun,
+      CbasRunStatus status,
+      Object workflowOutputs,
+      List<String> workflowErrors,
+      OffsetDateTime engineStatusChange) {
     long updateResultsStartNanos = System.nanoTime();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
     try {
       var updatedRunState = status;
 
-      if (updatableRun.status() == updatedRunState && workflowOutputs == null) {
-        // Status is already up-to-date, there are no outputs to save.
+      if (updatableRun.status() == updatedRunState
+          && updatedRunState != CbasRunStatus.COMPLETE
+          && (workflowErrors == null || workflowErrors.isEmpty())) {
+        // Status is already up-to-date, not complete (no outputs to process), no errors to save.
         return updateDatabaseRunStatusOnly(updatableRun);
       }
 
@@ -83,7 +94,7 @@ public class RunCompletionHandler {
       ArrayList<String> errors = new ArrayList<>();
 
       // Saving run outputs for a Successful terminal status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
+      if (updatedRunState == CbasRunStatus.COMPLETE) {
 
         // Assuming that if no outputs were not passed with results,
         // Then no explicit pull should be made for outputs from Cromwell.
@@ -115,7 +126,8 @@ public class RunCompletionHandler {
         }
       }
       // Save the updated run record in database.
-      updateResult = updateDatabaseRunStatus(updatableRun, updatedRunState, errors);
+      updateResult =
+          updateDatabaseRunStatus(updatableRun, updatedRunState, errors, engineStatusChange);
     } finally {
       recordMethodCompletion(updateResultsStartNanos, RunCompletionResult.SUCCESS == updateResult);
     }
@@ -123,13 +135,12 @@ public class RunCompletionHandler {
     return updateResult;
   }
 
-  @SuppressWarnings("unchecked")
   private boolean saveWorkflowOutputsToWds(Run updatableRun, Object workflowOutputs)
       throws WdsServiceException {
     try {
       // we only write back output attributes to WDS when output definition is not empty
       // and the workflow outputs contain items.
-      if (!((Map<String, Object>) workflowOutputs).isEmpty() && hasOutputDefinition(updatableRun)) {
+      if (hasOutputDefinition(updatableRun)) {
         updateOutputAttributes(updatableRun, workflowOutputs);
       }
     } catch (OutputProcessingException | JsonProcessingException | CoercionException e) {
@@ -170,8 +181,10 @@ public class RunCompletionHandler {
   }
 
   private RunCompletionResult updateDatabaseRunStatus(
-      Run updatableRun, CbasRunStatus updatedRunState, ArrayList<String> errors) {
-    OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
+      Run updatableRun,
+      CbasRunStatus updatedRunState,
+      ArrayList<String> errors,
+      OffsetDateTime engineChangedTimestamp) {
     int changes;
 
     if (errors.isEmpty()) {

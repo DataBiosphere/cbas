@@ -1,6 +1,7 @@
 package bio.terra.cbas.runsets.results;
 
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -108,7 +109,7 @@ class TestRunCompletionHandlerFunctional {
             }
           """;
   private static final UUID runSetId = UUID.randomUUID();
-  private static final RunSet runSet1 =
+  private static final RunSet runSet =
       new RunSet(
           runSetId,
           new MethodVersion(
@@ -144,10 +145,22 @@ class TestRunCompletionHandlerFunctional {
       new Run(
           runningRunId1,
           runningRunEngineId1,
-          runSet1,
+          runSet,
           runningRunEntityId1,
           runSubmittedTime,
           RUNNING,
+          runningRunStatusUpdateTime,
+          runningRunStatusUpdateTime,
+          errorMessages);
+
+  final Run runToUpdate2 =
+      new Run(
+          runningRunId2,
+          runningRunEngineId2,
+          runSet,
+          runningRunEntityId2,
+          runSubmittedTime,
+          UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
           errorMessages);
@@ -161,7 +174,6 @@ class TestRunCompletionHandlerFunctional {
 
   @Test
   void updatingOutputFails_UpdatingDataTable() throws Exception {
-
     RecordAttributes mockAttributes = new RecordAttributes();
     mockAttributes.put("foo_name", "Hello batch!");
     RecordRequest mockRequest = new RecordRequest().attributes(mockAttributes);
