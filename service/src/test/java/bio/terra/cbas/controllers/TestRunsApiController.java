@@ -279,7 +279,7 @@ class TestRunsApiController {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            eq(returnedRun), eq(CbasRunStatus.EXECUTOR_ERROR), eq(null), eq(errorList)))
+            returnedRun, CbasRunStatus.EXECUTOR_ERROR, null, errorList))
         .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =

@@ -193,7 +193,7 @@ class TestRunCompletionHandlerUnit {
     Run run1Incomplete = createTestRun(runId1, runSet1, CANCELED);
 
     // Set up mocks:
-    when(runDao.updateLastPolledTimestamp(eq(runId1))).thenReturn(1);
+    when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(1);
     // Run the results update:
     var result =
         runCompletionHandler.updateResults(
@@ -201,7 +201,7 @@ class TestRunCompletionHandlerUnit {
 
     // Validate the results:
     verify(wdsService, times(0)).updateRecord(any(), any(), any());
-    verify(runDao, times(1)).updateLastPolledTimestamp(eq(runId1));
+    verify(runDao, times(1)).updateLastPolledTimestamp(runId1);
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
     assertEquals(RunCompletionResult.SUCCESS, result);

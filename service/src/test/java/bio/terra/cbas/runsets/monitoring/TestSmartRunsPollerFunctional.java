@@ -3,6 +3,7 @@ package bio.terra.cbas.runsets.monitoring;
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.EXECUTOR_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
+import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.gson.Gson;
+import cromwell.client.ApiException;
 import cromwell.client.model.FailureMessage;
 import cromwell.client.model.RunLog;
 import cromwell.client.model.WorkflowMetadataResponse;
@@ -382,7 +384,7 @@ public class TestSmartRunsPollerFunctional {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked") // for List<String> captor
   void databaseUpdatedWithCromwellError() throws Exception {
 
     String cromwellError =
@@ -427,5 +429,65 @@ public class TestSmartRunsPollerFunctional {
         captor.getValue().get(0));
 
     assertEquals(1, actual.updatedList().size());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // for List<String> captor
+  void databaseUpdatedWhenGetCromwellErrorsThrows() throws Exception {
+    ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+
+    when(cromwellService.runSummary(runningRunEngineId3))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId3).status("Failed"));
+    when(cromwellService.getRunErrors(runToUpdate3))
+        .thenThrow(new ApiException("Cromwell client exception"));
+    when(runCompletionHandler.updateResults(
+            eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
+
+    verify(cromwellService).runSummary(runningRunEngineId3);
+    verify(cromwellService).getRunErrors(runToUpdate3);
+    verify(cromwellService, never()).getOutputs(any());
+    verify(runCompletionHandler)
+        .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any());
+
+    assertEquals(
+        "Error fetching Cromwell-level error from Cromwell for run %s: %s."
+            .formatted(runningRunId3, "Message: Cromwell client exception"),
+        captor.getValue().get(0));
+
+    assertEquals(1, actual.updatedList().size());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked") // for List<String> captor
+  void databaseUpdatedWhenGetCromwellOutputsThrows() throws Exception {
+    ArgumentCaptor<List<String>> captor = ArgumentCaptor.forClass(List.class);
+    when(cromwellService.runSummary(runningRunEngineId1))
+        .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Succeeded"));
+    when(cromwellService.getOutputs(runningRunEngineId1))
+        .thenThrow(new ApiException("Cannot connect to Cromwell"));
+
+    when(runCompletionHandler.updateResults(
+            eq(runToUpdate1), eq(SYSTEM_ERROR), eq(null), eq(Collections.emptyList()), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
+
+    verify(cromwellService).runSummary(runningRunEngineId1);
+    verify(runCompletionHandler, times(1))
+        .updateResults(eq(runToUpdate1), eq(SYSTEM_ERROR), eq(null), captor.capture(), any());
+
+    assertEquals(
+        "Error while retrieving workflow outputs for record %s from run %s (engine workflow ID %s): %s"
+            .formatted(
+                runToUpdate1.recordId(),
+                runToUpdate1.runId(),
+                runToUpdate1.engineId(),
+                "Cannot connect to Cromwell"),
+        captor.getValue().get(0));
+
+    assertEquals(2, actual.updatedList().size());
   }
 }
