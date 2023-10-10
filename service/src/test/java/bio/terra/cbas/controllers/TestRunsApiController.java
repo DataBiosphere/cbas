@@ -354,7 +354,7 @@ class TestRunsApiController {
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
             eq(returnedRun), eq(CbasRunStatus.COMPLETE), any(), any()))
-        .thenReturn(RunCompletionResult.VALIDATION);
+        .thenReturn(RunCompletionResult.VALIDATION_ERROR);
 
     var requestBody =
         new RunResultsRequest()
@@ -433,7 +433,7 @@ class TestRunsApiController {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(eq(returnedRun), eq(COMPLETE), eq(null), any()))
-        .thenReturn(RunCompletionResult.VALIDATION);
+        .thenReturn(RunCompletionResult.VALIDATION_ERROR);
 
     var requestBody =
         new RunResultsRequest()
