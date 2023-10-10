@@ -7,7 +7,7 @@ workflow no_tasks {
   }
 
   output {
-    Int team = "Guardians of the Galaxy"
-    Int rank = "Captain"
+    String team = "Guardians of the Galaxy"
+    String rank = "Captain"
   }
 }
