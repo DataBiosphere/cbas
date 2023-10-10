@@ -7,7 +7,7 @@ workflow no_tasks {
   }
 
   output {
-    Int x = 2
-    Int y = 4
+    Int team = "Guardians of the Galaxy"
+    Int rank = "Captain"
   }
 }
