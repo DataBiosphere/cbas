@@ -1,36 +1,59 @@
 {
   "run_set_name": "no-tasks-workflow",
   "run_set_description": "test workflow",
-  "method_version_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "method_version_id": "{METHOD_VERSION_ID}",
   "call_caching_enabled": true,
   "wds_records": {
-    "record_type": "FOO",
+    "record_type": "test-data",
     "record_ids": [
-      "F0011111-1111-1111-1111-111111111111"
+      "89P13"
     ]
   },
   "workflow_input_definitions": [
     {
-      "input_name": "workflow_input_foo_rating",
+      "input_name": "no_tasks.id",
       "input_type": {
-        "type": "record_lookup",
+        "type": "primitive",
         "primitive_type": "String"
       },
       "source": {
         "type": "record_lookup",
-        "record_attribute": "record_field_foo_rating"
+        "record_attribute": "id"
+      }
+    },
+    {
+      "input_name": "no_tasks.name",
+      "input_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      },
+      "source": {
+        "type": "record_lookup",
+        "record_attribute": "name"
       }
     }
   ],
   "workflow_output_definitions": [
     {
-      "output_name": "workflow_output_foo_rating",
+      "output_name": "no_tasks.team",
       "output_type": {
-        "type": "record_lookup",
+        "type": "primitive",
         "primitive_type": "String"
       },
       "destination": {
-        "type": "record_update"
+        "type": "record_update",
+        "record_attribute": "team"
+      }
+    },
+    {
+      "output_name": "no_tasks.rank",
+      "output_type": {
+        "type": "primitive",
+        "primitive_type": "String"
+      },
+      "destination": {
+        "type": "record_update",
+        "record_attribute": "rank"
       }
     }
   ]
