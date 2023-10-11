@@ -102,26 +102,9 @@ public class RunCompletionHandler {
           // result.
           return RunCompletionResult.VALIDATION_ERROR;
         }
-        if (recordAttributes != null) {
-          try {
-            RecordRequest request = new RecordRequest().attributes(recordAttributes);
-            logger.info(
-                "Updating output attributes for Record ID {} from Run {}.",
-                updatableRun.recordId(),
-                updatableRun.engineId());
-
-            wdsService.updateRecord(
-                request, updatableRun.runSet().recordType(), updatableRun.recordId());
-          } catch (WdsServiceException e) {
-            // log WDS or other Runtime error and mark Run as Failed.
-            String errorMessage =
-                "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
-                    .formatted(
-                        updatableRun.recordId(),
-                        updatableRun.runId(),
-                        updatableRun.engineId(),
-                        e.getMessage());
-            logger.error(errorMessage, e);
+        if (recordAttributes != null && !recordAttributes.isEmpty()) {
+          String errorMessage = saveOutputsToWDS(updatableRun, recordAttributes);
+          if (errorMessage != null && !errorMessage.isEmpty()) {
             errors.add(errorMessage);
           }
         }
@@ -152,7 +135,40 @@ public class RunCompletionHandler {
     if (hasOutputDefinition(updatableRun)) {
       return buildOutputAttributes(updatableRun, workflowOutputs);
     }
-    return null;
+    return new RecordAttributes();
+  }
+
+  /// Saving workflow outputs parsed to record attributes. */
+
+  /**
+   * Saving workflow outputs to WDS.
+   *
+   * @param updatableRun Run record to supply correct reference to WDS API call.
+   * @param recordAttributes Workflow outputs parsed into the record attributes.
+   * @return A string containing error message if any occurred during WDS API call.
+   */
+  private String saveOutputsToWDS(Run updatableRun, RecordAttributes recordAttributes) {
+    try {
+      RecordRequest request = new RecordRequest().attributes(recordAttributes);
+      logger.info(
+          "Updating output attributes for Record ID {} from Run {}.",
+          updatableRun.recordId(),
+          updatableRun.engineId());
+
+      wdsService.updateRecord(request, updatableRun.runSet().recordType(), updatableRun.recordId());
+    } catch (WdsServiceException e) {
+      // log WDS or other Runtime error and mark Run as Failed.
+      String errorMessage =
+          "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
+              .formatted(
+                  updatableRun.recordId(),
+                  updatableRun.runId(),
+                  updatableRun.engineId(),
+                  e.getMessage());
+      logger.error(errorMessage, e);
+      return errorMessage;
+    }
+    return null; // no error to report
   }
 
   private RunCompletionResult updateDatabaseRunStatusOnly(Run updatableRun) {

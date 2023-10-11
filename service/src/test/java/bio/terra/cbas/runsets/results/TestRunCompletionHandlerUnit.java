@@ -4,7 +4,6 @@ import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -192,7 +191,7 @@ class TestRunCompletionHandlerUnit {
   }
 
   @Test
-  void buildRecordAttributesFromWorkflowOutputsReturnNull()
+  void buildRecordAttributesFromWorkflowOutputsReturnEmptyMap()
       throws OutputProcessingException, CoercionException, JsonProcessingException {
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
@@ -210,7 +209,7 @@ class TestRunCompletionHandlerUnit {
         runCompletionHandler.buildRecordAttributesFromWorkflowOutputs(
             runToUpdate2, cromwellOutputs);
 
-    assertNull(recordAttributes);
+    assertTrue(recordAttributes.isEmpty());
   }
 
   @Test
