@@ -17,6 +17,7 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -82,6 +83,7 @@ public class RunsApiController implements RunsApi {
     // validate request
     UUID engineId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
+    List<String> failures = body.getFailures();
 
     log.info(
         "Processing workflow callback for run ID %s with status %s."
@@ -98,7 +100,7 @@ public class RunsApiController implements RunsApi {
     Optional<Run> runRecord =
         runDao.getRuns(new RunDao.RunsFilters(null, null, engineId.toString())).stream()
             .findFirst();
-    if (!runRecord.isPresent()) {
+    if (runRecord.isEmpty()) {
       throw new RunNotFoundException(
           "Workflow ID with engine ID %s is not found.".formatted(engineId));
     }
@@ -115,12 +117,18 @@ public class RunsApiController implements RunsApi {
       // Nor this service, nor API caller can remediate the situation.
       // Therefore, we update Status in database to SYSTEM_ERROR and return OK response.
       resultsStatus = CbasRunStatus.SYSTEM_ERROR;
+      if (failures == null) {
+        failures = new ArrayList<>();
+      }
+      failures.add(
+          "User does not have write permission required to update workflow ID %s."
+              .formatted(engineId));
     }
 
     // perform workflow completion work
     RunCompletionResult result =
         runCompletionHandler.updateResults(
-            runRecord.get(), resultsStatus, body.getOutputs(), body.getFailures());
+            runRecord.get(), resultsStatus, body.getOutputs(), failures);
     return new ResponseEntity<>(result.toHttpStatus());
   }
 }

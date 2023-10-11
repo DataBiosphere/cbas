@@ -5,6 +5,7 @@ import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -255,7 +257,7 @@ class TestRunsApiController {
 
     var requestBody =
         new RunResultsRequest()
-            .workflowId(returnedRun.runId())
+            .workflowId(returnedRunEngineId)
             .state(WorkflowTerminalState.SUCCEEDED)
             .outputs("{}");
 
@@ -272,14 +274,42 @@ class TestRunsApiController {
   }
 
   @Test
-  void runResultsUpdateReturnSystemErrorWhenUpdateThrows() throws Exception {
+  void runResultsUpdateReturnsSuccessOnFailedWithErrors() throws Exception {
+    var errorList = List.of("error workflow engine", "system error");
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+    when(runsResultsManager.updateResults(
+            returnedRun, CbasRunStatus.EXECUTOR_ERROR, null, errorList))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(UUID.fromString(updatedRun.engineId()))
+            .state(WorkflowTerminalState.FAILED)
+            .failures(errorList);
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
+  void runResultsUpdateReturnsSystemErrorWhenUpdateThrows() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
     var requestBody =
-        new RunResultsRequest().workflowId(returnedRun.runId()).state(WorkflowTerminalState.FAILED);
+        new RunResultsRequest().workflowId(returnedRunEngineId).state(WorkflowTerminalState.FAILED);
 
     MvcResult result =
         mockMvc
@@ -294,15 +324,16 @@ class TestRunsApiController {
   }
 
   @Test
-  void runResultsUpdateReturnSystemErrorWhenUpdateErrors() throws Exception {
+  void runResultsUpdateReturnsSystemErrorWhenUpdateErrors() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+    when(runsResultsManager.updateResults(
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any()))
         .thenReturn(RunCompletionResult.ERROR);
 
     var requestBody =
         new RunResultsRequest()
-            .workflowId(returnedRun.runId())
+            .workflowId(returnedRunEngineId)
             .state(WorkflowTerminalState.ABORTED);
 
     MvcResult result =
@@ -318,14 +349,43 @@ class TestRunsApiController {
   }
 
   @Test
+  void runResultsUpdateReturnsUserErrorWhenValidationErrors() throws Exception {
+    when(samService.hasWritePermission()).thenReturn(true);
+    when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(
+            eq(returnedRun), eq(CbasRunStatus.COMPLETE), any(), any()))
+        .thenReturn(RunCompletionResult.VALIDATION_ERROR);
+
+    var requestBody =
+        new RunResultsRequest()
+            .workflowId(returnedRunEngineId)
+            .state(WorkflowTerminalState.SUCCEEDED)
+            .outputs("[]");
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                post(API_RESULTS)
+                    .content(objectMapper.writeValueAsString(requestBody))
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    assertEquals(0, result.getResponse().getContentLength());
+  }
+
+  @Test
   void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
     when(samService.hasWritePermission()).thenReturn(false);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+    when(runsResultsManager.updateResults(
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
-        new RunResultsRequest().workflowId(updatedRun.runId()).state(WorkflowTerminalState.ABORTED);
+        new RunResultsRequest()
+            .workflowId(returnedRunEngineId)
+            .state(WorkflowTerminalState.ABORTED);
 
     MvcResult result =
         mockMvc
@@ -336,6 +396,12 @@ class TestRunsApiController {
             .andExpect(status().isOk())
             .andReturn();
 
+    verify(runsResultsManager)
+        .updateResults(
+            eq(returnedRun),
+            eq(CbasRunStatus.SYSTEM_ERROR),
+            ArgumentMatchers.isNull(),
+            isNotNull());
     assertEquals(0, result.getResponse().getContentLength());
   }
 
@@ -366,6 +432,9 @@ class TestRunsApiController {
   void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
     when(samService.hasWritePermission()).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
+    when(runsResultsManager.updateResults(eq(returnedRun), eq(COMPLETE), eq(null), any()))
+        .thenReturn(RunCompletionResult.VALIDATION_ERROR);
+
     var requestBody =
         new RunResultsRequest()
             .workflowId(updatedRun.runId())

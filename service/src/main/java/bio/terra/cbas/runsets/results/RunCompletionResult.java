@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 public enum RunCompletionResult {
   SUCCESS("UPDATED_SUCCESSFULLY"),
   ERROR("RETRIABLE_ERROR"),
-  FATAL("FATAL_ERROR");
+  VALIDATION_ERROR("VALIDATION_ERROR");
   private final String value;
 
   RunCompletionResult(String value) {
@@ -20,6 +20,8 @@ public enum RunCompletionResult {
   public HttpStatus toHttpStatus() {
     if (SUCCESS.toString().equalsIgnoreCase(this.value)) {
       return HttpStatus.OK;
+    } else if (VALIDATION_ERROR.toString().equalsIgnoreCase(this.value)) {
+      return HttpStatus.BAD_REQUEST;
     } else {
       return HttpStatus.INTERNAL_SERVER_ERROR;
     }

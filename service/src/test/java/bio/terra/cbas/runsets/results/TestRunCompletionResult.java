@@ -20,8 +20,8 @@ class TestRunCompletionResult {
   }
 
   @Test
-  void toHttpStatusNoSuccessErrorMessages() {
-    assertHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR, RunCompletionResult.FATAL);
+  void toHttpStatusValidationErrorMessages() {
+    assertHttpStatus(HttpStatus.BAD_REQUEST, RunCompletionResult.VALIDATION_ERROR);
   }
 
   private void assertHttpStatus(HttpStatus expectedHttpStatus, RunCompletionResult result) {

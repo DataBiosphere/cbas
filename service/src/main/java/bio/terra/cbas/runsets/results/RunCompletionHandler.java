@@ -47,68 +47,69 @@ public class RunCompletionHandler {
     return !outputDefinitionList.isEmpty();
   }
 
-  /*
-  The copy of SmartRunsPoller code.
-  Refactoring SmartRunsPoller will be covered in [WM-2090].
-   */
-  public void updateOutputAttributes(Run run, Object outputs)
-      throws JsonProcessingException, WdsServiceException, CoercionException,
-          OutputProcessingException {
-
+  public RecordAttributes buildOutputAttributes(Run run, Object outputs)
+      throws JsonProcessingException, CoercionException, OutputProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    RecordAttributes outputParamDef = OutputGenerator.buildOutputs(outputDefinitionList, outputs);
-    RecordRequest request = new RecordRequest().attributes(outputParamDef);
-
-    logger.info(
-        "Updating output attributes for Record ID {} from Run {}.", run.recordId(), run.engineId());
-
-    wdsService.updateRecord(request, run.runSet().recordType(), run.recordId());
+    return OutputGenerator.buildOutputs(outputDefinitionList, outputs);
   }
 
   public RunCompletionResult updateResults(
       Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
+    return updateResults(
+        updatableRun, status, workflowOutputs, workflowErrors, DateUtils.currentTimeInUTC());
+  }
+
+  public RunCompletionResult updateResults(
+      Run updatableRun,
+      CbasRunStatus status,
+      Object workflowOutputs,
+      List<String> workflowErrors,
+      OffsetDateTime engineStatusChange) {
     long updateResultsStartNanos = System.nanoTime();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
-
     try {
       var updatedRunState = status;
 
-      if (updatableRun.status() == updatedRunState && workflowOutputs == null) {
-        // Status is already up-to-date, there are no outputs to save.
-        // Only update last polled timestamp.
-        logger.info(
-            "Update last modified timestamp for Run {} (engine ID {}) in status {}.",
-            updatableRun.runId(),
-            updatableRun.engineId(),
-            updatableRun.status());
-
-        var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
-        if (changes != 1) {
-          logger.warn(
-              "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
-              updatableRun.runId(),
-              updatableRun.status(),
-              changes);
-          return RunCompletionResult.ERROR;
-        }
-        return RunCompletionResult.SUCCESS;
+      if (updatableRun.status() == updatedRunState
+          && updatedRunState != CbasRunStatus.COMPLETE
+          && (workflowErrors == null || workflowErrors.isEmpty())) {
+        // Status is already up-to-date, not complete (no outputs to process), no errors to save.
+        return updateDatabaseRunStatusOnly(updatableRun);
       }
 
       // Pull workflow completion information and save run outputs
       ArrayList<String> errors = new ArrayList<>();
 
-      // Saving run outputs for a Successful status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE && workflowOutputs != null) {
-        // Assuming that if no outputs were not passed with results,
-        // Then no explicit pull should be made for outputs from Cromwell.
-        String errorMessage = saveWorkflowOutputs(updatableRun, workflowOutputs);
-        if (errorMessage != null && !errorMessage.isEmpty()) {
-          // If this is the last attempt to save workflow outputs,
-          // update run info in database with an error.
-          // Otherwise, we should return internal error to caller.
-          // TODO - handling OutputProcessingException as User Error will be covered in [WM-2090]
-          errors.add(errorMessage);
+      // Saving run outputs for a Successful terminal status only.
+      if (updatedRunState == CbasRunStatus.COMPLETE) {
+        RecordAttributes recordAttributes;
+        try {
+          recordAttributes =
+              buildRecordAttributesFromWorkflowOutputs(updatableRun, workflowOutputs);
+        } catch (OutputProcessingException | JsonProcessingException | CoercionException e) {
+          // log error and return validation exception in case
+          // the json schema of output is not as expected.
+          String errorMessage =
+              "Error while processing workflow output attributes for record %s from run %s (engine workflow ID %s): %s"
+                  .formatted(
+                      updatableRun.recordId(),
+                      updatableRun.runId(),
+                      updatableRun.engineId(),
+                      e.getMessage());
+          logger.error(errorMessage, e);
+          // This error is not retryable, therefore returns false to indicate a validation error
+          // result.
+          return RunCompletionResult.VALIDATION_ERROR;
+        }
+        if (recordAttributes != null && !recordAttributes.isEmpty()) {
+          String errorMessage = saveOutputsToWDS(updatableRun, recordAttributes);
+          if (errorMessage != null && !errorMessage.isEmpty()) {
+            errors.add(errorMessage);
+          }
+        }
+        if (!errors.isEmpty()) {
+          // Update run info in database with an error.
           updatedRunState = CbasRunStatus.SYSTEM_ERROR;
         }
       } else if (updatedRunState.inErrorState()) {
@@ -116,9 +117,9 @@ public class RunCompletionHandler {
           errors.addAll(workflowErrors);
         }
       }
-
       // Save the updated run record in database.
-      updateResult = updateDatabaseRunStatus(updatableRun, updatedRunState, errors);
+      updateResult =
+          updateDatabaseRunStatus(updatableRun, updatedRunState, errors, engineStatusChange);
     } finally {
       recordMethodCompletion(updateResultsStartNanos, RunCompletionResult.SUCCESS == updateResult);
     }
@@ -126,19 +127,37 @@ public class RunCompletionHandler {
     return updateResult;
   }
 
-  /*
-   The method checks if output definitions are associated with run and makes updates.
-   If outputs passed as arguments are null, but the workflow has the output definitions,
-   then call to Cromwell will be made to pull the outputs.
-  */
-  private String saveWorkflowOutputs(Run updatableRun, Object outputs) {
+  public RecordAttributes buildRecordAttributesFromWorkflowOutputs(
+      Run updatableRun, Object workflowOutputs)
+      throws OutputProcessingException, CoercionException, JsonProcessingException {
+    // we only write back output attributes to WDS when output definition is not empty
+    // and the workflow outputs contain items.
+    if (hasOutputDefinition(updatableRun)) {
+      return buildOutputAttributes(updatableRun, workflowOutputs);
+    }
+    return new RecordAttributes();
+  }
+
+  /// Saving workflow outputs parsed to record attributes. */
+
+  /**
+   * Saving workflow outputs to WDS.
+   *
+   * @param updatableRun Run record to supply correct reference to WDS API call.
+   * @param recordAttributes Workflow outputs parsed into the record attributes.
+   * @return A string containing error message if any occurred during WDS API call.
+   */
+  private String saveOutputsToWDS(Run updatableRun, RecordAttributes recordAttributes) {
     try {
-      // we only write back output attributes to WDS if output definition is not empty.
-      if (hasOutputDefinition(updatableRun)) {
-        updateOutputAttributes(updatableRun, outputs);
-      }
-    } catch (Exception e) {
-      // log error and mark Run as Failed
+      RecordRequest request = new RecordRequest().attributes(recordAttributes);
+      logger.info(
+          "Updating output attributes for Record ID {} from Run {}.",
+          updatableRun.recordId(),
+          updatableRun.engineId());
+
+      wdsService.updateRecord(request, updatableRun.runSet().recordType(), updatableRun.recordId());
+    } catch (WdsServiceException e) {
+      // log WDS or other Runtime error and mark Run as Failed.
       String errorMessage =
           "Error while updating data table attributes for record %s from run %s (engine workflow ID %s): %s"
               .formatted(
@@ -149,12 +168,34 @@ public class RunCompletionHandler {
       logger.error(errorMessage, e);
       return errorMessage;
     }
-    return null;
+    return null; // no error to report
+  }
+
+  private RunCompletionResult updateDatabaseRunStatusOnly(Run updatableRun) {
+    // Only update last polled timestamp.
+    logger.info(
+        "Update last modified timestamp for Run {} (engine ID {}) in status {}.",
+        updatableRun.runId(),
+        updatableRun.engineId(),
+        updatableRun.status());
+
+    var changes = runDao.updateLastPolledTimestamp(updatableRun.runId());
+    if (changes != 1) {
+      logger.warn(
+          "Expected 1 row change updating last_polled_timestamp for Run {} in status {}, but got {}.",
+          updatableRun.runId(),
+          updatableRun.status(),
+          changes);
+      return RunCompletionResult.ERROR;
+    }
+    return RunCompletionResult.SUCCESS;
   }
 
   private RunCompletionResult updateDatabaseRunStatus(
-      Run updatableRun, CbasRunStatus updatedRunState, ArrayList<String> errors) {
-    OffsetDateTime engineChangedTimestamp = DateUtils.currentTimeInUTC();
+      Run updatableRun,
+      CbasRunStatus updatedRunState,
+      ArrayList<String> errors,
+      OffsetDateTime engineChangedTimestamp) {
     int changes;
 
     if (errors.isEmpty()) {
