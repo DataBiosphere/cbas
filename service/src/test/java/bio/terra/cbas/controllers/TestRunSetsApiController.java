@@ -349,10 +349,6 @@ class TestRunSetsApiController {
             });
 
     doReturn(mockUser).when(samService).getSamUser();
-
-    // setup Sam permission check to return true
-    doReturn(true).when(samService).hasReadPermission();
-    doReturn(true).when(samService).hasComputePermission();
   }
 
   @Test
@@ -1100,7 +1096,7 @@ class TestRunSetsApiController {
 
   @Test
   void returnErrorForUserWithNoReadAccess() throws Exception {
-    when(samService.hasReadPermission()).thenReturn(false);
+    doReturn(false).when(samService).hasReadPermission();
 
     mockMvc
         .perform(get(API))
@@ -1115,7 +1111,7 @@ class TestRunSetsApiController {
   }
 
   @Test
-  void returnErrorForUserWithNoComputeAccessForPostApi() throws Exception {
+  void returnErrorForUserWithNoWriteAccessForPostApi() throws Exception {
     final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
     String request =
         requestTemplate.formatted(
@@ -1126,7 +1122,7 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
-    when(samService.hasComputePermission()).thenReturn(false);
+    doReturn(false).when(samService).hasWritePermission();
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -1136,13 +1132,13 @@ class TestRunSetsApiController {
         .andExpect(
             result ->
                 assertEquals(
-                    "User doesn't have 'compute' permission on 'workspace' resource",
+                    "User doesn't have 'write' permission on 'workspace' resource",
                     Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test
-  void returnErrorForUserWithNoComputeAccessForAbortApi() throws Exception {
-    when(samService.hasComputePermission()).thenReturn(false);
+  void returnErrorForUserWithNoWriteAccessForAbortApi() throws Exception {
+    doReturn(false).when(samService).hasWritePermission();
 
     mockMvc
         .perform(post(API_ABORT).param("run_set_id", UUID.randomUUID().toString()))
@@ -1152,7 +1148,7 @@ class TestRunSetsApiController {
         .andExpect(
             result ->
                 assertEquals(
-                    "User doesn't have 'compute' permission on 'workspace' resource",
+                    "User doesn't have 'write' permission on 'workspace' resource",
                     Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
