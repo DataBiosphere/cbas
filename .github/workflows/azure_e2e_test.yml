@@ -21,7 +21,7 @@ on:
 
 env:
   BEE_NAME: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt}}-dev'
-  BROADBOT_TOKEN: '${{ secrets.BROADBOT_GITHUB_TOKEN }}' # github token for access to kick off a job in the private repo
+  BROADBOT_TOKEN: '${{ secrets.BROADBOT_TOKEN }}' # github token for access to kick off a job in the private repo
   RUN_NAME_SUFFIX: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
 jobs:
