@@ -7,12 +7,6 @@ import uuid
 import time
 
 
-
-
-
-
-
-
 # TODO: remove this eventually
 # rawls_url = "https://rawls.dsde-dev.broadinstitute.org/"
 # leo_url = "https://leonardo.dsde-dev.broadinstitute.org/"
