@@ -920,12 +920,14 @@ class TestRunSetsApiController {
     RunSetDetailsResponse runSetDetails2 = parsedResponse.getRunSets().get(1);
 
     assertEquals("FOO", runSetDetails1.getRecordType());
+    assertEquals(mockUser.getUserSubjectId(), runSetDetails1.getUserId());
     assertEquals(5, runSetDetails1.getRunCount());
     assertEquals(1, runSetDetails1.getErrorCount());
     assertEquals(
         CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.ERROR), runSetDetails1.getState());
 
     assertEquals("BAR", runSetDetails2.getRecordType());
+    assertEquals(mockUser.getUserSubjectId(), runSetDetails2.getUserId());
     assertEquals(10, runSetDetails2.getRunCount());
     assertEquals(0, runSetDetails2.getErrorCount());
     assertEquals(
