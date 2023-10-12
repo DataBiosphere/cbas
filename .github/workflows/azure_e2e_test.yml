@@ -104,11 +104,12 @@ jobs:
           access_token_subject: ${{ inputs.owner-subject }}
           export_environment_variables: false
           create_credentials_file: false
-      - uses: actions/checkout@v3
+      - name: "Checkout dsp-reusable-workflows"
+        uses: actions/checkout@v3
         with:
-          #NOTE: replace with ${{inputs.target-branch}} before merge
-          #TODO: this might change of the python script is moved to dsp-reusable-workflows
-          ref: refs/heads/sps_azure_e2e_test
+          ref: sps_cbas_e2e_test #TODO: switch to main
+          repository: broadinstitute/dsp-reusable-workflows
+          path: dsp-reusable-workflows/
       - name: Set up python
         id: setup-python
         uses: actions/setup-python@v4
@@ -116,11 +117,13 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: |
-          pip install 'https://raw.githubusercontent.com/DataBiosphere/cbas/sps_azure_e2e_test/e2e-test/resources/requirements.txt'
+          cd dsp-reusable-workflows/e2e-test/resources/cbas/
+          pip install -r requirements.txt
       - name: Run e2e test
         env:
           BEE_NAME: ${{env.BEE_NAME}}
           BILLING_PROJECT_NAME: ${{needs.params-gen.outputs.project-name}}
           BEARER_TOKEN: ${{ steps.owner_auth.outputs.access_token }}
         run: |
-          python e2e-test/azure_e2e_test.py
+          cd dsp-reusable-workflows/e2e-test/
+          python cbas_azure_e2e_test.py
