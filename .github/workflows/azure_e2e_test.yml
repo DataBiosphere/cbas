@@ -7,17 +7,6 @@ on:
         required: true
         default: 'develop'
         type: string
-      # Replace user data with seeded data provided by devOps (once available)
-      owner-subject:
-        description: 'Owner of billing project'
-        required: true
-        default: 'hermione.owner@quality.firecloud.org'
-        type: string
-      service-account:
-        description: 'Email address or unique identifier of the Google Cloud service account for which to generate credentials'
-        required: true
-        default: 'firecloud-qa@broad-dsde-qa.iam.gserviceaccount.com'
-        type: string
 
 env:
   BEE_NAME: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt}}-dev'
@@ -85,11 +74,9 @@ jobs:
           token: ${{ env.BROADBOT_TOKEN }}
           inputs: >-
             {
-              "run-name": "attach-billing-project-to-landing-zone-${{ env.RUN_NAME_SUFFIX }}",
               "bee-name": "${{ env.BEE_NAME }}",
               "billing-project": "${{ needs.params-gen.outputs.project-name }}",
-              "billing-project-creator": "${{ inputs.owner-subject }}",
-              "service-account": "${{inputs.service-account}}"
+              "service-account": "firecloud-qa@broad-dsde-qa.iam.gserviceaccount.com"
             }
 
   run-workflows-azure-e2e-test:
@@ -120,11 +107,10 @@ jobs:
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
-          service_account: ${{ inputs.service-account }}
+          service_account: 'firecloud-qa@broad-dsde-qa.iam.gserviceaccount.com'
           access_token_scopes: 'profile, email, openid'
-          access_token_subject: ${{ inputs.owner-subject }}
+          access_token_subject: 'hermione.owner@quality.firecloud.org'
           export_environment_variables: false
-          create_credentials_file: false
       - name: Run e2e test
         env:
           BEE_NAME: ${{env.BEE_NAME}}
