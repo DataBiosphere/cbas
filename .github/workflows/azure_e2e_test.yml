@@ -99,18 +99,6 @@ jobs:
       contents: 'read'
       id-token: 'write'
     steps:
-      - uses: 'actions/checkout@v3'
-      - name: Generate OAuth2 2.0 access token for owner
-        id: 'owner_auth'
-        uses: google-github-actions/auth@v1
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
-          service_account: ${{ inputs.service-account }}
-          access_token_scopes: 'profile, email, openid'
-          access_token_subject: ${{ inputs.owner-subject }}
-          export_environment_variables: false
-          create_credentials_file: false
       - name: "Checkout dsp-reusable-workflows"
         uses: actions/checkout@v3
         with:
@@ -126,6 +114,17 @@ jobs:
         run: |
           cd dsp-reusable-workflows/e2e-test/resources/cbas/
           pip install -r requirements.txt
+      - name: Generate OAuth2 2.0 access token for owner
+        id: 'obtain_token'
+        uses: google-github-actions/auth@v1
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: ${{ inputs.service-account }}
+          access_token_scopes: 'profile, email, openid'
+          access_token_subject: ${{ inputs.owner-subject }}
+          export_environment_variables: false
+          create_credentials_file: false
       - name: Run e2e test
         env:
           BEE_NAME: ${{env.BEE_NAME}}
