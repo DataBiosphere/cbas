@@ -129,7 +129,7 @@ jobs:
         env:
           BEE_NAME: ${{env.BEE_NAME}}
           BILLING_PROJECT_NAME: ${{needs.params-gen.outputs.project-name}}
-          BEARER_TOKEN: ${{ steps.owner_auth.outputs.access_token }}
+          AZURE_TOKEN: ${{ steps.obtain_token.outputs.access_token }}
         run: |
           cd dsp-reusable-workflows/e2e-test/
           python cbas_azure_e2e_test.py
