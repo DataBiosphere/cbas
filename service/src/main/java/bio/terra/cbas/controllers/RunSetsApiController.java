@@ -142,7 +142,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
@@ -172,9 +171,8 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    // check if current user has compute permissions on the workspace
-    if (!samService.hasComputePermission()) {
-      throw new ForbiddenException(SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    if (!samService.hasWritePermission()) {
+      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     captureRequestMetrics(request);
@@ -307,9 +305,8 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
-    // check if current user has compute permissions on the workspace
-    if (!samService.hasComputePermission()) {
-      throw new ForbiddenException(SamService.COMPUTE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    if (!samService.hasWritePermission()) {
+      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     AbortRunSetResponse aborted = new AbortRunSetResponse();
