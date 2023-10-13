@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +43,7 @@ class TestDependencyUrlLoader {
     String discoveredWdsUrl = "https://wds.com/prefix/wds";
     String discoveredCromwellUrl = "https://cromwell.com/prefix/cromwell";
 
-    when(leonardoService.getApps(any())).thenReturn(dummyListAppResponse);
+    when(leonardoService.getApps(anyBoolean())).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
     when(appUtils.findUrlForCromwell(dummyListAppResponse)).thenReturn(discoveredCromwellUrl);
     var leonardoServerConfiguration =
@@ -74,7 +74,7 @@ class TestDependencyUrlLoader {
     List<ListAppResponse> dummyListAppResponse = List.of(new ListAppResponse());
     String discoveredWdsUrl = "https://wds.com/prefix/wds";
 
-    when(leonardoService.getApps(any())).thenReturn(dummyListAppResponse);
+    when(leonardoService.getApps(anyBoolean())).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
@@ -94,7 +94,7 @@ class TestDependencyUrlLoader {
             DependencyUrlLoader.DependencyUrlType.WDS_URL, accessToken));
 
     // Assert that the backing call to Leonardo was only made once:
-    verify(leonardoService, times(1)).getApps(any());
+    verify(leonardoService, times(1)).getApps(anyBoolean());
   }
 
   @Test
@@ -111,7 +111,7 @@ class TestDependencyUrlLoader {
     String discoveredWdsUrl1 = "https://wds.com/prefix/wds1";
     String discoveredWdsUrl2 = "https://wds.com/prefix/wds2";
 
-    when(leonardoService.getApps(any()))
+    when(leonardoService.getApps(anyBoolean()))
         .thenReturn(dummyListAppResponse)
         .thenReturn(dummyListAppResponse2);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl1);
@@ -135,7 +135,7 @@ class TestDependencyUrlLoader {
             DependencyUrlLoader.DependencyUrlType.WDS_URL, accessToken2));
 
     // Assert that the backing call to Leonardo was only made twice:
-    verify(leonardoService, times(2)).getApps(any());
+    verify(leonardoService, times(2)).getApps(anyBoolean());
   }
 
   @Test
@@ -150,7 +150,7 @@ class TestDependencyUrlLoader {
     String discoveredWdsUrl1 = "https://wds.com/prefix/wds";
     String discoveredWdsUrl2 = "https://new-wds.com/prefix/wds";
 
-    when(leonardoService.getApps(any())).thenReturn(dummyListAppResponse);
+    when(leonardoService.getApps(anyBoolean())).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenReturn(discoveredWdsUrl1);
 
     var leonardoServerConfiguration =
@@ -186,7 +186,7 @@ class TestDependencyUrlLoader {
   @Test
   void wrapsExceptionsFromLeonardo() throws Exception {
     String accessToken = "some-access-token";
-    when(leonardoService.getApps(any()))
+    when(leonardoService.getApps(anyBoolean()))
         .thenThrow(new LeonardoServiceApiException(new ApiException(400, "Bad Leonardo!")));
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
@@ -220,7 +220,7 @@ class TestDependencyUrlLoader {
     DependencyNotAvailableException dnae =
         new DependencyNotAvailableException("WDS", "App util lookup failed");
 
-    when(leonardoService.getApps(any())).thenReturn(dummyListAppResponse);
+    when(leonardoService.getApps(anyBoolean())).thenReturn(dummyListAppResponse);
     when(appUtils.findUrlForWds(dummyListAppResponse)).thenThrow(dnae);
     var leonardoServerConfiguration =
         new LeonardoServerConfiguration("", List.of(), List.of(), Duration.ofMinutes(10), false);
