@@ -44,7 +44,10 @@ public class LeonardoService implements HealthCheck {
     String creatorRoleSpecifier = creatorOnly ? "creator" : null;
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
-        () -> getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null, creatorRoleSpecifier));
+        () ->
+            getAppsApi()
+                .listAppsV2(
+                    wdsServerConfiguration.instanceId(), null, null, null, creatorRoleSpecifier));
   }
 
   @Override
