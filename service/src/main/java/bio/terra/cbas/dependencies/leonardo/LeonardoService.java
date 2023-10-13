@@ -40,10 +40,11 @@ public class LeonardoService implements HealthCheck {
     return new ServiceInfoApi(leonardoClient.getUnauthorizedApiClient());
   }
 
-  public List<ListAppResponse> getApps() throws LeonardoServiceException {
+  public List<ListAppResponse> getApps(boolean creatorOnly) throws LeonardoServiceException {
+    String creatorRoleSpecifier = creatorOnly ? "creator" : null;
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
-        () -> getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null));
+        () -> getAppsApi().listAppsV2(wdsServerConfiguration.instanceId(), null, null, null, creatorRoleSpecifier));
   }
 
   @Override

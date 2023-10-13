@@ -62,7 +62,7 @@ class TestLeonardoService {
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
-    assertEquals(expectedResponse, leonardoService.getApps());
+    assertEquals(expectedResponse, leonardoService.getApps(false));
   }
 
   @Test
@@ -82,7 +82,11 @@ class TestLeonardoService {
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
-    assertThrows(SocketTimeoutException.class, leonardoService::getApps);
+    assertThrows(
+        SocketTimeoutException.class,
+        () -> {
+          leonardoService.getApps(false);
+        });
   }
 
   @Test
@@ -103,7 +107,11 @@ class TestLeonardoService {
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
     LeonardoServiceApiException thrown =
-        assertThrows(LeonardoServiceApiException.class, leonardoService::getApps);
+        assertThrows(
+            LeonardoServiceApiException.class,
+            () -> {
+              leonardoService.getApps(false);
+            });
     assertEquals(expectedException, thrown.getCause());
   }
 }

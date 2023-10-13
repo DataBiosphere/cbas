@@ -23,7 +23,9 @@ public class DependencyUrlLoader {
     CROMWELL_URL
   }
 
-  private final LoadingCache<DependencyUrlType, String> cache;
+  private record DependencyCacheKey(DependencyUrlType urlType, String userToken) {}
+
+  private final LoadingCache<DependencyCacheKey, String> cache;
 
   private final LeonardoService leonardoService;
   private final AppUtils appUtils;
@@ -35,19 +37,18 @@ public class DependencyUrlLoader {
     this.leonardoService = leonardoService;
     this.appUtils = appUtils;
 
-    CacheLoader<DependencyUrlType, String> loader =
+    CacheLoader<DependencyCacheKey, String> loader =
         new CacheLoader<>() {
           @NotNull
           @Override
-          public String load(@NotNull DependencyUrlType key)
-              throws DependencyNotAvailableException {
-            if (key == DependencyUrlType.WDS_URL) {
+          public String load(DependencyCacheKey key) throws DependencyNotAvailableException {
+            if (key.urlType == DependencyUrlType.WDS_URL) {
               return fetchWdsUrl();
-            } else if (key == DependencyUrlType.CROMWELL_URL) {
+            } else if (key.urlType == DependencyUrlType.CROMWELL_URL) {
               return fetchCromwellUrl();
             }
             throw new DependencyNotAvailableException(
-                key.toString(), "Unknown dependency URL type");
+                key.urlType.toString(), "Unknown dependency URL type");
           }
         };
 
@@ -59,7 +60,7 @@ public class DependencyUrlLoader {
 
   private String fetchWdsUrl() throws DependencyNotAvailableException {
     try {
-      List<ListAppResponse> allApps = leonardoService.getApps();
+      List<ListAppResponse> allApps = leonardoService.getApps(false);
       return appUtils.findUrlForWds(allApps);
     } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
@@ -68,17 +69,17 @@ public class DependencyUrlLoader {
 
   private String fetchCromwellUrl() throws DependencyNotAvailableException {
     try {
-      List<ListAppResponse> allApps = leonardoService.getApps();
+      List<ListAppResponse> allApps = leonardoService.getApps(true);
       return appUtils.findUrlForCromwell(allApps);
     } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("CROMWELL", "Failed to poll Leonardo for URL", e);
     }
   }
 
-  public String loadDependencyUrl(DependencyUrlType urlType)
+  public String loadDependencyUrl(DependencyUrlType urlType, String accessToken)
       throws DependencyNotAvailableException {
     try {
-      return cache.get(urlType);
+      return cache.get(new DependencyCacheKey(urlType, accessToken));
     } catch (ExecutionException | UncheckedExecutionException e) {
       if (e.getCause() instanceof DependencyNotAvailableException dnae) {
         throw dnae;
