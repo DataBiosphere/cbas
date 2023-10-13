@@ -1,9 +1,12 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
+import bio.terra.common.sam.SamRetry;
+import bio.terra.common.sam.exception.SamExceptionFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +15,9 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import javax.servlet.http.HttpServletRequest;
+import org.broadinstitute.dsde.workbench.client.sam.ApiException;
+import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
+import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -42,6 +48,24 @@ public class BeanConfig {
   @RequestScope
   public BearerToken bearerToken(HttpServletRequest request) {
     return new BearerTokenFactory().from(request);
+  }
+
+  @Bean("userInfo")
+  @RequestScope
+  public UserStatusInfo userInfo(SamClient samClient, BearerToken bearerToken) {
+    if (!samClient.checkAuthAccessWithSam()) {
+      return new UserStatusInfo(); // Dummy user for local testing
+    }
+    UsersApi usersApi = new UsersApi(samClient.getApiClient(bearerToken.getToken()));
+    try {
+      return SamRetry.retry(usersApi::getUserStatusInfo);
+    } catch (ApiException apiException) {
+      throw SamExceptionFactory.create("Error getting user status info from Sam", apiException);
+    } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
+      throw SamExceptionFactory.create(
+          "Request interrupted while getting user status info from Sam", interruptedException);
+    }
   }
 
   @Bean("cromwellWriteClient")

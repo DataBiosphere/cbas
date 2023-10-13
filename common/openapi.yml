@@ -130,6 +130,14 @@ paths:
             type: integer
           description:
             How many items to return at once
+        - in: query
+          name: show_all_users
+          required: false
+          schema:
+            type: boolean
+            default: true
+          description:
+            Show run sets submitted by all users. If false, show only run sets submitted by current user. Defaults to true.
       responses:
         '200':
           $ref: '#/components/responses/GetRunSetListResponse'

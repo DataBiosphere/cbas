@@ -8,7 +8,6 @@ import bio.terra.common.sam.exception.SamExceptionFactory;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.StatusApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.SystemStatus;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.slf4j.Logger;
@@ -21,6 +20,7 @@ public class SamService implements HealthCheck {
 
   private final SamClient samClient;
   private final BearerToken bearerToken;
+  private final UserStatusInfo userInfo;
 
   // Sam resource type name for Workspaces
   public static final String RESOURCE_TYPE_WORKSPACE = "workspace";
@@ -36,9 +36,10 @@ public class SamService implements HealthCheck {
 
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
 
-  public SamService(SamClient samClient, BearerToken bearerToken) {
+  public SamService(SamClient samClient, BearerToken bearerToken, UserStatusInfo userInfo) {
     this.samClient = samClient;
     this.bearerToken = bearerToken;
+    this.userInfo = userInfo;
   }
 
   private StatusApi getStatusApi() {
@@ -80,29 +81,12 @@ public class SamService implements HealthCheck {
     }
   }
 
-  public UsersApi getUsersApi() {
-    return new UsersApi(samClient.getApiClient(bearerToken.getToken()));
-  }
-
   public ResourcesApi getResourcesApi() {
     return new ResourcesApi(samClient.getApiClient(bearerToken.getToken()));
   }
 
-  // Borrowed from WDS
   public UserStatusInfo getSamUser() throws ErrorReportException {
-    if (!samClient.checkAuthAccessWithSam()) {
-      return new UserStatusInfo(); // Dummy user for local testing
-    }
-    UsersApi usersApi = getUsersApi();
-    try {
-      return SamRetry.retry(usersApi::getUserStatusInfo);
-    } catch (ApiException apiException) {
-      throw SamExceptionFactory.create("Error getting user status info from Sam", apiException);
-    } catch (InterruptedException interruptedException) {
-      Thread.currentThread().interrupt();
-      throw SamExceptionFactory.create(
-          "Request interrupted while getting user status info from Sam", interruptedException);
-    }
+    return userInfo;
   }
 
   @Override

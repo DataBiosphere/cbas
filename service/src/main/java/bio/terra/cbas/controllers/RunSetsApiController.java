@@ -142,7 +142,8 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   @Override
-  public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
+  public ResponseEntity<RunSetListResponse> getRunSets(
+      UUID methodId, Integer pageSize, Boolean showAllUsers) {
     if (!samService.hasReadPermission()) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
@@ -155,6 +156,14 @@ public class RunSetsApiController implements RunSetsApi {
       filteredRunSet = Collections.singletonList(runSetDao.getRunSetWithMethodId(methodId));
     } else {
       filteredRunSet = runSetDao.getRunSets(pageSize, false);
+    }
+
+    if (Boolean.FALSE.equals(showAllUsers)) {
+      UserStatusInfo user = samService.getSamUser();
+      filteredRunSet =
+          filteredRunSet.stream()
+              .filter(runSet -> runSet.userId().equals(user.getUserSubjectId()))
+              .toList();
     }
 
     TimeLimitedUpdater.UpdateResult<RunSet> runSetUpdateResult =
