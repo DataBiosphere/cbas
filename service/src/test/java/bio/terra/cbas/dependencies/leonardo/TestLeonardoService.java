@@ -53,7 +53,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenAnswer(errorAnswer)
         .thenReturn(expectedResponse);
 
@@ -71,7 +71,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenAnswer(errorAnswer)
         .thenAnswer(errorAnswer)
         .thenAnswer(errorAnswer)
@@ -97,7 +97,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenThrow(expectedException)
         .thenReturn(expectedResponse);
 
