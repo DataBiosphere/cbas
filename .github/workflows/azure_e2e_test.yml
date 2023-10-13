@@ -117,5 +117,5 @@ jobs:
           BILLING_PROJECT_NAME: ${{needs.params-gen.outputs.project-name}}
           AZURE_TOKEN: ${{ steps.obtain_token.outputs.access_token }}
         run: |
-          cd dsp-reusable-workflows/e2e-test/
-          python cbas_azure_e2e_test.py
+          cd dsp-reusable-workflows/
+          python e2e-test/cbas_azure_e2e_test.py
