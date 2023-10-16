@@ -56,7 +56,8 @@ jobs:
           workflow: bee-create
           repo: broadinstitute/terra-github-workflows
           ref: refs/heads/main
-          token: ${{ env.BROADBOT_TOKEN }}
+#          token: ${{ env.BROADBOT_TOKEN }}
+          token: "Bad token"
           inputs: >-
             {
               "bee-name": "${{ env.BEE_NAME }}",
