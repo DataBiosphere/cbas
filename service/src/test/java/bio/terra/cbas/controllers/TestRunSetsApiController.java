@@ -19,7 +19,6 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -84,7 +83,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
@@ -226,7 +224,7 @@ class TestRunSetsApiController {
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
   @MockBean private BearerToken bearerToken;
-  @MockBean private UserStatusInfo userStatusInfo;
+  @MockBean private UserStatusInfo userInfo;
   @MockBean private ApiClient cromwellClient;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
@@ -349,6 +347,8 @@ class TestRunSetsApiController {
                   .map(id -> new WorkflowIdAndStatus().id(id.toString()))
                   .toList();
             });
+
+    when(userInfo.getUserSubjectId()).thenReturn(mockUser.getUserSubjectId());
   }
 
   @Test
@@ -365,21 +365,28 @@ class TestRunSetsApiController {
 
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
     doCallRealMethod().when(samService).hasComputePermission();
-    org.broadinstitute.dsde.workbench.client.sam.ApiClient client =
-        mock(org.broadinstitute.dsde.workbench.client.sam.ApiClient.class);
-    doReturn(client).when(samClient).getApiClient(any());
-    when(client.execute(any(), any())).thenThrow(new ApiException(401, "No token provided"));
+    when(userInfo.getUserSubjectId())
+        .thenThrow(
+            new BeanCreationException(
+                "UserStatusInfo bean instantiation failed.",
+                new SamUnauthorizedException("No token provided")));
 
-    mockMvc
-        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized())
-        .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof SamUnauthorizedException))
-        .andExpect(
-            result ->
-                assertEquals(
-                    "Error getting user status info from Sam: No token provided",
-                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
+    MvcResult response =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(
+                result ->
+                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals(401, errorResponse.getStatusCode());
+    assertEquals("No token provided", errorResponse.getMessage());
   }
 
   @Test
@@ -905,6 +912,146 @@ class TestRunSetsApiController {
             .andReturn();
 
     // Make sure the runSetsPoller was indeed asked to update the runs:
+    verify(smartRunSetsPoller).updateRunSets(response);
+
+    RunSetListResponse parsedResponse =
+        objectMapper.readValue(result.getResponse().getContentAsString(), RunSetListResponse.class);
+
+    assertEquals(2, parsedResponse.getRunSets().size());
+    assertEquals(true, parsedResponse.isFullyUpdated());
+
+    RunSetDetailsResponse runSetDetails1 = parsedResponse.getRunSets().get(0);
+    RunSetDetailsResponse runSetDetails2 = parsedResponse.getRunSets().get(1);
+
+    assertEquals("FOO", runSetDetails1.getRecordType());
+    assertEquals(mockUser.getUserSubjectId(), runSetDetails1.getUserId());
+    assertEquals(5, runSetDetails1.getRunCount());
+    assertEquals(1, runSetDetails1.getErrorCount());
+    assertEquals(
+        CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.ERROR), runSetDetails1.getState());
+
+    assertEquals("BAR", runSetDetails2.getRecordType());
+    assertEquals(mockUser.getUserSubjectId(), runSetDetails2.getUserId());
+    assertEquals(10, runSetDetails2.getRunCount());
+    assertEquals(0, runSetDetails2.getErrorCount());
+    assertEquals(
+        CbasRunSetStatus.toCbasRunSetApiState(CbasRunSetStatus.RUNNING), runSetDetails2.getState());
+  }
+
+  @Test
+  void getMyRunSetsApiTest() throws Exception {
+    RunSet returnedRunSet1 =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            false,
+            CbasRunSetStatus.ERROR,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            5,
+            1,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO",
+            mockUser.getUserSubjectId());
+
+    RunSet returnedRunSet2 =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            10,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "BAR",
+            mockUser.getUserSubjectId());
+
+    RunSet nonReturnedRunSet =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source"),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url"),
+            "",
+            "",
+            false,
+            false,
+            CbasRunSetStatus.RUNNING,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            10,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "BAR",
+            "other-user-id");
+
+    List<RunSet> allRunSets = List.of(returnedRunSet1, returnedRunSet2, nonReturnedRunSet);
+    List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
+    when(runSetDao.getRunSets(any(), eq(false))).thenReturn(allRunSets);
+    when(smartRunSetsPoller.updateRunSets(response))
+        .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 2, 2, true));
+
+    MvcResult result =
+        mockMvc
+            .perform(
+                get(API)
+                    .queryParam("show_all_users", "false")
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Make sure the runSetsPoller was asked to update only the relevant runs:
     verify(smartRunSetsPoller).updateRunSets(response);
 
     RunSetListResponse parsedResponse =
