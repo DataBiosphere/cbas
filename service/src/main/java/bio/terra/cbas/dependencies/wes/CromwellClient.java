@@ -35,7 +35,8 @@ public class CromwellClient {
       uri = cromwellServerConfiguration.baseUri();
     } else {
       uri =
-          dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.CROMWELL_URL);
+          dependencyUrlLoader.loadDependencyUrl(
+              DependencyUrlLoader.DependencyUrlType.CROMWELL_URL, accessToken);
     }
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setAccessToken(accessToken);

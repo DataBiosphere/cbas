@@ -1,6 +1,8 @@
 package bio.terra.cbas.dependencies.wds;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
@@ -31,7 +33,8 @@ class TestWdsClient {
   void lookupWdsUrlWhenNecessary() throws Exception {
     WdsServerConfiguration wdsServerConfiguration =
         new WdsServerConfiguration(null, "instanceId", "apiV", false);
-    when(dependencyUrlLoader.loadDependencyUrl(DependencyUrlLoader.DependencyUrlType.WDS_URL))
+    when(dependencyUrlLoader.loadDependencyUrl(
+            eq(DependencyUrlLoader.DependencyUrlType.WDS_URL), any()))
         .thenReturn("https://my-wds-service:10101/wds");
 
     RecordsApi recordsApi =

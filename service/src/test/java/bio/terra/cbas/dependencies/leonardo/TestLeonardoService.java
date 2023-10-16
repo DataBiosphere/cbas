@@ -53,7 +53,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenAnswer(errorAnswer)
         .thenReturn(expectedResponse);
 
@@ -62,7 +62,7 @@ class TestLeonardoService {
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
-    assertEquals(expectedResponse, leonardoService.getApps());
+    assertEquals(expectedResponse, leonardoService.getApps(false));
   }
 
   @Test
@@ -71,7 +71,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenAnswer(errorAnswer)
         .thenAnswer(errorAnswer)
         .thenAnswer(errorAnswer)
@@ -82,7 +82,11 @@ class TestLeonardoService {
 
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
-    assertThrows(SocketTimeoutException.class, leonardoService::getApps);
+    assertThrows(
+        SocketTimeoutException.class,
+        () -> {
+          leonardoService.getApps(false);
+        });
   }
 
   @Test
@@ -93,7 +97,7 @@ class TestLeonardoService {
 
     LeonardoClient leonardoClient = mock(LeonardoClient.class);
     AppsApi appsApi = mock(AppsApi.class);
-    when(appsApi.listAppsV2(workspaceId, null, null, null))
+    when(appsApi.listAppsV2(workspaceId, null, null, null, null))
         .thenThrow(expectedException)
         .thenReturn(expectedResponse);
 
@@ -103,7 +107,11 @@ class TestLeonardoService {
     doReturn(appsApi).when(leonardoService).getAppsApi();
 
     LeonardoServiceApiException thrown =
-        assertThrows(LeonardoServiceApiException.class, leonardoService::getApps);
+        assertThrows(
+            LeonardoServiceApiException.class,
+            () -> {
+              leonardoService.getApps(false);
+            });
     assertEquals(expectedException, thrown.getCause());
   }
 }
