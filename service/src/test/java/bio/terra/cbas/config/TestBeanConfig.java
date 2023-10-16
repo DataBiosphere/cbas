@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -14,6 +15,7 @@ import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamForbiddenException;
+import bio.terra.common.sam.exception.SamInterruptedException;
 import java.util.Map;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
@@ -84,5 +86,21 @@ class TestBeanConfig {
         assertThrows(SamForbiddenException.class, () -> beanConfig.userInfo(samClient, token));
     assertEquals("Error getting user status info from Sam: Forbidden", e.getMessage());
     assertEquals(HttpStatus.FORBIDDEN, e.getStatusCode());
+  }
+
+  @Test
+  void testGetSamUserInterrupted() throws ApiException {
+    doAnswer(
+            (invocation) -> {
+              throw new InterruptedException();
+            })
+        .when(samApiClient)
+        .execute(any(), any());
+    BearerToken token = new BearerToken("token-baz");
+
+    SamInterruptedException e =
+        assertThrows(SamInterruptedException.class, () -> beanConfig.userInfo(samClient, token));
+    assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
   }
 }
