@@ -1,5 +1,8 @@
 name: 'Azure E2E test'
-on:
+'on':
+  schedule:
+    # run twice a day at 10:00 and 22:00 UTC every day of the week
+    - cron: "0 10/12 * * 1-5"
   workflow_dispatch:
     inputs:
       target-branch:
@@ -10,7 +13,7 @@ on:
 
 env:
   BEE_NAME: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt}}-dev'
-  BROADBOT_TOKEN: '${{ secrets.BROADBOT_TOKEN }}' # github token for access to kick off a job in the private repo
+  BROADBOT_TOKEN: '${{ secrets.BROADBOT_TOKEN }}' # GitHub token for access to kick off a job in the private repo
   RUN_NAME_SUFFIX: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
 jobs:
@@ -139,7 +142,6 @@ jobs:
           inputs: '{ "bee-name": "${{ env.BEE_NAME }}" }'
 
   report-workflow:
-    needs: run-workflows-azure-e2e-test
     uses: broadinstitute/sherlock/.github/workflows/client-report-workflow.yaml@main
     with:
       notify-slack-channels-upon-workflow-failure: "#cromwell_jenkins_ci_errors"
