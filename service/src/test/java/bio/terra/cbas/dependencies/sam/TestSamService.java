@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.config.BeanConfig;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
@@ -38,11 +37,11 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ActiveProfiles;
 
-@ContextConfiguration(classes = {SamService.class, BeanConfig.class})
+@SpringBootTest(properties = "spring.profiles.include=human-readable-logging")
 class TestSamService {
-  private SamClient samClient;
+  @MockBean private SamClient samClient;
   @SpyBean private SamService samService;
   @MockBean private BearerToken bearerToken;
   @MockBean private UserStatusInfo userInfo;
@@ -67,7 +66,7 @@ class TestSamService {
     ResourcesApi resourcesApi = mock(ResourcesApi.class);
     samClient = mock(SamClient.class);
     ApiClient apiClient = mock(ApiClient.class);
-    samService = spy(new SamService(samClient, bearerToken, userInfo));
+    samService = spy(new SamService(samClient, bearerToken, mockUser));
 
     // setup Sam client methods
     when(samClient.getApiClient(any())).thenReturn(apiClient);
@@ -152,6 +151,7 @@ class TestSamService {
 
   @Test
   void testGetSamUserNoToken() {
+    bearerToken = null;
     BeanCreationException exception =
         assertThrows(BeanCreationException.class, () -> samService.hasComputePermission());
 
@@ -168,7 +168,9 @@ class TestSamService {
     setTokenValue(expiredTokenValue);
     SamUnauthorizedException e =
         assertThrows(SamUnauthorizedException.class, () -> samService.hasComputePermission());
-    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
+    assertEquals(
+        "Error checking compute permissions on workspace from Sam: Unauthorized exception thrown for testing purposes",
+        e.getMessage());
     assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
   }
 
@@ -255,6 +257,7 @@ class TestSamService {
 
   @Test
   void testHasPermissionForRequestWithNoToken() {
+    bearerToken = null;
     // no token set
     BeanCreationException exception =
         assertThrows(BeanCreationException.class, () -> samService.hasReadPermission());
@@ -281,7 +284,8 @@ class TestSamService {
   // Tests for including user IDs in logs once permissions have been checked
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=human-readable-logging")
+  @SpringBootTest(properties = "spring.profiles.include=human-readable-logging")
+  @ActiveProfiles(value = {"human-readable-logging"})
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamReadableLogs {
 
@@ -313,7 +317,8 @@ class TestSamService {
   }
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=")
+  @SpringBootTest(properties = "spring.profiles.include=")
+  @ActiveProfiles()
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamPlainLogs {
 
