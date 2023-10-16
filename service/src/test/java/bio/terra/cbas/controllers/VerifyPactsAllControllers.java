@@ -69,6 +69,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
+  @MockBean private UserStatusInfo userInfo;
   @MockBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
@@ -184,9 +185,7 @@ class VerifyPactsAllControllers {
 
     when(cromwellService.submitWorkflowBatch(any(), any(), any()))
         .thenReturn(List.of(new WorkflowIdAndStatus().id(fixedCromwellRunUUID)));
-    when(samService.getSamUser())
-        .thenReturn(
-            new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
+    userInfo = new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true);
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();

@@ -19,6 +19,7 @@ import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -225,6 +226,7 @@ class TestRunSetsApiController {
   @MockBean private SamClient samClient;
   @MockBean private UsersApi usersApi;
   @MockBean private BearerToken bearerToken;
+  @MockBean private UserStatusInfo userStatusInfo;
   @MockBean private ApiClient cromwellClient;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
@@ -347,8 +349,6 @@ class TestRunSetsApiController {
                   .map(id -> new WorkflowIdAndStatus().id(id.toString()))
                   .toList();
             });
-
-    doReturn(mockUser).when(samService).getSamUser();
   }
 
   @Test
@@ -365,9 +365,10 @@ class TestRunSetsApiController {
 
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
     doCallRealMethod().when(samService).hasComputePermission();
-    doCallRealMethod().when(samService).getSamUser();
-    doReturn(usersApi).when(samService).getUsersApi();
-    when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
+    org.broadinstitute.dsde.workbench.client.sam.ApiClient client =
+        mock(org.broadinstitute.dsde.workbench.client.sam.ApiClient.class);
+    doReturn(client).when(samClient).getApiClient(any());
+    when(client.execute(any(), any())).thenThrow(new ApiException(401, "No token provided"));
 
     mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))

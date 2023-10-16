@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.sam;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,6 +11,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.config.BeanConfig;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
@@ -23,7 +23,6 @@ import ch.qos.logback.core.read.ListAppender;
 import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
-import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -39,11 +38,14 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
 
+@ContextConfiguration(classes = {SamService.class, BeanConfig.class})
 class TestSamService {
   private SamClient samClient;
   @SpyBean private SamService samService;
   @MockBean private BearerToken bearerToken;
+  @MockBean private UserStatusInfo userInfo;
 
   private final String tokenWithCorrectAccess = "foo-token";
   private final String validTokenWithNoAccess = "foo-no-access-token";
@@ -62,42 +64,15 @@ class TestSamService {
 
   @BeforeEach
   void init() throws ApiException {
-    UsersApi usersApi = mock(UsersApi.class);
     ResourcesApi resourcesApi = mock(ResourcesApi.class);
     samClient = mock(SamClient.class);
     ApiClient apiClient = mock(ApiClient.class);
-    samService = spy(new SamService(samClient, bearerToken));
+    samService = spy(new SamService(samClient, bearerToken, userInfo));
 
     // setup Sam client methods
     when(samClient.getApiClient(any())).thenReturn(apiClient);
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
     when(samClient.getWorkspaceId()).thenReturn(workspaceId);
-
-    doReturn(usersApi).when(samService).getUsersApi();
-    when(usersApi.getUserStatusInfo())
-        .thenAnswer(
-            (Answer<UserStatusInfo>)
-                invocation -> {
-                  if (bearerToken == null || bearerToken.getToken() == null) {
-                    throw new BeanCreationException(
-                        "BearerToken bean throws error when no token is available.",
-                        new UnauthorizedException("Authorization header missing"));
-                  }
-                  switch (bearerToken.getToken()) {
-                    case tokenWithCorrectAccess:
-                    case validTokenWithNoAccess:
-                    case validTokenWithReadAccess:
-                    case validTokenWithWriteAccess:
-                    case validTokenWithComputeAccess:
-                    case validTokenCausingAccessInterrupt:
-                      return mockUser;
-                    case tokenCausingUserInterrupt:
-                      throw new InterruptedException();
-                    default:
-                      // expired or invalid
-                      throw new ApiException(401, "Unauthorized :(");
-                  }
-                });
 
     doReturn(resourcesApi).when(samService).getResourcesApi();
 
@@ -176,16 +151,9 @@ class TestSamService {
   }
 
   @Test
-  void testGetSamUserValidToken() {
-    setTokenValue(tokenWithCorrectAccess);
-    UserStatusInfo user = samService.getSamUser();
-    assertEquals(mockUser, user);
-  }
-
-  @Test
   void testGetSamUserNoToken() {
     BeanCreationException exception =
-        assertThrows(BeanCreationException.class, () -> samService.getSamUser());
+        assertThrows(BeanCreationException.class, () -> samService.hasComputePermission());
 
     assertTrue(
         exception
@@ -199,29 +167,9 @@ class TestSamService {
   void testGetSamUserExpiredToken() {
     setTokenValue(expiredTokenValue);
     SamUnauthorizedException e =
-        assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
+        assertThrows(SamUnauthorizedException.class, () -> samService.hasComputePermission());
     assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
     assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
-  }
-
-  @Test
-  void testGetSamUserInterruptingToken() {
-    setTokenValue(tokenCausingUserInterrupt);
-    SamInterruptedException e =
-        assertThrows(SamInterruptedException.class, () -> samService.getSamUser());
-    assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
-  }
-
-  @Test
-  void testGetSamUserAuthDisabled() {
-    setTokenValue(tokenWithCorrectAccess);
-    when(samClient.checkAuthAccessWithSam()).thenReturn(false);
-    UserStatusInfo user = samService.getSamUser();
-    assertEquals(new UserStatusInfo(), user);
-    assertNull(user.getUserSubjectId());
-    assertNull(user.getUserEmail());
-    assertNull(user.getEnabled());
   }
 
   // tests for checking read, write and compute access for a token with only read access

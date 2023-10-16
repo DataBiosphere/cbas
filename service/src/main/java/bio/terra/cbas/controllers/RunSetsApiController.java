@@ -88,6 +88,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
+  private final UserStatusInfo userInfo;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -105,7 +106,8 @@ public class RunSetsApiController implements RunSetsApi {
       CbasApiConfiguration cbasApiConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
-      RunSetAbortManager abortManager) {
+      RunSetAbortManager abortManager,
+      UserStatusInfo userInfo) {
     this.samService = samService;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
@@ -119,6 +121,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;
     this.abortManager = abortManager;
+    this.userInfo = userInfo;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -159,10 +162,9 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     if (Boolean.FALSE.equals(showAllUsers)) {
-      UserStatusInfo user = samService.getSamUser();
       filteredRunSet =
           filteredRunSet.stream()
-              .filter(runSet -> runSet.userId().equals(user.getUserSubjectId()))
+              .filter(runSet -> runSet.userId().equals(userInfo.getUserSubjectId()))
               .toList();
     }
 
@@ -244,8 +246,6 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    UserStatusInfo user = samService.getSamUser();
-
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
     RunSet runSet;
@@ -268,7 +268,7 @@ public class RunSetsApiController implements RunSetsApi {
               objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
               objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
               request.getWdsRecords().getRecordType(),
-              user.getUserSubjectId());
+              userInfo.getUserSubjectId());
     } catch (JsonProcessingException e) {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(

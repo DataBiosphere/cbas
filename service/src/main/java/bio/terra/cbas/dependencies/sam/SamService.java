@@ -1,7 +1,6 @@
 package bio.terra.cbas.dependencies.sam;
 
 import bio.terra.cbas.dependencies.common.HealthCheck;
-import bio.terra.common.exception.ErrorReportException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.SamRetry;
 import bio.terra.common.sam.exception.SamExceptionFactory;
@@ -55,7 +54,7 @@ public class SamService implements HealthCheck {
     https://github.com/DataBiosphere/terra-common-lib/blob/eaaf6217ec0f024afa45aac14d21c8964c0f27c5/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L129-L132
     for details on how this is included in cloud logs, and logback.xml for console logs
     */
-    MDC.put("user", getSamUser().getUserSubjectId());
+    MDC.put("user", userInfo.getUserSubjectId());
 
     logger.debug(
         "Checking Sam permission for '{}' resource and '{}' action type for user on workspace '{}'.",
@@ -83,10 +82,6 @@ public class SamService implements HealthCheck {
 
   public ResourcesApi getResourcesApi() {
     return new ResourcesApi(samClient.getApiClient(bearerToken.getToken()));
-  }
-
-  public UserStatusInfo getSamUser() throws ErrorReportException {
-    return userInfo;
   }
 
   @Override
