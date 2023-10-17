@@ -4,12 +4,6 @@ name: 'Azure E2E test'
     # run twice a day at 10:00 and 22:00 UTC every day of the week
     - cron: "0 10/12 * * 1-5"
   workflow_dispatch:
-    inputs:
-      target-branch:
-        description: 'Branch of CBAS to run tests on'
-        required: true
-        default: 'develop'
-        type: string
 
 env:
   BEE_NAME: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt}}-dev'
@@ -17,16 +11,6 @@ env:
   RUN_NAME_SUFFIX: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
 jobs:
-  init-github-context:
-    runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.extract-inputs.outputs.branch }}
-    steps:
-      - name: Get inputs or use defaults
-        id: extract-inputs
-        run: |
-          echo "branch=${{ inputs.target-branch || 'develop' }}" >> "$GITHUB_OUTPUT"
-
   # This job provisions useful parameters for e2e tests, including access tokens.
   # Please note: access tokens are for use in the same workflow, they cannot be dispatched to remote workflows.
   params-gen:
