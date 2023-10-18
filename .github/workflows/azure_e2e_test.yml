@@ -67,7 +67,6 @@ jobs:
             }
 
   run-cbas-azure-e2e-test:
-    runs-on: ubuntu-latest
     needs: [ params-gen, create-and-attach-billing-project-to-landing-zone-workflow ]
     permissions:
       contents: 'read'
