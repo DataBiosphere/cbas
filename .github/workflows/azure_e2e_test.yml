@@ -73,7 +73,7 @@ jobs:
       id-token: 'write'
     uses: broadinstitute/dsp-reusable-workflows/.github/workflows/run_cbas_azure_e2e_tests.yaml@sps_cbas_e2e_test #TODO: switch to main
     with:
-      bee-name: '${{ env.BEE_NAME }}'
+      bee-name: ${{ env.BEE_NAME }}
       billing-project-name: '${{needs.params-gen.outputs.project-name}}'
 
   destroy-bee-workflow:
