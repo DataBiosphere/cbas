@@ -67,6 +67,7 @@ jobs:
             }
 
   run-cbas-azure-e2e-test:
+    runs-on: ubuntu-latest
     needs: [ params-gen, create-and-attach-billing-project-to-landing-zone-workflow ]
     steps:
       - name: Run CBAS E2E tests on Azure
