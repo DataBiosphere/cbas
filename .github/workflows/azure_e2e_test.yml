@@ -68,13 +68,19 @@ jobs:
 
   run-cbas-azure-e2e-test:
     needs: [ params-gen, create-and-attach-billing-project-to-landing-zone-workflow ]
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    uses: broadinstitute/dsp-reusable-workflows/.github/workflows/run_cbas_azure_e2e_tests.yaml@sps_cbas_e2e_test #TODO: switch to main
-    with:
-      bee-name: ${{ env.BEE_NAME }}
-      billing-project-name: '${{needs.params-gen.outputs.project-name}}'
+    steps:
+      - name: Run CBAS E2E tests on Azure
+        uses: broadinstitute/workflow-dispatch@v3
+        with:
+          workflow: run_cbas_azure_e2e_tests.yaml
+          repo: broadinstitute/dsp-reusable-workflows
+          ref: refs/heads/sps_cbas_e2e_test #TODO: switch to main
+          token: ${{ env.BROADBOT_TOKEN }}
+          inputs: >-
+            {
+              "bee-name": "${{ env.BEE_NAME }}",
+              "billing-project-name": "${{ needs.params-gen.outputs.project-name }}"
+            }
 
   destroy-bee-workflow:
     runs-on: ubuntu-latest
