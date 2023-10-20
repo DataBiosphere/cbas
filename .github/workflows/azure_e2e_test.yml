@@ -75,7 +75,7 @@ jobs:
         with:
           workflow: run_cbas_azure_e2e_tests.yaml
           repo: broadinstitute/dsp-reusable-workflows
-          ref: refs/heads/sps_cbas_e2e_test #TODO: switch to main
+          ref: refs/heads/main
           token: ${{ env.BROADBOT_TOKEN }}
           inputs: >-
             {
