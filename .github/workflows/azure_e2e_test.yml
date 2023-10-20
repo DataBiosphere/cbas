@@ -88,10 +88,10 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      uses: broadinstitute/dsp-reusable-workflows/.github/workflows/run_cbas_azure_e2e_tests.yaml@main
-      with:
-        bee-name: ${{ env.BEE_NAME }}
-        billing-project-name: '${{ needs.params-gen.outputs.project-name }}'
+    uses: broadinstitute/dsp-reusable-workflows/.github/workflows/run_cbas_azure_e2e_tests.yaml@main
+    with:
+      bee-name: ${{ env.BEE_NAME }}
+      billing-project-name: '${{ needs.params-gen.outputs.project-name }}'
 
   destroy-bee-workflow:
     runs-on: ubuntu-latest
