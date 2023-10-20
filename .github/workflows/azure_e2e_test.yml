@@ -19,6 +19,7 @@ jobs:
       contents: 'read'
       id-token: 'write'
     outputs:
+      bee-name: ${{ env.BEE_NAME }}
       project-name: ${{ steps.gen.outputs.project_name }}
     steps:
       - name: Generate a random billing project name
@@ -90,7 +91,7 @@ jobs:
       id-token: write
     uses: broadinstitute/dsp-reusable-workflows/.github/workflows/run_cbas_azure_e2e_tests.yaml@main
     with:
-      bee-name: '${{ env.BEE_NAME }}'
+      bee-name: '${{ needs.params-gen.outputs.bee-name }}'
       billing-project-name: '${{ needs.params-gen.outputs.project-name }}'
 
   destroy-bee-workflow:
