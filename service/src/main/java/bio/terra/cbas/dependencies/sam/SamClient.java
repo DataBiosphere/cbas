@@ -22,6 +22,8 @@ public class SamClient {
   public ApiClient getApiClient() {
     return new ApiClient()
         .setHttpClient(singletonHttpClient)
+        // By closing the connection after each request, we avoid the problem of the open connection
+        // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
         .addDefaultHeader("Connection", "close")
         .setBasePath(samServerConfiguration.baseUri())
         .setDebugging(samServerConfiguration.debugApiLogging());

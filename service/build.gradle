@@ -26,7 +26,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.retry:spring-retry'
-    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.12:0.1-61135c7'
+    implementation 'org.broadinstitute.dsde.workbench:sam-client_2.13:0.1-fd8ee25'
     implementation 'bio.terra:datarepo-client:1.313.0-SNAPSHOT'
     implementation 'org.postgresql:postgresql:42.3.3'
 
@@ -65,6 +65,7 @@ dependencies {
     testImplementation("au.com.dius.pact.provider:junit5:4.1.7")
     testImplementation('au.com.dius.pact.provider:junit5spring:4.1.7')
     testImplementation('au.com.dius.pact.consumer:junit5:4.1.7')
+    testImplementation("au.com.dius.pact.consumer:junit:4.1.7")
 }
 
 test {
@@ -79,10 +80,23 @@ task verifyPacts( type: Test ) {
     systemProperty 'pact.provider.version', System.getenv('PACT_PROVIDER_COMMIT')
     systemProperty 'pact.provider.branch',  System.getenv('PACT_PROVIDER_BRANCH')
     systemProperty 'pact.verifier.publishResults', System.getenv('PACT_PUBLISH_RESULTS')
+    systemProperty 'pactbroker.host', System.getenv('PACT_BROKER_URL')
+    systemProperty 'pactbroker.auth.username', System.getenv('PACT_BROKER_USERNAME')
+    systemProperty 'pactbroker.auth.password', System.getenv('PACT_BROKER_PASSWORD')
     filter {
         includeTestsMatching "*VerifyPacts*"
     }
  }
+
+// PACT
+
+task pactTests(type: Test) {
+    useJUnitPlatform {
+        includeTags "pact-test"
+    }
+    environment.put('pact.rootDir', "$buildDir/pacts")
+    environment.put('pact.provider.version', "$project.version")
+}
 
 sonarqube {
     properties {

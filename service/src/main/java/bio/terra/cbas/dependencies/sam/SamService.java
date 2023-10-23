@@ -45,7 +45,7 @@ public class SamService implements HealthCheck {
     return new StatusApi(samClient.getApiClient());
   }
 
-  boolean hasPermission(String actionType) {
+  public boolean hasPermission(String actionType, UserStatusInfo userInfo) {
     // don't check auth access with Sam if "sam.checkAuthAccess" is false
     if (!samClient.checkAuthAccessWithSam()) return true;
 
@@ -54,7 +54,7 @@ public class SamService implements HealthCheck {
     https://github.com/DataBiosphere/terra-common-lib/blob/eaaf6217ec0f024afa45aac14d21c8964c0f27c5/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L129-L132
     for details on how this is included in cloud logs, and logback.xml for console logs
     */
-    MDC.put("user", getSamUser().getUserSubjectId());
+    MDC.put("user", userInfo.getUserSubjectId());
 
     logger.debug(
         "Checking Sam permission for '{}' resource and '{}' action type for user on workspace '{}'.",
@@ -78,6 +78,10 @@ public class SamService implements HealthCheck {
               .formatted(actionType),
           e);
     }
+  }
+
+  boolean hasPermission(String actionType) {
+    return hasPermission(actionType, getSamUser());
   }
 
   public UsersApi getUsersApi() {

@@ -17,7 +17,6 @@ import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.common.iam.BearerToken;
 import java.util.Map;
-import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -30,7 +29,8 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Tag("pact-test")
 @ExtendWith(PactConsumerTestExt.class)
 class SamPactTest {
-  static final String dummyResourceId = "92276398-fbe4-414a-9304-e7dcf18ac80e";
+  static final String dummyWorkspaceId = "15f36863-30a5-4cab-91f7-52be439f1175";
+  private SamService samService;
 
   @BeforeEach
   void setUp() {
@@ -40,28 +40,49 @@ class SamPactTest {
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
   }
 
+  private void initSamService(MockServer mockServer) {
+    SamServerConfiguration samConfig =
+        new SamServerConfiguration(mockServer.getUrl(), false, dummyWorkspaceId, true);
+    SamClient samClient = new SamClient(samConfig);
+    samService = new SamService(samClient, new BearerToken("accessToken"));
+  }
+
   @Pact(consumer = "cbas-consumer", provider = "sam-provider")
-  public RequestResponsePact writePermissionPact(PactDslWithProvider builder) {
+  RequestResponsePact statusApiPact(PactDslWithProvider builder) {
     return builder
-        .given("user has write permission", Map.of("dummyResourceId", dummyResourceId))
+        .given("Sam is ok")
+        .uponReceiving("a status request")
+        .path("/status")
+        .method("GET")
+        .willRespondWith()
+        .status(200)
+        .body(new PactDslJsonBody().booleanValue("ok", true))
+        .toPact();
+  }
+
+  @Pact(consumer = "cbas-consumer", provider = "sam-provider")
+  RequestResponsePact writePermissionPact(PactDslWithProvider builder) {
+    return builder
+        .given("user has write permission", Map.of("dummyResourceId", dummyWorkspaceId))
         .uponReceiving("a request for write permission on workspace")
         .pathFromProviderState(
             "/api/resources/v2/workspace/${dummyResourceId}/action/write",
-            String.format("/api/resources/v2/workspace/%s/action/write", dummyResourceId))
+            String.format("/api/resources/v2/workspace/%s/action/write", dummyWorkspaceId))
         .method("GET")
+        .headers("Authorization", "Bearer accessToken")
         .willRespondWith()
         .status(200)
         .body("true")
         .toPact();
   }
 
-  @Pact(consumer = "wds-consumer", provider = "sam-provider")
-  public RequestResponsePact userStatusPact(PactDslWithProvider builder) {
+  @Pact(consumer = "cbas-consumer", provider = "sam-provider")
+  RequestResponsePact userStatusPact(PactDslWithProvider builder) {
     var userResponseShape =
         new PactDslJsonBody()
-            .stringType("userSubjectId")
-            .stringType("userEmail")
-            .booleanType("enabled");
+            .stringValue("userSubjectId", "testUser")
+            .stringValue("userEmail", "test@test.com")
+            .booleanValue("enabled", true);
     return builder
         .given("user status info request with access token")
         .uponReceiving("a request for the user's status")
@@ -70,29 +91,31 @@ class SamPactTest {
         .headers("Authorization", "Bearer accessToken")
         .willRespondWith()
         .status(200)
-        .body(userResponseShape)
+        .body(userResponseShape.asBody())
         .toPact();
   }
 
   @Test
   @PactTestFor(pactMethod = "writePermissionPact", pactVersion = PactSpecVersion.V3)
   void testSamServiceWritePermissionPact(MockServer mockServer) {
-    SamServerConfiguration samConfig =
-        new SamServerConfiguration(mockServer.getUrl(), false, UUID.randomUUID().toString(), true);
-    SamClient samClient = new SamClient(samConfig);
-    SamService samService = new SamService(samClient, new BearerToken("Bearer accessToken"));
-
-    boolean hasWritePermission = samService.hasWritePermission();
+    initSamService(mockServer);
+    UserStatusInfo mockUserInfo = new UserStatusInfo().userSubjectId("testUser");
+    boolean hasWritePermission = samService.hasPermission(SamService.WRITE_ACTION, mockUserInfo);
     assertTrue(hasWritePermission);
+  }
+
+  @Test
+  @PactTestFor(pactMethod = "statusApiPact", pactVersion = PactSpecVersion.V3)
+  public void testSamServiceStatusCheck(MockServer mockServer) {
+    initSamService(mockServer);
+    var system = samService.checkHealth();
+    assertTrue(system.isOk());
   }
 
   @Test
   @PactTestFor(pactMethod = "userStatusPact", pactVersion = PactSpecVersion.V3)
   void testSamServiceUserStatusInfo(MockServer mockServer) {
-    SamServerConfiguration samConfig =
-        new SamServerConfiguration(mockServer.getUrl(), false, UUID.randomUUID().toString(), true);
-    SamClient samClient = new SamClient(samConfig);
-    SamService samService = new SamService(samClient, new BearerToken("Bearer accessToken"));
+    initSamService(mockServer);
     UserStatusInfo userInfo =
         assertDoesNotThrow(
             () -> samService.getSamUser(), "get user info request should not throw an error");
