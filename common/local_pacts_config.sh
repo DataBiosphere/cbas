@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PACT_DIR="$(git rev-parse --show-toplevel)/pacts"
-CONSUMER_NAME="$(basename `git rev-parse --show-toplevel`)-consumer"
+CONSUMER_NAME="$(basename `git rev-parse --show-toplevel`)"
 GIT_SHA=$(git rev-parse --verify HEAD)
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
