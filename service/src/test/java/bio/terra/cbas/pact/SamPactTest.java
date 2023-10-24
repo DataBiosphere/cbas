@@ -106,7 +106,7 @@ class SamPactTest {
 
   @Test
   @PactTestFor(pactMethod = "statusApiPact", pactVersion = PactSpecVersion.V3)
-  public void testSamServiceStatusCheck(MockServer mockServer) {
+  void testSamServiceStatusCheck(MockServer mockServer) {
     initSamService(mockServer);
     var system = samService.checkHealth();
     assertTrue(system.isOk());
