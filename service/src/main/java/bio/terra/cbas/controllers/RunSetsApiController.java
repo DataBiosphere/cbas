@@ -137,7 +137,8 @@ public class RunSetsApiController implements RunSetsApi {
         .runCount(runSet.runCount())
         .errorCount(runSet.errorCount())
         .inputDefinition(runSet.inputDefinition())
-        .outputDefinition(runSet.outputDefinition());
+        .outputDefinition(runSet.outputDefinition())
+        .userId(runSet.userId());
   }
 
   @Override
