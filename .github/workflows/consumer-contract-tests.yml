@@ -18,7 +18,6 @@ on:
 jobs:
   cbas-consumer-contract-tests:
     runs-on: ubuntu-latest
-    needs: [init-github-context]
     outputs:
       pact-b64: ${{ steps.encode-pact.outputs.pact-b64 }}
 
