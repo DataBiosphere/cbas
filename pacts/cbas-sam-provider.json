@@ -1,0 +1,120 @@
+{
+  "provider": {
+    "name": "sam-provider"
+  },
+  "consumer": {
+    "name": "cbas"
+  },
+  "interactions": [
+    {
+      "description": "a status request",
+      "request": {
+        "method": "GET",
+        "path": "/status"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=UTF-8"
+        },
+        "body": {
+          "ok": true
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ],
+              "combine": "AND"
+            }
+          }
+        }
+      },
+      "providerStates": [
+        {
+          "name": "Sam is ok"
+        }
+      ]
+    },
+    {
+      "description": "a request for write permission on workspace",
+      "request": {
+        "method": "GET",
+        "path": "/api/resources/v2/workspace/15f36863-30a5-4cab-91f7-52be439f1175/action/write",
+        "headers": {
+          "Authorization": "Bearer accessToken"
+        },
+        "generators": {
+          "path": {
+            "type": "ProviderState",
+            "expression": "/api/resources/v2/workspace/${dummyResourceId}/action/write",
+            "dataType": "STRING"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": true
+      },
+      "providerStates": [
+        {
+          "name": "user has write permission",
+          "params": {
+            "dummyResourceId": "15f36863-30a5-4cab-91f7-52be439f1175"
+          }
+        }
+      ]
+    },
+    {
+      "description": "a request for the user's status",
+      "request": {
+        "method": "GET",
+        "path": "/register/user/v2/self/info",
+        "headers": {
+          "Authorization": "Bearer accessToken"
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json; charset=UTF-8"
+        },
+        "body": {
+          "userSubjectId": "testUser",
+          "userEmail": "test@test.com",
+          "enabled": true
+        },
+        "matchingRules": {
+          "header": {
+            "Content-Type": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "application/json(;\\s?charset=[\\w\\-]+)?"
+                }
+              ],
+              "combine": "AND"
+            }
+          }
+        }
+      },
+      "providerStates": [
+        {
+          "name": "user status info request with access token"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "3.0.0"
+    },
+    "pact-jvm": {
+      "version": "4.1.7"
+    }
+  }
+}

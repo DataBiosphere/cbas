@@ -41,7 +41,7 @@ jobs:
 
   publish-contracts:
     runs-on: ubuntu-latest
-    needs: [ init-github-context, cbas-consumer-contract-tests ]
+    needs: [ cbas-consumer-contract-tests ]
     steps:
       - name: Dispatch to terra-github-workflows
         uses: broadinstitute/workflow-dispatch@v3
