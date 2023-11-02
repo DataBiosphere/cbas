@@ -88,4 +88,4 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: changesets/20231102_set_table_role.yaml
-        relativeToChangelogFile: true
+      relativeToChangelogFile: true
