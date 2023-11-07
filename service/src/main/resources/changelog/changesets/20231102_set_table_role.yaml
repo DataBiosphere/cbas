@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - property:
+      # This property can be set via JAVA_OPTS if desired (eg -DdbRole=...).
+      name: "dbRole"
+      value: ""
+  - changeSet:
+      id: "set table role"
+      author: chrisl
+      runAlways: true
+      runOnChange: true
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT count(1) FROM pg_roles WHERE '${dbRole}' != '' AND pg_roles.rolname = '${dbRole}'
+      sql: >
+          ALTER TABLE databasechangelog OWNER TO ${dbRole};
+          ALTER TABLE databasechangeloglock OWNER TO ${dbRole};
+          ALTER TABLE method OWNER TO ${dbRole};
+          ALTER TABLE method_version OWNER TO ${dbRole};
+          ALTER TABLE run OWNER TO ${dbRole};
+          ALTER TABLE run_set OWNER TO ${dbRole};
