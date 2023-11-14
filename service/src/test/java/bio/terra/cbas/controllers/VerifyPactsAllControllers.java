@@ -16,6 +16,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -30,6 +31,9 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
+import bio.terra.cbas.runsets.results.RunCompletionHandler;
+import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.util.UuidSource;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
@@ -39,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -56,6 +61,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @ContextConfiguration(
     classes = {
       RunSetsApiController.class,
+      RunsApiController.class,
       MethodsApiController.class,
       CbasApiConfiguration.class,
       GlobalExceptionHandler.class
@@ -70,6 +76,8 @@ class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
 
   @MockBean private SamService samService;
+  @MockBean private SamClient samClient;
+  @MockBean private UsersApi userApi;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private WdsService wdsService;
@@ -78,8 +86,10 @@ class VerifyPactsAllControllers {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
+  @MockBean private SmartRunsPoller smartRunsPoller;
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;
+  @MockBean private RunCompletionHandler runCompletionHandler;
   @Autowired private ObjectMapper objectMapper;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -250,7 +260,46 @@ class VerifyPactsAllControllers {
   public void postAbort() throws Exception {
     UUID runSetId = UUID.fromString("20000000-0000-0000-0000-000000000002");
     UUID runId = UUID.fromString("30000000-0000-0000-0000-000000000003");
-    RunSet runSetToBeCancelled =
+    Run runToBeCancelled = createRunToBeUpdated(runSetId, runId, UUID.randomUUID());
+
+    AbortRequestDetails abortDetails = new AbortRequestDetails();
+    abortDetails.setFailedIds(List.of());
+    abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
+
+    when(runSetDao.getRunSet(runSetId)).thenReturn(runToBeCancelled.runSet());
+    when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
+        .thenReturn(Collections.singletonList(runToBeCancelled));
+
+    when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
+  }
+
+  @State({"post completed workflow results"})
+  public void postCompletedWorkflowResults() throws Exception {
+    String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
+    String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
+    String fixedCromwellRunUUID = "12345678-1234-1234-1111-111111111111";
+
+    Run runToBeUpdated =
+        createRunToBeUpdated(
+            UUID.fromString(fixedRunSetUUID),
+            UUID.fromString(fixedRunUUID),
+            UUID.fromString(fixedCromwellRunUUID));
+    UserStatusInfo userStatusInfo =
+        new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true);
+    when(samService.getSamUser()).thenReturn(userStatusInfo);
+
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    when(samService.hasWritePermission()).thenReturn(true);
+
+    when(runDao.getRuns(new RunDao.RunsFilters(null, null, fixedCromwellRunUUID)))
+        .thenReturn(Collections.singletonList(runToBeUpdated));
+    when(runCompletionHandler.updateResults(
+            eq(runToBeUpdated), eq(CbasRunStatus.COMPLETE), any(), eq(Collections.EMPTY_LIST)))
+        .thenReturn(RunCompletionResult.SUCCESS);
+  }
+
+  private Run createRunToBeUpdated(UUID runSetId, UUID runId, UUID workflowId) {
+    RunSet runSetToBeUpdated =
         new RunSet(
             runSetId,
             null,
@@ -269,26 +318,15 @@ class VerifyPactsAllControllers {
             null,
             null);
 
-    Run runToBeCancelled =
-        new Run(
-            runId,
-            UUID.randomUUID().toString(),
-            runSetToBeCancelled,
-            null,
-            null,
-            CbasRunStatus.RUNNING,
-            null,
-            null,
-            null);
-
-    AbortRequestDetails abortDetails = new AbortRequestDetails();
-    abortDetails.setFailedIds(List.of());
-    abortDetails.setSubmittedIds(List.of(runToBeCancelled.runId()));
-
-    when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
-    when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
-        .thenReturn(Collections.singletonList(runToBeCancelled));
-
-    when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
+    return new Run(
+        runId,
+        workflowId.toString(),
+        runSetToBeUpdated,
+        null,
+        null,
+        CbasRunStatus.RUNNING,
+        null,
+        null,
+        null);
   }
 }
