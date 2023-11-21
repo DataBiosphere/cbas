@@ -1,6 +1,6 @@
 databaseChangeLog:
   - property:
-      # This property can be set via JAVA_OPTS if desired (eg -DdbRole=...).
+      # This property can be set via application.yml.
       name: "dbRole"
       value: ""
   - changeSet:

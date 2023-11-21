@@ -36,6 +36,8 @@ spring:
         use-last-modified: false
   liquibase:
     change-log: changelog/changelog.yaml
+    parameters:
+      dbRole: cbas_user
 
 cbas:
   cbas-database:
