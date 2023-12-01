@@ -453,8 +453,14 @@ public class TestSmartRunsPollerFunctional {
         .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any());
 
     assertEquals(
-        "Error fetching Cromwell-level error from Cromwell for run %s.".formatted(runningRunId3),
+        "Error fetching Cromwell-level error from Cromwell for workflow %s."
+            .formatted(runningRunEngineId3),
         captor.getValue().get(0));
+
+    assertEquals(
+        "Error from Cromwell: %s"
+            .formatted(new ApiException("Cromwell client exception").getMessage()),
+        captor.getValue().get(1));
 
     assertEquals(1, actual.updatedList().size());
   }
