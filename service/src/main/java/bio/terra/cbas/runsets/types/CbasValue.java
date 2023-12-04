@@ -19,39 +19,40 @@ public interface CbasValue {
   long countFiles();
 
   static CbasValue parsePrimitive(
-      PrimitiveParameterValueType primitiveParameterValueType, Object value)
+      String parameterName, PrimitiveParameterValueType primitiveParameterValueType, Object value)
       throws CoercionException {
     return switch (primitiveParameterValueType) {
-      case STRING -> CbasString.parse(value);
-      case INT -> CbasInt.parse(value);
-      case BOOLEAN -> CbasBoolean.parse(value);
-      case FLOAT -> CbasFloat.parse(value);
-      case FILE -> CbasFile.parse(value);
+      case STRING -> CbasString.parse(parameterName, value);
+      case INT -> CbasInt.parse(parameterName, value);
+      case BOOLEAN -> CbasBoolean.parse(parameterName, value);
+      case FLOAT -> CbasFloat.parse(parameterName, value);
+      case FILE -> CbasFile.parse(parameterName, value);
     };
   }
 
-  static CbasValue parseValue(ParameterTypeDefinition parameterType, Object value)
+  static CbasValue parseValue(
+      String parameterName, ParameterTypeDefinition parameterType, Object value)
       throws CoercionException {
     if (parameterType instanceof ParameterTypeDefinitionPrimitive primitiveDefinition) {
-      return parsePrimitive(primitiveDefinition.getPrimitiveType(), value);
+      return parsePrimitive(parameterName, primitiveDefinition.getPrimitiveType(), value);
     } else if (parameterType instanceof ParameterTypeDefinitionOptional optionalDefinition) {
       if (value == null) {
         return new CbasOptionalNone();
       } else {
         var innerType = optionalDefinition.getOptionalType();
-        return new CbasOptionalSome(parseValue(innerType, value));
+        return new CbasOptionalSome(parseValue(parameterName, innerType, value));
       }
     } else if (parameterType instanceof ParameterTypeDefinitionArray arrayDefinition) {
       var innerType = arrayDefinition.getArrayType();
-      return CbasArray.parseValue(innerType, value, arrayDefinition.isNonEmpty());
+      return CbasArray.parseValue(parameterName, innerType, value, arrayDefinition.isNonEmpty());
     } else if (parameterType instanceof ParameterTypeDefinitionMap mapDefinition) {
       PrimitiveParameterValueType keyType = mapDefinition.getKeyType();
       ParameterTypeDefinition valueType = mapDefinition.getValueType();
-      return CbasMap.parseValue(keyType, valueType, value);
+      return CbasMap.parseValue(parameterName, keyType, valueType, value);
     } else if (parameterType instanceof ParameterTypeDefinitionStruct structDefinition) {
-      return CbasStruct.parseValue(structDefinition, value);
+      return CbasStruct.parseValue(parameterName, structDefinition, value);
     } else {
-      throw new TypeCoercionException(value, parameterType.toString());
+      throw new TypeCoercionException(parameterName, value, parameterType.toString());
     }
   }
 }

@@ -1,12 +1,15 @@
 package bio.terra.cbas.runsets.types;
 
 public class TypeCoercionException extends CoercionException {
-  public TypeCoercionException(String fromType, String toType) {
-    super(fromType, toType, "Coercion not supported between these types.");
+  public TypeCoercionException(String parameterName, String fromType, String toType) {
+    super(parameterName, fromType, toType, "Coercion not supported between these types.");
   }
 
-  public TypeCoercionException(Object badValue, String toType) {
+  public TypeCoercionException(String parameterName, Object badValue, String toType) {
     super(
-        badValue.getClass().getSimpleName(), toType, "Coercion not supported between these types.");
+        parameterName,
+        badValue.getClass().getSimpleName(),
+        toType,
+        "Coercion not supported between these types.");
   }
 }

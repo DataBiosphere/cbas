@@ -20,11 +20,11 @@ public class CbasBoolean implements CbasValue {
     return 0L;
   }
 
-  public static CbasBoolean parse(Object value) throws CoercionException {
+  public static CbasBoolean parse(String parameterName, Object value) throws CoercionException {
     if (value instanceof Boolean b) {
       return new CbasBoolean(b);
     } else {
-      throw new TypeCoercionException(value, "Boolean");
+      throw new TypeCoercionException(parameterName, value, "Boolean");
     }
   }
 }

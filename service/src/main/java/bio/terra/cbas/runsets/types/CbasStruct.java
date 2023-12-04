@@ -36,7 +36,8 @@ public class CbasStruct implements CbasValue {
     return fields.values().stream().mapToLong(CbasValue::countFiles).sum();
   }
 
-  public static CbasStruct parseValue(ParameterTypeDefinitionStruct structDefinition, Object values)
+  public static CbasStruct parseValue(
+      String parameterName, ParameterTypeDefinitionStruct structDefinition, Object values)
       throws CoercionException {
     if (values instanceof Map<?, ?> valueMap) {
       HashMap<String, CbasValue> coercedValues = new HashMap<>();
@@ -45,11 +46,13 @@ public class CbasStruct implements CbasValue {
         if (valueMap.containsKey(field.getFieldName())) {
           coercedValues.put(
               field.getFieldName(),
-              CbasValue.parseValue(field.getFieldType(), valueMap.get(field.getFieldName())));
+              CbasValue.parseValue(
+                  field.getFieldName(), field.getFieldType(), valueMap.get(field.getFieldName())));
         } else if (field.getFieldType() instanceof ParameterTypeDefinitionOptional) {
           // "do nothing"
         } else {
           throw new ValueCoercionException(
+              parameterName,
               values,
               "Struct (%s)".formatted(structDefinition.getName()),
               "Field %s not provided in input for Struct (%s)"
@@ -58,7 +61,8 @@ public class CbasStruct implements CbasValue {
       }
       return new CbasStruct(structDefinition.getName(), coercedValues);
     } else {
-      throw new TypeCoercionException(values, "Struct (%s)".formatted(structDefinition.getName()));
+      throw new TypeCoercionException(
+          parameterName, values, "Struct (%s)".formatted(structDefinition.getName()));
     }
   }
 }

@@ -13,6 +13,7 @@ class TestFileCounting {
   void testFileCountingForFileType() throws CoercionException {
     CbasValue value =
         CbasValue.parseValue(
+            "fileInput",
             new ParameterTypeDefinitionPrimitive().primitiveType(PrimitiveParameterValueType.FILE),
             "gs://bucket/dir/file.txt");
     assertEquals(1L, value.countFiles());
@@ -22,6 +23,7 @@ class TestFileCounting {
   void testFileCountingForStringType() throws CoercionException {
     CbasValue value =
         CbasValue.parseValue(
+            "fileInput",
             new ParameterTypeDefinitionPrimitive()
                 .primitiveType(PrimitiveParameterValueType.STRING),
             "gs://bucket/dir/file.txt");
@@ -32,6 +34,7 @@ class TestFileCounting {
   void testFileCountingForFilledOptionalFileType() throws CoercionException {
     CbasValue value =
         CbasValue.parseValue(
+            "fileInput",
             new ParameterTypeDefinitionOptional()
                 .optionalType(
                     new ParameterTypeDefinitionPrimitive()
@@ -44,6 +47,7 @@ class TestFileCounting {
   void testFileCountingForEmptyOptionalFileType() throws CoercionException {
     CbasValue value =
         CbasValue.parseValue(
+            "fileInput",
             new ParameterTypeDefinitionOptional()
                 .optionalType(
                     new ParameterTypeDefinitionPrimitive()

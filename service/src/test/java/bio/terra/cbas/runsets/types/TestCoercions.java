@@ -21,6 +21,7 @@ class TestCoercions {
   void testValidStringFileCoercion(String input) throws CoercionException {
     var actual =
         CbasValue.parseValue(
+            "stringInput",
             new ParameterTypeDefinitionPrimitive().primitiveType(PrimitiveParameterValueType.FILE),
             input);
     assertThat(actual, instanceOf(CbasFile.class));
@@ -49,6 +50,7 @@ class TestCoercions {
         ValueCoercionException.class,
         () ->
             CbasValue.parseValue(
+                "fileInput",
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.FILE),
                 input));
@@ -61,6 +63,7 @@ class TestCoercions {
         TypeCoercionException.class,
         () ->
             CbasValue.parseValue(
+                "fileInput",
                 new ParameterTypeDefinitionPrimitive()
                     .primitiveType(PrimitiveParameterValueType.FILE),
                 input));
@@ -71,6 +74,7 @@ class TestCoercions {
     Object input = "String";
     var actual =
         CbasValue.parseValue(
+            "arrayInput",
             new ParameterTypeDefinitionArray()
                 .arrayType(
                     new ParameterTypeDefinitionPrimitive()
@@ -91,6 +95,7 @@ class TestCoercions {
         TypeCoercionException.class,
         () ->
             CbasValue.parseValue(
+                "arrayIntInput",
                 new ParameterTypeDefinitionArray()
                     .arrayType(
                         new ParameterTypeDefinitionPrimitive()
@@ -106,6 +111,7 @@ class TestCoercions {
     input.put("foo", "notbar");
     var actual =
         CbasValue.parseValue(
+            "structInput",
             new ParameterTypeDefinitionStruct()
                 .fields(
                     List.of(

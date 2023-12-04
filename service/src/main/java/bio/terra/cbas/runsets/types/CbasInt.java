@@ -20,7 +20,7 @@ public class CbasInt implements CbasValue {
     return 0L;
   }
 
-  public static CbasInt parse(Object value) throws CoercionException {
+  public static CbasInt parse(String parameterName, Object value) throws CoercionException {
     if (value instanceof Integer i) {
       return new CbasInt(i.longValue());
     } else if (value instanceof Long l) {
@@ -30,17 +30,17 @@ public class CbasInt implements CbasValue {
       if (f == longValue) {
         return new CbasInt(longValue);
       } else {
-        throw new TypeCoercionException(value, "Int");
+        throw new TypeCoercionException(parameterName, value, "Int");
       }
     } else if (value instanceof Double d) {
       long longValue = Math.round(d);
       if (d == longValue) {
         return new CbasInt(longValue);
       } else {
-        throw new TypeCoercionException(value, "Int");
+        throw new TypeCoercionException(parameterName, value, "Int");
       }
     } else {
-      throw new TypeCoercionException(value, "Int");
+      throw new TypeCoercionException(parameterName, value, "Int");
     }
   }
 }

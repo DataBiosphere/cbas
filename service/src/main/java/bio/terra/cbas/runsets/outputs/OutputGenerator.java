@@ -50,7 +50,8 @@ public class OutputGenerator {
         outputValue = ((Map<String, Object>) cromwellOutputs).get(outputName);
       }
 
-      var coercedValue = CbasValue.parseValue(outputDefinition.getOutputType(), outputValue);
+      var coercedValue =
+          CbasValue.parseValue(outputName, outputDefinition.getOutputType(), outputValue);
       increaseEventCounter("files-updated-in-wds", coercedValue.countFiles());
 
       outputRecordAttributes.put(attributeName, coercedValue.asSerializableValue());
