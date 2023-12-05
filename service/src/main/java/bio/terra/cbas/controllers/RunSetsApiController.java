@@ -506,7 +506,7 @@ public class RunSetsApiController implements RunSetsApi {
                               runSet,
                               entry.getValue().getId(),
                               SYSTEM_ERROR,
-                              errorMsg + e.getMessage()));
+                              errorMsg));
                     } catch (InputProcessingException e) {
                       log.warn(e.getMessage());
                       runStateResponseList.add(

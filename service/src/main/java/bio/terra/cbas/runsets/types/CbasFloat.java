@@ -20,7 +20,7 @@ public class CbasFloat implements CbasValue {
     return 0L;
   }
 
-  public static CbasFloat parse(Object value) throws CoercionException {
+  public static CbasFloat parse(String parameterName, Object value) throws CoercionException {
     if (value instanceof Float f) {
       return new CbasFloat(f.doubleValue());
     } else if (value instanceof Double d) {
@@ -30,7 +30,7 @@ public class CbasFloat implements CbasValue {
     } else if (value instanceof Long l) {
       return new CbasFloat(l.doubleValue());
     } else {
-      throw new TypeCoercionException(value, "Double");
+      throw new TypeCoercionException(parameterName, value, "Double");
     }
   }
 }

@@ -23,14 +23,16 @@ public class CbasArray implements CbasValue {
   }
 
   public static CbasArray parseValue(
-      ParameterTypeDefinition innerType, Object values, boolean nonEmpty) throws CoercionException {
+      String parameterName, ParameterTypeDefinition innerType, Object values, boolean nonEmpty)
+      throws CoercionException {
     if (values instanceof List<?> valueList) {
       List<CbasValue> coercedValues = new ArrayList<>();
       for (Object value : valueList) {
-        coercedValues.add(CbasValue.parseValue(innerType, value));
+        coercedValues.add(CbasValue.parseValue(parameterName, innerType, value));
       }
       if (nonEmpty && coercedValues.isEmpty()) {
         throw new ValueCoercionException(
+            parameterName,
             values,
             "Array[%s]".formatted(innerType),
             "Non-empty array must have at least one value.");
@@ -39,9 +41,9 @@ public class CbasArray implements CbasValue {
       return new CbasArray(coercedValues);
     } else {
       try {
-        return new CbasArray(List.of(CbasValue.parseValue(innerType, values)));
+        return new CbasArray(List.of(CbasValue.parseValue(parameterName, innerType, values)));
       } catch (CoercionException e) {
-        throw new TypeCoercionException(values, "Array[%s]".formatted(innerType));
+        throw new TypeCoercionException(parameterName, values, "Array[%s]".formatted(innerType));
       }
     }
   }

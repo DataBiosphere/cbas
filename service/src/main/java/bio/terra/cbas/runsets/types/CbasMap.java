@@ -38,18 +38,22 @@ public class CbasMap implements CbasValue {
   }
 
   public static CbasMap parseValue(
-      PrimitiveParameterValueType keyType, ParameterTypeDefinition valueType, Object values)
+      String parameterName,
+      PrimitiveParameterValueType keyType,
+      ParameterTypeDefinition valueType,
+      Object values)
       throws CoercionException {
     if (values instanceof Map<?, ?> valueMap) {
       HashMap<CbasValue, CbasValue> coercedValues = new HashMap<>();
       for (Map.Entry<?, ?> entry : valueMap.entrySet()) {
         coercedValues.put(
-            CbasValue.parsePrimitive(keyType, entry.getKey()),
-            CbasValue.parseValue(valueType, entry.getValue()));
+            CbasValue.parsePrimitive(parameterName, keyType, entry.getKey()),
+            CbasValue.parseValue(parameterName, valueType, entry.getValue()));
       }
       return new CbasMap(keyType, valueType, coercedValues);
     } else {
-      throw new TypeCoercionException(values, "Map[%s, %s]".formatted(keyType, valueType));
+      throw new TypeCoercionException(
+          parameterName, values, "Map[%s, %s]".formatted(keyType, valueType));
     }
   }
 }

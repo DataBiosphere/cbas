@@ -26,7 +26,7 @@ public class CbasFile implements CbasValue {
     return 1L;
   }
 
-  public static CbasFile parse(Object value) throws CoercionException {
+  public static CbasFile parse(String parameterName, Object value) throws CoercionException {
     String fromType = value.getClass().getSimpleName();
     String toType = "File";
     if (value instanceof String strValue) {
@@ -36,12 +36,12 @@ public class CbasFile implements CbasValue {
         return new CbasFile(uri.toString());
       } catch (URISyntaxException e) {
         incrementUnsuccessfulFileParseCounter(fromType);
-        throw new ValueCoercionException(value, toType, e.getMessage());
+        throw new ValueCoercionException(parameterName, value, toType, e.getMessage());
       }
     } else if (value instanceof CbasFile fileValue) {
       return new CbasFile(fileValue.value);
     } else {
-      throw new TypeCoercionException(value, toType);
+      throw new TypeCoercionException(parameterName, value, toType);
     }
   }
 }

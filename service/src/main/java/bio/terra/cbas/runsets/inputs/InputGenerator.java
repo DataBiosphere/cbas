@@ -75,7 +75,7 @@ public class InputGenerator {
 
     if (parameterValue != null) {
       // Convert into an appropriate CbasValue:
-      CbasValue cbasValue = CbasValue.parseValue(inputType, parameterValue);
+      CbasValue cbasValue = CbasValue.parseValue(parameterName, inputType, parameterValue);
       return cbasValue.asSerializableValue();
     } else {
       return null;
