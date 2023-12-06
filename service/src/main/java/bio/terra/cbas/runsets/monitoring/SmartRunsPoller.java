@@ -152,8 +152,7 @@ public class SmartRunsPoller {
         errors.add(message);
       }
     } catch (Exception e) {
-      String errorMessage =
-          "Error fetching Cromwell-level error.";
+      String errorMessage = "Error fetching Cromwell-level error.";
       logger.error(errorMessage, e);
       errors.add("%s Details: %s".formatted(errorMessage, e.getMessage()));
     }
