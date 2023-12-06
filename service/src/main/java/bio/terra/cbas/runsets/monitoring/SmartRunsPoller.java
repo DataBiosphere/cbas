@@ -153,11 +153,9 @@ public class SmartRunsPoller {
       }
     } catch (Exception e) {
       String errorMessage =
-          "Error fetching Cromwell-level error from Cromwell for workflow %s."
-              .formatted(updatableRun.engineId());
+          "Error fetching Cromwell-level error.";
       logger.error(errorMessage, e);
-      errors.add(errorMessage);
-      errors.add("Error from Cromwell: %s".formatted(e.getMessage()));
+      errors.add("%s Details: %s".formatted(errorMessage, e.getMessage()));
     }
     return errors;
   }
