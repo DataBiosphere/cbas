@@ -48,6 +48,13 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - name: Publish to Artifactory
+        run: ./gradlew --build-cache :client:artifactoryPublish
+        env:
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_REPO_KEY: "libs-release-local"
+
       - name: Construct dockerhub and GCR image names
         id: image-name
         run: |
