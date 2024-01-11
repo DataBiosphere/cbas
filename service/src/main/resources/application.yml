@@ -55,6 +55,20 @@ cbas:
     # How often to check downstream services for health:
     healthCheckIntervalSeconds: 300
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,health,prometheus
+      base-path: /actuator
+      path-mapping:
+          info: version2
+          health: status2
+          prometheus: prometheus
+  endpoint:
+    health:
+      show-details: ALWAYS
+
 workflow-engines:
   cromwell:
     # This value comes from the config.
