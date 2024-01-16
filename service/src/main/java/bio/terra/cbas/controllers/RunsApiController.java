@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -31,16 +33,19 @@ public class RunsApiController implements RunsApi {
   private final SamService samService;
   private final RunDao runDao;
   private final RunCompletionHandler runCompletionHandler;
+  private final MeterRegistry meterRegistry;
 
   public RunsApiController(
       RunDao runDao,
       SmartRunsPoller smartPoller,
       SamService samService,
-      RunCompletionHandler runCompletionHandler) {
+      RunCompletionHandler runCompletionHandler,
+      MeterRegistry meterRegistry) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
     this.runCompletionHandler = runCompletionHandler;
+    this.meterRegistry = meterRegistry;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -84,6 +89,11 @@ public class RunsApiController implements RunsApi {
     UUID engineId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
     List<String> failures = body.getFailures();
+
+    Counter counter = Counter.builder("run_completion")
+        .tag("completion_trigger", "callback")
+        .tag("status", resultsStatus.toString()).register(meterRegistry);
+    counter.increment();
 
     log.info(
         "Processing workflow callback for run ID %s with status %s."
