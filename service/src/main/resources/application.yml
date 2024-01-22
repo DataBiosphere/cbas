@@ -59,12 +59,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: info,health,prometheus
+        include: info,health
       base-path: /actuator
       path-mapping:
-          info: version2
-          health: status2
-          prometheus: prometheus
+          info: info
+          health: health
   endpoint:
     health:
       show-details: ALWAYS
