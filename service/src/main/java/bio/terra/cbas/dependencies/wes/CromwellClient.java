@@ -59,6 +59,19 @@ public class CromwellClient {
     return apiClient;
   }
 
+  public ApiClient getAuthReadApiClient(String accessToken) {
+
+    ApiClient apiClient = new ApiClient().setBasePath(cromwellServerConfiguration.baseUri());
+    apiClient.setAccessToken(accessToken);
+    apiClient.setHttpClient(singletonHttpClient);
+    // By closing the connection after each request, we avoid the problem of the open connection
+    // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
+    apiClient.addDefaultHeader("Connection", "close");
+    apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
+    System.out.println(apiClient.getBasePath());
+    return apiClient;
+  }
+
   public Optional<String> getFinalWorkflowLogDirOption() {
     return Optional.ofNullable(this.cromwellServerConfiguration.finalWorkflowLogDir());
   }
