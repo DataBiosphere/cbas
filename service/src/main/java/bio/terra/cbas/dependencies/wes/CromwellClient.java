@@ -68,7 +68,6 @@ public class CromwellClient {
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
-    System.out.println(apiClient.getBasePath());
     return apiClient;
   }
 
