@@ -19,6 +19,8 @@ public class CromwellClient {
   private final DependencyUrlLoader dependencyUrlLoader;
 
   private final OkHttpClient singletonHttpClient;
+  private static final String CONNECTION = "Connection";
+  private static final String CLOSE = "close";
 
   public CromwellClient(
       CromwellServerConfiguration cromwellServerConfiguration,
@@ -43,7 +45,7 @@ public class CromwellClient {
     apiClient.setHttpClient(singletonHttpClient);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
-    apiClient.addDefaultHeader("Connection", "close");
+    apiClient.addDefaultHeader(CONNECTION, CLOSE);
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
     return apiClient;
   }
@@ -54,7 +56,7 @@ public class CromwellClient {
     apiClient.setHttpClient(singletonHttpClient);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
-    apiClient.addDefaultHeader("Connection", "close");
+    apiClient.addDefaultHeader(CONNECTION, CLOSE);
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
     return apiClient;
   }
@@ -66,7 +68,7 @@ public class CromwellClient {
     apiClient.setHttpClient(singletonHttpClient);
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
-    apiClient.addDefaultHeader("Connection", "close");
+    apiClient.addDefaultHeader(CONNECTION, CLOSE);
     apiClient.setDebugging(cromwellServerConfiguration.debugApiLogging());
     return apiClient;
   }
