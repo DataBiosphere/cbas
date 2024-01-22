@@ -17,12 +17,12 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -90,9 +90,11 @@ public class RunsApiController implements RunsApi {
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
     List<String> failures = body.getFailures();
 
-    Counter counter = Counter.builder("run_completion")
-        .tag("completion_trigger", "callback")
-        .tag("status", resultsStatus.toString()).register(meterRegistry);
+    Counter counter =
+        Counter.builder("run_completion")
+            .tag("completion_trigger", "callback")
+            .tag("status", resultsStatus.toString())
+            .register(meterRegistry);
     counter.increment();
 
     log.info(

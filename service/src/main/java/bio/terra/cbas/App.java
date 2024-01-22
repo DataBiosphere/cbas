@@ -28,8 +28,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
       "bio.terra.common.tracing",
       // Scan all service-specific packages beneath the current package
       "bio.terra.cbas",
-      // Metrics exporting components & configs
-      "bio.terra.common.prometheus"
     })
 @ConfigurationPropertiesScan("bio.terra.cbas")
 @EnableRetry
