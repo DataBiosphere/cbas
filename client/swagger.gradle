@@ -7,6 +7,9 @@ dependencies {
 
     implementation 'io.swagger.core.v3:swagger-annotations'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli'
+
+    // Expose to consumer applications compile
+    api group: 'org.glassfish.jersey.inject', name: 'jersey-hk2'
 }
 
 def artifactGroup = "${group}.cbas"
