@@ -9,6 +9,7 @@ env:
   BEE_NAME: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt}}-dev'
   BROADBOT_TOKEN: '${{ secrets.BROADBOT_TOKEN }}' # GitHub token for access to kick off a job in the private repo
   RUN_NAME_SUFFIX: '${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
+  ATTACH_BP_TO_LZ_RUN_NAME: 'attach-billing-project-to-landing-zone-${{ github.event.repository.name }}-${{ github.run_id }}-${{ github.run_attempt }}'
 
 jobs:
   # This job provisions useful parameters for e2e tests, including access tokens.
@@ -54,7 +55,7 @@ jobs:
     needs: [ create-bee-workflow, params-gen ]
     steps:
       - name: dispatch to terra-github-workflows
-        uses: broadinstitute/workflow-dispatch@v3
+        uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
           workflow: attach-billing-project-to-landing-zone.yaml
           repo: broadinstitute/terra-github-workflows
@@ -62,6 +63,7 @@ jobs:
           token: ${{ env.BROADBOT_TOKEN }}
           inputs: >-
             {
+              "run-name": "${{ env.ATTACH_BP_TO_LZ_RUN_NAME }}",
               "bee-name": "${{ env.BEE_NAME }}",
               "billing-project": "${{ needs.params-gen.outputs.project-name }}",
               "service-account": "firecloud-qa@broad-dsde-qa.iam.gserviceaccount.com"
