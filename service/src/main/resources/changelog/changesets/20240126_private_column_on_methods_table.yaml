@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: kpierre
+      changes:
+        - addColumn:
+            tableName: method
+            columns:
+              - column:
+                  name: private
+                  type: boolean
