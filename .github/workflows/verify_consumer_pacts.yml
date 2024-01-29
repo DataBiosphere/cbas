@@ -69,8 +69,43 @@ env:
 
 jobs:
 
+  bump-check:
+    runs-on: ubuntu-latest
+    outputs:
+      is-bump: ${{ steps.skiptest.outputs.is-bump }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Skip version bump merges
+        id: skiptest
+        uses: ./.github/actions/bump-skip
+        with:
+          event-name: ${{ github.event_name }}
+
+  # We only need a new version tag when this workflow is triggered by opening, updating a PR or PR merge.
+  # When triggered by a Pact Broker webhook, the provider version (GIT hash or release tag)
+  # is already included in the payload, then a new version tag wouldn't be needed.
+  regulated-tag-job:
+    needs: [ bump-check ]
+    if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
+    outputs:
+      new-tag: ${{ steps.tag.outputs.new_tag }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Get new tag
+        # https://github.com/DataBiosphere/github-actions/tree/master/actions/bumper
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
+        id: tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: main
+          VERSION_FILE_PATH: settings.gradle
+          VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
+          DRY_RUN: true
+
   verify-consumer-pact:
-    needs: [ ]
+    needs: [ bump-check, regulated-tag-job ]
+    if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -183,7 +218,8 @@ jobs:
 
   can-i-deploy: # The can-i-deploy job will run as a result of a CBAS PR. It reports the pact verification statuses on all deployed environments.
     runs-on: ubuntu-latest
-    needs: [ verify-consumer-pact ]
+    needs: [ bump-check, verify-consumer-pact ]
+    if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
     steps:
       - name: Dispatch to terra-github-workflows
         uses: broadinstitute/workflow-dispatch@v4.0.0
