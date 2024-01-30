@@ -61,6 +61,6 @@ jobs:
         if: ${{ (inputs.print-tag == 'true') || (github.event_name == 'workflow_dispatch') }}
         run: |
           echo "Newly created version tag: '${{ steps.tag.outputs.new_tag }}'"
-          echo "build.gradle"
+          echo "settings.gradle"
           echo "==============="
-          cat build.gradle
+          cat settings.gradle
