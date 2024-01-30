@@ -37,6 +37,7 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -75,6 +76,8 @@ class TestRunsApiController {
   // tests:
   @Autowired private ObjectMapper objectMapper;
   @MockBean private SamService samService;
+
+  @MockBean private MeterRegistry meterRegistry;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
