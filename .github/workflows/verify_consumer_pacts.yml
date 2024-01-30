@@ -87,21 +87,14 @@ jobs:
   regulated-tag-job:
     needs: [ bump-check ]
     if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
-    outputs:
-      new-tag: ${{ steps.tag.outputs.new_tag }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Get new tag
-        # https://github.com/DataBiosphere/github-actions/tree/master/actions/bumper
-        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
-        id: tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-          DEFAULT_BUMP: patch
-          RELEASE_BRANCHES: main
-          VERSION_FILE_PATH: settings.gradle
-          VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
-          DRY_RUN: true
+    uses: ./.github/workflows/tag.yml
+    with:
+      # The 'ref' parameter ensures that the provider version is postfixed with the HEAD commit of the PR branch,
+      # facilitating cross-referencing of a pact between Pact Broker and GitHub.
+      ref: ${{ github.head_ref || '' }}
+      # The 'dry-run' parameter prevents the new tag from being dispatched.
+      dry-run: true
+    secrets: inherit
 
   verify-consumer-pact:
     needs: [ bump-check, regulated-tag-job ]
