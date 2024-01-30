@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
@@ -37,7 +38,6 @@ import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -77,7 +77,7 @@ class TestRunsApiController {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private SamService samService;
 
-  @MockBean private MeterRegistry meterRegistry;
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();

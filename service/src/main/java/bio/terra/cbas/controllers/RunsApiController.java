@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
@@ -17,8 +18,6 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
-import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,19 +32,19 @@ public class RunsApiController implements RunsApi {
   private final SamService samService;
   private final RunDao runDao;
   private final RunCompletionHandler runCompletionHandler;
-  private final MeterRegistry meterRegistry;
+  private final MicrometerMetrics micrometerMetrics;
 
   public RunsApiController(
       RunDao runDao,
       SmartRunsPoller smartPoller,
       SamService samService,
       RunCompletionHandler runCompletionHandler,
-      MeterRegistry meterRegistry) {
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
     this.runCompletionHandler = runCompletionHandler;
-    this.meterRegistry = meterRegistry;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -89,20 +88,6 @@ public class RunsApiController implements RunsApi {
     UUID engineId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
     List<String> failures = body.getFailures();
-
-    System.out.println("Creating counter from meter registry" + meterRegistry);
-    Counter counter =
-        Counter.builder("run_completion")
-            .tag("completion_trigger", "callback")
-            .tag("status", resultsStatus.toString())
-            .register(meterRegistry);
-    // This null check only triggers when running tests, where it's hard to mock out the
-    // meterRegistry's internal .counter method without springboot 3's observability frameworks.
-    // See https://github.com/DataBiosphere/terra-workspace-data-service/pull/461 (starting at
-    // QuartzJobTest.scala for an example of what we might want to do when we upgrade)
-    if (counter != null) {
-      counter.increment();
-    }
 
     log.info(
         "Processing workflow callback for run ID %s with status %s."
@@ -148,6 +133,7 @@ public class RunsApiController implements RunsApi {
     RunCompletionResult result =
         runCompletionHandler.updateResults(
             runRecord.get(), resultsStatus, body.getOutputs(), failures);
+    micrometerMetrics.logRunCompletion("callback", resultsStatus);
     return new ResponseEntity<>(result.toHttpStatus());
   }
 }

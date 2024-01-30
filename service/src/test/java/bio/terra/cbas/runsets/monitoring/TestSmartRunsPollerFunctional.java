@@ -14,6 +14,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -83,6 +84,7 @@ public class TestSmartRunsPollerFunctional {
   private SmartRunsPoller smartRunsPoller;
   private RunCompletionHandler runCompletionHandler;
   private CbasApiConfiguration cbasApiConfiguration;
+  private MicrometerMetrics micrometerMetrics;
 
   static String outputDefinition =
       """
@@ -180,8 +182,10 @@ public class TestSmartRunsPollerFunctional {
     runCompletionHandler = mock(RunCompletionHandler.class);
     cbasApiConfiguration = mock(CbasApiConfiguration.class);
     when(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()).thenReturn(1);
+    micrometerMetrics = mock(MicrometerMetrics.class);
     smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runCompletionHandler, cbasApiConfiguration);
+        new SmartRunsPoller(
+            cromwellService, runCompletionHandler, cbasApiConfiguration, micrometerMetrics);
   }
 
   @Test
