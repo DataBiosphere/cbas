@@ -468,7 +468,7 @@ public class RunSetsApiController implements RunSetsApi {
     // will be used for all workflows submitted as part of this run set.
     String workflowOptionsJson =
         cromwellService.buildWorkflowOptionsJson(
-            Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
+            runSet.runSetId(), Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {

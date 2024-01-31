@@ -166,13 +166,17 @@ public class CromwellService implements HealthCheck {
    * @return A string formatted as a JSON object that can be used as cromwell's Workflow Options.
    * @throws JsonProcessingException
    */
-  public String buildWorkflowOptionsJson(Boolean isCallCachingEnabled) {
+  public String buildWorkflowOptionsJson(UUID runSetId, Boolean isCallCachingEnabled) {
     // Map we will convert to JSON
     Map<String, Object> workflowOptions =
         new HashMap<>(
             Map.ofEntries(
                 Map.entry("write_to_cache", true),
-                Map.entry("read_from_cache", isCallCachingEnabled)));
+                Map.entry("read_from_cache", isCallCachingEnabled),
+                // Set the hog group to the runSetId so workflows from the same run set can
+                // be batched in Cromwell.
+                // See: https://cromwell.readthedocs.io/en/stable/cromwell_features/HogFactors/
+                Map.entry("hogGroup", runSetId.toString())));
 
     // Request a callback, if we know our own URL:
     cbasNetworkConfiguration

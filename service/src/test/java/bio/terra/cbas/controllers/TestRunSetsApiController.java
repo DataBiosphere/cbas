@@ -808,22 +808,29 @@ class TestRunSetsApiController {
     cbasNetworkConfiguration.setExternalUri("http://localhost:8080/");
     CromwellService localtestService =
         new CromwellService(localTestClient, cromwellClient, cbasNetworkConfiguration);
+    UUID runSetId = UUID.randomUUID();
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching
     // option.
     String expected =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
-    assertEquals(expected, localtestService.buildWorkflowOptionsJson(true));
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"hogGroup\":\""
+            + runSetId
+            + "\",\"read_from_cache\":true,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
+    assertEquals(expected, localtestService.buildWorkflowOptionsJson(runSetId, true));
     String expectedFalse =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":false,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
-    assertEquals(expectedFalse, localtestService.buildWorkflowOptionsJson(false));
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"hogGroup\":\""
+            + runSetId
+            + "\",\"read_from_cache\":false,\"workflow_callback_uri\":\"http://localhost:8080/api/batch/v1/runs/results\",\"write_to_cache\":true}";
+    assertEquals(expectedFalse, localtestService.buildWorkflowOptionsJson(runSetId, false));
 
     // Test that the workflow options are properly constructed when the external uri is not set.
     cbasNetworkConfiguration.setExternalUri(null);
     String expectedNoExternalUri =
-        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"read_from_cache\":true,\"write_to_cache\":true}";
-    assertEquals(expectedNoExternalUri, localtestService.buildWorkflowOptionsJson(true));
+        "{\"final_workflow_log_dir\":\"my/final/workflow/log/dir\",\"hogGroup\":\""
+            + runSetId
+            + "\",\"read_from_cache\":true,\"write_to_cache\":true}";
+    assertEquals(expectedNoExternalUri, localtestService.buildWorkflowOptionsJson(runSetId, true));
   }
 
   @Test
