@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -161,7 +162,9 @@ class TestRunCompletionHandlerUnit {
   public void init() {
     RunDao runsDao = mock(RunDao.class);
     WdsService wdsService = mock(WdsService.class);
-    runCompletionHandler = new RunCompletionHandler(runsDao, wdsService, objectMapper);
+    MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
+    runCompletionHandler =
+        new RunCompletionHandler(runsDao, wdsService, objectMapper, micrometerMetrics);
   }
 
   @Test

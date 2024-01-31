@@ -55,6 +55,19 @@ cbas:
     # How often to check downstream services for health:
     healthCheckIntervalSeconds: 300
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,health
+      base-path: /actuator
+      path-mapping:
+          info: info
+          health: health
+  endpoint:
+    health:
+      show-details: ALWAYS
+
 workflow-engines:
   cromwell:
     # This value comes from the config.

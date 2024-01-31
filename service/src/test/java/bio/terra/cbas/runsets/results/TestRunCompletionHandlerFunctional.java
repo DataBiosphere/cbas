@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
@@ -45,6 +46,8 @@ import org.springframework.test.context.ContextConfiguration;
 
 @ContextConfiguration(classes = RunCompletionHandler.class)
 class TestRunCompletionHandlerFunctional {
+
+  private MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -99,7 +102,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededNoOutputsComplete() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     UUID runId1 = UUID.randomUUID();
     RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
@@ -123,7 +126,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionWorkflowErrorsRecordedDateTime() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     var errorList = List.of("error1", "error 2");
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, null, SYSTEM_ERROR);
@@ -145,7 +148,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionNoStatusChangeNoOutputsUpdateDateTimeNoRecord() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete = createTestRun(runId1, null, SYSTEM_ERROR);
@@ -166,7 +169,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededNoOutputsNoErrorsToUpdate() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     UUID runId1 = UUID.randomUUID();
     RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
     Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
@@ -189,7 +192,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededNoStatusUpdate() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     UUID runId1 = UUID.randomUUID();
     RunSet runSet1 = createRunSet(UUID.randomUUID(), outputDefinition);
     Run run1Incomplete = createTestRun(runId1, runSet1, CANCELED);
@@ -212,7 +215,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionFailedNoRecordsUpdated() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     UUID runId1 = UUID.randomUUID();
     RunSet runSet1 = createRunSet(UUID.randomUUID(), "[]");
     Run run1Incomplete = createTestRun(runId1, runSet1, RUNNING);
@@ -235,7 +238,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededWithOutputsSaved() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     // Set up run to expect non-empty outputs
     RunSet runSet1 = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
@@ -261,7 +264,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededWithEmptyOutputs() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     // Set up run to expect non-empty outputs
     RunSet runSet = createRunSet(UUID.randomUUID(), "[]");
     UUID runId1 = UUID.randomUUID();
@@ -289,7 +292,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededWhenWdsThrowsSavedStatusWithErrors() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     // Set up run to expect non-empty outputs
     RunSet runSet = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
@@ -321,7 +324,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionReturnsValidationWithOutputsErrorProcessing() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     // Set up run to expect non-empty outputs
     RunSet runSet = createRunSet(UUID.randomUUID(), outputDefinition);
     UUID runId1 = UUID.randomUUID();
@@ -351,7 +354,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSucceededWithEmptyOutputsNoFailures() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
@@ -377,7 +380,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSuccessSavingFailures() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
@@ -405,7 +408,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionFailedErrorsPulledNoRecordUpdated() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();
@@ -433,7 +436,7 @@ class TestRunCompletionHandlerFunctional {
   @Test
   void updateRunCompletionSuccessWithEmptyFailures() {
     RunCompletionHandler runCompletionHandler =
-        new RunCompletionHandler(runDao, wdsService, objectMapper);
+        new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
 
     // Using Gson here since Cromwell client uses it to interpret runLogValue into Java objects.
     Gson object = new Gson();

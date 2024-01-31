@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.RunsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InvalidStatusTypeException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
@@ -31,16 +32,19 @@ public class RunsApiController implements RunsApi {
   private final SamService samService;
   private final RunDao runDao;
   private final RunCompletionHandler runCompletionHandler;
+  private final MicrometerMetrics micrometerMetrics;
 
   public RunsApiController(
       RunDao runDao,
       SmartRunsPoller smartPoller,
       SamService samService,
-      RunCompletionHandler runCompletionHandler) {
+      RunCompletionHandler runCompletionHandler,
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
     this.runCompletionHandler = runCompletionHandler;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -129,6 +133,7 @@ public class RunsApiController implements RunsApi {
     RunCompletionResult result =
         runCompletionHandler.updateResults(
             runRecord.get(), resultsStatus, body.getOutputs(), failures);
+    micrometerMetrics.logRunCompletion("callback", resultsStatus);
     return new ResponseEntity<>(result.toHttpStatus());
   }
 }

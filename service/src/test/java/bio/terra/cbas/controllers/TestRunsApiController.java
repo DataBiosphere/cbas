@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
@@ -75,6 +76,8 @@ class TestRunsApiController {
   // tests:
   @Autowired private ObjectMapper objectMapper;
   @MockBean private SamService samService;
+
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();

@@ -10,6 +10,7 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -91,6 +92,7 @@ class VerifyPactsAllControllers {
   @MockBean private RunSetAbortManager abortManager;
   @MockBean private RunCompletionHandler runCompletionHandler;
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;

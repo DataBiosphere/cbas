@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
@@ -14,11 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestMethodDao {
 
+  @MockBean MicrometerMetrics micrometerMetrics;
   @Autowired MethodDao methodDao;
   UUID methodId1 = UUID.randomUUID();
   UUID methodId2 = UUID.randomUUID();
