@@ -31,7 +31,6 @@ public class SmartRunSetsPoller {
   private final RunDao runDao;
   private final RunSetDao runSetDao;
   private final CbasApiConfiguration cbasApiConfiguration;
-  private final RunSetAbortManager abortManager;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
 
@@ -39,13 +38,11 @@ public class SmartRunSetsPoller {
       SmartRunsPoller smartRunsPoller,
       RunSetDao runSetDao,
       RunDao runDao,
-      CbasApiConfiguration cbasApiConfiguration,
-      RunSetAbortManager abortManager) {
+      CbasApiConfiguration cbasApiConfiguration) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.smartRunsPoller = smartRunsPoller;
     this.cbasApiConfiguration = cbasApiConfiguration;
-    this.abortManager = abortManager;
   }
 
   public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets) {
@@ -121,7 +118,9 @@ public class SmartRunSetsPoller {
               rs.errorCount(),
               OffsetDateTime.now());
         } else {
-          abortManager.abortRunSet(rs.runSetId());
+          logger.info(
+              "Cancellation of RunSet %s is still in progress. %d of %d runs have been canceled so far."
+                  .formatted(rs.runSetId(), canceledRunSetRuns.values().size(), rs.runCount()));
         }
       }
 

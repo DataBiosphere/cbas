@@ -28,7 +28,6 @@ public class TestSmartRunSetsPoller {
   private RunDao runDao;
   private RunSetDao runSetDao;
   private CbasApiConfiguration cbasApiConfiguration;
-  private RunSetAbortManager abortManager;
 
   @BeforeEach
   void init() {
@@ -44,8 +43,7 @@ public class TestSmartRunSetsPoller {
   @Test
   void respectPollTimeLimit() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(
-            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, abortManager);
+        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
 
     UUID runSetId1 = UUID.randomUUID();
     RunSet runSetToUpdate1 =
@@ -123,8 +121,7 @@ public class TestSmartRunSetsPoller {
   @Test
   void updateRunSetToComplete() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(
-            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, abortManager);
+        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
 
     UUID runSetId = UUID.randomUUID();
     RunSet runSetToUpdate =
@@ -232,8 +229,7 @@ public class TestSmartRunSetsPoller {
   @Test
   void updateLastPolledTimestampAnyway() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(
-            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, abortManager);
+        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
 
     UUID runSetId = UUID.randomUUID();
     RunSet runSetToUpdate =
