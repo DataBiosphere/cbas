@@ -22,9 +22,11 @@ jobs:
 
     steps:
       - name: Fetch Jira ID from commit message
+        env:
+          COMMIT_MESSAGE: toJson(github.event.head_commit.message)
         id: ensure-jira-id
         run: |
-          JIRA_ID=$(echo '${{ github.event.head_commit.message }}' | grep -Eo '[A-Z][A-Z]+-[0-9]+' | xargs echo -n | tr '[:space:]' ',')
+          JIRA_ID=$(echo "$COMMIT_MESSAGE" | grep -Eo '[A-Z][A-Z]+-[0-9]+' | xargs echo -n | tr '[:space:]' ',')
           [[ -z "$JIRA_ID" ]] && { echo "No Jira ID found in $1" ; exit 1; }
           echo ::set-output name=JIRA_ID::${JIRA_ID}
       - name: Checkout current code
