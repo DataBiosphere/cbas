@@ -89,6 +89,9 @@ databaseChangeLog:
   - include:
       file: changesets/20231102_set_table_role.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changesets/20240202_add_workspace_id_columns.yaml
+      relativeToChangelogFile: true
 # Reminder! (Leave this at the end)
 # If you add a new table, don't forget to update the 20231102_set_table_role changeset to
 # include it. Don't worry, it's 'run on change' so updating it will trigger a re-run, not a
