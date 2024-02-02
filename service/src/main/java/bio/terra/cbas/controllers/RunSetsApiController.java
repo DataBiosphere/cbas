@@ -18,6 +18,7 @@ import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -85,6 +86,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final CbasContextConfiguration cbasContextConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
@@ -103,6 +105,7 @@ public class RunSetsApiController implements RunSetsApi {
       RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
+      CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
       RunSetAbortManager abortManager) {
@@ -116,6 +119,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.cbasContextConfiguration = cbasContextConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;
     this.abortManager = abortManager;
@@ -259,7 +263,8 @@ public class RunSetsApiController implements RunSetsApi {
               objectMapper.writeValueAsString(request.getWorkflowInputDefinitions()),
               objectMapper.writeValueAsString(request.getWorkflowOutputDefinitions()),
               request.getWdsRecords().getRecordType(),
-              user.getUserSubjectId());
+              user.getUserSubjectId(),
+              cbasContextConfiguration.getWorkspaceId());
     } catch (JsonProcessingException e) {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(
@@ -440,7 +445,8 @@ public class RunSetsApiController implements RunSetsApi {
                 runState,
                 DateUtils.currentTimeInUTC(),
                 DateUtils.currentTimeInUTC(),
-                errors));
+                errors,
+                cbasContextConfiguration.getWorkspaceId()));
 
     if (created != 1) {
       additionalErrorMsg =

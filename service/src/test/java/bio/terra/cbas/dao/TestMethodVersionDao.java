@@ -31,9 +31,17 @@ class TestMethodVersionDao {
   String methodUrl =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
 
+  String workspaceId = UUID.randomUUID().toString();
+
   Method method =
       new Method(
-          methodId, methodName, methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
+          methodId,
+          methodName,
+          methodDesc,
+          DateUtils.currentTimeInUTC(),
+          null,
+          methodSource,
+          workspaceId);
   MethodVersion methodVersion =
       new MethodVersion(
           methodVersionId,
@@ -42,7 +50,8 @@ class TestMethodVersionDao {
           methodDesc,
           DateUtils.currentTimeInUTC(),
           null,
-          methodUrl);
+          methodUrl,
+          workspaceId);
 
   @BeforeAll
   void setUp() {

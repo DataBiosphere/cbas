@@ -11,6 +11,7 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -59,6 +60,7 @@ public class MethodsApiController implements MethodsApi {
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
+  private final CbasContextConfiguration cbasContextConfig;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -67,7 +69,8 @@ public class MethodsApiController implements MethodsApi {
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
-      ObjectMapper objectMapper) {
+      ObjectMapper objectMapper,
+      CbasContextConfiguration cbasContextConfig) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.samService = samService;
@@ -75,6 +78,7 @@ public class MethodsApiController implements MethodsApi {
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
+    this.cbasContextConfig = cbasContextConfig;
   }
 
   private final ObjectMapper objectMapper;
@@ -251,7 +255,8 @@ public class MethodsApiController implements MethodsApi {
             postMethodRequest.getMethodDescription(),
             DateUtils.currentTimeInUTC(),
             null,
-            postMethodRequest.getMethodSource().toString());
+            postMethodRequest.getMethodSource().toString(),
+            cbasContextConfig.getWorkspaceId());
 
     MethodVersion methodVersion =
         new MethodVersion(
@@ -261,7 +266,8 @@ public class MethodsApiController implements MethodsApi {
             method.description(),
             DateUtils.currentTimeInUTC(),
             null,
-            postMethodRequest.getMethodUrl());
+            postMethodRequest.getMethodUrl(),
+            cbasContextConfig.getWorkspaceId());
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());
@@ -283,7 +289,8 @@ public class MethodsApiController implements MethodsApi {
             objectMapper.writeValueAsString(inputs),
             objectMapper.writeValueAsString(outputs),
             null,
-            null);
+            null,
+            cbasContextConfig.getWorkspaceId());
 
     methodDao.createMethod(method);
     methodVersionDao.createMethodVersion(methodVersion);

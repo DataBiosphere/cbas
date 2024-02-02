@@ -72,6 +72,7 @@ class TestMethodsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
+  private static final String workspaceId = UUID.randomUUID().toString();
 
   private void initSamMocks() {
     // setup Sam permission check to return true
@@ -772,7 +773,8 @@ class TestMethodsApiController {
           "method one",
           OffsetDateTime.now(),
           null,
-          "method 1 source");
+          "method 1 source",
+          workspaceId);
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -782,7 +784,8 @@ class TestMethodsApiController {
           "method one version 1",
           OffsetDateTime.now(),
           null,
-          "file://method1/v1.wdl");
+          "file://method1/v1.wdl",
+          workspaceId);
 
   private static final MethodVersion method1Version2 =
       new MethodVersion(
@@ -792,7 +795,8 @@ class TestMethodsApiController {
           "method one version 2",
           OffsetDateTime.now(),
           null,
-          "file://method1/v2.wdl");
+          "file://method1/v2.wdl",
+          workspaceId);
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
@@ -812,7 +816,8 @@ class TestMethodsApiController {
           "method two",
           OffsetDateTime.now(),
           method2RunSet2Id,
-          "method 2 source");
+          "method 2 source",
+          workspaceId);
 
   private static final UUID method2Version1VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version1 =
@@ -823,7 +828,8 @@ class TestMethodsApiController {
           "method two version 1",
           OffsetDateTime.now(),
           method2RunSet1Id,
-          "file://method2/v1.wdl");
+          "file://method2/v1.wdl",
+          workspaceId);
 
   private static final UUID method2Version2VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version2 =
@@ -834,7 +840,8 @@ class TestMethodsApiController {
           "method two version 2",
           OffsetDateTime.now(),
           method2RunSet2Id,
-          "file://method2/v2.wdl");
+          "file://method2/v2.wdl",
+          workspaceId);
 
   private static final RunSet method2Version1Runset =
       new RunSet(
@@ -853,7 +860,8 @@ class TestMethodsApiController {
           "[]",
           "[]",
           "FOO",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final MethodLastRunDetails method2Version1RunsetDetails =
       new MethodLastRunDetails()
@@ -880,7 +888,8 @@ class TestMethodsApiController {
           "[]",
           "[]",
           "FOO",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final MethodLastRunDetails method2Version2RunsetDetails =
       new MethodLastRunDetails()

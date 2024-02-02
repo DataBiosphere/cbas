@@ -87,6 +87,7 @@ class TestRunsApiController {
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
+  private static final String workspaceId = UUID.randomUUID().toString();
 
   private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet returnedRunSet =
@@ -100,12 +101,14 @@ class TestRunsApiController {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "methodurl"),
+              "methodurl",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -119,7 +122,8 @@ class TestRunsApiController {
           "inputDefinition",
           "outputDefinition",
           "entitytype",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final Run returnedRun =
       new Run(
@@ -131,7 +135,8 @@ class TestRunsApiController {
           RUNNING,
           runningStatusUpdateTime,
           runningStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   private static final Run updatedRun =
       new Run(
@@ -143,7 +148,8 @@ class TestRunsApiController {
           COMPLETE,
           completeStatusUpdateTime,
           completeStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {

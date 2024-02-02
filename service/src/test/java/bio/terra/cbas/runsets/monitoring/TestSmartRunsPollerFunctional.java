@@ -71,6 +71,7 @@ public class TestSmartRunsPollerFunctional {
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
+  private static final String workspaceId = UUID.randomUUID().toString();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -108,12 +109,14 @@ public class TestSmartRunsPollerFunctional {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -127,7 +130,8 @@ public class TestSmartRunsPollerFunctional {
           "inputDefinition",
           outputDefinition,
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   final Run runToUpdate1 =
       new Run(
@@ -139,7 +143,8 @@ public class TestSmartRunsPollerFunctional {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   final Run runToUpdate2 =
       new Run(
@@ -151,7 +156,8 @@ public class TestSmartRunsPollerFunctional {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -163,7 +169,8 @@ public class TestSmartRunsPollerFunctional {
           COMPLETE,
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
   final Run runToUpdate3 =
       new Run(
           runningRunId3,
@@ -174,7 +181,8 @@ public class TestSmartRunsPollerFunctional {
           UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   @BeforeEach
   public void init() {

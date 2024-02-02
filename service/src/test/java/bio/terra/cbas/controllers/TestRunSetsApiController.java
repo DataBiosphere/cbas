@@ -247,6 +247,7 @@ class TestRunSetsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
+  private final String workspaceId = UUID.randomUUID().toString();
 
   @BeforeEach
   void setupFunctionalChecks() throws Exception {
@@ -277,7 +278,8 @@ class TestRunSetsApiController {
                 "methoddescription",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "GitHub"));
+                "GitHub",
+                workspaceId));
 
     when(methodVersionDao.getMethodVersion(methodVersionId))
         .thenReturn(
@@ -289,12 +291,14 @@ class TestRunSetsApiController {
                     "methoddescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "GitHub"),
+                    "GitHub",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 null,
-                workflowUrl));
+                workflowUrl,
+                workspaceId));
 
     when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
         .thenReturn(
@@ -306,12 +310,14 @@ class TestRunSetsApiController {
                     "dockstore method description",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "Dockstore"),
+                    "Dockstore",
+                    workspaceId),
                 "develop",
                 "version description",
                 OffsetDateTime.now(),
                 null,
-                dockstoreWorkflowUrl));
+                dockstoreWorkflowUrl,
+                workspaceId));
 
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
@@ -841,12 +847,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -860,7 +868,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     RunSet returnedRunSet2 =
         new RunSet(
@@ -873,12 +882,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -892,7 +903,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "BAR",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
@@ -945,12 +957,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -964,7 +978,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     Run run1 =
         new Run(
@@ -976,7 +991,8 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null);
+            null,
+            workspaceId);
     Run run2 =
         new Run(
             UUID.randomUUID(),
@@ -987,7 +1003,8 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null);
+            null,
+            workspaceId);
 
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of());
@@ -1024,12 +1041,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -1043,7 +1062,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     Run run1 =
         new Run(
@@ -1055,7 +1075,8 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null);
+            null,
+            workspaceId);
     Run run2 =
         new Run(
             UUID.randomUUID(),
@@ -1066,7 +1087,8 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null);
+            null,
+            workspaceId);
 
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of(run2.runId().toString()));

@@ -35,6 +35,7 @@ class TestRunSetAbortManager {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private CromwellService cromwellService;
+  private final String workspaceId = UUID.randomUUID().toString();
 
   @Test
   void testRunSetAbort() throws ApiException {
@@ -62,7 +63,8 @@ class TestRunSetAbortManager {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run1Running =
         new Run(
@@ -74,7 +76,8 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run2Running =
         new Run(
@@ -86,7 +89,8 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     when(runDao.createRun(run1Running)).thenReturn(1);
     when(runDao.createRun(run2Running)).thenReturn(1);
@@ -151,7 +155,8 @@ class TestRunSetAbortManager {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run1Running =
         new Run(
@@ -163,7 +168,8 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run2Running =
         new Run(
@@ -175,7 +181,8 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     when(runDao.createRun(run1Running)).thenReturn(1);
     when(runDao.createRun(run2Running)).thenReturn(1);

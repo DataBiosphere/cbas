@@ -12,7 +12,8 @@ public record Run(
     CbasRunStatus status,
     OffsetDateTime lastModifiedTimestamp,
     OffsetDateTime lastPolledTimestamp,
-    String errorMessages) {
+    String errorMessages,
+    String originalWorkspaceId) {
 
   // Corresponding table column names in database
   public static final String RUN_ID_COL = "run_id";
@@ -24,6 +25,7 @@ public record Run(
   public static final String LAST_MODIFIED_TIMESTAMP_COL = "last_modified_timestamp";
   public static final String LAST_POLLED_TIMESTAMP_COL = "last_polled_timestamp";
   public static final String ERROR_MESSAGES_COL = "error_messages";
+  public static final String ORIGINAL_WORKSPACE_ID_COL = "run_original_workspace_id";
 
   public UUID getRunSetId() {
     return runSet.runSetId();
@@ -39,7 +41,8 @@ public record Run(
         status,
         lastModifiedTimestamp,
         lastPolledTimestamp,
-        errorMessages);
+        errorMessages,
+        originalWorkspaceId);
   }
 
   public Run withStatus(CbasRunStatus newStatus) {
@@ -52,7 +55,8 @@ public record Run(
         newStatus,
         lastModifiedTimestamp,
         lastPolledTimestamp,
-        errorMessages);
+        errorMessages,
+        originalWorkspaceId);
   }
 
   public Run withErrorMessage(String message) {
@@ -65,7 +69,8 @@ public record Run(
         status,
         lastModifiedTimestamp,
         lastPolledTimestamp,
-        message);
+        message,
+        originalWorkspaceId);
   }
 
   public Run withLastModified(OffsetDateTime newLastModifiedTimestamp) {
@@ -78,7 +83,8 @@ public record Run(
         status,
         newLastModifiedTimestamp,
         lastPolledTimestamp,
-        errorMessages);
+        errorMessages,
+        originalWorkspaceId);
   }
 
   public Run withLastPolled(OffsetDateTime newLastPolledTimestamp) {
@@ -91,7 +97,8 @@ public record Run(
         status,
         lastModifiedTimestamp,
         newLastPolledTimestamp,
-        errorMessages);
+        errorMessages,
+        originalWorkspaceId);
   }
 
   public Run withErrorMessages(String newErrorMessages) {
@@ -104,6 +111,7 @@ public record Run(
         status,
         lastModifiedTimestamp,
         lastPolledTimestamp,
-        newErrorMessages);
+        newErrorMessages,
+        originalWorkspaceId);
   }
 }

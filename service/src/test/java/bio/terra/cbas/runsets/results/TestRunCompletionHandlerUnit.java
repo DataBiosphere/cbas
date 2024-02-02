@@ -51,6 +51,8 @@ class TestRunCompletionHandlerUnit {
   private static final String runningRunEntityId2 = UUID.randomUUID().toString();
   private static final String errorMessages = null;
 
+  private static final String workspaceId = UUID.randomUUID().toString();
+
   public ObjectMapper objectMapper =
       new ObjectMapper()
           .registerModule(new ParameterNamesModule())
@@ -81,12 +83,14 @@ class TestRunCompletionHandlerUnit {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -100,7 +104,8 @@ class TestRunCompletionHandlerUnit {
           "inputDefinition",
           outputDefinition,
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final RunSet runSetNoOutputs =
       new RunSet(
@@ -113,12 +118,14 @@ class TestRunCompletionHandlerUnit {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -132,7 +139,8 @@ class TestRunCompletionHandlerUnit {
           "inputDefinition",
           "[]",
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   final Run runToUpdate1 =
       new Run(
@@ -144,7 +152,8 @@ class TestRunCompletionHandlerUnit {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   final Run runToUpdate2 =
       new Run(
@@ -156,7 +165,8 @@ class TestRunCompletionHandlerUnit {
           UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages);
+          errorMessages,
+          workspaceId);
 
   @BeforeEach
   public void init() {

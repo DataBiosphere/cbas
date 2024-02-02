@@ -7,23 +7,23 @@ databaseChangeLog:
             tableName: run
             columns:
               - column:
-                  name: original_workspace_id
+                  name: run_original_workspace_id
                   type: uuid
         - addColumn:
             tableName: run_set
             columns:
               - column:
-                  name: original_workspace_id
+                  name: run_set_original_workspace_id
                   type: uuid
         - addColumn:
-            tableName: method_config
+            tableName: method_version
             columns:
               - column:
-                  name: original_workspace_id
+                  name: method_version_original_workspace_id
                   type: uuid
         - addColumn:
             tableName: method
             columns:
               - column:
-                  name: original_workspace_id
+                  name: method_original_workspace_id
                   type: uuid

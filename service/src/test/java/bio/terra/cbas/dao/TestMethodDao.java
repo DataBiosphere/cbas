@@ -29,12 +29,26 @@ class TestMethodDao {
   String methodDesc = "test method description";
   String methodSource = "GitHub";
 
+  String workspaceId = UUID.randomUUID().toString();
+
   Method method1 =
       new Method(
-          methodId1, methodName, methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
+          methodId1,
+          methodName,
+          methodDesc,
+          DateUtils.currentTimeInUTC(),
+          null,
+          methodSource,
+          workspaceId);
   Method method2 =
       new Method(
-          methodId2, "test method 2", methodDesc, DateUtils.currentTimeInUTC(), null, methodSource);
+          methodId2,
+          "test method 2",
+          methodDesc,
+          DateUtils.currentTimeInUTC(),
+          null,
+          methodSource,
+          workspaceId);
 
   @BeforeAll
   void setUp() {

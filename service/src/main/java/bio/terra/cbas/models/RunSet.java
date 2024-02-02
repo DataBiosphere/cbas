@@ -19,7 +19,8 @@ public record RunSet(
     String inputDefinition,
     String outputDefinition,
     String recordType,
-    String userId) {
+    String userId,
+    String originalWorkspaceId) {
 
   // Corresponding table column names in database
   public static final String RUN_SET_ID_COL = "run_set_id";
@@ -37,6 +38,7 @@ public record RunSet(
   public static final String OUTPUT_DEFINITION_COL = "output_definition";
   public static final String RECORD_TYPE_COL = "record_type";
   public static final String USER_ID_COL = "user_id";
+  public static final String ORIGINAL_WORKSPACE_ID_COL = "run_set_original_workspace_id";
 
   public UUID getMethodVersionId() {
     return methodVersion.methodVersionId();

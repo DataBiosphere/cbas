@@ -17,6 +17,7 @@ public class MethodMapper implements RowMapper<Method> {
         rs.getString(Method.DESCRIPTION__COL),
         rs.getObject(Method.CREATED_COL, OffsetDateTime.class),
         rs.getObject(Method.LAST_RUN_SET_ID_COL, UUID.class),
-        rs.getString(Method.METHOD_SOURCE_COL));
+        rs.getString(Method.METHOD_SOURCE_COL),
+        rs.getString(Method.ORIGINAL_WORKSPACE_ID_COL));
   }
 }
