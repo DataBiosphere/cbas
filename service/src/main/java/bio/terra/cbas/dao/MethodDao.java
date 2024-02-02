@@ -42,7 +42,7 @@ public class MethodDao {
   public int createMethod(Method method) {
     return jdbcTemplate.update(
         "insert into method (method_id, name, description, created, last_run_set_id, method_source, method_original_workspace_id) "
-            + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource :originalWorkspaceId)",
+            + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource, :originalWorkspaceId)",
         new BeanPropertySqlParameterSource(method));
   }
 
