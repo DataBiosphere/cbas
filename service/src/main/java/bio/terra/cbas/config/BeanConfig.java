@@ -14,7 +14,6 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -56,7 +55,6 @@ public class BeanConfig {
 
   @Bean("cromwellAuthReadClient")
   @RequestScope
-  @Lazy
   public cromwell.client.ApiClient cromwellAuthReadClient(
       BearerToken bearerToken, CromwellClient cromwellClient) {
     return cromwellClient.getAuthReadApiClient(bearerToken.getToken());
