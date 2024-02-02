@@ -27,4 +27,8 @@ public record MethodVersion(
   public UUID getMethodId() {
     return method.methodId();
   }
+
+  public UUID getOriginalWorkspaceId() {
+    return originalWorkspaceId;
+  }
 }
