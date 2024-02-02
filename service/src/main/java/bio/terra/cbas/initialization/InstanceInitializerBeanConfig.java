@@ -9,10 +9,7 @@ import org.springframework.context.annotation.Configuration;
 public class InstanceInitializerBeanConfig {
 
   @Bean
-  public CloneRecoveryBean cloneRecoveryBean(
-      RunSetDao runSetDao,
-      RunDao runDao) {
+  public CloneRecoveryBean cloneRecoveryBean(RunSetDao runSetDao, RunDao runDao) {
     return new CloneRecoveryBean(runSetDao, runDao);
   }
-
 }
