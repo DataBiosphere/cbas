@@ -87,7 +87,7 @@ class TestRunsApiController {
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
-  private static final String workspaceId = UUID.randomUUID().toString();
+  private static final UUID workspaceId = UUID.randomUUID();
 
   private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet returnedRunSet =

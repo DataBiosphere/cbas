@@ -31,7 +31,7 @@ class TestMethodVersionDao {
   String methodUrl =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
 
-  String workspaceId = UUID.randomUUID().toString();
+  UUID workspaceId = UUID.randomUUID();
 
   Method method =
       new Method(

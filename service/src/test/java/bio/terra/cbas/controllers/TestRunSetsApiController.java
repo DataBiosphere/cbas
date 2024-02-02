@@ -247,7 +247,7 @@ class TestRunSetsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
-  private final String workspaceId = UUID.randomUUID().toString();
+  private final UUID workspaceId = UUID.randomUUID();
 
   @BeforeEach
   void setupFunctionalChecks() throws Exception {

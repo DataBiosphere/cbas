@@ -25,7 +25,7 @@ class TestRunSetDao {
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
 
-  private final String workspaceId = UUID.randomUUID().toString();
+  private final UUID workspaceId = UUID.randomUUID();
 
   Method method =
       new Method(

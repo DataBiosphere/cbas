@@ -20,7 +20,7 @@ public record RunSet(
     String outputDefinition,
     String recordType,
     String userId,
-    String originalWorkspaceId) {
+    UUID originalWorkspaceId) {
 
   // Corresponding table column names in database
   public static final String RUN_SET_ID_COL = "run_set_id";

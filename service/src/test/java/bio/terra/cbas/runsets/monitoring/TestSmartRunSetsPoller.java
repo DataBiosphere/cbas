@@ -30,7 +30,7 @@ public class TestSmartRunSetsPoller {
   private CbasApiConfiguration cbasApiConfiguration;
   private RunSetAbortManager abortManager;
 
-  private final String workspaceId = UUID.randomUUID().toString();
+  private final UUID workspaceId = UUID.randomUUID();
 
   @BeforeEach
   void init() {

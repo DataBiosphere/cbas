@@ -180,7 +180,7 @@ public class RunDao {
           rs.getObject(Run.LAST_MODIFIED_TIMESTAMP_COL, OffsetDateTime.class),
           rs.getObject(Run.LAST_POLLED_TIMESTAMP_COL, OffsetDateTime.class),
           rs.getString(Run.ERROR_MESSAGES_COL),
-          rs.getString(Run.ORIGINAL_WORKSPACE_ID_COL));
+          rs.getObject(Run.ORIGINAL_WORKSPACE_ID_COL, UUID.class));
     }
   }
 

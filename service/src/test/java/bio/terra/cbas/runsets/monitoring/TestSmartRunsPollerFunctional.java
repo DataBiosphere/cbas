@@ -71,7 +71,7 @@ public class TestSmartRunsPollerFunctional {
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
-  private static final String workspaceId = UUID.randomUUID().toString();
+  private static final UUID workspaceId = UUID.randomUUID();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()

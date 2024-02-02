@@ -101,7 +101,7 @@ class VerifyPactsAllControllers {
   UUID fixedMethodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
   UUID fixedMethodUUID = UUID.fromString("00000000-0000-0000-0000-000000000009");
   UUID fixedLastRunSetUUIDForMethod = UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92");
-  String workspaceId = UUID.randomUUID().toString();
+  UUID workspaceId = UUID.randomUUID();
 
   Method fixedMethod =
       new Method(
@@ -221,7 +221,7 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             methodVersionUUID,
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-            "workspaceId");
+            workspaceId);
 
     MethodVersion myMethodVersion =
         new MethodVersion(
@@ -232,7 +232,7 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             UUID.randomUUID(),
             "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            "workspaceId");
+            workspaceId);
 
     RunSet targetRunSet =
         new RunSet(
@@ -252,7 +252,7 @@ class VerifyPactsAllControllers {
             "my output definition string",
             "myRecordType",
             "user-foo",
-            "workspaceId");
+            workspaceId);
 
     List<RunSet> response = List.of(targetRunSet);
 

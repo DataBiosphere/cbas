@@ -51,7 +51,7 @@ class TestRunCompletionHandlerUnit {
   private static final String runningRunEntityId2 = UUID.randomUUID().toString();
   private static final String errorMessages = null;
 
-  private static final String workspaceId = UUID.randomUUID().toString();
+  private static final UUID workspaceId = UUID.randomUUID();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()

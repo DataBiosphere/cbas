@@ -29,7 +29,7 @@ class TestMethodDao {
   String methodDesc = "test method description";
   String methodSource = "GitHub";
 
-  String workspaceId = UUID.randomUUID().toString();
+  UUID workspaceId = UUID.randomUUID();
 
   Method method1 =
       new Method(

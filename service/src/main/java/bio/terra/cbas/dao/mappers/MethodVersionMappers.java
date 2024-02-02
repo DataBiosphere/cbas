@@ -25,7 +25,7 @@ public final class MethodVersionMappers {
           rs.getObject(MethodVersion.CREATED_COL, OffsetDateTime.class),
           rs.getObject(MethodVersion.LAST_RUN_SET_ID_COL, UUID.class),
           rs.getString(MethodVersion.URL_COL),
-          rs.getString(MethodVersion.ORIGINAL_WORKSPACE_ID_COL));
+          rs.getObject(MethodVersion.ORIGINAL_WORKSPACE_ID_COL, UUID.class));
     }
   }
 
@@ -46,7 +46,7 @@ public final class MethodVersionMappers {
           rs.getObject(MethodVersion.CREATED_COL, OffsetDateTime.class),
           rs.getObject(MethodVersion.LAST_RUN_SET_ID_COL, UUID.class),
           rs.getString(MethodVersion.URL_COL),
-          rs.getString(MethodVersion.ORIGINAL_WORKSPACE_ID_COL));
+          rs.getObject(MethodVersion.ORIGINAL_WORKSPACE_ID_COL, UUID.class));
     }
   }
 }

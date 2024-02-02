@@ -13,7 +13,7 @@ public record Run(
     OffsetDateTime lastModifiedTimestamp,
     OffsetDateTime lastPolledTimestamp,
     String errorMessages,
-    String originalWorkspaceId) {
+    UUID originalWorkspaceId) {
 
   // Corresponding table column names in database
   public static final String RUN_ID_COL = "run_id";

@@ -72,7 +72,7 @@ class TestMethodsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
-  private static final String workspaceId = UUID.randomUUID().toString();
+  private static final UUID workspaceId = UUID.randomUUID();
 
   private void initSamMocks() {
     // setup Sam permission check to return true

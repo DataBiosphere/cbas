@@ -30,7 +30,7 @@ class TestRunDao {
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
 
-  String workspaceId = UUID.randomUUID().toString();
+  UUID workspaceId = UUID.randomUUID();
 
   Method method =
       new Method(

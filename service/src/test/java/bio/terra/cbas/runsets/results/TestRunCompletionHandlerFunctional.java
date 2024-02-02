@@ -49,7 +49,7 @@ class TestRunCompletionHandlerFunctional {
 
   private MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
-  private final String workspaceId = UUID.randomUUID().toString();
+  private final UUID workspaceId = UUID.randomUUID();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()

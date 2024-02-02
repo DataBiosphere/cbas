@@ -1,5 +1,6 @@
 package bio.terra.cbas.config;
 
+import java.util.UUID;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class CbasContextConfiguration extends BaseDatabaseConfiguration {
   private String workspaceId;
 
-  public String getWorkspaceId() {
-    return workspaceId;
+  public UUID getWorkspaceId() {
+    return UUID.fromString(workspaceId);
   }
 
   public void setWorkspaceId(String workspaceId) {
