@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 class TestGithubMethodDetailsDao extends ContainerizedDaoTest {
   @Autowired GithubMethodDetailsDao githubMethodDetailsDao;
-
   @Autowired MethodDao methodDao;
 
   UUID methodId1 = UUID.randomUUID();
