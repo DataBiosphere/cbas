@@ -2,8 +2,12 @@ package bio.terra.cbas.initialization;
 
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CloneRecoveryBean {
+
+  private final Logger logger = LoggerFactory.getLogger(CloneRecoveryBean.class);
 
   private final RunDao runDao;
   private final RunSetDao runSetDao;
@@ -14,6 +18,6 @@ public class CloneRecoveryBean {
   }
 
   public void cloneRecovery() {
-    System.out.println("Running clone recovery function!");
+    logger.info("Starting clone recovery");
   }
 }
