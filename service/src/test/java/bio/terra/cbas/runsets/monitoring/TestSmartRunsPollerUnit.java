@@ -36,7 +36,6 @@ public class TestSmartRunsPollerUnit {
         CbasRunStatus.COMPLETE,
         null,
         timestamp(10100),
-        null,
         null);
   }
 }

@@ -993,8 +993,7 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null,
-            workspaceId);
+            null);
     Run run2 =
         new Run(
             UUID.randomUUID(),
@@ -1005,8 +1004,7 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null,
-            workspaceId);
+            null);
 
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of());
@@ -1077,8 +1075,7 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null,
-            workspaceId);
+            null);
     Run run2 =
         new Run(
             UUID.randomUUID(),
@@ -1089,8 +1086,7 @@ class TestRunSetsApiController {
             RUNNING,
             OffsetDateTime.now(),
             OffsetDateTime.now(),
-            null,
-            workspaceId);
+            null);
 
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of(run2.runId().toString()));

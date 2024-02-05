@@ -4,12 +4,6 @@ databaseChangeLog:
       author: chrisl
       changes:
         - addColumn:
-            tableName: run
-            columns:
-              - column:
-                  name: run_original_workspace_id
-                  type: uuid
-        - addColumn:
             tableName: run_set
             columns:
               - column:

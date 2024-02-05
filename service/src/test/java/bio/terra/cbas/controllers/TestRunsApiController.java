@@ -135,8 +135,7 @@ class TestRunsApiController {
           RUNNING,
           runningStatusUpdateTime,
           runningStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   private static final Run updatedRun =
       new Run(
@@ -148,8 +147,7 @@ class TestRunsApiController {
           COMPLETE,
           completeStatusUpdateTime,
           completeStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {

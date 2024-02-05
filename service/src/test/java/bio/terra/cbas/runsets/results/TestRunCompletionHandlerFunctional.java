@@ -469,16 +469,7 @@ class TestRunCompletionHandlerFunctional {
     String recordId1 = "mockRecordId1";
     OffsetDateTime submissionTimestamp1 = DateUtils.currentTimeInUTC();
     return new Run(
-        runId,
-        engineId1,
-        runSet,
-        recordId1,
-        submissionTimestamp1,
-        status,
-        null,
-        null,
-        null,
-        workspaceId);
+        runId, engineId1, runSet, recordId1, submissionTimestamp1, status, null, null, null);
   }
 
   private RunSet createRunSet(UUID runSetId, String outputDefinition) {

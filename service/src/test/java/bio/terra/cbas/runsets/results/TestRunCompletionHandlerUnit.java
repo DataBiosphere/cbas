@@ -152,8 +152,7 @@ class TestRunCompletionHandlerUnit {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   final Run runToUpdate2 =
       new Run(
@@ -165,8 +164,7 @@ class TestRunCompletionHandlerUnit {
           UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   @BeforeEach
   public void init() {

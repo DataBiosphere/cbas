@@ -338,7 +338,6 @@ class VerifyPactsAllControllers {
         CbasRunStatus.RUNNING,
         null,
         null,
-        null,
-        workspaceId);
+        null);
   }
 }

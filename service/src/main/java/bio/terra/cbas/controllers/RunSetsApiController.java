@@ -445,8 +445,7 @@ public class RunSetsApiController implements RunSetsApi {
                 runState,
                 DateUtils.currentTimeInUTC(),
                 DateUtils.currentTimeInUTC(),
-                errors,
-                cbasContextConfiguration.getWorkspaceId()));
+                errors));
 
     if (created != 1) {
       additionalErrorMsg =

@@ -143,8 +143,7 @@ public class TestSmartRunsPollerFunctional {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   final Run runToUpdate2 =
       new Run(
@@ -156,8 +155,7 @@ public class TestSmartRunsPollerFunctional {
           RUNNING,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   final Run runAlreadyCompleted =
       new Run(
@@ -169,8 +167,7 @@ public class TestSmartRunsPollerFunctional {
           COMPLETE,
           completedRunStatusUpdateTime,
           completedRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
   final Run runToUpdate3 =
       new Run(
           runningRunId3,
@@ -181,8 +178,7 @@ public class TestSmartRunsPollerFunctional {
           UNKNOWN,
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
-          errorMessages,
-          workspaceId);
+          errorMessages);
 
   @BeforeEach
   public void init() {

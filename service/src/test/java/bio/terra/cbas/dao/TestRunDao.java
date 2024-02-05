@@ -83,8 +83,7 @@ class TestRunDao {
           CbasRunStatus.INITIALIZING,
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-          null,
-          workspaceId);
+          null);
 
   @BeforeAll
   void init() {

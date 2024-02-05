@@ -76,8 +76,7 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null,
-            workspaceId);
+            null);
 
     Run run2Running =
         new Run(
@@ -89,8 +88,7 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null,
-            workspaceId);
+            null);
 
     when(runDao.createRun(run1Running)).thenReturn(1);
     when(runDao.createRun(run2Running)).thenReturn(1);
@@ -168,8 +166,7 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null,
-            workspaceId);
+            null);
 
     Run run2Running =
         new Run(
@@ -181,8 +178,7 @@ class TestRunSetAbortManager {
             RUNNING,
             null,
             null,
-            null,
-            workspaceId);
+            null);
 
     when(runDao.createRun(run1Running)).thenReturn(1);
     when(runDao.createRun(run2Running)).thenReturn(1);
