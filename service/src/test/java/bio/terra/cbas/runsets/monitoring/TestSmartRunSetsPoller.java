@@ -37,7 +37,6 @@ public class TestSmartRunSetsPoller {
     cbasApiConfiguration = mock(CbasApiConfiguration.class);
     when(cbasApiConfiguration.getMaxSmartPollRunSetUpdateSeconds()).thenReturn(1);
     when(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()).thenReturn(1);
-    abortManager = mock(RunSetAbortManager.class);
   }
 
   @Test
