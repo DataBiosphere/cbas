@@ -292,7 +292,7 @@ class TestRunCompletionHandlerFunctional {
   }
 
   @Test
-  void updateRunCompletionSucceededWhenWdsThrowsSavedStatusWithErrors() throws WdsServiceException {
+  void dontPermanentlyFailWhenWdsApiFlakes() throws WdsServiceException {
     RunCompletionHandler runCompletionHandler =
         new RunCompletionHandler(runDao, wdsService, objectMapper, micrometerMetrics);
     // Set up run to expect non-empty outputs
@@ -317,10 +317,9 @@ class TestRunCompletionHandlerFunctional {
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
-    verify(runDao, times(1))
-        .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
+    verify(runDao, times(0)).updateRunStatusWithError(any(), any(), any(), anyString());
 
-    assertEquals(RunCompletionResult.SUCCESS, result);
+    assertEquals(RunCompletionResult.ERROR, result);
   }
 
   @Test
