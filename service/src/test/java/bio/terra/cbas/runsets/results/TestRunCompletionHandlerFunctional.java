@@ -49,6 +49,8 @@ class TestRunCompletionHandlerFunctional {
 
   private MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
+  private final UUID workspaceId = UUID.randomUUID();
+
   public ObjectMapper objectMapper =
       new ObjectMapper()
           .registerModule(new ParameterNamesModule())
@@ -480,7 +482,8 @@ class TestRunCompletionHandlerFunctional {
             "version description",
             OffsetDateTime.now(),
             runSetId,
-            "file:///method/source/url"),
+            "file:///method/source/url",
+            workspaceId),
         "runSetName",
         "runSetDescription",
         true,
@@ -494,7 +497,8 @@ class TestRunCompletionHandlerFunctional {
         "inputDefinition",
         outputDefinition,
         "entityType",
-        "user-foo");
+        "user-foo",
+        workspaceId);
   }
 
   private List<String> createWorkflowErrorsList() {

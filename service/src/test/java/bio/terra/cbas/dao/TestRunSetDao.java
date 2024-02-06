@@ -25,6 +25,8 @@ class TestRunSetDao {
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
 
+  private final UUID workspaceId = UUID.randomUUID();
+
   Method method =
       new Method(
           UUID.fromString("00000000-0000-0000-0000-000000000008"),
@@ -32,7 +34,8 @@ class TestRunSetDao {
           "fetch_sra_to_bam",
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null,
-          "Github");
+          "Github",
+          workspaceId);
 
   MethodVersion methodVersion =
       new MethodVersion(
@@ -42,7 +45,8 @@ class TestRunSetDao {
           "fetch_sra_to_bam sample submission",
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null,
-          "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl");
+          "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
+          workspaceId);
 
   RunSet runSet =
       new RunSet(
@@ -61,7 +65,8 @@ class TestRunSetDao {
           "[]",
           "[]",
           "sample",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   @BeforeAll
   void init() {

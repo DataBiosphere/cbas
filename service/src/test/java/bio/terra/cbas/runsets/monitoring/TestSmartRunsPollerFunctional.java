@@ -71,6 +71,7 @@ public class TestSmartRunsPollerFunctional {
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
+  private static final UUID workspaceId = UUID.randomUUID();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -108,12 +109,14 @@ public class TestSmartRunsPollerFunctional {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -127,7 +130,8 @@ public class TestSmartRunsPollerFunctional {
           "inputDefinition",
           outputDefinition,
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   final Run runToUpdate1 =
       new Run(

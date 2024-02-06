@@ -30,6 +30,8 @@ public class TestSmartRunSetsPoller {
   private CbasApiConfiguration cbasApiConfiguration;
   private RunSetAbortManager abortManager;
 
+  private final UUID workspaceId = UUID.randomUUID();
+
   @BeforeEach
   void init() {
     smartRunsPoller = mock(SmartRunsPoller.class);
@@ -65,7 +67,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     UUID runSetId2 = UUID.randomUUID();
     RunSet runSetToUpdate2 =
@@ -85,7 +88,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete =
@@ -144,7 +148,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     RunSet runSetUpdated =
         new RunSet(
@@ -163,7 +168,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     UUID runId1 = UUID.randomUUID();
     Run run1Incomplete =
@@ -253,7 +259,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     RunSet runSetTimestampUpdated =
         new RunSet(
@@ -272,7 +279,8 @@ public class TestSmartRunSetsPoller {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     UUID runId1 = UUID.randomUUID();
     Run run1 = new Run(runId1, null, runSetToUpdate, null, null, RUNNING, null, null, null);
