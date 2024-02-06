@@ -199,15 +199,7 @@ jobs:
           mkdir -p ./service/src/test/resources
           echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
           PACT_PROVIDER_BRANCH=$GITHUB_REF_NAME
-
           echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
-          echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          
-          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
-            echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
-          else
-            echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
-          fi
 
       - name: Verify consumer pacts and publish verification status to Pact Broker
         id: verification-test
@@ -215,6 +207,7 @@ jobs:
           PACT_BROKER_URL: pact-broker.dsp-eng-tools.broadinstitute.org
           PACT_PROVIDER_VERSION: ${{ env.PROVIDER_VERSION }}
           PACT_PROVIDER_BRANCH: ${{ env.PROVIDER_BRANCH }}
+          PACT_PUBLISH_RESULTS: true
           PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
         run: |
