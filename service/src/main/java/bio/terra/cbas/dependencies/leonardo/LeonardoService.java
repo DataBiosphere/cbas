@@ -73,9 +73,6 @@ public class LeonardoService implements HealthCheck {
           try {
             return action.execute();
           } catch (org.broadinstitute.dsde.workbench.client.leonardo.ApiException e) {
-            if (e.getMessage().contains("SocketTimeoutException")) {
-              throw new LeonardoServiceSocketTimeoutException(e);
-            }
             throw new LeonardoServiceApiException(e);
           }
         });

@@ -1,8 +1,8 @@
 package bio.terra.cbas.config;
 
-import bio.terra.cbas.dependencies.leonardo.LeonardoServiceSocketTimeoutException;
 import bio.terra.cbas.retry.RetryLoggingListener;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import javax.ws.rs.ProcessingException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +17,8 @@ import org.springframework.retry.support.RetryTemplate;
 @EnableRetry
 @Configuration
 public class RetryConfig {
+  private final List<Class<? extends Throwable>> retryableExceptions =
+      List.of(ProcessingException.class, SocketTimeoutException.class);
 
   @Bean(name = "listenerResetRetryTemplate")
   public RetryTemplate listenerResetRetryTemplate() {
@@ -33,8 +35,7 @@ public class RetryConfig {
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
-          if (exception instanceof ProcessingException
-              || exception instanceof SocketTimeoutException || exception instanceof LeonardoServiceSocketTimeoutException) {
+          if (containsRetryableException(exception)) {
             return srp;
           } else {
             return new NeverRetryPolicy();
@@ -47,5 +48,16 @@ public class RetryConfig {
     retryTemplate.setListeners(new RetryListener[] {new RetryLoggingListener()});
 
     return retryTemplate;
+  }
+
+  public boolean containsRetryableException(Throwable exception) {
+    if (exception == null) {
+      return false;
+    } else if (retryableExceptions.stream()
+        .anyMatch(e -> e.isAssignableFrom(exception.getClass()))) {
+      return true;
+    } else {
+      return containsRetryableException(exception.getCause());
+    }
   }
 }
