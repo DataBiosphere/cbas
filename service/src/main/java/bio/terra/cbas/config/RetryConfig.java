@@ -2,6 +2,7 @@ package bio.terra.cbas.config;
 
 import bio.terra.cbas.retry.RetryLoggingListener;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import javax.ws.rs.ProcessingException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,8 +33,7 @@ public class RetryConfig {
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
-          if (exception instanceof ProcessingException
-              || exception instanceof SocketTimeoutException) {
+          if (containsExceptionCause(exception, List.of(ProcessingException.class, SocketTimeoutException.class))) {
             return srp;
           } else {
             return new NeverRetryPolicy();
@@ -46,5 +46,17 @@ public class RetryConfig {
     retryTemplate.setListeners(new RetryListener[] {new RetryLoggingListener()});
 
     return retryTemplate;
+  }
+
+  private boolean containsExceptionCause(Throwable exception, List<Class<? extends Throwable>> clazzes) {
+    if (exception == null) {
+      return false;
+    }
+    if (clazzes.stream().anyMatch(c -> c.isAssignableFrom(exception.getClass()))) {
+      return true;
+    } else if (exception.getCause() != null) {
+      return containsExceptionCause(exception.getCause(), clazzes);
+    }
+    return false;
   }
 }
