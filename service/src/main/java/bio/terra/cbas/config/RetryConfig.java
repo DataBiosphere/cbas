@@ -1,5 +1,6 @@
 package bio.terra.cbas.config;
 
+import bio.terra.cbas.dependencies.leonardo.LeonardoServiceSocketTimeoutException;
 import bio.terra.cbas.retry.RetryLoggingListener;
 import java.net.SocketTimeoutException;
 import javax.ws.rs.ProcessingException;
@@ -33,7 +34,7 @@ public class RetryConfig {
     ecrp.setExceptionClassifier(
         exception -> {
           if (exception instanceof ProcessingException
-              || exception instanceof SocketTimeoutException) {
+              || exception instanceof SocketTimeoutException || exception instanceof LeonardoServiceSocketTimeoutException) {
             return srp;
           } else {
             return new NeverRetryPolicy();
