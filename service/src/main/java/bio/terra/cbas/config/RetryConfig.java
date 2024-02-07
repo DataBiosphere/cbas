@@ -51,12 +51,10 @@ public class RetryConfig {
   private boolean containsExceptionCause(Throwable exception, List<Class<? extends Throwable>> clazzes) {
     if (exception == null) {
       return false;
-    }
-    if (clazzes.stream().anyMatch(c -> c.isAssignableFrom(exception.getClass()))) {
+    } else if (clazzes.stream().anyMatch(c -> c.isAssignableFrom(exception.getClass()))) {
       return true;
-    } else if (exception.getCause() != null) {
+    } else {
       return containsExceptionCause(exception.getCause(), clazzes);
     }
-    return false;
   }
 }
