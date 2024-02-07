@@ -8,6 +8,8 @@ import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors;
+import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -43,6 +45,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
@@ -74,6 +77,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @PactBroker()
 class VerifyPactsAllControllers {
   private static final String API = "/api/batch/v1/run_sets";
+  private static final String CONSUMER_BRANCH = System.getenv("CONSUMER_BRANCH");
 
   @MockBean private SamService samService;
   @MockBean private SamClient samClient;
@@ -108,6 +112,22 @@ class VerifyPactsAllControllers {
           OffsetDateTime.now(),
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString());
+
+  @PactBrokerConsumerVersionSelectors
+  public static SelectorBuilder consumerVersionSelectors() {
+    // If CONSUMER_BRANCH envvar is unset, choose consumer pacts from the default branch or those
+    // marked as deployed/released (e.g., dev, staging, production). This scenario covers PRs, merge
+    // commits, or local verification tests.
+
+    // If CONSUMER_BRANCH envvar is set (either locally or in the webhook payload), download the
+    // latest version of the pact from Pact Broker on the specified CONSUMER_BRANCH for
+    // verification.
+    if (StringUtils.isBlank(CONSUMER_BRANCH)) {
+      return new SelectorBuilder().mainBranch().deployedOrReleased();
+    } else {
+      return new SelectorBuilder().branch(CONSUMER_BRANCH);
+    }
+  }
 
   @TestTemplate
   @ExtendWith(PactVerificationSpringProvider.class)
