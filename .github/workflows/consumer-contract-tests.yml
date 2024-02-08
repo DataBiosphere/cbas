@@ -56,6 +56,7 @@ jobs:
   #
   # Note: All workflows from the same PR merge should have the same copy of settings.gradle on disk,
   # which should be the one from the HEAD of the main branch before the workflow starts running
+  #
   regulated-tag-job:
     needs: [ bump-check ]
     if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
