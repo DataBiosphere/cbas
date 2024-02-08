@@ -17,7 +17,7 @@ import org.springframework.retry.support.RetryTemplate;
 @EnableRetry
 @Configuration
 public class RetryConfig {
-  private final List<Class<? extends Throwable>> retryableExceptions =
+  protected final List<Class<? extends Throwable>> retryableExceptions =
       List.of(ProcessingException.class, SocketTimeoutException.class);
 
   @Bean(name = "listenerResetRetryTemplate")
@@ -35,7 +35,7 @@ public class RetryConfig {
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
-          if (containsRetryableException(exception)) {
+          if (isCausedBy(exception, retryableExceptions)) {
             return srp;
           } else {
             return new NeverRetryPolicy();
@@ -50,14 +50,15 @@ public class RetryConfig {
     return retryTemplate;
   }
 
-  public boolean containsRetryableException(Throwable exception) {
-    if (exception == null) {
+  // Recursive method to determine whether an Exception passed is, or has a cause, that is a
+  // subclass or implementation of the Throwable(s) provided.
+  public boolean isCausedBy(Throwable caught, List<Class<? extends Throwable>> isOfOrCausedByList) {
+    if (caught == null) {
       return false;
-    } else if (retryableExceptions.stream()
-        .anyMatch(e -> e.isAssignableFrom(exception.getClass()))) {
+    } else if (isOfOrCausedByList.stream().anyMatch(e -> e.isAssignableFrom(caught.getClass()))) {
       return true;
     } else {
-      return containsRetryableException(exception.getCause());
+      return isCausedBy(caught.getCause(), isOfOrCausedByList);
     }
   }
 }
