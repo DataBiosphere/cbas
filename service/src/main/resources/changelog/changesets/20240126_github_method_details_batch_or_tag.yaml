@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: kpierre
+      changes:
+        - createTable:
+            tableName: github_method_details
+            columns:
+              - column:
+                  name: repository
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: organization
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: path
+                  type: varchar(1000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: private
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: method_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_method_method_id
+                    references: method(method_id)
+        - addColumn:
+            tableName: method_version
+            columns:
+              - column:
+                  name: branch_or_tag_name
+                  type: text
