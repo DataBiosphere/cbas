@@ -76,10 +76,8 @@ public class RunCompletionHandler {
     long updateResultsStartNanos = System.nanoTime();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
     try {
-      var updatedRunState = status;
-
-      if (updatableRun.status() == updatedRunState
-          && updatedRunState != CbasRunStatus.COMPLETE
+      if (updatableRun.status() == status
+          && status != CbasRunStatus.COMPLETE
           && (workflowErrors == null || workflowErrors.isEmpty())) {
         // Status is already up-to-date, not complete (no outputs to process), no errors to save.
         return updateDatabaseRunStatusOnly(updatableRun);
@@ -89,7 +87,7 @@ public class RunCompletionHandler {
       ArrayList<String> errors = new ArrayList<>();
 
       // Saving run outputs for a Successful terminal status only.
-      if (updatedRunState == CbasRunStatus.COMPLETE) {
+      if (status == CbasRunStatus.COMPLETE) {
         RecordAttributes recordAttributes;
         try {
           recordAttributes =
@@ -112,21 +110,18 @@ public class RunCompletionHandler {
         if (recordAttributes != null && !recordAttributes.isEmpty()) {
           String errorMessage = saveOutputsToWDS(updatableRun, recordAttributes);
           if (errorMessage != null && !errorMessage.isEmpty()) {
-            errors.add(errorMessage);
+            // Failure to update WDS. Let this be retried by Cromwell
+            logger.error(errorMessage);
+            return RunCompletionResult.ERROR;
           }
         }
-        if (!errors.isEmpty()) {
-          // Update run info in database with an error.
-          updatedRunState = CbasRunStatus.SYSTEM_ERROR;
-        }
-      } else if (updatedRunState.inErrorState()) {
+      } else if (status.inErrorState()) {
         if (workflowErrors != null && !workflowErrors.isEmpty()) {
           errors.addAll(workflowErrors);
         }
       }
       // Save the updated run record in database.
-      updateResult =
-          updateDatabaseRunStatus(updatableRun, updatedRunState, errors, engineStatusChange);
+      updateResult = updateDatabaseRunStatus(updatableRun, status, errors, engineStatusChange);
     } finally {
       recordMethodCompletion(updateResultsStartNanos, RunCompletionResult.SUCCESS == updateResult);
     }
