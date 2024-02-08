@@ -9,7 +9,8 @@ public record Method(
     String description,
     OffsetDateTime created,
     UUID lastRunSetId,
-    String methodSource) {
+    String methodSource,
+    UUID originalWorkspaceId) {
 
   // Corresponding table column names in database
   public static final String METHOD_ID_COL = "method_id";
@@ -18,4 +19,5 @@ public record Method(
   public static final String CREATED_COL = "created";
   public static final String LAST_RUN_SET_ID_COL = "last_run_set_id";
   public static final String METHOD_SOURCE_COL = "method_source";
+  public static final String ORIGINAL_WORKSPACE_ID_COL = "method_original_workspace_id";
 }

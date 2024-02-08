@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MissingRunOutputsException;
 import bio.terra.cbas.common.exceptions.RunNotFoundException;
@@ -76,6 +77,8 @@ class TestRunsApiController {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private SamService samService;
 
+  @MockBean private MicrometerMetrics micrometerMetrics;
+
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
   private static final String returnedEntityId = UUID.randomUUID().toString();
@@ -84,6 +87,7 @@ class TestRunsApiController {
   private static final OffsetDateTime runningStatusUpdateTime = OffsetDateTime.now();
   private static final OffsetDateTime completeStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
+  private static final UUID workspaceId = UUID.randomUUID();
 
   private static final UUID runSetId = UUID.randomUUID();
   private static final RunSet returnedRunSet =
@@ -97,12 +101,14 @@ class TestRunsApiController {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "methodurl"),
+              "methodurl",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -116,7 +122,8 @@ class TestRunsApiController {
           "inputDefinition",
           "outputDefinition",
           "entitytype",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final Run returnedRun =
       new Run(

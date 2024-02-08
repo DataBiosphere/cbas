@@ -8,6 +8,7 @@ import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
+import cromwell.client.api.WomtoolApi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class TestCromwellClient {
   @Mock DependencyUrlLoader dependencyUrlLoader;
+  @Mock cromwell.client.ApiClient cromwellAuthReadClient;
   @Mock cromwell.client.ApiClient cromwellWriteClient;
 
   @Test
@@ -33,6 +35,22 @@ class TestCromwellClient {
             .engineApi(mockApiClient);
 
     assertEquals("http://localhost:8000/cromwell", engineApi.getApiClient().getBasePath());
+  }
+
+  @Test
+  void useConfiguredUrlIfAvailableWithToken() {
+    CromwellServerConfiguration cromwellServerConfiguration =
+        new CromwellServerConfiguration(
+            "http://localhost:8000/cromwell", false, "workflow/log/dir", false);
+
+    ApiClient mockApiClient = cromwellAuthReadClient;
+    when(mockApiClient.getBasePath()).thenReturn(cromwellServerConfiguration.baseUri());
+
+    WomtoolApi womtoolApi =
+        new CromwellClient(cromwellServerConfiguration, dependencyUrlLoader)
+            .womtoolApi(mockApiClient);
+
+    assertEquals("http://localhost:8000/cromwell", womtoolApi.getApiClient().getBasePath());
   }
 
   @Test

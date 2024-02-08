@@ -14,6 +14,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -70,6 +71,7 @@ public class TestSmartRunsPollerFunctional {
   private static final String completedRunEntityId = UUID.randomUUID().toString();
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
+  private static final UUID workspaceId = UUID.randomUUID();
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -83,6 +85,7 @@ public class TestSmartRunsPollerFunctional {
   private SmartRunsPoller smartRunsPoller;
   private RunCompletionHandler runCompletionHandler;
   private CbasApiConfiguration cbasApiConfiguration;
+  private MicrometerMetrics micrometerMetrics;
 
   static String outputDefinition =
       """
@@ -106,12 +109,14 @@ public class TestSmartRunsPollerFunctional {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -125,7 +130,8 @@ public class TestSmartRunsPollerFunctional {
           "inputDefinition",
           outputDefinition,
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   final Run runToUpdate1 =
       new Run(
@@ -180,8 +186,10 @@ public class TestSmartRunsPollerFunctional {
     runCompletionHandler = mock(RunCompletionHandler.class);
     cbasApiConfiguration = mock(CbasApiConfiguration.class);
     when(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()).thenReturn(1);
+    micrometerMetrics = mock(MicrometerMetrics.class);
     smartRunsPoller =
-        new SmartRunsPoller(cromwellService, runCompletionHandler, cbasApiConfiguration);
+        new SmartRunsPoller(
+            cromwellService, runCompletionHandler, cbasApiConfiguration, micrometerMetrics);
   }
 
   @Test

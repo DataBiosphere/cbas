@@ -35,6 +35,7 @@ class TestRunSetAbortManager {
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private CromwellService cromwellService;
+  private final UUID workspaceId = UUID.randomUUID();
 
   @Test
   void testRunSetAbort() throws ApiException {
@@ -62,7 +63,8 @@ class TestRunSetAbortManager {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run1Running =
         new Run(
@@ -151,7 +153,8 @@ class TestRunSetAbortManager {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     Run run1Running =
         new Run(

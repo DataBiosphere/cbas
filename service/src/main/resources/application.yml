@@ -38,6 +38,9 @@ spring:
     change-log: changelog/changelog.yaml
 
 cbas:
+  context:
+    # Should match wds.instanceId and sam.workspaceId:
+    workspaceId: "00000000-0000-0000-0000-000000000000"
   cbas-database:
     uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
     password: ${DATABASE_USER_PASSWORD:cbas_password}
@@ -54,6 +57,19 @@ cbas:
   scheduler:
     # How often to check downstream services for health:
     healthCheckIntervalSeconds: 300
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info,health
+      base-path: /actuator
+      path-mapping:
+          info: info
+          health: health
+  endpoint:
+    health:
+      show-details: ALWAYS
 
 workflow-engines:
   cromwell:

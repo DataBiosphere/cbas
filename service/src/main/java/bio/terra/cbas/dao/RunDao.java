@@ -128,14 +128,6 @@ public class RunDao {
                 DateUtils.currentTimeInUTC())));
   }
 
-  public int updateErrorMessage(UUID runId, String updatedErrorMessage) {
-    String sql = "UPDATE run SET error_messages = :error_messages WHERE run_id = :run_id";
-    return jdbcTemplate.update(
-        sql,
-        new MapSqlParameterSource(
-            Map.of(Run.RUN_ID_COL, runId, Run.ERROR_MESSAGES_COL, updatedErrorMessage)));
-  }
-
   public record RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses, String engineId) {
     public RunsFilters(UUID runSetId, Collection<CbasRunStatus> statuses) {
       this(runSetId, statuses, null);

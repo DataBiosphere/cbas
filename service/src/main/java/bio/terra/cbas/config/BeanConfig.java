@@ -52,4 +52,11 @@ public class BeanConfig {
 
     return cromwellClient.getWriteApiClient(bearerToken.getToken());
   }
+
+  @Bean("cromwellAuthReadClient")
+  @RequestScope
+  public cromwell.client.ApiClient cromwellAuthReadClient(
+      BearerToken bearerToken, CromwellClient cromwellClient) {
+    return cromwellClient.getAuthReadApiClient(bearerToken.getToken());
+  }
 }

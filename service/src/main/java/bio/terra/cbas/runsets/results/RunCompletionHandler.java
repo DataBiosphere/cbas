@@ -3,6 +3,7 @@ package bio.terra.cbas.runsets.results;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -28,13 +29,19 @@ public class RunCompletionHandler {
   private final RunDao runDao;
   private final WdsService wdsService;
   private final ObjectMapper objectMapper;
+  private final MicrometerMetrics micrometerMetrics;
   private static final org.slf4j.Logger logger =
       LoggerFactory.getLogger(RunCompletionHandler.class);
 
-  public RunCompletionHandler(RunDao runDao, WdsService wdsService, ObjectMapper objectMapper) {
+  public RunCompletionHandler(
+      RunDao runDao,
+      WdsService wdsService,
+      ObjectMapper objectMapper,
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.wdsService = wdsService;
     this.objectMapper = objectMapper;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   /*

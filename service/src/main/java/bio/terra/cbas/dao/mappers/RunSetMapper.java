@@ -33,6 +33,7 @@ public class RunSetMapper implements RowMapper<RunSet> {
         rs.getString(RunSet.INPUT_DEFINITION_COL),
         rs.getString(RunSet.OUTPUT_DEFINITION_COL),
         rs.getString(RunSet.RECORD_TYPE_COL),
-        rs.getString(RunSet.USER_ID_COL));
+        rs.getString(RunSet.USER_ID_COL),
+        rs.getObject(RunSet.ORIGINAL_WORKSPACE_ID_COL, UUID.class));
   }
 }
