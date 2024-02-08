@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
@@ -226,6 +227,7 @@ class TestRunSetsApiController {
   @MockBean private UsersApi usersApi;
   @MockBean private BearerToken bearerToken;
   @MockBean private ApiClient cromwellClient;
+  @Mock private ApiClient cromwellAuthReadClient;
   @SpyBean private SamService samService;
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
@@ -246,6 +248,8 @@ class TestRunSetsApiController {
   // The object mapper is pulled from the BeanConfig and used to convert to and from JSON in the
   // tests:
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private CbasContextConfiguration cbasContextConfiguration;
+  private final UUID workspaceId = UUID.randomUUID();
 
   @BeforeEach
   void setupFunctionalChecks() throws Exception {
@@ -276,7 +280,8 @@ class TestRunSetsApiController {
                 "methoddescription",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "GitHub"));
+                "GitHub",
+                workspaceId));
 
     when(methodVersionDao.getMethodVersion(methodVersionId))
         .thenReturn(
@@ -288,12 +293,14 @@ class TestRunSetsApiController {
                     "methoddescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "GitHub"),
+                    "GitHub",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 null,
-                workflowUrl));
+                workflowUrl,
+                workspaceId));
 
     when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
         .thenReturn(
@@ -305,12 +312,14 @@ class TestRunSetsApiController {
                     "dockstore method description",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "Dockstore"),
+                    "Dockstore",
+                    workspaceId),
                 "develop",
                 "version description",
                 OffsetDateTime.now(),
                 null,
-                dockstoreWorkflowUrl));
+                dockstoreWorkflowUrl,
+                workspaceId));
 
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
@@ -807,7 +816,8 @@ class TestRunSetsApiController {
     CbasNetworkConfiguration cbasNetworkConfiguration = new CbasNetworkConfiguration();
     cbasNetworkConfiguration.setExternalUri("http://localhost:8080/");
     CromwellService localtestService =
-        new CromwellService(localTestClient, cromwellClient, cbasNetworkConfiguration);
+        new CromwellService(
+            localTestClient, cromwellClient, cbasNetworkConfiguration, cromwellAuthReadClient);
 
     // Workflow options should reflect the final workflow log directory.
     // write_to_cache should always be true. read_from_cache should match the provided call caching
@@ -839,12 +849,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -858,7 +870,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     RunSet returnedRunSet2 =
         new RunSet(
@@ -871,12 +884,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -890,7 +905,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "BAR",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     List<RunSet> response = List.of(returnedRunSet1, returnedRunSet2);
     when(runSetDao.getRunSets(any(), eq(false))).thenReturn(response);
@@ -943,12 +959,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -962,7 +980,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     Run run1 =
         new Run(
@@ -1022,12 +1041,14 @@ class TestRunSetsApiController {
                     "methodDescription",
                     OffsetDateTime.now(),
                     UUID.randomUUID(),
-                    "method source"),
+                    "method source",
+                    workspaceId),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
-                "method url"),
+                "method url",
+                workspaceId),
             "",
             "",
             false,
@@ -1041,7 +1062,8 @@ class TestRunSetsApiController {
             "inputdefinition",
             "outputDefinition",
             "FOO",
-            mockUser.getUserSubjectId());
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
     Run run1 =
         new Run(

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -46,6 +47,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+  @MockBean private CbasContextConfiguration cbasContextConfiguration;
 
   String workflowDescriptionString =
       """
@@ -165,7 +167,8 @@ class TestMethodsApiControllerUnits {
             methodDao,
             methodVersionDao,
             runSetDao,
-            objectMapper);
+            objectMapper,
+            cbasContextConfiguration);
   }
 
   @Test

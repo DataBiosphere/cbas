@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: "add workspace_id column to run_set table"
+      author: chrisl
+      changes:
+        - addColumn:
+            tableName: run_set
+            columns:
+              - column:
+                  name: run_set_original_workspace_id
+                  type: uuid
+        - addColumn:
+            tableName: method_version
+            columns:
+              - column:
+                  name: method_version_original_workspace_id
+                  type: uuid
+        - addColumn:
+            tableName: method
+            columns:
+              - column:
+                  name: method_original_workspace_id
+                  type: uuid

@@ -5,6 +5,7 @@ import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
 import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
 
 import bio.terra.cbas.common.MetricsUtil;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -31,16 +32,19 @@ public class SmartRunsPoller {
   private final CromwellService cromwellService;
   private final RunCompletionHandler runCompletionHandler;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final MicrometerMetrics micrometerMetrics;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunsPoller.class);
 
   public SmartRunsPoller(
       CromwellService cromwellService,
       RunCompletionHandler runCompletionHandler,
-      CbasApiConfiguration cbasApiConfiguration) {
+      CbasApiConfiguration cbasApiConfiguration,
+      MicrometerMetrics micrometerMetrics) {
     this.cromwellService = cromwellService;
     this.runCompletionHandler = runCompletionHandler;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   /**
@@ -193,6 +197,7 @@ public class SmartRunsPoller {
         }
       }
       // Call Run Completion handler to update results
+      micrometerMetrics.logRunCompletion("smartpoller", updatedRunState);
       var updateResult =
           runCompletionHandler.updateResults(
               updatableRun, updatedRunState, outputs, errors, engineStatusChanged);

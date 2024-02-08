@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -50,6 +51,8 @@ class TestRunCompletionHandlerUnit {
   private static final String runningRunEntityId2 = UUID.randomUUID().toString();
   private static final String errorMessages = null;
 
+  private static final UUID workspaceId = UUID.randomUUID();
+
   public ObjectMapper objectMapper =
       new ObjectMapper()
           .registerModule(new ParameterNamesModule())
@@ -80,12 +83,14 @@ class TestRunCompletionHandlerUnit {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -99,7 +104,8 @@ class TestRunCompletionHandlerUnit {
           "inputDefinition",
           outputDefinition,
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   private static final RunSet runSetNoOutputs =
       new RunSet(
@@ -112,12 +118,14 @@ class TestRunCompletionHandlerUnit {
                   "methodDescription",
                   methodCreatedTime,
                   runSetId,
-                  "method source"),
+                  "method source",
+                  workspaceId),
               "version name",
               "version description",
               methodCreatedTime,
               runSetId,
-              "file:///method/source/url"),
+              "file:///method/source/url",
+              workspaceId),
           "runSetName",
           "runSetDescription",
           true,
@@ -131,7 +139,8 @@ class TestRunCompletionHandlerUnit {
           "inputDefinition",
           "[]",
           "entityType",
-          "user-foo");
+          "user-foo",
+          workspaceId);
 
   final Run runToUpdate1 =
       new Run(
@@ -161,7 +170,9 @@ class TestRunCompletionHandlerUnit {
   public void init() {
     RunDao runsDao = mock(RunDao.class);
     WdsService wdsService = mock(WdsService.class);
-    runCompletionHandler = new RunCompletionHandler(runsDao, wdsService, objectMapper);
+    MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
+    runCompletionHandler =
+        new RunCompletionHandler(runsDao, wdsService, objectMapper, micrometerMetrics);
   }
 
   @Test

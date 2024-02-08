@@ -10,7 +10,9 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -91,6 +93,8 @@ class VerifyPactsAllControllers {
   @MockBean private RunSetAbortManager abortManager;
   @MockBean private RunCompletionHandler runCompletionHandler;
   @Autowired private ObjectMapper objectMapper;
+  @MockBean private MicrometerMetrics micrometerMetrics;
+  @MockBean private CbasContextConfiguration cbasContextConfiguration;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -99,6 +103,7 @@ class VerifyPactsAllControllers {
   UUID fixedMethodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
   UUID fixedMethodUUID = UUID.fromString("00000000-0000-0000-0000-000000000009");
   UUID fixedLastRunSetUUIDForMethod = UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92");
+  UUID workspaceId = UUID.randomUUID();
 
   Method fixedMethod =
       new Method(
@@ -107,7 +112,8 @@ class VerifyPactsAllControllers {
           "scATAC-imported-4 description",
           OffsetDateTime.now(),
           fixedMethodVersionUUID,
-          PostMethodRequest.MethodSourceEnum.GITHUB.toString());
+          PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
+          workspaceId);
 
   @TestTemplate
   @ExtendWith(PactVerificationSpringProvider.class)
@@ -160,7 +166,8 @@ class VerifyPactsAllControllers {
             "imported-version-4 description",
             OffsetDateTime.now(),
             fixedLastRunSetUUIDForMethod,
-            "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl");
+            "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
+            workspaceId);
 
     // Arrange DAO responses
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
@@ -215,7 +222,8 @@ class VerifyPactsAllControllers {
             "myMethod description",
             OffsetDateTime.now(),
             methodVersionUUID,
-            PostMethodRequest.MethodSourceEnum.GITHUB.toString());
+            PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
+            workspaceId);
 
     MethodVersion myMethodVersion =
         new MethodVersion(
@@ -225,7 +233,8 @@ class VerifyPactsAllControllers {
             "myMethodVersion description",
             OffsetDateTime.now(),
             UUID.randomUUID(),
-            "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl");
+            "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
+            workspaceId);
 
     RunSet targetRunSet =
         new RunSet(
@@ -244,7 +253,8 @@ class VerifyPactsAllControllers {
             "my input definition string",
             "my output definition string",
             "myRecordType",
-            "user-foo");
+            "user-foo",
+            workspaceId);
 
     List<RunSet> response = List.of(targetRunSet);
 
@@ -316,7 +326,8 @@ class VerifyPactsAllControllers {
             null,
             null,
             null,
-            null);
+            null,
+            workspaceId);
 
     return new Run(
         runId,

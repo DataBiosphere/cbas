@@ -30,16 +30,19 @@ public class CromwellService implements HealthCheck {
   private final CromwellClient cromwellClient;
   private static final String API_VERSION = "v1";
   private final ApiClient cromwellWriteClient;
+  private final ApiClient cromwellAuthReadClient;
 
   private final CbasNetworkConfiguration cbasNetworkConfiguration;
 
   public CromwellService(
       CromwellClient cromwellClient,
       ApiClient cromwellWriteClient,
-      CbasNetworkConfiguration cbasNetworkConfiguration) {
+      CbasNetworkConfiguration cbasNetworkConfiguration,
+      ApiClient cromwellAuthReadClient) {
     this.cromwellClient = cromwellClient;
     this.cromwellWriteClient = cromwellWriteClient;
     this.cbasNetworkConfiguration = cbasNetworkConfiguration;
+    this.cromwellAuthReadClient = cromwellAuthReadClient;
   }
 
   public List<WorkflowIdAndStatus> submitWorkflowBatch(
@@ -104,9 +107,8 @@ public class CromwellService implements HealthCheck {
   }
 
   public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
-    ApiClient client = cromwellClient.getReadApiClient();
     return cromwellClient
-        .womtoolApi(client)
+        .womtoolApi(cromwellAuthReadClient)
         .describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
