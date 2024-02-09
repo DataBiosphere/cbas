@@ -4,6 +4,8 @@ import bio.terra.cbas.retry.RetryLoggingListener;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import javax.ws.rs.ProcessingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.RetryListener;
@@ -19,6 +21,8 @@ import org.springframework.retry.support.RetryTemplate;
 public class RetryConfig {
   protected final List<Class<? extends Throwable>> retryableExceptions =
       List.of(ProcessingException.class, SocketTimeoutException.class);
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Bean(name = "listenerResetRetryTemplate")
   public RetryTemplate listenerResetRetryTemplate() {
@@ -36,6 +40,7 @@ public class RetryConfig {
     ecrp.setExceptionClassifier(
         exception -> {
           if (isCausedBy(exception, retryableExceptions)) {
+            logger.info("*** FIND ME - Received exception %s - Exception is a retryable exception. Will retry ***".formatted(exception.getClass()));
             return srp;
           } else {
             return new NeverRetryPolicy();
