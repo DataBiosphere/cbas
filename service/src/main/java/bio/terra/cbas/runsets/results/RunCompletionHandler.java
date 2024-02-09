@@ -44,10 +44,6 @@ public class RunCompletionHandler {
     this.micrometerMetrics = micrometerMetrics;
   }
 
-  /*
-  The copy of SmartRunsPoller code.
-  Refactoring SmartRunsPoller will be covered in [WM-2090].
-   */
   public boolean hasOutputDefinition(Run run) throws JsonProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
