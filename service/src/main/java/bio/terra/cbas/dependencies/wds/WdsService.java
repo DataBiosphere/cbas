@@ -8,6 +8,8 @@ import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import java.net.SocketTimeoutException;
+import java.util.Random;
 
 @Component
 public class WdsService {
@@ -44,17 +46,24 @@ public class WdsService {
 
   public RecordResponse updateRecord(RecordRequest request, String type, String id)
       throws WdsServiceException {
+    Random rand = new Random();
+    int randomNumber = rand.nextInt(1000);
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () -> {
-          wdsClient
-              .recordsApi(bearerToken.getToken())
-              .updateRecord(
-                  request,
-                  wdsServerConfiguration.instanceId(),
-                  wdsServerConfiguration.apiV(),
-                  type,
-                  id);
+          if ((randomNumber % 2) == 0) {
+            wdsClient
+                .recordsApi(bearerToken.getToken())
+                .updateRecord(
+                    request,
+                    wdsServerConfiguration.instanceId(),
+                    wdsServerConfiguration.apiV(),
+                    type,
+                    id);
+          }
+          else {
+            throw new ApiException(new SocketTimeoutException("Mock SocketTimeoutException thrown from WDS updateRecord for testing"));
+          }
           return null;
         });
   }

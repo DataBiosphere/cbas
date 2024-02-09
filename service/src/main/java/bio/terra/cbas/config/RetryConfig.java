@@ -40,7 +40,9 @@ public class RetryConfig {
     ecrp.setExceptionClassifier(
         exception -> {
           if (isCausedBy(exception, retryableExceptions)) {
-            logger.info("*** FIND ME - Received exception %s - Exception is a retryable exception. Will retry ***".formatted(exception.getClass()));
+            logger.info(
+                "*** FIND ME - Received exception %s - Exception is a retryable exception. Will retry ***"
+                    .formatted(exception.getClass()));
             return srp;
           } else {
             return new NeverRetryPolicy();
