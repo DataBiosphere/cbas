@@ -3,8 +3,6 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.common.iam.BearerToken;
-import java.net.SocketTimeoutException;
-import java.util.Random;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -49,22 +47,14 @@ public class WdsService {
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () -> {
-          Random rand = new Random();
-          int randomNumber = rand.nextInt(1000);
-          if ((randomNumber % 2) == 0) {
-            wdsClient
-                .recordsApi(bearerToken.getToken())
-                .updateRecord(
-                    request,
-                    wdsServerConfiguration.instanceId(),
-                    wdsServerConfiguration.apiV(),
-                    type,
-                    id);
-          } else {
-            throw new ApiException(
-                new SocketTimeoutException(
-                    "Mock SocketTimeoutException thrown from WDS updateRecord for testing"));
-          }
+          wdsClient
+              .recordsApi(bearerToken.getToken())
+              .updateRecord(
+                  request,
+                  wdsServerConfiguration.instanceId(),
+                  wdsServerConfiguration.apiV(),
+                  type,
+                  id);
           return null;
         });
   }
