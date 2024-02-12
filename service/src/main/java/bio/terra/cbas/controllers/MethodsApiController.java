@@ -206,7 +206,7 @@ public class MethodsApiController implements MethodsApi {
 
   @Override
   public ResponseEntity<MethodListResponse> getMethods(
-      Boolean showVersions, UUID methodId, UUID methodVersionId) {
+      Boolean showVersions, UUID methodId, UUID methodVersionId, Boolean showMethodDetails) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);

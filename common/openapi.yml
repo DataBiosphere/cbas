@@ -66,6 +66,13 @@ paths:
             When specified, filters to only include appropriate method and method version. If
             included, forces "show_versions" to be true.
           required: false
+        - in: query
+          name: method_details
+          schema:
+            type: boolean
+          description: >
+            When specified, toggles on or off the details for each method.
+          required: false
       responses:
         '200':
           $ref: '#/components/responses/GetMethodsResponse'
@@ -653,6 +660,8 @@ components:
           format: date-time
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
+        source_details:
+          $ref: '#/components/schemas/MethodSourceDetails'
     MethodVersionDetails:
       type: object
       properties:
@@ -691,6 +700,20 @@ components:
           format: uuid
         method_version_name:
           type: string
+    MethodSourceDetails:
+      type: object
+      properties:
+        repository:
+          type: string
+        organization:
+          type: string
+        path:
+          type: string
+        private:
+          type: boolean
+        method_id:
+          type: string
+          format: uuid
     RunLog:
       type: object
       properties:
