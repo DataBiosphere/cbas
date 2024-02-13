@@ -144,6 +144,7 @@ jobs:
           echo ${{ github.ref }}
           echo "github.head_ref"
           echo ${{ github.head_ref }}
+          echo ${{ toJson(github.event.head_commit.message) }}
       - name: Launch the background process for integration tests
         run: ./gradlew --build-cache bootRun | tee bootrun.log &
 
