@@ -1,8 +1,10 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.dao.mappers.GithubMethodSourceDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
+import bio.terra.cbas.model.GithubMethodSourceDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
@@ -111,5 +113,14 @@ public class MethodDao {
                 "methodVersionName", methodVersion));
 
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
+  }
+
+  public GithubMethodSourceDetails getMethodSourceDetails(UUID methodId) {
+    String sql =
+        "SELECT * FROM github_method_details WHERE github_method_details.method_id = :methodId";
+
+    MapSqlParameterSource params = new MapSqlParameterSource(Map.of("methodId", methodId));
+
+    return jdbcTemplate.queryForObject(sql, params, new GithubMethodSourceDetailsMapper());
   }
 }

@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.EnumUtils;
 
 public final class MethodUtil {
@@ -55,5 +56,9 @@ public final class MethodUtil {
     }
 
     throw new UnknownMethodSourceException(methodSource);
+  }
+
+  public static Boolean verifyIfPrivate(String methodUrl) {
+    return true;
   }
 }

@@ -1,6 +1,7 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
+import static bio.terra.cbas.common.MethodUtil.verifyIfPrivate;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
@@ -18,6 +19,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.GithubMethodSourceDetails;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -32,6 +34,8 @@ import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -43,6 +47,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -61,6 +66,7 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
+  private final GithubUrlDetailsManager githubUrlDetailsManager;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -70,7 +76,8 @@ public class MethodsApiController implements MethodsApi {
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfig) {
+      CbasContextConfiguration cbasContextConfig,
+      GithubUrlDetailsManager githubUrlDetailsManager) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.samService = samService;
@@ -79,6 +86,7 @@ public class MethodsApiController implements MethodsApi {
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
+    this.githubUrlDetailsManager = githubUrlDetailsManager;
   }
 
   private final ObjectMapper objectMapper;
@@ -134,6 +142,7 @@ public class MethodsApiController implements MethodsApi {
 
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
+    Boolean isPrivate = verifyIfPrivate(rawMethodUrl);
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
@@ -176,6 +185,17 @@ public class MethodsApiController implements MethodsApi {
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
+      GithubMethodSourceDetails githubMethodSourceDetails = new GithubMethodSourceDetails();
+
+      if (Objects.equals(methodSource, "GitHub")) {
+        GithubUrlDetailsManager.GithubUrlComponents manager = githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
+        githubMethodSourceDetails
+            .methodId(methodId)
+            .path(manager.getPath())
+            .organization(manager.getOrganization())
+            .repository(manager.getRepository())
+            ._private(isPrivate);
+      }
 
       createNewMethod(
           methodId,
@@ -183,7 +203,8 @@ public class MethodsApiController implements MethodsApi {
           postMethodRequest,
           workflowDescription,
           methodInputMappings,
-          methodOutputMappings);
+          methodOutputMappings,
+          githubMethodSourceDetails);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
       PostMethodResponse postMethodResponse =
@@ -216,16 +237,28 @@ public class MethodsApiController implements MethodsApi {
 
     if (methodVersionId != null) {
       methodDetails =
-          List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
+          List.of(
+              methodVersionToMethodDetails(
+                  methodVersionDao.getMethodVersion(methodVersionId), showMethodDetails));
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
       boolean nullSafeShowVersions = showVersions == null || showVersions;
+      boolean nullSafeShowMethodDetails = showMethodDetails == null || showMethodDetails;
 
       methodDetails =
-          methods.stream().map(m -> methodToMethodDetails(m, nullSafeShowVersions)).toList();
+          methods.stream()
+              .map(m -> methodToMethodDetails(m, nullSafeShowVersions, nullSafeShowMethodDetails))
+              .toList();
     }
 
+    GithubUrlDetailsManager.GithubUrlComponents manager =
+        githubUrlDetailsManager.extractDetailsFromUrl(
+            "raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl");
+
+    System.out.println(manager.getOrganization());
+    System.out.println(manager.getPath());
+    System.out.println(manager.getRepository());
     addLastRunDetails(methodDetails);
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
@@ -236,7 +269,8 @@ public class MethodsApiController implements MethodsApi {
       PostMethodRequest postMethodRequest,
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
-      List<MethodOutputMapping> methodOutputMappings)
+      List<MethodOutputMapping> methodOutputMappings,
+      GithubMethodSourceDetails methodSourceDetails)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
 
@@ -268,6 +302,14 @@ public class MethodsApiController implements MethodsApi {
             null,
             postMethodRequest.getMethodUrl(),
             cbasContextConfig.getWorkspaceId());
+
+    //    GithubMethodSourceDetails sourceDetails =
+    //        new GithubMethodSourceDetails()
+    //            .methodId(methodId)
+    //            .path(getGithubUrlPath(postMethodRequest.getMethodUrl()))
+    //            .organization(getGithubOrg(postMethodRequest.getMethodUrl()))
+    //            .repository(getGithubRepository(postMethodRequest.getMethodUrl()))
+    //            ._private(isMethodPrivate(postMethodRequest.getMethodUrl()));
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());
@@ -451,7 +493,8 @@ public class MethodsApiController implements MethodsApi {
     }
   }
 
-  private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
+  private MethodDetails methodToMethodDetails(
+      Method method, boolean includeVersions, boolean includeSourceDetails) {
 
     List<MethodVersionDetails> versions =
         includeVersions
@@ -460,6 +503,9 @@ public class MethodsApiController implements MethodsApi {
                 .toList()
             : null;
 
+    GithubMethodSourceDetails sourceDetails =
+        includeSourceDetails ? methodDao.getMethodSourceDetails(method.methodId()) : null;
+
     return new MethodDetails()
         .methodId(method.methodId())
         .name(method.name())
@@ -467,7 +513,8 @@ public class MethodsApiController implements MethodsApi {
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
-        .methodVersions(versions);
+        .methodVersions(versions)
+        .sourceDetails(sourceDetails);
   }
 
   private static MethodVersionDetails methodVersionToMethodVersionDetails(
@@ -482,8 +529,11 @@ public class MethodsApiController implements MethodsApi {
         .url(methodVersion.url());
   }
 
-  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
+  private MethodDetails methodVersionToMethodDetails(
+      MethodVersion methodVersion, Boolean includeSourceDetails) {
     Method method = methodVersion.method();
+    GithubMethodSourceDetails sourceDetails =
+        includeSourceDetails ? methodDao.getMethodSourceDetails(method.methodId()) : null;
     return new MethodDetails()
         .methodId(method.methodId())
         .name(method.name())
@@ -491,7 +541,8 @@ public class MethodsApiController implements MethodsApi {
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
-        .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)));
+        .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)))
+        .sourceDetails(sourceDetails);
   }
 
   private static MethodLastRunDetails initializeLastRunDetails(UUID lastRunSetId) {
