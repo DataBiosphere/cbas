@@ -176,5 +176,5 @@ jobs:
 
     steps:
       - name: Fire off tag-and-publish workflow
-        uses: ./.github/workflows/tag-and-publish.yml
+        uses: ./.github/workflows/tag-and-publish.yml@iv-fix-tag-and-publish
         secrets: inherit
