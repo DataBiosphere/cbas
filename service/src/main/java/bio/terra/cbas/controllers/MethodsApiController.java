@@ -35,7 +35,6 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -47,7 +46,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -187,15 +185,14 @@ public class MethodsApiController implements MethodsApi {
       UUID runSetId = UUID.randomUUID();
       GithubMethodSourceDetails githubMethodSourceDetails = new GithubMethodSourceDetails();
 
-      if (Objects.equals(methodSource, "GitHub")) {
-        GithubUrlDetailsManager.GithubUrlComponents manager = githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
-        githubMethodSourceDetails
-            .methodId(methodId)
-            .path(manager.getPath())
-            .organization(manager.getOrganization())
-            .repository(manager.getRepository())
-            ._private(isPrivate);
-      }
+      GithubUrlDetailsManager.GithubUrlComponents githubUrlComponents =
+          githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
+      githubMethodSourceDetails
+          .methodId(methodId)
+          .path(githubUrlComponents.getPath())
+          .organization(githubUrlComponents.getOrganization())
+          .repository(githubUrlComponents.getRepository())
+          ._private(isPrivate);
 
       createNewMethod(
           methodId,
@@ -252,13 +249,6 @@ public class MethodsApiController implements MethodsApi {
               .toList();
     }
 
-    GithubUrlDetailsManager.GithubUrlComponents manager =
-        githubUrlDetailsManager.extractDetailsFromUrl(
-            "raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl");
-
-    System.out.println(manager.getOrganization());
-    System.out.println(manager.getPath());
-    System.out.println(manager.getRepository());
     addLastRunDetails(methodDetails);
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
@@ -270,7 +260,7 @@ public class MethodsApiController implements MethodsApi {
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
-      GithubMethodSourceDetails methodSourceDetails)
+      GithubMethodSourceDetails githubMethodSourceDetails)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
 
@@ -303,13 +293,13 @@ public class MethodsApiController implements MethodsApi {
             postMethodRequest.getMethodUrl(),
             cbasContextConfig.getWorkspaceId());
 
-    //    GithubMethodSourceDetails sourceDetails =
-    //        new GithubMethodSourceDetails()
-    //            .methodId(methodId)
-    //            .path(getGithubUrlPath(postMethodRequest.getMethodUrl()))
-    //            .organization(getGithubOrg(postMethodRequest.getMethodUrl()))
-    //            .repository(getGithubRepository(postMethodRequest.getMethodUrl()))
-    //            ._private(isMethodPrivate(postMethodRequest.getMethodUrl()));
+    GithubMethodSourceDetails sourceDetails =
+        new GithubMethodSourceDetails()
+            .methodId(methodId)
+            .path(githubMethodSourceDetails.getPath())
+            .organization(githubMethodSourceDetails.getOrganization())
+            .repository(githubMethodSourceDetails.getRepository())
+            ._private(githubMethodSourceDetails.isPrivate());
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());
@@ -335,6 +325,7 @@ public class MethodsApiController implements MethodsApi {
             cbasContextConfig.getWorkspaceId());
 
     methodDao.createMethod(method);
+    methodDao.createGithubMethodSourceDetails(githubMethodSourceDetails);
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(templateRunSet);
   }

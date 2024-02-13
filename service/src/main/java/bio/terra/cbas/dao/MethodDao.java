@@ -115,6 +115,13 @@ public class MethodDao {
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
+  public int createGithubMethodSourceDetails(GithubMethodSourceDetails details) {
+    return jdbcTemplate.update(
+        "insert into github_method_details (repository, organization, path, private, method_id) "
+            + "values (:repository, :organization, :path, :private, :methodId)",
+        new BeanPropertySqlParameterSource(details));
+  }
+
   public GithubMethodSourceDetails getMethodSourceDetails(UUID methodId) {
     String sql =
         "SELECT * FROM github_method_details WHERE github_method_details.method_id = :methodId";
