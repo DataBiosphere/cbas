@@ -21,24 +21,10 @@ env:
   GOOGLE_PROJECT: broad-dsp-gcr-public
 
 jobs:
-  ctx-job:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name:
-        run:
-          echo "github.head_ref"
-          echo ${{ github.head_ref }}
-          echo "github.ref"
-          echo ${{ github.ref }}
-          echo ${{ github.event_name }}
-
   tag-job:
+    if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
     uses: ./.github/workflows/tag.yml
     with:
-      # The 'ref' parameter ensures that the provider version is postfixed with the HEAD commit of the PR branch,
-      # facilitating cross-referencing of a pact between Pact Broker and GitHub.
-      ref: ${{ github.head_ref || '' }}
       dry-run: true
       release-branches: main
     secrets: inherit
