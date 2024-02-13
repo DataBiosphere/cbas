@@ -36,7 +36,7 @@ class TestRetryConfig {
   }
 
   @Test
-  void returnsFalse() {
+  void returnsFalseForUnretryableException() {
     Exception nestedException =
         new LeonardoServiceApiException(
             new ApiException(new InternalServerErrorException("mock internal server error")));
