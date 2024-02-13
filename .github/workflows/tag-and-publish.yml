@@ -31,6 +31,7 @@ jobs:
           echo ${{ github.head_ref }}
           echo "github.ref"
           echo ${{ github.ref }}
+          echo ${{ github.event }}
 
   tag-job:
     uses: ./.github/workflows/tag.yml
