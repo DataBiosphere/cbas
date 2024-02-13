@@ -142,6 +142,8 @@ jobs:
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
           echo "github.ref"
           echo ${{ github.ref }}
+          echo "github.head_ref"
+          echo ${{ github.head_ref }}
       - name: Launch the background process for integration tests
         run: ./gradlew --build-cache bootRun | tee bootrun.log &
 
@@ -172,7 +174,7 @@ jobs:
           event-name: ${{ github.event_name }}
 
   tag-and-publish:
-    if: success() && needs.bump-check.outputs.is-bump == 'no' && github.ref == 'refs/heads/iv-fix-tag-and-publish'
+    if: success() && needs.bump-check.outputs.is-bump == 'no'
     uses: ./.github/workflows/tag-and-publish.yml
     needs: [ build, unit-tests-and-sonarqube, integration-tests, bump-check ]
     secrets: inherit
