@@ -172,5 +172,5 @@ jobs:
   tag-and-publish:
     if: success() && needs.bump-check.outputs.is-bump == 'no' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/tag-and-publish.yml
-    needs: [ build, unit-tests-and-sonarqube, integration-test, bump-check ]
+    needs: [ build, unit-tests-and-sonarqube, integration-tests, bump-check ]
     secrets: inherit
