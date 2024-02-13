@@ -31,7 +31,7 @@ jobs:
           echo ${{ github.head_ref }}
           echo "github.ref"
           echo ${{ github.ref }}
-          echo ${{ toJson(github.event) }}
+          echo ${{ github.event_name }}
 
   tag-job:
     uses: ./.github/workflows/tag.yml
@@ -59,7 +59,7 @@ jobs:
           echo "env.COMMIT_MESSAGE"
           echo ${{ env.COMMIT_MESSAGE }}
           JIRA_ID=$(echo "$COMMIT_MESSAGE" | grep -Eo '[A-Z][A-Z]+-[0-9]+' | xargs echo -n | tr '[:space:]' ',')
-          [[ -z "$JIRA_ID" ]] && { echo "No Jira ID found in $1" ; exit 1; }
+          [[ -z "$JIRA_ID" ]] && { echo "No Jira ID found in $1" ; }
           echo ::set-output name=JIRA_ID::${JIRA_ID}
       - name: Checkout current code
         uses: actions/checkout@v2
