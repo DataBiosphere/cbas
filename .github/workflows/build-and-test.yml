@@ -170,11 +170,7 @@ jobs:
           event-name: ${{ github.event_name }}
 
   tag-and-publish:
-    needs: [ build, unit-tests-and-sonarqube, integration-test, bump-check ]
-    runs-on: ubuntu-latest
     if: success() && needs.bump-check.outputs.is-bump == 'no' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Fire off tag-and-publish workflow
-        uses: ./.github/workflows/tag-and-publish.yml@iv-fix-tag-and-publish
-        secrets: inherit
+    uses: ./.github/workflows/tag-and-publish.yml@iv-fix-tag-and-publish
+    needs: [ build, unit-tests-and-sonarqube, integration-test, bump-check ]
+    secrets: inherit
