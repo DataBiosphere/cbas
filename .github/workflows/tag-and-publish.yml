@@ -25,7 +25,6 @@ jobs:
     if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
     uses: ./.github/workflows/tag.yml
     with:
-      dry-run: true
       release-branches: main
     secrets: inherit
 
@@ -70,3 +69,107 @@ jobs:
           echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ needs.tag-job.outputs.tag }}
           echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ needs.tag-job.outputs.tag }}
 
+      - name: Build image locally with jib
+        run: |
+          ./gradlew --build-cache :service:jibDockerBuild \
+          --image=${{ steps.image-name.outputs.DOCKERHUB_NAME }} \
+          -Djib.console=plain
+
+      - name: Run Trivy vulnerability scanner
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.DOCKERHUB_NAME }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: dsdejenkins
+          password: ${{ secrets.DSDEJENKINS_DOCKERHUB_PASSWORD }}
+
+      - name: Push dockerhub image
+        run: docker push ${{ steps.image-name.outputs.DOCKERHUB_NAME }}
+
+      - name: Re-tag image for GCR
+        run: docker tag ${{ steps.image-name.outputs.DOCKERHUB_NAME }} ${{ steps.image-name.outputs.GCR_NAME }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v0
+
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v0'
+        with:
+          # Centralized in dsp-tools-k8s; ask in #dsp-devops-champions for help troubleshooting
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'gcr-publish@broad-dsp-gcr-public.iam.gserviceaccount.com'
+
+      - name: Explicitly auth Docker for GCR
+        run: gcloud auth configure-docker --quiet
+
+      - name: Push GCR image
+        run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
+
+      - name: Clone Cromwhelm
+        uses: actions/checkout@v2
+        with:
+          repository: broadinstitute/cromwhelm
+          token: ${{ secrets.BROADBOT_TOKEN }} # Has to be set at checkout AND later when pushing to work
+          path: cromwhelm
+
+      - name: Update CBAS Helm Chart in cromwhelm
+        env:
+          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+        run: |
+          set -e
+          cd cromwhelm
+          git checkout main
+          ls -la
+          HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
+          # prefixing search and replacement text with 'cbas' is needed to avoid replacing tag for cbas-ui
+          # when both cbas and cbas-ui have the same image version
+          sed -i "s/cbas:$HELM_CUR_TAG/cbas:$HELM_NEW_TAG/" terra-batch-libchart/values.yaml
+          git diff
+          git config --global user.name "broadbot"
+          git config --global user.email "broadbot@broadinstitute.org"
+          git commit -am "${{ steps.ensure-jira-id.outputs.JIRA_ID }}: Auto update CBAS version to $HELM_NEW_TAG"
+          git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
+          cd -
+
+      - name: Clone terra-helmfile
+        uses: actions/checkout@v3
+        with:
+          repository: broadinstitute/terra-helmfile
+          token: ${{ secrets.BROADBOT_TOKEN }} # Has to be set at checkout AND later when pushing to work
+          path: terra-helmfile
+
+      - name: Update workflows-app in terra-helmfile
+        run: |
+          set -e
+          cd terra-helmfile
+          HELM_CUR_TAG=$(grep "/cbas:" charts/workflows-app/values.yaml | sed "s,.*/cbas:,,")
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
+          sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" charts/workflows-app/values.yaml
+          cd -
+
+      - name: Make PR in terra-helmfile
+        env:
+          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          GH_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+        run: |
+          set -e
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          JIRA_ID=${{ steps.ensure-jira-id.outputs.JIRA_ID }}
+          if [[ $JIRA_ID == "missing" ]]; then
+            echo "JIRA_ID missing, PR to terra-helmfile will not be created"
+            exit 0;
+          fi
+          cd terra-helmfile
+          git checkout -b ${JIRA_ID}-cbas-update-${HELM_NEW_TAG}
+          git config --global user.name "broadbot"
+          git config --global user.email "broadbot@broadinstitute.org"
+          git commit -am "${JIRA_ID}: Auto update CBAS to $HELM_NEW_TAG in workflows-app"
+          git push -u origin ${JIRA_ID}-cbas-update-${HELM_NEW_TAG}
+          gh pr create --title "${JIRA_ID}: auto update CBAS version to $HELM_NEW_TAG in workflows-app" --body "${JIRA_ID} helm chart update" --label "automerge"
+          cd -
