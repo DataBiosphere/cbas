@@ -4,9 +4,16 @@ name: Tag and publish
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore: [ '*.md' ]
+  workflow_call:
+    secrets:
+      BROADBOT_TOKEN:
+        required: true
+      ARTIFACTORY_USERNAME:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
+      DSDEJENKINS_DOCKERHUB_PASSWORD:
+        required: true
 
 env:
   SERVICE_NAME: cbas

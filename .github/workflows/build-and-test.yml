@@ -156,3 +156,25 @@ jobs:
           fi
       - name: Run the integration test suite
         run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
+
+  bump-check:
+    runs-on: ubuntu-latest
+    outputs:
+      is-bump: ${{ steps.skiptest.outputs.is-bump }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Skip version bump merges
+        id: skiptest
+        uses: ./.github/actions/bump-skip
+        with:
+          event-name: ${{ github.event_name }}
+
+  tag-and-publish:
+    needs: [ build, unit-tests-and-sonarqube, integration-test, bump-check ]
+    runs-on: ubuntu-latest
+    if: success() && needs.bump-check.outputs.is-bump == 'no' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Fire off tag-and-publish workflow
+        uses: ./.github/workflows/tag-and-publish.yml
+        secrets: inherit
