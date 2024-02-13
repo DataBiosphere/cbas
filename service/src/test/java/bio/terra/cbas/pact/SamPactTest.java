@@ -47,7 +47,7 @@ class SamPactTest {
     samService = new SamService(samClient, new BearerToken("accessToken"));
   }
 
-  @Pact(consumer = "cbas", provider = "sam-provider")
+  @Pact(consumer = "cbas", provider = "sam")
   RequestResponsePact statusApiPact(PactDslWithProvider builder) {
     return builder
         .given("Sam is ok")
@@ -60,7 +60,7 @@ class SamPactTest {
         .toPact();
   }
 
-  @Pact(consumer = "cbas", provider = "sam-provider")
+  @Pact(consumer = "cbas", provider = "sam")
   RequestResponsePact writePermissionPact(PactDslWithProvider builder) {
     return builder
         .given("user has write permission", Map.of("dummyResourceId", dummyWorkspaceId))
@@ -76,7 +76,7 @@ class SamPactTest {
         .toPact();
   }
 
-  @Pact(consumer = "cbas", provider = "sam-provider")
+  @Pact(consumer = "cbas", provider = "sam")
   RequestResponsePact userStatusPact(PactDslWithProvider builder) {
     var userResponseShape =
         new PactDslJsonBody()

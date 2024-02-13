@@ -133,6 +133,7 @@ public class RunsApiController implements RunsApi {
     RunCompletionResult result =
         runCompletionHandler.updateResults(
             runRecord.get(), resultsStatus, body.getOutputs(), failures);
+
     micrometerMetrics.logRunCompletion("callback", resultsStatus);
     return new ResponseEntity<>(result.toHttpStatus());
   }

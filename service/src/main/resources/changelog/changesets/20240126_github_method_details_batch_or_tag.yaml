@@ -8,17 +8,17 @@ databaseChangeLog:
             columns:
               - column:
                   name: repository
-                  type: varchar(100)
+                  type: text
                   constraints:
                     nullable: false
               - column:
                   name: organization
-                  type: varchar(100)
+                  type: text
                   constraints:
                     nullable: true
               - column:
                   name: path
-                  type: varchar(1000)
+                  type: text
                   constraints:
                     nullable: false
               - column:

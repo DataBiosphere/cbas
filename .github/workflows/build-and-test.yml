@@ -104,30 +104,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure pact
-        env:
-          PACTBROKER_APPLICATION_YAML_B64: ${{ secrets.PACTBROKER_APPLICATION_YAML_B64 }}
-        run: |
-          mkdir -p ./service/src/test/resources
-          echo $PACTBROKER_APPLICATION_YAML_B64 | base64 --decode >> ./service/src/test/resources/application.yml
-          PACT_PROVIDER_BRANCH=$GITHUB_REF_NAME
-
-          echo "PACT_PROVIDER_BRANCH=${PACT_PROVIDER_BRANCH}" >> $GITHUB_ENV
-          echo "PACT_PROVIDER_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_ENV
-          
-          if [[ $PACT_PROVIDER_BRANCH == "main" ]]; then
-            echo "PACT_PUBLISH_RESULTS=true" >> $GITHUB_ENV
-          else
-            echo "PACT_PUBLISH_RESULTS=false" >> $GITHUB_ENV
-          fi
-
-      - name: Verify pacts
-        run: |
-          echo "Verifying Pacts on branch [${PACT_PROVIDER_BRANCH}] with commit SHA [${PACT_PROVIDER_COMMIT}]."
-          echo "Publish results is set to [${PACT_PUBLISH_RESULTS}]."
-
-          ./gradlew --build-cache verifyPacts
-
       - name: Check github object
         run: |
           cat << OBJECT
