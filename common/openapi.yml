@@ -621,8 +621,6 @@ components:
           items:
             $ref: '#/components/schemas/MethodOutputMapping'
           description: Output mapping configuration
-        method_source_details:
-          $ref: '#/components/schemas/GithubMethodSourceDetails'
 
     PostMethodResponse:
       type: object
@@ -663,7 +661,7 @@ components:
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
         source_details:
-          $ref: '#/components/schemas/GithubMethodSourceDetails'
+          $ref: '#/components/schemas/GithubMethodSourceDetailsResponse'
     MethodVersionDetails:
       type: object
       properties:
@@ -702,7 +700,7 @@ components:
           format: uuid
         method_version_name:
           type: string
-    GithubMethodSourceDetails:
+    GithubMethodSourceDetailsResponse:
       type: object
       properties:
         repository:

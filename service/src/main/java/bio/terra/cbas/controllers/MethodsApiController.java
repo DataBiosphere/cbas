@@ -19,7 +19,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.GithubMethodSourceDetails;
+import bio.terra.cbas.model.GithubMethodSourceDetailsResponse;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -31,6 +31,7 @@ import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodSource;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -183,16 +184,16 @@ public class MethodsApiController implements MethodsApi {
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
-      GithubMethodSourceDetails githubMethodSourceDetails = new GithubMethodSourceDetails();
 
       GithubUrlDetailsManager.GithubUrlComponents githubUrlComponents =
           githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
-      githubMethodSourceDetails
-          .methodId(methodId)
-          .path(githubUrlComponents.getPath())
-          .organization(githubUrlComponents.getOrganization())
-          .repository(githubUrlComponents.getRepository())
-          ._private(isPrivate);
+
+      String path = githubUrlComponents.getPath();
+      String repository = githubUrlComponents.getRepository();
+      String organization = githubUrlComponents.getOrganization();
+
+      GithubMethodSource githubMethodSource =
+          new GithubMethodSource(repository, organization, path, isPrivate, methodId);
 
       createNewMethod(
           methodId,
@@ -201,7 +202,7 @@ public class MethodsApiController implements MethodsApi {
           workflowDescription,
           methodInputMappings,
           methodOutputMappings,
-          githubMethodSourceDetails);
+          githubMethodSource);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
       PostMethodResponse postMethodResponse =
@@ -260,7 +261,7 @@ public class MethodsApiController implements MethodsApi {
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
-      GithubMethodSourceDetails githubMethodSourceDetails)
+      GithubMethodSource githubMethodSourceDetails)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
 
@@ -293,13 +294,13 @@ public class MethodsApiController implements MethodsApi {
             postMethodRequest.getMethodUrl(),
             cbasContextConfig.getWorkspaceId());
 
-    GithubMethodSourceDetails sourceDetails =
-        new GithubMethodSourceDetails()
-            .methodId(methodId)
-            .path(githubMethodSourceDetails.getPath())
-            .organization(githubMethodSourceDetails.getOrganization())
-            .repository(githubMethodSourceDetails.getRepository())
-            ._private(githubMethodSourceDetails.isPrivate());
+    GithubMethodSource sourceDetails =
+        new GithubMethodSource(
+            githubMethodSourceDetails.repository(),
+            githubMethodSourceDetails.organization(),
+            githubMethodSourceDetails.path(),
+            githubMethodSourceDetails._private(),
+            githubMethodSourceDetails.methodId());
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());
@@ -325,7 +326,7 @@ public class MethodsApiController implements MethodsApi {
             cbasContextConfig.getWorkspaceId());
 
     methodDao.createMethod(method);
-    methodDao.createGithubMethodSourceDetails(githubMethodSourceDetails);
+    methodDao.createGithubMethodSourceDetails(sourceDetails);
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(templateRunSet);
   }
@@ -494,8 +495,20 @@ public class MethodsApiController implements MethodsApi {
                 .toList()
             : null;
 
-    GithubMethodSourceDetails sourceDetails =
-        includeSourceDetails ? methodDao.getMethodSourceDetails(method.methodId()) : null;
+    GithubMethodSourceDetailsResponse sourceDetails;
+
+    if (includeSourceDetails) {
+      GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
+      sourceDetails =
+          new GithubMethodSourceDetailsResponse()
+              .methodId(githubMethodSource.methodId())
+              .path(githubMethodSource.path())
+              ._private(githubMethodSource._private())
+              .organization(githubMethodSource.organization())
+              .repository(githubMethodSource.repository());
+    } else {
+      sourceDetails = null;
+    }
 
     return new MethodDetails()
         .methodId(method.methodId())
@@ -523,8 +536,21 @@ public class MethodsApiController implements MethodsApi {
   private MethodDetails methodVersionToMethodDetails(
       MethodVersion methodVersion, Boolean includeSourceDetails) {
     Method method = methodVersion.method();
-    GithubMethodSourceDetails sourceDetails =
-        includeSourceDetails ? methodDao.getMethodSourceDetails(method.methodId()) : null;
+    GithubMethodSourceDetailsResponse sourceDetails;
+
+    if (includeSourceDetails) {
+      GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
+      sourceDetails =
+          new GithubMethodSourceDetailsResponse()
+              .methodId(githubMethodSource.methodId())
+              .path(githubMethodSource.path())
+              ._private(githubMethodSource._private())
+              .organization(githubMethodSource.organization())
+              .repository(githubMethodSource.repository());
+    } else {
+      sourceDetails = null;
+    }
+
     return new MethodDetails()
         .methodId(method.methodId())
         .name(method.name())
