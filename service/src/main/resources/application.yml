@@ -99,6 +99,9 @@ leonardo:
 dockstore:
   baseUri: "https://staging.dockstore.org/"
 
+github:
+  personalAccessToken: "<insert personal access token here>"
+
 credentials:
   azure:
     tokenAcquisitionTimeoutSeconds: 5
