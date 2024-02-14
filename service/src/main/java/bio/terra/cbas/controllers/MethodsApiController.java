@@ -186,7 +186,7 @@ public class MethodsApiController implements MethodsApi {
       GithubMethodSourceDetails githubMethodSourceDetails = new GithubMethodSourceDetails();
 
       GithubUrlDetailsManager.GithubUrlComponents githubUrlComponents =
-          githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
+          GithubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
       githubMethodSourceDetails
           .methodId(methodId)
           .path(githubUrlComponents.getPath())
@@ -225,23 +225,24 @@ public class MethodsApiController implements MethodsApi {
   @Override
   public ResponseEntity<MethodListResponse> getMethods(
       Boolean showVersions, UUID methodId, UUID methodVersionId, Boolean showMethodDetails) {
+
+    boolean nullSafeShowMethodDetails = showMethodDetails == null || showMethodDetails;
+
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
     List<MethodDetails> methodDetails;
-
     if (methodVersionId != null) {
       methodDetails =
           List.of(
               methodVersionToMethodDetails(
-                  methodVersionDao.getMethodVersion(methodVersionId), showMethodDetails));
+                  methodVersionDao.getMethodVersion(methodVersionId), nullSafeShowMethodDetails));
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
       boolean nullSafeShowVersions = showVersions == null || showVersions;
-      boolean nullSafeShowMethodDetails = showMethodDetails == null || showMethodDetails;
 
       methodDetails =
           methods.stream()
