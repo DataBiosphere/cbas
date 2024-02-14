@@ -25,6 +25,7 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -66,6 +67,7 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -91,6 +93,8 @@ class TestMethodsApiController {
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
     when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
+    when(methodDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
+        .thenReturn(githubMethodDetails);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
@@ -768,6 +772,29 @@ class TestMethodsApiController {
     assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
   }
 
+  @Test
+  void returnSpecificMethodWithDetails() throws Exception {
+    initMocks();
+    MvcResult result =
+        mockMvc
+            .perform(
+                get(API)
+                    .param("method_id", previouslyRunMethod2.methodId().toString())
+                    .param("method_details", "true"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    var parsedResponse =
+        objectMapper.readValue(result.getResponse().getContentAsString(), MethodListResponse.class);
+
+    assertEquals(1, parsedResponse.getMethods().size());
+    MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
+
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
+    assertEquals(
+        previouslyRunMethod2.methodId(), actualResponseForMethod2.getSourceDetails().getMethodId());
+  }
+
   private static final Method neverRunMethod1 =
       new Method(
           UUID.randomUUID(),
@@ -810,7 +837,6 @@ class TestMethodsApiController {
       "https://github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
   private static final String validDockstoreWorkflow =
       "github.com/broadinstitute/cromwell/hello.wdl";
-
   private static final Method previouslyRunMethod2 =
       new Method(
           UUID.randomUUID(),
@@ -820,7 +846,13 @@ class TestMethodsApiController {
           method2RunSet2Id,
           "method 2 source",
           workspaceId);
-
+  private static final GithubMethodSource githubMethodDetails =
+      new GithubMethodSource(
+          "cromwell",
+          "broadinstitute",
+          "/blob/path/azure/file.sh",
+          false,
+          previouslyRunMethod2.methodId());
   private static final UUID method2Version1VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version1 =
       new MethodVersion(

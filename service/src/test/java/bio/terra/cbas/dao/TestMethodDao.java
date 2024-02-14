@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
+import bio.terra.cbas.models.GithubMethodSource;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
@@ -50,20 +51,27 @@ class TestMethodDao {
           methodSource,
           workspaceId);
 
+  GithubMethodSource details =
+      new GithubMethodSource("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
+
   @BeforeAll
   void setUp() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int recordsCreated2 = methodDao.createMethod(method2);
+    int githubMethodDetails = methodDao.createGithubMethodSourceDetails(details);
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, recordsCreated2);
+    assertEquals(1, githubMethodDetails);
   }
 
   @AfterAll
   void cleanUp() {
+    int detailsDeleted = methodDao.deleteMethodSourceDetails(methodId1);
     int recordsDeleted1 = methodDao.deleteMethod(methodId1);
     int recordsDeleted2 = methodDao.deleteMethod(methodId2);
 
+    assertEquals(1, detailsDeleted);
     assertEquals(1, recordsDeleted1);
     assertEquals(1, recordsDeleted2);
   }
@@ -95,5 +103,15 @@ class TestMethodDao {
     // ensure that methods are listed in desc order of creation
     assertEquals(method2.methodId(), allMethods.get(0).methodId());
     assertEquals(method1.methodId(), allMethods.get(1).methodId());
+  }
+
+  @Test
+  void retrievesGithubMethodDetails() {
+    GithubMethodSource methodDetails = methodDao.getMethodSourceDetails(methodId1);
+    assertEquals(methodId1, methodDetails.methodId());
+    assertEquals("cromwell", methodDetails.repository());
+    assertEquals("cbas/dao/test.py", methodDetails.path());
+    assertEquals("broadinstitute", methodDetails.organization());
+    assertEquals(true, methodDetails._private());
   }
 }
