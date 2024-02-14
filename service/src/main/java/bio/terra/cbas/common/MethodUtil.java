@@ -59,10 +59,6 @@ public final class MethodUtil {
     throw new UnknownMethodSourceException(methodSource);
   }
 
-  public static Boolean verifyIfPrivate(String methodUrl) {
-    return false;
-  }
-
   public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
       throws URISyntaxException {
 
