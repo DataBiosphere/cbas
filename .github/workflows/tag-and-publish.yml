@@ -4,9 +4,16 @@ name: Tag and publish
 # For future functionality like 'publish to Artifactory', 'push to GCR', ..., see the data catalog version of this file.
 
 on:
-  push:
-    branches: [ main ]
-    paths-ignore: [ '*.md' ]
+  workflow_call:
+    secrets:
+      BROADBOT_TOKEN:
+        required: true
+      ARTIFACTORY_USERNAME:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
+      DSDEJENKINS_DOCKERHUB_PASSWORD:
+        required: true
 
 env:
   SERVICE_NAME: cbas
@@ -15,15 +22,15 @@ env:
 
 jobs:
   tag-job:
+    if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
     uses: ./.github/workflows/tag.yml
     with:
-      # The 'ref' parameter ensures that the provider version is postfixed with the HEAD commit of the PR branch,
-      # facilitating cross-referencing of a pact between Pact Broker and GitHub.
-      ref: ${{ github.head_ref || '' }}
+      release-branches: main
     secrets: inherit
 
   publish-job:
     needs: [ tag-job ]
+    if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -59,8 +66,8 @@ jobs:
       - name: Construct dockerhub and GCR image names
         id: image-name
         run: |
-          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ needs.tag-job.outputs.tag }}
-          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ needs.tag-job.outputs.tag }}
+          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ needs.tag-job.outputs.new-tag }}
+          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ needs.tag-job.outputs.new-tag }}
 
       - name: Build image locally with jib
         run: |
@@ -117,7 +124,7 @@ jobs:
           git checkout main
           ls -la
           HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.new-tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
           # prefixing search and replacement text with 'cbas' is needed to avoid replacing tag for cbas-ui
           # when both cbas and cbas-ui have the same image version
@@ -141,7 +148,7 @@ jobs:
           set -e
           cd terra-helmfile
           HELM_CUR_TAG=$(grep "/cbas:" charts/workflows-app/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.new-tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
           sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" charts/workflows-app/values.yaml
           cd -
@@ -152,7 +159,7 @@ jobs:
           GH_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
         run: |
           set -e
-          HELM_NEW_TAG=${{ needs.tag-job.outputs.tag }}
+          HELM_NEW_TAG=${{ needs.tag-job.outputs.new-tag }}
           JIRA_ID=${{ steps.ensure-jira-id.outputs.JIRA_ID }}
           if [[ $JIRA_ID == "missing" ]]; then
             echo "JIRA_ID missing, PR to terra-helmfile will not be created"
