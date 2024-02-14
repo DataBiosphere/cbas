@@ -44,8 +44,8 @@ Here's the process we follow to maintain versioning consistency.
 
   * `build-and-test.yml` to run unit or integration tests
   * `consumer-contract-tests.yml` to publish `CBAS` pact to Pact Broker
-  * `verify_consumer_pacts.yml` to verify all consumers dependent on cbas and publish the results to Pact Broker
-  * `tag-and-publish.yml` to dispatch the new tag along with publishing cbas images to artifactory and dockerhub
+  * `verify_consumer_pacts.yml` to verify all consumers dependent on `CBAS` and publish the results to Pact Broker
+  * `tag-and-publish.yml` to dispatch the new tag along with publishing `CBAS` images to artifactory and dockerhub
   * Both `CBAS` pact and provider verification results will be published to Pact Broker with the new tag
   * The new tag is going to be the next GitHub release tag over the release tag right before merge and does not carry the 7-digit commit hash
   * The new tag is applied consistently across all artifacts to be published during merge.
