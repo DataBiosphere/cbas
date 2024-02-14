@@ -25,6 +25,7 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -60,6 +61,7 @@ class TestMethodsApiController {
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private SamService samService;
+  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):

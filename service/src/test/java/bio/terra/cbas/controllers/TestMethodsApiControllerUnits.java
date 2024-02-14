@@ -15,6 +15,7 @@ import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -41,6 +42,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private SamService samService;
+  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -168,7 +170,8 @@ class TestMethodsApiControllerUnits {
             methodVersionDao,
             runSetDao,
             objectMapper,
-            cbasContextConfiguration);
+            cbasContextConfiguration,
+            githubUrlDetailsManager);
   }
 
   @Test
