@@ -48,6 +48,6 @@ Here's the process we follow to maintain versioning consistency.
   * `tag-and-publish.yml` to dispatch the new tag along with publishing cbas images to artifactory and dockerhub
   * Both `CBAS` pact and provider verification results will be published to Pact Broker with the new tag
   * The new tag is going to be the next GitHub release tag over the release tag right before merge and does not carry the 7-digit commit hash
-  * All artifacts will use the new tag consistently when publishing during merge.
+  * The new tag is applied consistently across all artifacts to be published during merge.
   * In addition, the `bumptagbot` will bypass `tag-and-publish.yml` so tagging won't happen again right after merge
 
