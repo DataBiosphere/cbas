@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class GithubUrlDetailsManager {
 
-  public GithubUrlComponents extractDetailsFromUrl(String url) {
+  public static GithubUrlComponents extractDetailsFromUrl(String url) {
     GithubUrlComponents githubUrlComponents = new GithubUrlComponents();
 
     // Get locations of slashes
