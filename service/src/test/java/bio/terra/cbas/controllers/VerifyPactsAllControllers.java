@@ -146,7 +146,7 @@ class VerifyPactsAllControllers {
     context.setTarget(new MockMvcTestTarget(mockMvc));
   }
 
-  @State({"user has read permission"})
+  @State({"user has read permission noop"})
   public void setReadPermission() throws Exception {
     when(samService.hasReadPermission()).thenReturn(true);
   }
