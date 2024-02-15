@@ -2,6 +2,7 @@ package bio.terra.cbas.config;
 
 import bio.terra.cbas.retry.RetryLoggingListener;
 import java.net.SocketTimeoutException;
+import java.util.List;
 import javax.ws.rs.ProcessingException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,8 @@ import org.springframework.retry.support.RetryTemplate;
 @EnableRetry
 @Configuration
 public class RetryConfig {
+  protected final List<Class<? extends Throwable>> retryableExceptions =
+      List.of(ProcessingException.class, SocketTimeoutException.class);
 
   @Bean(name = "listenerResetRetryTemplate")
   public RetryTemplate listenerResetRetryTemplate() {
@@ -32,8 +35,7 @@ public class RetryConfig {
     ExceptionClassifierRetryPolicy ecrp = new ExceptionClassifierRetryPolicy();
     ecrp.setExceptionClassifier(
         exception -> {
-          if (exception instanceof ProcessingException
-              || exception instanceof SocketTimeoutException) {
+          if (isCausedBy(exception, retryableExceptions)) {
             return srp;
           } else {
             return new NeverRetryPolicy();
@@ -46,5 +48,17 @@ public class RetryConfig {
     retryTemplate.setListeners(new RetryListener[] {new RetryLoggingListener()});
 
     return retryTemplate;
+  }
+
+  // Recursive method to determine whether an Exception passed is, or has a cause, that is a
+  // subclass or implementation of the Throwable(s) provided.
+  public boolean isCausedBy(Throwable caught, List<Class<? extends Throwable>> isOfOrCausedByList) {
+    if (caught == null) {
+      return false;
+    } else if (isOfOrCausedByList.stream().anyMatch(e -> e.isAssignableFrom(caught.getClass()))) {
+      return true;
+    } else {
+      return isCausedBy(caught.getCause(), isOfOrCausedByList);
+    }
   }
 }
