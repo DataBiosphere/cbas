@@ -62,7 +62,7 @@ jobs:
           echo ${{ steps.dispatch-tag.outputs.new_tag }}
       - name: Build code
         run: |
-          ./gradlew --build-cache assembly
+          ./gradlew --build-cache assemble
       - name: Publish to Artifactory
         if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
         run: ./gradlew --build-cache :client:artifactoryPublish
