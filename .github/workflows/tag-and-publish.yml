@@ -42,11 +42,14 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }} # this allows the push to succeed later
       - id: dispatch-tag
         name: Dispatch tag
-        uses: ./.github/workflows/tag.yml
-        with:
-          release-branches: main
-        secrets:
-          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          DEFAULT_BUMP: patch
+          DRY_RUN: true
+          RELEASE_BRANCHES: main
+          VERSION_FILE_PATH: settings.gradle
+          VERSION_LINE_MATCH: "^\\s*gradle.ext.releaseVersion\\s*=\\s*'.*'"
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
