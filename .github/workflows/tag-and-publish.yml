@@ -45,7 +45,8 @@ jobs:
         uses: ./.github/workflows/tag.yml
         with:
           release-branches: main
-        secrets: inherit
+        secrets:
+          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
