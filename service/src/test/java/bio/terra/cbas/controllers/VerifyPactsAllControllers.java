@@ -39,6 +39,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowIdAndStatus;
@@ -99,6 +100,7 @@ class VerifyPactsAllControllers {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
+  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
