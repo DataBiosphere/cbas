@@ -1,23 +1,24 @@
 package bio.terra.cbas.util.methods;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GithubUrlDetailsManager {
 
-  public GithubUrlComponents extractDetailsFromUrl(String url) {
+  public GithubUrlComponents extractDetailsFromUrl(String url) throws URISyntaxException {
     GithubUrlComponents githubUrlComponents = new GithubUrlComponents();
 
-    // Get locations of slashes
-    int firstSlash = url.indexOf("/");
-    int secondSlash = url.indexOf("/", firstSlash + 1);
-    int thirdSlash = url.indexOf("/", secondSlash + 1);
-    int fourthSlash = url.indexOf("/", thirdSlash + 1);
+    URI uri = new URI(url);
+    String[] parts = uri.getPath().split("/");
+    String[] gitHubPathParts = Arrays.stream(parts).skip(4).toArray(String[]::new);
 
-    githubUrlComponents.setOrganization(url.substring(firstSlash + 1, secondSlash));
-    githubUrlComponents.setRepository(url.substring(secondSlash + 1, thirdSlash));
-    githubUrlComponents.setBranchOrTag(url.substring(thirdSlash + 1, fourthSlash));
-    githubUrlComponents.setPath(url.substring(fourthSlash + 1));
+    githubUrlComponents.setOrganization(parts[1]);
+    githubUrlComponents.setRepository(parts[2]);
+    githubUrlComponents.setBranchOrTag(parts[3]);
+    githubUrlComponents.setPath(String.join("/", gitHubPathParts));
 
     return githubUrlComponents;
   }
@@ -30,6 +31,26 @@ public class GithubUrlDetailsManager {
 
     public String getPath() {
       return path;
+    }
+
+    public GithubUrlComponents path(String path) {
+      this.path = path;
+      return this;
+    }
+
+    public GithubUrlComponents repository(String repository) {
+      this.repository = repository;
+      return this;
+    }
+
+    public GithubUrlComponents branchOrTag(String branchOrTag) {
+      this.branchOrTag = branchOrTag;
+      return this;
+    }
+
+    public GithubUrlComponents organization(String organization) {
+      this.organization = organization;
+      return this;
     }
 
     public String getRepository() {

@@ -209,7 +209,10 @@ public class MethodsApiController implements MethodsApi {
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch (ApiException | JsonProcessingException | WomtoolValueTypeNotFoundException e) {
+    } catch (ApiException
+        | JsonProcessingException
+        | WomtoolValueTypeNotFoundException
+        | URISyntaxException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",
