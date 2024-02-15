@@ -95,6 +95,8 @@ class TestMethodsApiController {
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
     when(methodDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
         .thenReturn(githubMethodDetails);
+    when(methodDao.getMethodSourceDetails(neverRunMethod1.methodId()))
+        .thenReturn(githubMethodDetails);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
@@ -212,7 +214,9 @@ class TestMethodsApiController {
     MvcResult result =
         mockMvc
             .perform(
-                get(API).param("method_version_id", method2Version1.methodVersionId().toString()))
+                get(API)
+                    .param("method_version_id", method2Version1.methodVersionId().toString())
+                    .param("method_details", String.valueOf(false)))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -408,6 +412,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
+    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -460,6 +465,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
+    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -493,6 +499,7 @@ class TestMethodsApiController {
         .thenReturn(mockToolDescriptor);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
+    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -572,6 +579,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
+    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -853,6 +861,7 @@ class TestMethodsApiController {
           "/blob/path/azure/file.sh",
           false,
           previouslyRunMethod2.methodId());
+
   private static final UUID method2Version1VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version1 =
       new MethodVersion(
@@ -932,7 +941,6 @@ class TestMethodsApiController {
           .methodVersionName(method2Version2Runset.methodVersion().name())
           .methodVersionId(method2Version2Runset.getMethodVersionId())
           .runSetId(method2Version2Runset.runSetId());
-
   private final String postRequestTemplate =
       """
       {
@@ -1002,4 +1010,11 @@ class TestMethodsApiController {
 
   private static final WorkflowDescription workflowDescForInvalidWorkflow =
       new WorkflowDescription().valid(false).errors(List.of("Workflow invalid for test purposes"));
+
+  private static final GithubUrlDetailsManager.GithubUrlComponents urlComponents =
+      new GithubUrlDetailsManager.GithubUrlComponents()
+          .branchOrTag("develop")
+          .repository("cromwell")
+          .path("centaur/src/main/resources/standardTestCases/hello/hello.wdl")
+          .organization("broadinstitute");
 }
