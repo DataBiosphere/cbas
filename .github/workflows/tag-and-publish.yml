@@ -59,7 +59,7 @@ jobs:
 
       - name: Print tag
         run: |
-          echo ${{ steps.dispatch-tag.outputs.new-tag }}
+          echo ${{ steps.dispatch-tag.outputs.new_tag }}
       - name: Publish to Artifactory
         if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
         run: ./gradlew --build-cache :client:artifactoryPublish
@@ -72,8 +72,8 @@ jobs:
         if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
         id: image-name
         run: |
-          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.dispatch-tag.outputs.new-tag }}
-          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.dispatch-tag.outputs.new-tag }}
+          echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.dispatch-tag.outputs.new_tag }}
+          echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.dispatch-tag.outputs.new_tag }}
 
       - name: Build image locally with jib
         if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
@@ -141,7 +141,7 @@ jobs:
           git checkout main
           ls -la
           HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new-tag }}
+          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new_tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
           # prefixing search and replacement text with 'cbas' is needed to avoid replacing tag for cbas-ui
           # when both cbas and cbas-ui have the same image version
@@ -167,7 +167,7 @@ jobs:
           set -e
           cd terra-helmfile
           HELM_CUR_TAG=$(grep "/cbas:" charts/workflows-app/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new-tag }}
+          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new_tag }}
           [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
           sed -i "s/$HELM_CUR_TAG/$HELM_NEW_TAG/" charts/workflows-app/values.yaml
           cd -
@@ -179,7 +179,7 @@ jobs:
           GH_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
         run: |
           set -e
-          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new-tag }}
+          HELM_NEW_TAG=${{ steps.dispatch-tag.outputs.new_tag }}
           JIRA_ID=${{ steps.ensure-jira-id.outputs.JIRA_ID }}
           if [[ $JIRA_ID == "missing" ]]; then
             echo "JIRA_ID missing, PR to terra-helmfile will not be created"
