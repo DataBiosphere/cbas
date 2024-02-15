@@ -60,16 +60,12 @@ jobs:
       - name: Print tag
         run: |
           echo ${{ steps.dispatch-tag.outputs.new_tag }}
-      - name: Build code
-        run: |
-          ./gradlew --build-cache assemble
       - name: Publish to Artifactory
-        if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
         run: ./gradlew --build-cache :client:artifactoryPublish
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_REPO_KEY: "libs-release-local"
+          ARTIFACTORY_REPO_KEY: "libs-snapshot-local"
 
       - name: Construct dockerhub and GCR image names
         if: ${{ (github.event_name == 'push') && (github.ref == 'refs/heads/main') }}
