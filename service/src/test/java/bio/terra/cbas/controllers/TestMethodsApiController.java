@@ -216,7 +216,7 @@ class TestMethodsApiController {
             .perform(
                 get(API)
                     .param("method_version_id", method2Version1.methodVersionId().toString())
-                    .param("method_details", String.valueOf(false)))
+                    .param("method_details", "false"))
             .andExpect(status().isOk())
             .andReturn();
 
