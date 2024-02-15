@@ -541,7 +541,7 @@ public class MethodsApiController implements MethodsApi {
     Method method = methodVersion.method();
     GithubMethodSourceDetailsResponse sourceDetails;
 
-    if (includeSourceDetails) {
+    if (includeSourceDetails != null) {
       GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
       sourceDetails =
           new GithubMethodSourceDetailsResponse()
