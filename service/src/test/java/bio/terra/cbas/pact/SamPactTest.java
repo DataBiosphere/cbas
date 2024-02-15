@@ -64,7 +64,7 @@ class SamPactTest {
   RequestResponsePact writePermissionPact(PactDslWithProvider builder) {
     return builder
         .given("user has write permission", Map.of("dummyResourceId", dummyWorkspaceId))
-        .uponReceiving("a request for write permission on workspace noop test")
+        .uponReceiving("a request for write permission on workspace")
         .pathFromProviderState(
             "/api/resources/v2/workspace/${dummyResourceId}/action/write",
             String.format("/api/resources/v2/workspace/%s/action/write", dummyWorkspaceId))
