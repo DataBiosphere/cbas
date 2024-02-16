@@ -191,6 +191,14 @@ class VerifyPactsAllControllers {
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
             workspaceId);
 
+    // Arrange url components
+    GithubUrlDetailsManager.GithubUrlComponents urlComponents =
+        new GithubUrlDetailsManager.GithubUrlComponents()
+            .branchOrTag("develop")
+            .repository("cromwell")
+            .path("centaur/src/main/resources/standardTestCases/hello/hello.wdl")
+            .organization("broadinstitute");
+
     // Arrange DAO responses
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
     when(runSetDao.createRunSet(any())).thenReturn(1);
@@ -202,6 +210,7 @@ class VerifyPactsAllControllers {
     // for POST /method endpoint
     when(methodDao.createMethod(any())).thenReturn(1);
     when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
+    when(githubUrlDetailsManager.extractDetailsFromUrl(any())).thenReturn(urlComponents);
   }
 
   @State({"cromwell initialized"})
