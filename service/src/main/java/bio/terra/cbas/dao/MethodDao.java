@@ -8,6 +8,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -94,6 +95,20 @@ public class MethodDao {
             Map.of(
                 "run_set_id", runSet.runSetId(),
                 "method_id", runSet.methodVersion().method().methodId())));
+  }
+
+  public int updateOriginalWorkspaceId(UUID methodId, UUID originalWorkspaceId) {
+    String updateClause =
+        "UPDATE method SET %s = :method_original_workspace_id"
+            .formatted(Method.ORIGINAL_WORKSPACE_ID_COL);
+
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
+            Map.of("method_id", methodId, "method_original_workspace_id", originalWorkspaceId));
+
+    String sql = updateClause + " WHERE %s = :method_id".formatted(Method.METHOD_ID_COL);
+
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
   public int countMethods(String methodName, String methodVersion) {

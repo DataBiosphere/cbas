@@ -43,4 +43,8 @@ public record RunSet(
   public UUID getMethodVersionId() {
     return methodVersion.methodVersionId();
   }
+
+  public UUID getOriginalWorkspaceId() {
+    return originalWorkspaceId;
+  }
 }
