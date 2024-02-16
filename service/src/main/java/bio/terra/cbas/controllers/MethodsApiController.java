@@ -191,6 +191,7 @@ public class MethodsApiController implements MethodsApi {
       String path = githubUrlComponents.getPath();
       String repository = githubUrlComponents.getRepository();
       String organization = githubUrlComponents.getOrganization();
+      String branchOrTagName = githubUrlComponents.getBranchOrTag();
 
       GithubMethodSource githubMethodSource =
           new GithubMethodSource(repository, organization, path, isPrivate, methodId);
@@ -202,7 +203,8 @@ public class MethodsApiController implements MethodsApi {
           workflowDescription,
           methodInputMappings,
           methodOutputMappings,
-          githubMethodSource);
+          githubMethodSource,
+          branchOrTagName);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
       PostMethodResponse postMethodResponse =
@@ -264,7 +266,8 @@ public class MethodsApiController implements MethodsApi {
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
-      GithubMethodSource githubMethodSourceDetails)
+      GithubMethodSource githubMethodSourceDetails,
+      String branchOrTagName)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
 
@@ -295,7 +298,8 @@ public class MethodsApiController implements MethodsApi {
             DateUtils.currentTimeInUTC(),
             null,
             postMethodRequest.getMethodUrl(),
-            cbasContextConfig.getWorkspaceId());
+            cbasContextConfig.getWorkspaceId(),
+            branchOrTagName);
 
     GithubMethodSource sourceDetails =
         new GithubMethodSource(
@@ -533,7 +537,8 @@ public class MethodsApiController implements MethodsApi {
         .description(methodVersion.description())
         .created(DateUtils.convertToDate(methodVersion.created()))
         .lastRun(initializeLastRunDetails(methodVersion.lastRunSetId()))
-        .url(methodVersion.url());
+        .url(methodVersion.url())
+        .branchOrTagName(methodVersion.branchOrTagName());
   }
 
   private MethodDetails methodVersionToMethodDetails(

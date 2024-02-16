@@ -189,7 +189,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             fixedLastRunSetUUIDForMethod,
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            workspaceId);
+            workspaceId,
+            "develop");
 
     // Arrange url components
     GithubUrlDetailsManager.GithubUrlComponents urlComponents =
@@ -265,7 +266,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             UUID.randomUUID(),
             "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            workspaceId);
+            workspaceId,
+            "develop");
 
     RunSet targetRunSet =
         new RunSet(

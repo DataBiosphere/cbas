@@ -32,6 +32,7 @@ class TestMethodVersionDao {
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
 
   UUID workspaceId = UUID.randomUUID();
+  String branch = "develop";
 
   Method method =
       new Method(
@@ -51,7 +52,8 @@ class TestMethodVersionDao {
           DateUtils.currentTimeInUTC(),
           null,
           methodUrl,
-          workspaceId);
+          workspaceId,
+          branch);
 
   @BeforeAll
   void setUp() {
@@ -79,6 +81,7 @@ class TestMethodVersionDao {
     assertEquals(methodVersionName, actual.name());
     assertEquals(methodDesc, actual.description());
     assertEquals(methodUrl, actual.url());
+    assertEquals(branch, actual.branchOrTagName());
     assertNull(actual.lastRunSetId());
   }
 
@@ -92,6 +95,7 @@ class TestMethodVersionDao {
     assertEquals(methodVersionName, actual.get(0).name());
     assertEquals(methodDesc, actual.get(0).description());
     assertEquals(methodUrl, actual.get(0).url());
+    assertEquals(branch, actual.get(0).branchOrTagName());
     assertNull(actual.get(0).lastRunSetId());
   }
 }

@@ -234,6 +234,7 @@ class TestMethodsApiController {
     assertEquals(method2Version1.description(), actualVersionDetails.getDescription());
     assertTrue(actualVersionDetails.getLastRun().isPreviouslyRun());
     assertEquals(method2Version1Runset.runSetId(), actualVersionDetails.getLastRun().getRunSetId());
+    assertEquals("develop", actualVersionDetails.getBranchOrTagName());
   }
 
   @Test
@@ -441,6 +442,7 @@ class TestMethodsApiController {
     assertEquals("test method description", newMethodVersionCaptor.getValue().description());
     assertEquals(validRawWorkflow, newMethodVersionCaptor.getValue().url());
     assertNull(newMethodVersionCaptor.getValue().lastRunSetId());
+    assertEquals("develop", newMethodVersionCaptor.getValue().branchOrTagName());
 
     UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
@@ -822,7 +824,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "file://method1/v1.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final MethodVersion method1Version2 =
       new MethodVersion(
@@ -833,7 +836,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "file://method1/v2.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
@@ -872,7 +876,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet1Id,
           "file://method2/v1.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final UUID method2Version2VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version2 =
@@ -884,7 +889,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet2Id,
           "file://method2/v2.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final RunSet method2Version1Runset =
       new RunSet(

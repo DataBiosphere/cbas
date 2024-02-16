@@ -681,6 +681,8 @@ components:
         url:
           type: string
           format: uri
+        branch_or_tag_name:
+          type: string
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
     MethodLastRunDetails:

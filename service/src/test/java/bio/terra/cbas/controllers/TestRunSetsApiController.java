@@ -300,7 +300,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 null,
                 workflowUrl,
-                workspaceId));
+                workspaceId,
+                "test_branch"));
 
     when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
         .thenReturn(
@@ -319,7 +320,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 null,
                 dockstoreWorkflowUrl,
-                workspaceId));
+                workspaceId,
+                "develop"));
 
     // Set up API responses
     when(wdsService.getRecord(recordType, recordId1))
@@ -856,7 +858,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
                 "method url",
-                workspaceId),
+                workspaceId,
+                "develop"),
             "",
             "",
             false,
@@ -891,7 +894,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
                 "method url",
-                workspaceId),
+                workspaceId,
+                "develop"),
             "",
             "",
             false,
@@ -966,7 +970,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
                 "method url",
-                workspaceId),
+                workspaceId,
+                "test_branch"),
             "",
             "",
             false,
@@ -1048,7 +1053,8 @@ class TestRunSetsApiController {
                 OffsetDateTime.now(),
                 UUID.randomUUID(),
                 "method url",
-                workspaceId),
+                workspaceId,
+                "0.0.15"),
             "",
             "",
             false,
