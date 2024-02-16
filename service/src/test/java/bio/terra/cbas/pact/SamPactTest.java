@@ -80,8 +80,8 @@ class SamPactTest {
   RequestResponsePact userStatusPact(PactDslWithProvider builder) {
     var userResponseShape =
         new PactDslJsonBody()
-            .stringValue("userSubjectId", "testUser")
-            .stringValue("userEmail", "test@test.com")
+            .stringType("userSubjectId")
+            .stringType("userEmail")
             .booleanValue("enabled", true);
     return builder
         .given("user status info request with access token")
