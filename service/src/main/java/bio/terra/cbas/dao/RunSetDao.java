@@ -126,6 +126,20 @@ public class RunSetDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
+  public int updateOriginalWorkspaceId(UUID runSetId, UUID originalWorkspaceId) {
+    String updateClause =
+        "UPDATE run_set SET %s = :run_set_original_workspace_id"
+            .formatted(RunSet.ORIGINAL_WORKSPACE_ID_COL);
+
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
+            Map.of("run_set_id", runSetId, "run_set_original_workspace_id", originalWorkspaceId));
+
+    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
+
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
+  }
+
   public int deleteRunSets(UUID runSetId) {
     return jdbcTemplate.update(
         "DELETE FROM run_set WHERE run_set_id = :run_set_id",
