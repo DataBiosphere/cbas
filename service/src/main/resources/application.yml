@@ -41,6 +41,7 @@ cbas:
   context:
     # Should match wds.instanceId and sam.workspaceId:
     workspaceId: "00000000-0000-0000-0000-000000000000"
+    workspaceCreatedDate: "2024-02-16T14:13:02.500743Z"  # TODO: Should get this from Leo
   cbas-database:
     uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
     password: ${DATABASE_USER_PASSWORD:cbas_password}
@@ -86,6 +87,9 @@ wds:
   instanceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   apiV: "v0.2"
   debugApiLogging: false
+
+wsm:
+  apiV: "v0.2"
 
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
