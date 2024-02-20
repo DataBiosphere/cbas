@@ -65,6 +65,7 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
+
   public MethodsApiController(
       CromwellService cromwellService,
       DockstoreService dockstoreService,
