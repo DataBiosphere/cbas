@@ -71,7 +71,7 @@ paths:
           schema:
             type: boolean
           description: >
-            When specified, toggles on or off the details for each method.
+            When specified, toggles on or off the details for each method. Defaults to true.
           required: false
       responses:
         '200':
@@ -711,7 +711,7 @@ components:
           type: string
         path:
           type: string
-        private:
+        isPrivate:
           type: boolean
         method_id:
           type: string

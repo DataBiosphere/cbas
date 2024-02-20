@@ -4,11 +4,13 @@ import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodS
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import bio.terra.dockstore.model.ToolDescriptor;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -59,5 +61,20 @@ public final class MethodUtil {
 
   public static Boolean verifyIfPrivate(String methodUrl) {
     return false;
+  }
+
+  public static GithubUrlComponents extractGithubDetailsFromUrl(String url) throws URISyntaxException {
+    GithubUrlComponents githubUrlComponents = new GithubUrlComponents();
+
+    URI uri = new URI(url);
+    String[] parts = uri.getPath().split("/");
+    String[] gitHubPathParts = Arrays.stream(parts).skip(4).toArray(String[]::new);
+
+    githubUrlComponents.setOrganization(parts[1]);
+    githubUrlComponents.setRepository(parts[2]);
+    githubUrlComponents.setBranchOrTag(parts[3]);
+    githubUrlComponents.setPath(String.join("/", gitHubPathParts));
+
+    return githubUrlComponents;
   }
 }

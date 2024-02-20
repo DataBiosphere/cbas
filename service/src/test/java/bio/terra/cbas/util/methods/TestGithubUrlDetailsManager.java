@@ -1,13 +1,13 @@
 package bio.terra.cbas.util.methods;
 
+import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 
 import java.net.URISyntaxException;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.ContextConfiguration;
 
-@WebMvcTest
 @ContextConfiguration(classes = {GithubUrlDetailsManager.class})
 class TestGithubUrlDetailsManager {
 
@@ -18,12 +18,8 @@ class TestGithubUrlDetailsManager {
     String httpsGithubRawUrl =
         "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl";
 
-    GithubUrlDetailsManager detailsManager = new GithubUrlDetailsManager();
-
-    GithubUrlDetailsManager.GithubUrlComponents urlComponents =
-        detailsManager.extractDetailsFromUrl(githubRawUrl);
-    GithubUrlDetailsManager.GithubUrlComponents urlComponents2 =
-        detailsManager.extractDetailsFromUrl(httpsGithubRawUrl);
+    GithubUrlComponents urlComponents = extractGithubDetailsFromUrl(githubRawUrl);
+    GithubUrlComponents urlComponents2 = extractGithubDetailsFromUrl(httpsGithubRawUrl);
 
     assertEquals("broadinstitute", urlComponents.getOrganization());
     assertEquals("broadinstitute", urlComponents2.getOrganization());

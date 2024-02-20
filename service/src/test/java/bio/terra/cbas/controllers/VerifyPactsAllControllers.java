@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -211,7 +212,7 @@ class VerifyPactsAllControllers {
     // for POST /method endpoint
     when(methodDao.createMethod(any())).thenReturn(1);
     when(methodVersionDao.createMethodVersion(any())).thenReturn(1);
-    when(githubUrlDetailsManager.extractDetailsFromUrl(any())).thenReturn(urlComponents);
+    when(extractGithubDetailsFromUrl(any())).thenReturn(urlComponents);
   }
 
   @State({"cromwell initialized"})

@@ -35,7 +35,7 @@ import bio.terra.cbas.models.GithubMethodSource;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -65,8 +65,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
-  private final GithubUrlDetailsManager githubUrlDetailsManager;
-
   public MethodsApiController(
       CromwellService cromwellService,
       DockstoreService dockstoreService,
@@ -75,8 +73,7 @@ public class MethodsApiController implements MethodsApi {
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfig,
-      GithubUrlDetailsManager githubUrlDetailsManager) {
+      CbasContextConfiguration cbasContextConfig) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.samService = samService;
@@ -85,7 +82,6 @@ public class MethodsApiController implements MethodsApi {
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
-    this.githubUrlDetailsManager = githubUrlDetailsManager;
   }
 
   private final ObjectMapper objectMapper;
@@ -185,8 +181,7 @@ public class MethodsApiController implements MethodsApi {
       UUID methodId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
 
-      GithubUrlDetailsManager.GithubUrlComponents githubUrlComponents =
-          githubUrlDetailsManager.extractDetailsFromUrl(rawMethodUrl);
+      GithubUrlComponents githubUrlComponents = MethodUtil.extractGithubDetailsFromUrl(rawMethodUrl);
 
       String path = githubUrlComponents.getPath();
       String repository = githubUrlComponents.getRepository();
@@ -493,7 +488,7 @@ public class MethodsApiController implements MethodsApi {
   }
 
   private MethodDetails methodToMethodDetails(
-      Method method, boolean includeVersions, boolean includeSourceDetails) {
+      Method method, boolean includeVersions, Boolean includeSourceDetails) {
 
     List<MethodVersionDetails> versions =
         includeVersions
@@ -504,13 +499,13 @@ public class MethodsApiController implements MethodsApi {
 
     GithubMethodSourceDetailsResponse sourceDetails;
 
-    if (includeSourceDetails) {
+    if (includeSourceDetails != null ) {
       GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
       sourceDetails =
           new GithubMethodSourceDetailsResponse()
               .methodId(githubMethodSource.methodId())
               .path(githubMethodSource.path())
-              ._private(githubMethodSource._private())
+              .isPrivate(githubMethodSource._private())
               .organization(githubMethodSource.organization())
               .repository(githubMethodSource.repository());
     } else {
@@ -552,7 +547,7 @@ public class MethodsApiController implements MethodsApi {
           new GithubMethodSourceDetailsResponse()
               .methodId(githubMethodSource.methodId())
               .path(githubMethodSource.path())
-              ._private(githubMethodSource._private())
+              .isPrivate(githubMethodSource._private())
               .organization(githubMethodSource.organization())
               .repository(githubMethodSource.repository());
     } else {

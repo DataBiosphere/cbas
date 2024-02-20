@@ -1,5 +1,6 @@
 package bio.terra.cbas.controllers;
 
+import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -413,7 +414,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
+    when(extractGithubDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -467,7 +468,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
+    when(extractGithubDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -501,7 +502,7 @@ class TestMethodsApiController {
         .thenReturn(mockToolDescriptor);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
+    when(extractGithubDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
@@ -581,7 +582,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(githubUrlDetailsManager.extractDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
+    when(extractGithubDetailsFromUrl(validRawWorkflow)).thenReturn(urlComponents);
 
     MvcResult response =
         mockMvc
