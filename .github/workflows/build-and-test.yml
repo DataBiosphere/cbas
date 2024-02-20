@@ -171,7 +171,7 @@ jobs:
           event-name: ${{ github.event_name }}
 
   tag-and-publish:
-    if: success() && needs.bump-check.outputs.is-bump == 'no' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && needs.bump-check.outputs.is-bump == 'no' && github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/tag-and-publish.yml
     needs: [ build, unit-tests-and-sonarqube, integration-tests, bump-check ]
     secrets: inherit
