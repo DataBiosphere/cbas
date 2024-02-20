@@ -63,7 +63,8 @@ public final class MethodUtil {
     return false;
   }
 
-  public static GithubUrlComponents extractGithubDetailsFromUrl(String url) throws URISyntaxException {
+  public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
+      throws URISyntaxException {
     GithubUrlComponents githubUrlComponents = new GithubUrlComponents();
 
     URI uri = new URI(url);

@@ -15,7 +15,6 @@ import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -49,7 +48,6 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
-  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   String workflowDescriptionString =
       """
@@ -170,8 +168,7 @@ class TestMethodsApiControllerUnits {
             methodVersionDao,
             runSetDao,
             objectMapper,
-            cbasContextConfiguration,
-            githubUrlDetailsManager);
+            cbasContextConfiguration);
   }
 
   @Test

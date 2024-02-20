@@ -2,9 +2,13 @@ package bio.terra.cbas.util.methods;
 
 import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 
+import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -13,24 +17,37 @@ class TestGithubUrlDetailsManager {
 
   @Test
   void returnsExpectedUrlComponents() throws URISyntaxException {
-    String githubRawUrl =
-        "raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl";
-    String httpsGithubRawUrl =
-        "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl";
+    List<Map<String, String>> githubMethods = new ArrayList<>();
+    Map<String, String> source1 = new HashMap<>();
+    Map<String, String> source2 = new HashMap<>();
 
-    GithubUrlComponents urlComponents = extractGithubDetailsFromUrl(githubRawUrl);
-    GithubUrlComponents urlComponents2 = extractGithubDetailsFromUrl(httpsGithubRawUrl);
+    source1.put("org", "broadinstitute");
+    source1.put("repo", "cromwell");
+    source1.put("branchOrTag", "develop");
+    source1.put("path", "wdl/transforms/draft3/src/test/cases/simple_task.wdl");
+    source1.put(
+        "url",
+        "raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl");
 
-    assertEquals("broadinstitute", urlComponents.getOrganization());
-    assertEquals("broadinstitute", urlComponents2.getOrganization());
+    source2.put("org", "broadinstitute");
+    source2.put("repo", "cromwell");
+    source2.put("branchOrTag", "develop");
+    source2.put("path", "wdl/transforms/draft3/src/test/cases/simple_task.wdl");
+    source2.put(
+        "url",
+        "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl");
 
-    assertEquals("cromwell", urlComponents.getRepository());
-    assertEquals("cromwell", urlComponents2.getRepository());
+    githubMethods.add(source1);
+    githubMethods.add(source2);
 
-    assertEquals("develop", urlComponents.getBranchOrTag());
-    assertEquals("develop", urlComponents2.getBranchOrTag());
+    for (Map<String, String> method : githubMethods) {
+      GithubUrlComponents urlComponents = extractGithubDetailsFromUrl(method.get("url"));
+      assertEquals(method.get("org"), urlComponents.getOrganization());
+      assertEquals(method.get("repo"), urlComponents.getRepository());
+      assertEquals(method.get("branchOrTag"), urlComponents.getBranchOrTag());
+      assertEquals(method.get("path"), urlComponents.getPath());
+    }
 
-    assertEquals("wdl/transforms/draft3/src/test/cases/simple_task.wdl", urlComponents.getPath());
-    assertEquals("wdl/transforms/draft3/src/test/cases/simple_task.wdl", urlComponents2.getPath());
+    githubMethods.clear();
   }
 }

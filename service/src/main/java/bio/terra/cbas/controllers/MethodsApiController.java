@@ -181,7 +181,8 @@ public class MethodsApiController implements MethodsApi {
       UUID methodId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
 
-      GithubUrlComponents githubUrlComponents = MethodUtil.extractGithubDetailsFromUrl(rawMethodUrl);
+      GithubUrlComponents githubUrlComponents =
+          MethodUtil.extractGithubDetailsFromUrl(rawMethodUrl);
 
       String path = githubUrlComponents.getPath();
       String repository = githubUrlComponents.getRepository();
@@ -499,7 +500,7 @@ public class MethodsApiController implements MethodsApi {
 
     GithubMethodSourceDetailsResponse sourceDetails;
 
-    if (includeSourceDetails != null ) {
+    if (includeSourceDetails != null) {
       GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
       sourceDetails =
           new GithubMethodSourceDetailsResponse()
