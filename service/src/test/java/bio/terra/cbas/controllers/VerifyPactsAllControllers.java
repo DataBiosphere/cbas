@@ -1,6 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -40,7 +39,6 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.util.UuidSource;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowIdAndStatus;
