@@ -48,15 +48,15 @@ public class GithubUrlDetailsManager {
       GithubUrlComponents.path = path;
     }
 
-    public void setRepository(String repo) {
+    public static void setRepository(String repo) {
       repository = repo;
     }
 
-    public void setOrganization(String org) {
+    public static void setOrganization(String org) {
       organization = org;
     }
 
-    public void setBranchOrTag(String name) {
+    public static void setBranchOrTag(String name) {
       branchOrTag = name;
     }
   }
