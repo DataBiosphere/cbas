@@ -68,7 +68,6 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
-  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -141,6 +140,9 @@ class TestMethodsApiController {
 
     assertFalse(actualResponseForMethod1.getLastRun().isPreviouslyRun());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+
+    assertFalse(actualResponseForMethod1.isIsPrivate());
+    assertFalse(actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -164,6 +166,9 @@ class TestMethodsApiController {
 
     assertFalse(actualResponseForMethod1.getLastRun().isPreviouslyRun());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+
+    assertFalse(actualResponseForMethod1.isIsPrivate());
+    assertFalse(actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -184,6 +189,7 @@ class TestMethodsApiController {
     assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(2, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+    assertEquals(githubMethodDetails._private(), actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -215,9 +221,7 @@ class TestMethodsApiController {
     MvcResult result =
         mockMvc
             .perform(
-                get(API)
-                    .param("method_version_id", method2Version1.methodVersionId().toString())
-                    .param("method_details", "false"))
+                get(API).param("method_version_id", method2Version1.methodVersionId().toString()))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -788,10 +792,7 @@ class TestMethodsApiController {
     initMocks();
     MvcResult result =
         mockMvc
-            .perform(
-                get(API)
-                    .param("method_id", previouslyRunMethod2.methodId().toString())
-                    .param("method_details", "true"))
+            .perform(get(API).param("method_id", previouslyRunMethod2.methodId().toString()))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -802,8 +803,7 @@ class TestMethodsApiController {
     MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
 
     assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
-    assertEquals(
-        previouslyRunMethod2.methodId(), actualResponseForMethod2.getSourceDetails().getMethodId());
+    assertEquals(false, actualResponseForMethod2.isIsPrivate());
   }
 
   private static final Method neverRunMethod1 =
