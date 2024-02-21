@@ -42,10 +42,10 @@ class TestGithubUrlDetailsManager {
 
     for (Map<String, String> method : githubMethods) {
       GithubUrlComponents urlComponents = extractGithubDetailsFromUrl(method.get("url"));
-      assertEquals(method.get("org"), urlComponents.getOrganization());
-      assertEquals(method.get("repo"), urlComponents.getRepository());
-      assertEquals(method.get("branchOrTag"), urlComponents.getBranchOrTag());
-      assertEquals(method.get("path"), urlComponents.getPath());
+      assertEquals(method.get("org"), urlComponents.org());
+      assertEquals(method.get("repo"), urlComponents.repo());
+      assertEquals(method.get("branchOrTag"), urlComponents.branchOrTag());
+      assertEquals(method.get("path"), urlComponents.path());
     }
 
     githubMethods.clear();

@@ -25,7 +25,6 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -1012,11 +1011,4 @@ class TestMethodsApiController {
 
   private static final WorkflowDescription workflowDescForInvalidWorkflow =
       new WorkflowDescription().valid(false).errors(List.of("Workflow invalid for test purposes"));
-
-  private static final GithubUrlDetailsManager.GithubUrlComponents urlComponents =
-      new GithubUrlDetailsManager.GithubUrlComponents()
-          .branchOrTag("develop")
-          .repository("cromwell")
-          .path("centaur/src/main/resources/standardTestCases/hello/hello.wdl")
-          .organization("broadinstitute");
 }

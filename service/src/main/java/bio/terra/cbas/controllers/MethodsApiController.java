@@ -184,10 +184,10 @@ public class MethodsApiController implements MethodsApi {
       GithubUrlComponents githubUrlComponents =
           MethodUtil.extractGithubDetailsFromUrl(rawMethodUrl);
 
-      String path = githubUrlComponents.getPath();
-      String repository = githubUrlComponents.getRepository();
-      String organization = githubUrlComponents.getOrganization();
-      String branchOrTagName = githubUrlComponents.getBranchOrTag();
+      String path = githubUrlComponents.path();
+      String repository = githubUrlComponents.repo();
+      String organization = githubUrlComponents.org();
+      String branchOrTagName = githubUrlComponents.branchOrTag();
 
       GithubMethodSource githubMethodSource =
           new GithubMethodSource(repository, organization, path, isPrivate, methodId);
