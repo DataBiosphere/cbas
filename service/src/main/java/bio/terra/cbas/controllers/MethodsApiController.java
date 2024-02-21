@@ -19,7 +19,6 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.GithubMethodSourceDetailsResponse;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -227,7 +226,7 @@ public class MethodsApiController implements MethodsApi {
 
   @Override
   public ResponseEntity<MethodListResponse> getMethods(
-      Boolean showVersions, UUID methodId, UUID methodVersionId, Boolean showMethodDetails) {
+      Boolean showVersions, UUID methodId, UUID methodVersionId) {
     // check if current user has read permissions on the workspace
     if (!samService.hasReadPermission()) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
@@ -237,19 +236,14 @@ public class MethodsApiController implements MethodsApi {
 
     if (methodVersionId != null) {
       methodDetails =
-          List.of(
-              methodVersionToMethodDetails(
-                  methodVersionDao.getMethodVersion(methodVersionId), showMethodDetails));
+          List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
       boolean nullSafeShowVersions = showVersions == null || showVersions;
-      boolean nullSafeShowMethodDetails = showMethodDetails == null || showMethodDetails;
 
       methodDetails =
-          methods.stream()
-              .map(m -> methodToMethodDetails(m, nullSafeShowVersions, nullSafeShowMethodDetails))
-              .toList();
+          methods.stream().map(m -> methodToMethodDetails(m, nullSafeShowVersions)).toList();
     }
 
     addLastRunDetails(methodDetails);
@@ -489,8 +483,9 @@ public class MethodsApiController implements MethodsApi {
     }
   }
 
-  private MethodDetails methodToMethodDetails(
-      Method method, boolean includeVersions, Boolean includeSourceDetails) {
+  private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
+
+    Boolean isMethodPrivate = methodDao.getMethodSourceDetails(method.methodId())._private();
 
     List<MethodVersionDetails> versions =
         includeVersions
@@ -498,21 +493,6 @@ public class MethodsApiController implements MethodsApi {
                 .map(MethodsApiController::methodVersionToMethodVersionDetails)
                 .toList()
             : null;
-
-    GithubMethodSourceDetailsResponse sourceDetails;
-
-    if (includeSourceDetails != null) {
-      GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
-      sourceDetails =
-          new GithubMethodSourceDetailsResponse()
-              .methodId(githubMethodSource.methodId())
-              .path(githubMethodSource.path())
-              .isPrivate(githubMethodSource._private())
-              .organization(githubMethodSource.organization())
-              .repository(githubMethodSource.repository());
-    } else {
-      sourceDetails = null;
-    }
 
     return new MethodDetails()
         .methodId(method.methodId())
@@ -522,7 +502,7 @@ public class MethodsApiController implements MethodsApi {
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(versions)
-        .sourceDetails(sourceDetails);
+        .isPrivate(isMethodPrivate);
   }
 
   private static MethodVersionDetails methodVersionToMethodVersionDetails(
@@ -538,23 +518,9 @@ public class MethodsApiController implements MethodsApi {
         .branchOrTagName(methodVersion.branchOrTagName());
   }
 
-  private MethodDetails methodVersionToMethodDetails(
-      MethodVersion methodVersion, Boolean includeSourceDetails) {
+  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
     Method method = methodVersion.method();
-    GithubMethodSourceDetailsResponse sourceDetails;
-
-    if (includeSourceDetails != null) {
-      GithubMethodSource githubMethodSource = methodDao.getMethodSourceDetails(method.methodId());
-      sourceDetails =
-          new GithubMethodSourceDetailsResponse()
-              .methodId(githubMethodSource.methodId())
-              .path(githubMethodSource.path())
-              .isPrivate(githubMethodSource._private())
-              .organization(githubMethodSource.organization())
-              .repository(githubMethodSource.repository());
-    } else {
-      sourceDetails = null;
-    }
+    Boolean isMethodPrivate = methodDao.getMethodSourceDetails(method.methodId())._private();
 
     return new MethodDetails()
         .methodId(method.methodId())
@@ -564,7 +530,7 @@ public class MethodsApiController implements MethodsApi {
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)))
-        .sourceDetails(sourceDetails);
+        .isPrivate(isMethodPrivate);
   }
 
   private static MethodLastRunDetails initializeLastRunDetails(UUID lastRunSetId) {
