@@ -70,14 +70,6 @@ public final class MethodUtil {
     String[] parts = uri.getPath().split("/");
     String[] gitHubPathParts = Arrays.stream(parts).skip(4).toArray(String[]::new);
 
-    GithubUrlComponents githubUrlComponents =
-        new GithubUrlComponents(String.join("/", gitHubPathParts), parts[2], parts[1], parts[3]);
-
-    //    githubUrlComponents.setOrganization(parts[1]);
-    //    githubUrlComponents.setRepository(parts[2]);
-    //    githubUrlComponents.setBranchOrTag(parts[3]);
-    //    githubUrlComponents.setPath(String.join("/", gitHubPathParts));
-
-    return githubUrlComponents;
+    return new GithubUrlComponents(String.join("/", gitHubPathParts), parts[2], parts[1], parts[3]);
   }
 }
