@@ -30,11 +30,11 @@ import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.GithubMethodSource;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
+import bio.terra.cbas.util.methods.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
@@ -189,8 +189,8 @@ public class MethodsApiController implements MethodsApi {
       String organization = githubUrlComponents.org();
       String branchOrTagName = githubUrlComponents.branchOrTag();
 
-      GithubMethodSource githubMethodSource =
-          new GithubMethodSource(repository, organization, path, isPrivate, methodId);
+      GithubMethodDetails githubMethodDetails =
+          new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
 
       createNewMethod(
           methodId,
@@ -199,7 +199,7 @@ public class MethodsApiController implements MethodsApi {
           workflowDescription,
           methodInputMappings,
           methodOutputMappings,
-          githubMethodSource,
+          githubMethodDetails,
           branchOrTagName);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
@@ -257,7 +257,7 @@ public class MethodsApiController implements MethodsApi {
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
-      GithubMethodSource githubMethodSourceDetails,
+      GithubMethodDetails githubMethodSourceDetails,
       String branchOrTagName)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
@@ -292,8 +292,8 @@ public class MethodsApiController implements MethodsApi {
             cbasContextConfig.getWorkspaceId(),
             branchOrTagName);
 
-    GithubMethodSource sourceDetails =
-        new GithubMethodSource(
+    GithubMethodDetails sourceDetails =
+        new GithubMethodDetails(
             githubMethodSourceDetails.repository(),
             githubMethodSourceDetails.organization(),
             githubMethodSourceDetails.path(),

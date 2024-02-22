@@ -695,20 +695,6 @@ components:
           format: uuid
         method_version_name:
           type: string
-    GithubMethodSourceDetailsResponse:
-      type: object
-      properties:
-        repository:
-          type: string
-        organization:
-          type: string
-        path:
-          type: string
-        isPrivate:
-          type: boolean
-        method_id:
-          type: string
-          format: uuid
     RunLog:
       type: object
       properties:

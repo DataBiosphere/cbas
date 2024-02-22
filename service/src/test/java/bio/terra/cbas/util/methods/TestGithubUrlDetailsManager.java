@@ -3,17 +3,14 @@ package bio.terra.cbas.util.methods;
 import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ContextConfiguration;
 
-@ContextConfiguration(classes = {GithubUrlDetailsManager.class})
-class TestGithubUrlDetailsManager {
+class TestGithubUrlComponents {
 
   @Test
   void returnsExpectedUrlComponents() throws URISyntaxException {

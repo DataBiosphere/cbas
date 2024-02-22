@@ -5,7 +5,7 @@ import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
-import bio.terra.cbas.models.GithubMethodSource;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -115,14 +115,14 @@ public class MethodDao {
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }
 
-  public int createGithubMethodSourceDetails(GithubMethodSource details) {
+  public int createGithubMethodSourceDetails(GithubMethodDetails details) {
     return jdbcTemplate.update(
         "insert into github_method_details (repository, organization, path, private, method_id) "
             + "values (:repository, :organization, :path, :_private, :methodId)",
         new BeanPropertySqlParameterSource(details));
   }
 
-  public GithubMethodSource getMethodSourceDetails(UUID methodId) {
+  public GithubMethodDetails getMethodSourceDetails(UUID methodId) {
     String sql =
         "SELECT * FROM github_method_details WHERE github_method_details.method_id = :methodId";
 

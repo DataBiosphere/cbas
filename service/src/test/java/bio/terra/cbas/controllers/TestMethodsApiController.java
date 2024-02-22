@@ -853,8 +853,8 @@ class TestMethodsApiController {
           method2RunSet2Id,
           "method 2 source",
           workspaceId);
-  private static final GithubMethodSource githubMethodDetails =
-      new GithubMethodSource(
+  private static final GithubMethodDetails githubMethodDetails =
+      new GithubMethodDetails(
           "cromwell",
           "broadinstitute",
           "/blob/path/azure/file.sh",

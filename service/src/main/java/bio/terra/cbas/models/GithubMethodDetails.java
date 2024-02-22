@@ -2,7 +2,7 @@ package bio.terra.cbas.models;
 
 import java.util.UUID;
 
-public record GithubMethodSource(
+public record GithubMethodDetails(
     String repository, String organization, String path, Boolean _private, UUID methodId) {
 
   // Corresponding table column names in database

@@ -4,7 +4,7 @@ import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodS
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
-import bio.terra.cbas.util.methods.GithubUrlDetailsManager.GithubUrlComponents;
+import bio.terra.cbas.util.methods.GithubUrlComponents;
 import bio.terra.dockstore.model.ToolDescriptor;
 import java.net.MalformedURLException;
 import java.net.URI;

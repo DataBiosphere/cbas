@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
-import bio.terra.cbas.models.GithubMethodSource;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
@@ -51,8 +51,8 @@ class TestMethodDao {
           methodSource,
           workspaceId);
 
-  GithubMethodSource details =
-      new GithubMethodSource("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
+  GithubMethodDetails details =
+      new GithubMethodDetails("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
 
   @BeforeAll
   void setUp() {
@@ -107,7 +107,7 @@ class TestMethodDao {
 
   @Test
   void retrievesGithubMethodDetails() {
-    GithubMethodSource methodDetails = methodDao.getMethodSourceDetails(methodId1);
+    GithubMethodDetails methodDetails = methodDao.getMethodSourceDetails(methodId1);
     assertEquals(methodId1, methodDetails.methodId());
     assertEquals("cromwell", methodDetails.repository());
     assertEquals("cbas/dao/test.py", methodDetails.path());
