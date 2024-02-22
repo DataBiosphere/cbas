@@ -15,6 +15,7 @@ import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -99,6 +100,7 @@ class VerifyPactsAllControllers {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
+  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
