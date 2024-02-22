@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -66,6 +67,7 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -91,9 +93,9 @@ class TestMethodsApiController {
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
     when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
-    when(methodDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
+    when(githubMethodDetailsDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
         .thenReturn(githubMethodDetails);
-    when(methodDao.getMethodSourceDetails(neverRunMethod1.methodId()))
+    when(githubMethodDetailsDao.getMethodSourceDetails(neverRunMethod1.methodId()))
         .thenReturn(githubMethodDetails);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
@@ -187,7 +189,7 @@ class TestMethodsApiController {
     assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(2, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
-    assertEquals(githubMethodDetails._private(), actualResponseForMethod2.isIsPrivate());
+    assertEquals(githubMethodDetails.isPrivate(), actualResponseForMethod2.isIsPrivate());
   }
 
   @Test

@@ -1,11 +1,9 @@
 package bio.terra.cbas.dao;
 
-import bio.terra.cbas.dao.mappers.GithubMethodSourceDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
-import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -113,27 +111,5 @@ public class MethodDao {
                 "methodVersionName", methodVersion));
 
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
-  }
-
-  public int createGithubMethodSourceDetails(GithubMethodDetails details) {
-    return jdbcTemplate.update(
-        "insert into github_method_details (repository, organization, path, private, method_id) "
-            + "values (:repository, :organization, :path, :_private, :methodId)",
-        new BeanPropertySqlParameterSource(details));
-  }
-
-  public GithubMethodDetails getMethodSourceDetails(UUID methodId) {
-    String sql =
-        "SELECT * FROM github_method_details WHERE github_method_details.method_id = :methodId";
-
-    MapSqlParameterSource params = new MapSqlParameterSource(Map.of("methodId", methodId));
-
-    return jdbcTemplate.queryForObject(sql, params, new GithubMethodSourceDetailsMapper());
-  }
-
-  public int deleteMethodSourceDetails(UUID methodId) {
-    return jdbcTemplate.update(
-        "DELETE FROM github_method_details WHERE method_id = :methodId",
-        new MapSqlParameterSource("methodId", methodId));
   }
 }

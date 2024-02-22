@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 import org.springframework.jdbc.core.RowMapper;
 
-public class GithubMethodSourceDetailsMapper implements RowMapper<GithubMethodDetails> {
+public class GithubMethodDetailsMapper implements RowMapper<GithubMethodDetails> {
 
   @Override
   public GithubMethodDetails mapRow(ResultSet rs, int rowNum) throws SQLException {
