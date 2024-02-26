@@ -1,0 +1,10 @@
+databaseChangeLog:
+  -  changeSet:
+       id:  "backfill github method details table"
+       author: sshah
+       runAlways: true #remove this before review
+       runOnChange: true #remove this before review
+       changes:
+         -  customChange:  {
+           "class": "bio.terra.cbas.util.BackfillGithubMethodDetails"
+            }

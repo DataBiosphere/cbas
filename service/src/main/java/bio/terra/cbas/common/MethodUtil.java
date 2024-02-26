@@ -4,11 +4,13 @@ import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodS
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.cbas.util.methods.GithubUrlComponents;
 import bio.terra.dockstore.model.ToolDescriptor;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.lang3.EnumUtils;
 
@@ -20,6 +22,16 @@ public final class MethodUtil {
 
   private MethodUtil() {}
 
+  public static String convertGithubToRawUrl(String originalUrl)
+      throws URISyntaxException, MalformedURLException {
+    URL url = new URI(originalUrl).toURL();
+    if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
+      return originalUrl;
+    } else {
+      return originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
+    }
+  }
+
   public static String convertToRawUrl(
       String originalUrl,
       MethodSourceEnum methodSource,
@@ -27,14 +39,7 @@ public final class MethodUtil {
       DockstoreService dockstoreService)
       throws URISyntaxException, MalformedURLException, bio.terra.dockstore.client.ApiException {
     return switch (methodSource) {
-      case GITHUB -> {
-        URL url = new URI(originalUrl).toURL();
-        if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
-          yield originalUrl;
-        } else {
-          yield originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
-        }
-      }
+      case GITHUB -> convertGithubToRawUrl(originalUrl);
       case DOCKSTORE -> {
         ToolDescriptor toolDescriptor =
             dockstoreService.descriptorGetV1(originalUrl, methodVersion);
@@ -55,5 +60,16 @@ public final class MethodUtil {
     }
 
     throw new UnknownMethodSourceException(methodSource);
+  }
+
+  // TODO: this is from Katrina's PR - remove it before review
+  public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
+      throws URISyntaxException {
+
+    URI uri = new URI(url);
+    String[] parts = uri.getPath().split("/");
+    String[] gitHubPathParts = Arrays.stream(parts).skip(4).toArray(String[]::new);
+
+    return new GithubUrlComponents(String.join("/", gitHubPathParts), parts[2], parts[1], parts[3]);
   }
 }

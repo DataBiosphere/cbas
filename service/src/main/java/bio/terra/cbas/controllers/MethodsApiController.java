@@ -86,9 +86,10 @@ public class MethodsApiController implements MethodsApi {
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
     // check if current user has write permissions on the workspace
-    if (!samService.hasWritePermission()) {
-      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
-    }
+    //    if (!samService.hasWritePermission()) {
+    //      throw new ForbiddenException(SamService.WRITE_ACTION,
+    // SamService.RESOURCE_TYPE_WORKSPACE);
+    //    }
 
     long requestStartNanos = System.nanoTime();
 

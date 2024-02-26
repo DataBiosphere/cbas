@@ -93,6 +93,9 @@ databaseChangeLog:
       file: changesets/20240126_github_method_details_batch_or_tag.yaml
       relativeToChangelogFile: true
   - include:
+      file: changesets/20240223_backfill_github_method_details.yaml
+      relativeToChangelogFile: true
+  - include:
       file: changesets/20231102_set_table_role.yaml
       relativeToChangelogFile: true
 # Reminder! (Leave 20231102_set_table_role.yaml at the end)
