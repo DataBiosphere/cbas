@@ -63,7 +63,6 @@ class TestMethodsApiController {
   @MockBean private DockstoreService dockstoreService;
   @MockBean private SamService samService;
   @MockBean private GitHubService gitHubService;
-  @MockBean private GithubUrlDetailsManager githubUrlDetailsManager;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
