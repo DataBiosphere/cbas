@@ -6,10 +6,11 @@ import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.UUID;
 import liquibase.Scope;
 import liquibase.change.custom.CustomSqlChange;
-import liquibase.change.custom.CustomTaskChange;
+import liquibase.changelog.column.LiquibaseColumn;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.CustomChangeException;
@@ -17,28 +18,24 @@ import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
 import liquibase.statement.SqlStatement;
+import liquibase.statement.core.InsertStatement;
+import liquibase.statement.core.UpdateStatement;
 
-public class BackfillGithubMethodDetails implements CustomTaskChange, CustomSqlChange {
-
-  /*
-     Backfill details to github_details tables:
-       - ✅find the methods in `method` table that have method_source=GITHUB and doesn't have corresponding rows in github_details table
-       - ✅for each of these method_id, get the method_version_url from `method_version` table (also extract the method_version_id)
-       - ✅use the `extractGithubMethodDetails` utility function to fetch the repo, organization, path (private is set to false)
-       - ✅add these details to respective tables
-       - update method_version table with branch_ot_tag_name information
-  */
+/**
+ * Custom Java class called from the liquibase changeset
+ * '20240223_backfill_github_method_details.yaml'. The purpose of this class is to backfill data for
+ * GitHub methods into 'github_method_details' table.
+ */
+public class BackfillGithubMethodDetails implements CustomSqlChange {
 
   @Override
-  public void execute(Database database) throws CustomChangeException {
-    Scope.getCurrentScope().getLog(getClass()).info("Hello World!");
-
+  public SqlStatement[] generateStatements(Database database) throws CustomChangeException {
     try {
       JdbcConnection connection = (JdbcConnection) database.getConnection();
+      ArrayList<SqlStatement> sqlStatementList = new ArrayList<>();
+      SqlStatement[] sqlStatementArray = {};
 
-      // find the methods in `method` table that have method_source=GITHUB and don't have and
-      // corresponding rows in github_details table
-
+      // find GitHub methods whose details aren't in 'github_method_details' table
       var methodIdStmt = connection.createStatement();
       ResultSet methodIdResultSet =
           methodIdStmt.executeQuery(
@@ -48,83 +45,85 @@ public class BackfillGithubMethodDetails implements CustomTaskChange, CustomSqlC
                   + "select method_id from github_method_details"
                   + ");");
 
+      // for each method, extract GitHub details using its method url and backfill that data
       while (methodIdResultSet.next()) {
-
-        // for each method, get the method_version_url from `method_version` table
 
         Scope.getCurrentScope()
             .getLog(getClass())
             .info("Found methodIdResultSet - %s".formatted(methodIdResultSet.getString(1)));
 
-        String methodUrlQuery = "select method_version_url from method_version where method_id = ?";
-        PreparedStatement methodUrlStmt = connection.prepareStatement(methodUrlQuery);
-        methodUrlStmt.setObject(1, UUID.fromString(methodIdResultSet.getString(1)));
+        // fetch method url and 'method_version_id' for the method
 
-        ResultSet methodUrlResultSet = methodUrlStmt.executeQuery();
+        String methodVersionQuery =
+            "select method_version_id, method_version_url from method_version where method_id = ?";
+        PreparedStatement methodVersionStmt = connection.prepareStatement(methodVersionQuery);
+        methodVersionStmt.setObject(1, UUID.fromString(methodIdResultSet.getString(1)));
 
-        if (methodUrlResultSet.next()) {
+        ResultSet methodVersionResultSet = methodVersionStmt.executeQuery();
 
-          // use the `extractGithubMethodDetails` utility function to fetch the repo, organization,
-          // path (private is set to false)
-          // add these details to respective tables
-
+        if (methodVersionResultSet.next()) {
           Scope.getCurrentScope()
               .getLog(getClass())
               .info(
-                  "method_version_url for method_id %s - %s"
-                      .formatted(methodIdResultSet.getString(1), methodUrlResultSet.getString(1)));
+                  "method_version_id for method_id %s - %s"
+                      .formatted(
+                          methodIdResultSet.getString(1), methodVersionResultSet.getString(1)));
 
-          String rawUrl = convertGithubToRawUrl(methodUrlResultSet.getString(1));
+          // extract GitHub details for each method
+          String rawUrl = convertGithubToRawUrl(methodVersionResultSet.getString(2));
           GithubUrlComponents githubMethodDetails = extractGithubDetailsFromUrl(rawUrl);
 
-          Scope.getCurrentScope()
-              .getLog(getClass())
-              .info(
-                  "Method details: org - %s\t repo - %s\t path - %s\t branch - %s"
-                      .formatted(
-                          githubMethodDetails.org(),
-                          githubMethodDetails.repo(),
-                          githubMethodDetails.path(),
-                          githubMethodDetails.branchOrTag()));
+          Scope.getCurrentScope().getLog(getClass()).info("Method details extracted");
 
-          String insertQuery =
-              "insert into github_method_details(repository, organization, path, private, method_id) values (?, ?, ?, false, ?)";
-          PreparedStatement insertStmt = connection.prepareStatement(insertQuery);
-          insertStmt.setString(1, githubMethodDetails.repo());
-          insertStmt.setString(2, githubMethodDetails.org());
-          insertStmt.setString(3, githubMethodDetails.path());
-          insertStmt.setObject(4, UUID.fromString(methodIdResultSet.getString(1)));
+          // create insert statement for inserting data in 'github_method_details' table
+          InsertStatement insertGithubDetailsStmt =
+              new InsertStatement(
+                      database.getLiquibaseCatalogName(),
+                      database.getLiquibaseSchemaName(),
+                      "github_method_details")
+                  .addColumnValue("repository", githubMethodDetails.repo())
+                  .addColumnValue("organization", githubMethodDetails.org())
+                  .addColumnValue("path", githubMethodDetails.path())
+                  .addColumnValue(
+                      "private",
+                      false) // this is false since all methods until now should have been public
+                  .addColumnValue("method_id", methodIdResultSet.getString(1));
 
-          int insertResultSet = insertStmt.executeUpdate();
+          // create update statement for inserting value into 'branch_or_tag_name'column in
+          // 'method_version' table
+          UpdateStatement updateBranchTagStmt =
+              new UpdateStatement(
+                      database.getLiquibaseCatalogName(),
+                      database.getLiquibaseSchemaName(),
+                      "method_version")
+                  .addNewColumnValue("branch_or_tag_name", githubMethodDetails.branchOrTag())
+                  .setWhereClause(
+                      database.escapeObjectName("method_version_id", LiquibaseColumn.class)
+                          + " = ? ")
+                  .addWhereParameters(methodVersionResultSet.getString(1));
 
-          if (insertResultSet == 1) {
-            Scope.getCurrentScope().getLog(getClass()).info("INSERT stmt execution returned 1");
-          }
+          sqlStatementList.add(insertGithubDetailsStmt);
+          sqlStatementList.add(updateBranchTagStmt);
         } else {
-          // TODO: it shouldn't happen that a method_version_url is null - what to do here?
-          Scope.getCurrentScope()
-              .getLog(getClass())
-              .info(
-                  "NO method_version_url found for method_id %s"
-                      .formatted(methodIdResultSet.getString(1)));
+          throw new Exception(
+              "No method url found for the method ID '%s'"
+                  .formatted(methodIdResultSet.getString(1)));
         }
 
-        methodUrlStmt.close();
+        methodVersionStmt.close();
       }
 
+      methodIdStmt.close();
+
+      return sqlStatementList.toArray(sqlStatementArray);
     } catch (Exception e) {
       throw new CustomChangeException(e);
     }
   }
 
   @Override
-  public SqlStatement[] generateStatements(Database database) throws CustomChangeException {
-    return new SqlStatement[0];
-  }
-
-  @Override
   public String getConfirmationMessage() {
-    return "Called getConfirmationMessage()";
+    return "Successfully back filled data (if any) to 'github_method_details' table.";
   }
 
   @Override
@@ -132,7 +131,6 @@ public class BackfillGithubMethodDetails implements CustomTaskChange, CustomSqlC
 
   @Override
   public ValidationErrors validate(Database database) {
-    Scope.getCurrentScope().getLog(getClass()).info("called validate()");
     return null;
   }
 
