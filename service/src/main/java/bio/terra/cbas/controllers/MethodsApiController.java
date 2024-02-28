@@ -269,7 +269,7 @@ public class MethodsApiController implements MethodsApi {
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
-      GithubMethodDetails githubMethodSourceDetails,
+      GithubMethodDetails githubMethodDetails,
       String branchOrTagName)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
     UUID methodVersionId = UUID.randomUUID();
@@ -329,18 +329,8 @@ public class MethodsApiController implements MethodsApi {
 
     methodDao.createMethod(method);
 
-    GithubMethodDetails sourceDetails;
-
-    if (githubMethodSourceDetails != null) {
-      sourceDetails =
-          new GithubMethodDetails(
-              githubMethodSourceDetails.repository(),
-              githubMethodSourceDetails.organization(),
-              githubMethodSourceDetails.path(),
-              githubMethodSourceDetails.isPrivate(),
-              githubMethodSourceDetails.methodId());
-
-      githubMethodDetailsDao.createGithubMethodSourceDetails(sourceDetails);
+    if (githubMethodDetails != null) {
+      githubMethodDetailsDao.createGithubMethodSourceDetails(githubMethodDetails);
     }
 
     methodVersionDao.createMethodVersion(methodVersion);
@@ -503,8 +493,14 @@ public class MethodsApiController implements MethodsApi {
 
   private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
 
-    Boolean isPrivate =
-        githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+    Boolean isMethodPrivate;
+
+    if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+      isMethodPrivate =
+          githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+    } else {
+      isMethodPrivate = null;
+    }
 
     List<MethodVersionDetails> versions =
         includeVersions
@@ -521,7 +517,7 @@ public class MethodsApiController implements MethodsApi {
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(versions)
-        .isPrivate(isPrivate);
+        .isPrivate(isMethodPrivate);
   }
 
   private static MethodVersionDetails methodVersionToMethodVersionDetails(
@@ -539,8 +535,14 @@ public class MethodsApiController implements MethodsApi {
 
   private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
     Method method = methodVersion.method();
-    Boolean isMethodPrivate =
-        githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+    Boolean isMethodPrivate;
+
+    if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+      isMethodPrivate =
+          githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+    } else {
+      isMethodPrivate = null;
+    }
 
     return new MethodDetails()
         .methodId(method.methodId())

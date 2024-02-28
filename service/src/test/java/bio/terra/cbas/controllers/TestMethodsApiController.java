@@ -802,6 +802,37 @@ class TestMethodsApiController {
     assertEquals(false, actualResponseForMethod2.isIsPrivate());
   }
 
+  @Test
+  void dontStoreMethodDetailsForDockstoreMethod() throws Exception {
+    String validWorkflowRequest =
+        postRequestTemplate.formatted("Dockstore", validDockstoreWorkflow);
+
+    ToolDescriptor mockToolDescriptor = new ToolDescriptor();
+    mockToolDescriptor.setDescriptor("mock descriptor");
+    mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
+    mockToolDescriptor.setUrl(validRawWorkflow);
+
+    initSamMocks();
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
+        .thenReturn(mockToolDescriptor);
+    when(cromwellService.describeWorkflow(validRawWorkflow))
+        .thenReturn(workflowDescForValidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(githubMethodDetailsDao.getMethodSourceDetails(postMethodResponse.getMethodId()));
+  }
+
   private static final Method neverRunMethod1 =
       new Method(
           UUID.randomUUID(),
