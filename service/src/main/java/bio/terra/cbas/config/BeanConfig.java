@@ -3,6 +3,7 @@ package bio.terra.cbas.config;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,8 +41,7 @@ public class BeanConfig {
   @Bean("bearerToken")
   @RequestScope
   public BearerToken bearerToken(HttpServletRequest request) {
-    //    return new BearerTokenFactory().from(request);
-    return new BearerToken("mock-token");
+    return new BearerTokenFactory().from(request);
   }
 
   @Bean("cromwellWriteClient")

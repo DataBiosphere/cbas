@@ -76,7 +76,7 @@ workflow-engines:
     # This value comes from the config.
     baseUri: "http://localhost:8000"
     # Set this value to false for local testing.
-    fetchCromwellUrlFromLeo: false
+    fetchCromwellUrlFromLeo: true
     # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
     debugApiLogging: false
 
@@ -104,7 +104,7 @@ credentials:
     tokenAcquisitionTimeoutSeconds: 5
     tokenCacheTtlSeconds: 300 # Refresh every 5 minutes
     # For local testing, you can supply a manual token override to avoid token acquisition logic:
-    manualTokenOverride: ""
+    # manualTokenOverride: ""
 
 terra.common:
   tracing:
