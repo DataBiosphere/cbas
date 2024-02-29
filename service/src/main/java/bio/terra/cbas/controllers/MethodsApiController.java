@@ -47,6 +47,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -495,11 +496,12 @@ public class MethodsApiController implements MethodsApi {
 
     Boolean isMethodPrivate;
 
-    if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+    if (Objects.equals(
+        method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
       isMethodPrivate =
           githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
     } else {
-      isMethodPrivate = null;
+      isMethodPrivate = false;
     }
 
     List<MethodVersionDetails> versions =
@@ -537,11 +539,12 @@ public class MethodsApiController implements MethodsApi {
     Method method = methodVersion.method();
     Boolean isMethodPrivate;
 
-    if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+    if (Objects.equals(
+        method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
       isMethodPrivate =
           githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
     } else {
-      isMethodPrivate = null;
+      isMethodPrivate = false;
     }
 
     return new MethodDetails()
