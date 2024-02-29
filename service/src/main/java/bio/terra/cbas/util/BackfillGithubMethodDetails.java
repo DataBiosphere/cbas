@@ -8,7 +8,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.UUID;
-import liquibase.Scope;
 import liquibase.change.custom.CustomSqlChange;
 import liquibase.changelog.column.LiquibaseColumn;
 import liquibase.database.Database;
@@ -47,33 +46,20 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
 
       // for each method, extract GitHub details using its method url and backfill that data
       while (methodIdResultSet.next()) {
-
-        Scope.getCurrentScope()
-            .getLog(getClass())
-            .info("Found methodIdResultSet - %s".formatted(methodIdResultSet.getString(1)));
+        String methodId = methodIdResultSet.getString(1);
 
         // fetch method url and 'method_version_id' for the method
-
         String methodVersionQuery =
             "select method_version_id, method_version_url from method_version where method_id = ?";
         PreparedStatement methodVersionStmt = connection.prepareStatement(methodVersionQuery);
-        methodVersionStmt.setObject(1, UUID.fromString(methodIdResultSet.getString(1)));
+        methodVersionStmt.setObject(1, UUID.fromString(methodId));
 
         ResultSet methodVersionResultSet = methodVersionStmt.executeQuery();
 
         if (methodVersionResultSet.next()) {
-          Scope.getCurrentScope()
-              .getLog(getClass())
-              .info(
-                  "method_version_id for method_id %s - %s"
-                      .formatted(
-                          methodIdResultSet.getString(1), methodVersionResultSet.getString(1)));
-
           // extract GitHub details for each method
           String rawUrl = convertGithubToRawUrl(methodVersionResultSet.getString(2));
           GithubUrlComponents githubMethodDetails = extractGithubDetailsFromUrl(rawUrl);
-
-          Scope.getCurrentScope().getLog(getClass()).info("Method details extracted");
 
           // create insert statement for inserting data in 'github_method_details' table
           InsertStatement insertGithubDetailsStmt =
@@ -87,7 +73,7 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
                   .addColumnValue(
                       "private",
                       false) // this is false since all methods until now should have been public
-                  .addColumnValue("method_id", methodIdResultSet.getString(1));
+                  .addColumnValue("method_id", methodId);
 
           // create update statement for inserting value into 'branch_or_tag_name'column in
           // 'method_version' table
@@ -105,9 +91,7 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
           sqlStatementList.add(insertGithubDetailsStmt);
           sqlStatementList.add(updateBranchTagStmt);
         } else {
-          throw new Exception(
-              "No method url found for the method ID '%s'"
-                  .formatted(methodIdResultSet.getString(1)));
+          throw new Exception("No method url found for the method ID '%s'".formatted(methodId));
         }
 
         methodVersionStmt.close();
