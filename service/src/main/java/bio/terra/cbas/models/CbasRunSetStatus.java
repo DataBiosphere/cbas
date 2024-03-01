@@ -50,8 +50,8 @@ public enum CbasRunSetStatus {
     return fromValue(runSetState.toString());
   }
 
-  public static RunSetState toCbasRunSetApiState(CbasRunSetStatus cbasRunSetStatus) {
-    return RunSetState.fromValue(cbasRunSetStatus.toString());
+  public RunSetState toCbasRunSetApiState() {
+    return RunSetState.fromValue(toString());
   }
 
   public static CbasRunSetStatus fromRunStatuses(Map<CbasRunStatus, Integer> runStatusCounts) {
