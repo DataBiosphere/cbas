@@ -91,6 +91,7 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
           sqlStatementList.add(insertGithubDetailsStmt);
           sqlStatementList.add(updateBranchTagStmt);
         } else {
+          // it's an error case if a method doesn't have a method url
           throw new Exception("No method url found for the method ID '%s'".formatted(methodId));
         }
 
