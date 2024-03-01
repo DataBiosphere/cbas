@@ -62,7 +62,8 @@ public final class MethodUtil {
     throw new UnknownMethodSourceException(methodSource);
   }
 
-  // TODO: this is from Katrina's PR - remove it before review
+  // TODO: this is from Katrina's PR - remove it once PR
+  // https://github.com/DataBiosphere/cbas/pull/242 merges
   public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
       throws URISyntaxException {
 

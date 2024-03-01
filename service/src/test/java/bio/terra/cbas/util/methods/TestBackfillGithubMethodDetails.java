@@ -189,7 +189,7 @@ public class TestBackfillGithubMethodDetails {
         new TestCase[] {
           new TestCase("no data to backfill", List.of(), 0),
           new TestCase(
-              "backfill data for 1 method",
+              "backfill GitHub details for 1 method",
               List.of(
                   new TestMethodWithGithubDetails(
                       methodId1,
@@ -198,7 +198,7 @@ public class TestBackfillGithubMethodDetails {
                       githubDetailsForHelloMethod(methodId1, methodVersionId1))),
               2),
           new TestCase(
-              "backfill data for 2 methods",
+              "backfill GitHub details for 2 methods",
               List.of(
                   new TestMethodWithGithubDetails(
                       methodId1,
@@ -211,10 +211,16 @@ public class TestBackfillGithubMethodDetails {
                       sraToBamMethodUrl,
                       githubDetailsForSraToBamMethod(methodId2, methodVersionId2))),
               4),
-          new TestCase("backfill data for 5 methods", generateNTestMethodWithGithubDetails(5), 10),
-          new TestCase("backfill data for 5 methods", generateNTestMethodWithGithubDetails(10), 20),
           new TestCase(
-              "backfill data for 100 methods", generateNTestMethodWithGithubDetails(100), 200)
+              "backfill GitHub details for 5 methods", generateNTestMethodWithGithubDetails(5), 10),
+          new TestCase(
+              "backfill GitHub details for 10 methods",
+              generateNTestMethodWithGithubDetails(10),
+              20),
+          new TestCase(
+              "backfill GitHub details for 100 methods",
+              generateNTestMethodWithGithubDetails(100),
+              200)
         };
 
     return DynamicTest.stream(Stream.of(testCases), TestCase::testName, TestCase::check);
