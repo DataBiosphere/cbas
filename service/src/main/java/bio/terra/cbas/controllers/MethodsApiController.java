@@ -494,14 +494,14 @@ public class MethodsApiController implements MethodsApi {
 
   private MethodDetails methodToMethodDetails(Method method, boolean includeVersions) {
 
-    Boolean isMethodPrivate;
+    Boolean isMethodPrivate = false;
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      isMethodPrivate =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
-    } else {
-      isMethodPrivate = false;
+      if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+        isMethodPrivate =
+            githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+      }
     }
 
     List<MethodVersionDetails> versions =
@@ -537,14 +537,14 @@ public class MethodsApiController implements MethodsApi {
 
   private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
     Method method = methodVersion.method();
-    Boolean isMethodPrivate;
+    Boolean isMethodPrivate = false;
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      isMethodPrivate =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
-    } else {
-      isMethodPrivate = false;
+      if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
+        isMethodPrivate =
+            githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+      }
     }
 
     return new MethodDetails()

@@ -4,6 +4,7 @@ import bio.terra.cbas.dao.mappers.GithubMethodDetailsMapper;
 import bio.terra.cbas.models.GithubMethodDetails;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -30,7 +31,13 @@ public class GithubMethodDetailsDao {
 
     MapSqlParameterSource params = new MapSqlParameterSource(Map.of("methodId", methodId));
 
-    return jdbcTemplate.queryForObject(sql, params, new GithubMethodDetailsMapper());
+    // Until backfilling has been executed, we could potentially look for details of an un-migrated
+    // method.
+    try {
+      return jdbcTemplate.queryForObject(sql, params, new GithubMethodDetailsMapper());
+    } catch (EmptyResultDataAccessException e) {
+      return null;
+    }
   }
 
   public int deleteMethodSourceDetails(UUID methodId) {
