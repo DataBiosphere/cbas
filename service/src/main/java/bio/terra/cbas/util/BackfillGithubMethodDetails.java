@@ -100,8 +100,6 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
         methodVersionStmt.close();
       }
 
-      methodIdStmt.close();
-
       return sqlStatementList.toArray(sqlStatementArray);
     } catch (Exception e) {
       throw new CustomChangeException(e);
