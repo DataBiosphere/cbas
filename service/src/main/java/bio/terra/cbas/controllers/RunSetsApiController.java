@@ -73,7 +73,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordResponse;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -180,38 +179,38 @@ public class RunSetsApiController implements RunSetsApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  public RunSet preRegisterRunSet(MethodVersion methodVersion,
-                                  String runSetName,
-                                  String runSetDescription,
-                                  Boolean callCachingEnabled,
-                                  List<WorkflowInputDefinition> workflowInputDefinitions,
-                                  List<WorkflowOutputDefinition> workflowOutputDefinitions,
-                                  String recordType,
-                                  String userSubjectId
-
-
-  ) throws JsonProcessingException {
+  public RunSet preRegisterRunSet(
+      MethodVersion methodVersion,
+      String runSetName,
+      String runSetDescription,
+      Boolean callCachingEnabled,
+      List<WorkflowInputDefinition> workflowInputDefinitions,
+      List<WorkflowOutputDefinition> workflowOutputDefinitions,
+      String recordType,
+      String userSubjectId)
+      throws JsonProcessingException {
 
     UUID runSetId = this.uuidSource.generateUUID();
 
-    RunSet runSet = new RunSet(
-              runSetId,
-              methodVersion,
-              runSetName,
-              runSetDescription,
-              callCachingEnabled,
-              false,
-              CbasRunSetStatus.QUEUED,
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              0,
-              0,
-              objectMapper.writeValueAsString(workflowInputDefinitions),
-              objectMapper.writeValueAsString(workflowOutputDefinitions),
-              recordType,
-              userSubjectId,
-              cbasContextConfiguration.getWorkspaceId());
+    RunSet runSet =
+        new RunSet(
+            runSetId,
+            methodVersion,
+            runSetName,
+            runSetDescription,
+            callCachingEnabled,
+            false,
+            CbasRunSetStatus.QUEUED,
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            0,
+            0,
+            objectMapper.writeValueAsString(workflowInputDefinitions),
+            objectMapper.writeValueAsString(workflowOutputDefinitions),
+            recordType,
+            userSubjectId,
+            cbasContextConfiguration.getWorkspaceId());
 
     runSetDao.createRunSet(runSet);
     methodDao.updateLastRunWithRunSet(runSet);
@@ -220,27 +219,33 @@ public class RunSetsApiController implements RunSetsApi {
     return runSet;
   }
 
-  public List<RunStateResponse> preRegisterRuns(RunSet runSet, Map<String, UUID> dataTableIdToRunIdMapping) throws DatabaseConnectivityException.RunCreationException {
+  public List<RunStateResponse> preRegisterRuns(
+      RunSet runSet, Map<String, UUID> dataTableIdToRunIdMapping)
+      throws DatabaseConnectivityException.RunCreationException {
 
     List<RunStateResponse> responses = new ArrayList<>();
 
     for (Map.Entry<String, UUID> entry : dataTableIdToRunIdMapping.entrySet()) {
-      int createdRows = runDao.createRun(
-          new Run(
-              entry.getValue(),
-              entry.getValue().toString(),
-              runSet,
-              entry.getKey(),
-              DateUtils.currentTimeInUTC(),
-              CbasRunStatus.QUEUED,
-              DateUtils.currentTimeInUTC(),
-              DateUtils.currentTimeInUTC(),
-              null)
-      );
+      int createdRows =
+          runDao.createRun(
+              new Run(
+                  entry.getValue(),
+                  entry.getValue().toString(),
+                  runSet,
+                  entry.getKey(),
+                  DateUtils.currentTimeInUTC(),
+                  CbasRunStatus.QUEUED,
+                  DateUtils.currentTimeInUTC(),
+                  DateUtils.currentTimeInUTC(),
+                  null));
       if (createdRows != 1) {
-        throw new DatabaseConnectivityException.RunCreationException(entry.getValue(), entry.getKey());
+        throw new DatabaseConnectivityException.RunCreationException(
+            entry.getValue(), entry.getKey());
       }
-      responses.add(new RunStateResponse().runId(entry.getValue()).state(CbasRunStatus.toCbasApiState(QUEUED)));
+      responses.add(
+          new RunStateResponse()
+              .runId(entry.getValue())
+              .state(CbasRunStatus.toCbasApiState(QUEUED)));
     }
     return responses;
   }
@@ -269,16 +274,16 @@ public class RunSetsApiController implements RunSetsApi {
 
     RunSet runSet;
     try {
-      runSet = preRegisterRunSet(
-          methodVersion,
-          request.getRunSetName(),
-          request.getRunSetDescription(),
-          request.isCallCachingEnabled(),
-          request.getWorkflowInputDefinitions(),
-          request.getWorkflowOutputDefinitions(),
-          request.getWdsRecords().getRecordType(),
-          user.getUserSubjectId()
-      );
+      runSet =
+          preRegisterRunSet(
+              methodVersion,
+              request.getRunSetName(),
+              request.getRunSetDescription(),
+              request.isCallCachingEnabled(),
+              request.getWorkflowInputDefinitions(),
+              request.getWorkflowOutputDefinitions(),
+              request.getWdsRecords().getRecordType(),
+              user.getUserSubjectId());
     } catch (JsonProcessingException e) {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(
@@ -300,12 +305,7 @@ public class RunSetsApiController implements RunSetsApi {
     } catch (DatabaseConnectivityException.RunCreationException e) {
       log.error("Failed to record runs to database", e);
       runSetDao.updateStateAndRunDetails(
-          runSetId,
-          CbasRunSetStatus.ERROR,
-          0,
-          0,
-          OffsetDateTime.now()
-      );
+          runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
       return new ResponseEntity<>(
           new RunSetStateResponse()
               .errors("Failed to record runs to database. Error(s): " + e.getMessage()),
@@ -313,7 +313,10 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     RunSetStateResponse response =
-        new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSet.status().toCbasRunSetApiState());
+        new RunSetStateResponse()
+            .runSetId(runSetId)
+            .runs(runStateResponseList)
+            .state(runSet.status().toCbasRunSetApiState());
 
     captureResponseMetrics(response);
 
@@ -321,11 +324,15 @@ public class RunSetsApiController implements RunSetsApi {
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
-
   }
 
   @Async("runSetExecutor")
-  protected void triggerWorkflowSubmit(RunSetRequest request, MethodVersion methodVersion, RunSet runSet, Map<String, UUID> dataTableIdToRunIdMapping, UUID runSetId) {
+  protected void triggerWorkflowSubmit(
+      RunSetRequest request,
+      MethodVersion methodVersion,
+      RunSet runSet,
+      Map<String, UUID> dataTableIdToRunIdMapping,
+      UUID runSetId) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
 
@@ -335,12 +342,7 @@ public class RunSetsApiController implements RunSetsApi {
               + wdsRecordResponses.recordIdsWithError;
       log.warn(errorMsg);
       runSetDao.updateStateAndRunDetails(
-          runSetId,
-          CbasRunSetStatus.ERROR,
-          0,
-          0,
-          OffsetDateTime.now()
-      );
+          runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
     }
 
     // convert method url to raw url and use that while calling Cromwell's submit workflow
@@ -361,12 +363,7 @@ public class RunSetsApiController implements RunSetsApi {
             "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.";
         log.warn(errorMsg);
         runSetDao.updateStateAndRunDetails(
-            runSetId,
-            CbasRunSetStatus.ERROR,
-            0,
-            0,
-            OffsetDateTime.now()
-        );
+            runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
         return;
       }
     } catch (URISyntaxException
@@ -379,20 +376,18 @@ public class RunSetsApiController implements RunSetsApi {
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
       runSetDao.updateStateAndRunDetails(
-          runSetId,
-          CbasRunSetStatus.ERROR,
-          0,
-          0,
-          OffsetDateTime.now()
-      );
+          runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
       return;
     }
-
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(
-            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl, dataTableIdToRunIdMapping);
+            request,
+            runSet,
+            wdsRecordResponses.recordResponseList,
+            rawMethodUrl,
+            dataTableIdToRunIdMapping);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -567,7 +562,9 @@ public class RunSetsApiController implements RunSetsApi {
 
       Map<UUID, RecordResponse> requestedIdToRecord =
           batch.stream()
-              .map(singleRecord -> Map.entry(recordIdToRunIdMapping.get(singleRecord.getId()), singleRecord))
+              .map(
+                  singleRecord ->
+                      Map.entry(recordIdToRunIdMapping.get(singleRecord.getId()), singleRecord))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       // Build the inputs set from workflow parameter definitions and the fetched record
@@ -589,12 +586,10 @@ public class RunSetsApiController implements RunSetsApi {
                               "Input generation failed for record %s. Coercion error: %s",
                               entry.getValue().getId(), e.getMessage());
                       log.warn(errorMsg, e);
-                      runStateResponseList.add(
-                          recordFailureToStartRun(runId, errorMsg));
+                      runStateResponseList.add(recordFailureToStartRun(runId, errorMsg));
                     } catch (InputProcessingException e) {
                       log.warn(e.getMessage());
-                      runStateResponseList.add(
-                          recordFailureToStartRun(runId, e.getMessage()));
+                      runStateResponseList.add(recordFailureToStartRun(runId, e.getMessage()));
                     } catch (JsonProcessingException e) {
                       // Should be super rare that jackson cannot convert an object to Json...
                       String errorMsg =
@@ -636,10 +631,7 @@ public class RunSetsApiController implements RunSetsApi {
         log.warn(errorMsg, e);
         runStateResponseList.addAll(
             requestedIdToWorkflowInput.keySet().stream()
-                .map(
-                    requestedId ->
-                        recordFailureToStartRun(
-                            requestedId, errorMsg + e.getMessage()))
+                .map(requestedId -> recordFailureToStartRun(requestedId, errorMsg + e.getMessage()))
                 .toList());
       }
     }
