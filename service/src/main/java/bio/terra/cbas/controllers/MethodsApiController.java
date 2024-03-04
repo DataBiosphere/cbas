@@ -498,9 +498,10 @@ public class MethodsApiController implements MethodsApi {
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
-        isMethodPrivate =
-            githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+      GithubMethodDetails details =
+          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+      if (details != null) {
+        isMethodPrivate = details.isPrivate();
       }
     }
 
@@ -541,9 +542,10 @@ public class MethodsApiController implements MethodsApi {
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      if (githubMethodDetailsDao.getMethodSourceDetails(method.methodId()) != null) {
-        isMethodPrivate =
-            githubMethodDetailsDao.getMethodSourceDetails(method.methodId()).isPrivate();
+      GithubMethodDetails details =
+          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+      if (details != null) {
+        isMethodPrivate = details.isPrivate();
       }
     }
 
