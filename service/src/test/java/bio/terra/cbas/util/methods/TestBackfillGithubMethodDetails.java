@@ -30,7 +30,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
 
-public class TestBackfillGithubMethodDetails {
+class TestBackfillGithubMethodDetails {
 
   record TestMethodWithGithubDetails(
       String methodId,

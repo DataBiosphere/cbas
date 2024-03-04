@@ -6,6 +6,7 @@ import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.UUID;
 import liquibase.change.custom.CustomSqlChange;
@@ -13,6 +14,7 @@ import liquibase.changelog.column.LiquibaseColumn;
 import liquibase.database.Database;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.CustomChangeException;
+import liquibase.exception.DatabaseException;
 import liquibase.exception.SetupException;
 import liquibase.exception.ValidationErrors;
 import liquibase.resource.ResourceAccessor;
@@ -29,13 +31,12 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
 
   @Override
   public SqlStatement[] generateStatements(Database database) throws CustomChangeException {
-    try {
-      JdbcConnection connection = (JdbcConnection) database.getConnection();
-      ArrayList<SqlStatement> sqlStatementList = new ArrayList<>();
-      SqlStatement[] sqlStatementArray = {};
+    JdbcConnection connection = (JdbcConnection) database.getConnection();
+    ArrayList<SqlStatement> sqlStatementList = new ArrayList<>();
+    SqlStatement[] sqlStatementArray = {};
 
+    try (Statement methodIdStmt = connection.createStatement()) {
       // find GitHub methods whose details aren't in 'github_method_details' table
-      var methodIdStmt = connection.createStatement();
       ResultSet methodIdResultSet =
           methodIdStmt.executeQuery(
               "select method_id from method "
@@ -91,8 +92,9 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
           sqlStatementList.add(insertGithubDetailsStmt);
           sqlStatementList.add(updateBranchTagStmt);
         } else {
-          // it's an error case if a method doesn't have a method url
-          throw new Exception("No method url found for the method ID '%s'".formatted(methodId));
+          // it's an error case if method doesn't have a method url
+          throw new DatabaseException(
+              "No method url found for the method ID '%s'".formatted(methodId));
         }
 
         methodVersionStmt.close();
@@ -112,7 +114,9 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
   }
 
   @Override
-  public void setUp() throws SetupException {}
+  public void setUp() throws SetupException {
+    // do nothing since no initial set up is needed
+  }
 
   @Override
   public ValidationErrors validate(Database database) {
