@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -66,6 +67,7 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
+  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -91,6 +93,10 @@ class TestMethodsApiController {
     when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
     when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
     when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
+    when(githubMethodDetailsDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
+        .thenReturn(githubMethodDetails);
+    when(githubMethodDetailsDao.getMethodSourceDetails(neverRunMethod1.methodId()))
+        .thenReturn(githubMethodDetails);
 
     when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
         .thenReturn(List.of(method1Version1, method1Version2));
@@ -134,6 +140,9 @@ class TestMethodsApiController {
 
     assertFalse(actualResponseForMethod1.getLastRun().isPreviouslyRun());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+
+    assertFalse(actualResponseForMethod1.isIsPrivate());
+    assertFalse(actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -157,6 +166,9 @@ class TestMethodsApiController {
 
     assertFalse(actualResponseForMethod1.getLastRun().isPreviouslyRun());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+
+    assertFalse(actualResponseForMethod1.isIsPrivate());
+    assertFalse(actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -177,6 +189,7 @@ class TestMethodsApiController {
     assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
     assertEquals(2, actualResponseForMethod2.getMethodVersions().size());
     assertTrue(actualResponseForMethod2.getLastRun().isPreviouslyRun());
+    assertEquals(githubMethodDetails.isPrivate(), actualResponseForMethod2.isIsPrivate());
   }
 
   @Test
@@ -226,6 +239,7 @@ class TestMethodsApiController {
     assertEquals(method2Version1.description(), actualVersionDetails.getDescription());
     assertTrue(actualVersionDetails.getLastRun().isPreviouslyRun());
     assertEquals(method2Version1Runset.runSetId(), actualVersionDetails.getLastRun().getRunSetId());
+    assertEquals("develop", actualVersionDetails.getBranchOrTagName());
   }
 
   @Test
@@ -432,6 +446,7 @@ class TestMethodsApiController {
     assertEquals("test method description", newMethodVersionCaptor.getValue().description());
     assertEquals(validRawWorkflow, newMethodVersionCaptor.getValue().url());
     assertNull(newMethodVersionCaptor.getValue().lastRunSetId());
+    assertEquals("develop", newMethodVersionCaptor.getValue().branchOrTagName());
 
     UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
@@ -768,6 +783,56 @@ class TestMethodsApiController {
     assertEquals("InterruptedException thrown for testing purposes", errorResponse.getMessage());
   }
 
+  @Test
+  void returnSpecificMethodWithDetails() throws Exception {
+    initMocks();
+    MvcResult result =
+        mockMvc
+            .perform(get(API).param("method_id", previouslyRunMethod2.methodId().toString()))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    var parsedResponse =
+        objectMapper.readValue(result.getResponse().getContentAsString(), MethodListResponse.class);
+
+    assertEquals(1, parsedResponse.getMethods().size());
+    MethodDetails actualResponseForMethod2 = parsedResponse.getMethods().get(0);
+
+    assertEquals(previouslyRunMethod2.methodId(), actualResponseForMethod2.getMethodId());
+    assertEquals(false, actualResponseForMethod2.isIsPrivate());
+  }
+
+  @Test
+  void dontStoreMethodDetailsForDockstoreMethod() throws Exception {
+    String validWorkflowRequest =
+        postRequestTemplate.formatted("Dockstore", validDockstoreWorkflow);
+
+    ToolDescriptor mockToolDescriptor = new ToolDescriptor();
+    mockToolDescriptor.setDescriptor("mock descriptor");
+    mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
+    mockToolDescriptor.setUrl(validRawWorkflow);
+
+    initSamMocks();
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
+        .thenReturn(mockToolDescriptor);
+    when(cromwellService.describeWorkflow(validRawWorkflow))
+        .thenReturn(workflowDescForValidWorkflow);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    assertNull(githubMethodDetailsDao.getMethodSourceDetails(postMethodResponse.getMethodId()));
+  }
+
   private static final Method neverRunMethod1 =
       new Method(
           UUID.randomUUID(),
@@ -787,7 +852,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "file://method1/v1.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final MethodVersion method1Version2 =
       new MethodVersion(
@@ -798,7 +864,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "file://method1/v2.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
@@ -810,7 +877,6 @@ class TestMethodsApiController {
       "https://github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
   private static final String validDockstoreWorkflow =
       "github.com/broadinstitute/cromwell/hello.wdl";
-
   private static final Method previouslyRunMethod2 =
       new Method(
           UUID.randomUUID(),
@@ -820,6 +886,13 @@ class TestMethodsApiController {
           method2RunSet2Id,
           "method 2 source",
           workspaceId);
+  private static final GithubMethodDetails githubMethodDetails =
+      new GithubMethodDetails(
+          "cromwell",
+          "broadinstitute",
+          "/blob/path/azure/file.sh",
+          false,
+          previouslyRunMethod2.methodId());
 
   private static final UUID method2Version1VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version1 =
@@ -831,7 +904,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet1Id,
           "file://method2/v1.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final UUID method2Version2VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version2 =
@@ -843,7 +917,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet2Id,
           "file://method2/v2.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   private static final RunSet method2Version1Runset =
       new RunSet(
@@ -900,7 +975,6 @@ class TestMethodsApiController {
           .methodVersionName(method2Version2Runset.methodVersion().name())
           .methodVersionId(method2Version2Runset.getMethodVersionId())
           .runSetId(method2Version2Runset.runSetId());
-
   private final String postRequestTemplate =
       """
       {

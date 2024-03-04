@@ -653,6 +653,8 @@ components:
           format: date-time
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
+        isPrivate:
+          type: boolean
     MethodVersionDetails:
       type: object
       properties:
@@ -672,6 +674,8 @@ components:
         url:
           type: string
           format: uri
+        branch_or_tag_name:
+          type: string
         last_run:
           $ref: '#/components/schemas/MethodLastRunDetails'
     MethodLastRunDetails:

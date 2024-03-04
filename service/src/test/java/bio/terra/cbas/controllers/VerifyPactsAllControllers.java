@@ -15,6 +15,7 @@ import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -99,6 +100,7 @@ class VerifyPactsAllControllers {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
+  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -187,7 +189,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             fixedLastRunSetUUIDForMethod,
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            workspaceId);
+            workspaceId,
+            "develop");
 
     // Arrange DAO responses
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
@@ -254,7 +257,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             UUID.randomUUID(),
             "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            workspaceId);
+            workspaceId,
+            "develop");
 
     RunSet targetRunSet =
         new RunSet(
