@@ -51,7 +51,8 @@ class TestRunDao {
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null,
           "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
-          workspaceId);
+          workspaceId,
+          "develop");
 
   RunSet runSet =
       new RunSet(

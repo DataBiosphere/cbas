@@ -11,7 +11,8 @@ public record MethodVersion(
     OffsetDateTime created,
     UUID lastRunSetId,
     String url,
-    UUID originalWorkspaceId) {
+    UUID originalWorkspaceId,
+    String branchOrTagName) {
 
   // Corresponding table column names in database
   public static final String METHOD_VERSION_ID_COL = "method_version_id";
@@ -21,6 +22,7 @@ public record MethodVersion(
   public static final String LAST_RUN_SET_ID_COL = "method_version_last_run_set_id";
   public static final String URL_COL = "method_version_url";
   public static final String ORIGINAL_WORKSPACE_ID_COL = "method_version_original_workspace_id";
+  public static final String BRANCH_OR_TAG_NAME = "branch_or_tag_name";
 
   public UUID getMethodId() {
     return method.methodId();

@@ -62,8 +62,10 @@ public final class MethodUtil {
     throw new UnknownMethodSourceException(methodSource);
   }
 
-  // TODO: this is from Katrina's PR - remove it once PR
-  // https://github.com/DataBiosphere/cbas/pull/242 merges
+  public static Boolean verifyIfPrivate(String methodUrl) {
+    return false;
+  }
+
   public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
       throws URISyntaxException {
 
