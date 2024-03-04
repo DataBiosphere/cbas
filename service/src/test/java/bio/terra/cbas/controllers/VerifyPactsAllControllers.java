@@ -21,6 +21,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -101,6 +102,7 @@ class VerifyPactsAllControllers {
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
+  @MockBean private GitHubService gitHubService;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
