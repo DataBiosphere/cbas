@@ -1,7 +1,6 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
-import static bio.terra.cbas.common.MethodUtil.verifyIfPrivate;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
@@ -147,7 +146,6 @@ public class MethodsApiController implements MethodsApi {
 
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
-    Boolean isPrivate = verifyIfPrivate(rawMethodUrl);
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
