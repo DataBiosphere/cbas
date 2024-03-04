@@ -38,6 +38,91 @@ public class TestBackfillGithubMethodDetails {
       String methodUrl,
       Map<String, String> expectedSqlStmtValues) {}
 
+  record TestCase(
+      String testName,
+      List<TestMethodWithGithubDetails> testMethodWithGithubDetails,
+      int expectedSqlStmtArraySize) {
+    void check() throws CustomChangeException, SQLException, DatabaseException {
+      // **** ARRANGE ****//
+
+      // setup for values to be returned in ResultSet for fetching methods whose GitHub details
+      // need to be backfilled
+      List<Boolean> methodResultSetNext = new ArrayList<>();
+      List<String> methodResultSetIds = new ArrayList<>();
+      for (TestMethodWithGithubDetails method : testMethodWithGithubDetails) {
+        methodResultSetNext.add(true);
+        methodResultSetIds.add(method.methodId);
+      }
+      methodResultSetNext.add(false);
+
+      // create mock ResultSet for method IDs that needs GitHub method details backfilled
+      ResultSet methodIdResultSet = Mockito.mock(ResultSet.class);
+      Mockito.when(methodIdResultSet.next())
+          .thenAnswer(AdditionalAnswers.returnsElementsOf(methodResultSetNext));
+      Mockito.when(methodIdResultSet.getString(1))
+          .thenAnswer(AdditionalAnswers.returnsElementsOf(methodResultSetIds));
+
+      // return mock ResultSet when method IDs that needs GitHub method details backfilled query
+      // is executed
+      Mockito.when(jdbcConnection.createStatement()).thenReturn(statement);
+      Mockito.when(statement.executeQuery(contains("select method_id from method")))
+          .thenReturn(methodIdResultSet);
+
+      // create and setup mock ResultSet(s) for getting method url and method version ID details
+      List<ResultSet> methodVersionResultSets = new ArrayList<>();
+      for (TestMethodWithGithubDetails method : testMethodWithGithubDetails) {
+        ResultSet methodVersionResultSet = Mockito.mock(ResultSet.class);
+        Mockito.when(methodVersionResultSet.next()).thenReturn(true).thenReturn(false);
+        Mockito.when(methodVersionResultSet.getString(1)).thenReturn(method.methodVersionId);
+        Mockito.when(methodVersionResultSet.getString(2)).thenReturn(method.methodUrl);
+
+        methodVersionResultSets.add(methodVersionResultSet);
+      }
+
+      // return mock ResultSet when query to fetch method version details is executed for each
+      // method
+      PreparedStatement prepareStatement = Mockito.mock(PreparedStatement.class);
+      Mockito.when(jdbcConnection.prepareStatement(any())).thenReturn(prepareStatement);
+      Mockito.when(prepareStatement.executeQuery())
+          .thenAnswer(AdditionalAnswers.returnsElementsOf(methodVersionResultSets));
+
+      // **** ACT ****//
+      SqlStatement[] actualSqlStmtArray = backfillGithubDetails.generateStatements(mockDb);
+
+      // **** ASSERT ****//
+
+      // verify the size of SqlStatements array returned from method
+      // for each method version, we generate 2 SqlStatements
+      // - one for inserting data into 'github_method_details' table
+      // - one for updating 'branch_or_tag_name' column in 'method_version' table
+      assertEquals(actualSqlStmtArray.length, expectedSqlStmtArraySize);
+
+      // verify the InsertStatement and UpdateStatement values
+      for (int i = 0, j = 0;
+          i < actualSqlStmtArray.length / 2 && j < testMethodWithGithubDetails.size();
+          i = i + 2, j++) {
+        Map<String, String> expectedValues =
+            testMethodWithGithubDetails.get(j).expectedSqlStmtValues;
+
+        InsertStatement insertStatement = (InsertStatement) actualSqlStmtArray[i];
+        Map<String, Object> actualInsertStmtValues = insertStatement.getColumnValues();
+        assertEquals(expectedValues.get("repository"), actualInsertStmtValues.get("repository"));
+        assertEquals(
+            expectedValues.get("organization"), actualInsertStmtValues.get("organization"));
+        assertEquals(expectedValues.get("path"), actualInsertStmtValues.get("path"));
+        assertEquals(false, actualInsertStmtValues.get("private"));
+        assertEquals(expectedValues.get("method_id"), actualInsertStmtValues.get("method_id"));
+
+        UpdateStatement updateStatement = (UpdateStatement) actualSqlStmtArray[i + 1];
+        assertEquals(
+            expectedValues.get("branch_or_tag_name"),
+            updateStatement.getNewColumnValues().get("branch_or_tag_name"));
+        assertEquals(
+            expectedValues.get("method_version_id"), updateStatement.getWhereParameters().get(0));
+      }
+    }
+  }
+
   static BackfillGithubMethodDetails backfillGithubDetails = new BackfillGithubMethodDetails();
 
   static PostgresDatabase mockDb = new PostgresDatabase();
@@ -99,91 +184,6 @@ public class TestBackfillGithubMethodDetails {
     Mockito.when(jdbcConnection.createStatement()).thenReturn(statement);
     Mockito.when(statement.executeQuery(any())).thenReturn(setupResultSet);
     mockDb.setConnection(jdbcConnection);
-
-    record TestCase(
-        String testName,
-        List<TestMethodWithGithubDetails> testMethodWithGithubDetails,
-        int expectedSqlStmtArraySize) {
-      void check() throws CustomChangeException, SQLException, DatabaseException {
-        // **** ARRANGE ****//
-
-        // setup for values to be returned in ResultSet for fetching methods whose GitHub details
-        // need to be backfilled
-        List<Boolean> methodResultSetNext = new ArrayList<>();
-        List<String> methodResultSetIds = new ArrayList<>();
-        for (TestMethodWithGithubDetails method : testMethodWithGithubDetails) {
-          methodResultSetNext.add(true);
-          methodResultSetIds.add(method.methodId);
-        }
-        methodResultSetNext.add(false);
-
-        // create mock ResultSet for method IDs that needs GitHub method details backfilled
-        ResultSet methodIdResultSet = Mockito.mock(ResultSet.class);
-        Mockito.when(methodIdResultSet.next())
-            .thenAnswer(AdditionalAnswers.returnsElementsOf(methodResultSetNext));
-        Mockito.when(methodIdResultSet.getString(1))
-            .thenAnswer(AdditionalAnswers.returnsElementsOf(methodResultSetIds));
-
-        // return mock ResultSet when method IDs that needs GitHub method details backfilled query
-        // is executed
-        Mockito.when(jdbcConnection.createStatement()).thenReturn(statement);
-        Mockito.when(statement.executeQuery(contains("select method_id from method")))
-            .thenReturn(methodIdResultSet);
-
-        // create and setup mock ResultSet(s) for getting method url and method version ID details
-        List<ResultSet> methodVersionResultSets = new ArrayList<>();
-        for (TestMethodWithGithubDetails method : testMethodWithGithubDetails) {
-          ResultSet methodVersionResultSet = Mockito.mock(ResultSet.class);
-          Mockito.when(methodVersionResultSet.next()).thenReturn(true).thenReturn(false);
-          Mockito.when(methodVersionResultSet.getString(1)).thenReturn(method.methodVersionId);
-          Mockito.when(methodVersionResultSet.getString(2)).thenReturn(method.methodUrl);
-
-          methodVersionResultSets.add(methodVersionResultSet);
-        }
-
-        // return mock ResultSet when query to fetch method version details is executed for each
-        // method
-        PreparedStatement prepareStatement = Mockito.mock(PreparedStatement.class);
-        Mockito.when(jdbcConnection.prepareStatement(any())).thenReturn(prepareStatement);
-        Mockito.when(prepareStatement.executeQuery())
-            .thenAnswer(AdditionalAnswers.returnsElementsOf(methodVersionResultSets));
-
-        // **** ACT ****//
-        SqlStatement[] actualSqlStmtArray = backfillGithubDetails.generateStatements(mockDb);
-
-        // **** ASSERT ****//
-
-        // verify the size of SqlStatements array returned from method
-        // for each method version, we generate 2 SqlStatements
-        // - one for inserting data into 'github_method_details' table
-        // - one for updating 'branch_or_tag_name' column in 'method_version' table
-        assertEquals(actualSqlStmtArray.length, expectedSqlStmtArraySize);
-
-        // verify the InsertStatement and UpdateStatement values
-        for (int i = 0, j = 0;
-            i < actualSqlStmtArray.length / 2 & j < testMethodWithGithubDetails.size();
-            i = i + 2, j++) {
-          Map<String, String> expectedValues =
-              testMethodWithGithubDetails.get(j).expectedSqlStmtValues;
-
-          InsertStatement insertStatement = (InsertStatement) actualSqlStmtArray[i];
-          Map<String, Object> actualInsertStmtValues = insertStatement.getColumnValues();
-          assertEquals(expectedValues.get("repository"), actualInsertStmtValues.get("repository"));
-          assertEquals(
-              expectedValues.get("organization"), actualInsertStmtValues.get("organization"));
-          assertEquals(expectedValues.get("path"), actualInsertStmtValues.get("path"));
-          assertEquals(false, actualInsertStmtValues.get("private"));
-          assertEquals(expectedValues.get("method_id"), actualInsertStmtValues.get("method_id"));
-
-          UpdateStatement updateStatement = (UpdateStatement) actualSqlStmtArray[i + 1];
-          assertEquals(
-              expectedValues.get("branch_or_tag_name"),
-              updateStatement.getNewColumnValues().get("branch_or_tag_name"));
-          assertEquals(
-              expectedValues.get("method_version_id"), updateStatement.getWhereParameters().get(0));
-        }
-      }
-    }
 
     TestCase[] testCases =
         new TestCase[] {
