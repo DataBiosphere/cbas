@@ -140,6 +140,7 @@ jobs:
         run: |
           echo "${{ secrets.DEV_FIRECLOUD_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/user-delegated-sa.json"
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
+
       - name: Launch the background process for integration tests
         run: ./gradlew --build-cache bootRun | tee bootrun.log &
 
@@ -156,3 +157,21 @@ jobs:
           fi
       - name: Run the integration test suite
         run: ./gradlew --build-cache runTest --args="suites/FullIntegration.json build/reports"
+
+  bump-check:
+    runs-on: ubuntu-latest
+    outputs:
+      is-bump: ${{ steps.skiptest.outputs.is-bump }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Skip version bump merges
+        id: skiptest
+        uses: ./.github/actions/bump-skip
+        with:
+          event-name: ${{ github.event_name }}
+
+  tag-and-publish:
+    if: always() && needs.bump-check.outputs.is-bump == 'no' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/tag-and-publish.yml
+    needs: [ build, unit-tests-and-sonarqube, integration-tests, bump-check ]
+    secrets: inherit
