@@ -18,6 +18,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.ErrorReport;
@@ -61,6 +62,7 @@ class TestMethodsApiController {
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private SamService samService;
+  @MockBean private GitHubService gitHubService;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
@@ -418,6 +420,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
+    when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
 
     MvcResult response =
         mockMvc

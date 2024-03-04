@@ -99,6 +99,14 @@ leonardo:
 dockstore:
   baseUri: "https://staging.dockstore.org/"
 
+github:
+  personalAccessToken: "<insert personal access token here>"
+  # ::IMPORTANT::
+  # While testing, make sure the scopes of the personalAccessToken are limited to readonly access
+  #   to a single repository.
+  # This configuration will disappear as soon as we can connect with ECM
+  #   to retrieve the token manually.
+
 credentials:
   azure:
     tokenAcquisitionTimeoutSeconds: 5

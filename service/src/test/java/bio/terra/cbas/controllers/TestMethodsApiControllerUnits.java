@@ -10,6 +10,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodInputMapping;
@@ -41,6 +42,7 @@ class TestMethodsApiControllerUnits {
   @Autowired private MockMvc mockMvc;
   @MockBean private CromwellService cromwellService;
   @MockBean private DockstoreService dockstoreService;
+  @MockBean private GitHubService gitHubService;
   @MockBean private SamService samService;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
@@ -165,6 +167,7 @@ class TestMethodsApiControllerUnits {
         new MethodsApiController(
             cromwellService,
             dockstoreService,
+            gitHubService,
             samService,
             methodDao,
             methodVersionDao,

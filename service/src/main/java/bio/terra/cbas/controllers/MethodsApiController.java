@@ -1,7 +1,6 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
-import static bio.terra.cbas.common.MethodUtil.verifyIfPrivate;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
@@ -18,6 +17,8 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.github.GitHubClient;
+import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
@@ -61,6 +62,7 @@ import org.springframework.stereotype.Controller;
 public class MethodsApiController implements MethodsApi {
   private final CromwellService cromwellService;
   private final DockstoreService dockstoreService;
+  private final GitHubService gitHubService;
   private final SamService samService;
   private final MethodDao methodDao;
   private final MethodVersionDao methodVersionDao;
@@ -71,6 +73,7 @@ public class MethodsApiController implements MethodsApi {
   public MethodsApiController(
       CromwellService cromwellService,
       DockstoreService dockstoreService,
+      GitHubService gitHubService,
       SamService samService,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
@@ -80,6 +83,7 @@ public class MethodsApiController implements MethodsApi {
       GithubMethodDetailsDao githubMethodDetailsDao) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
+    this.gitHubService = gitHubService;
     this.samService = samService;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
@@ -142,7 +146,6 @@ public class MethodsApiController implements MethodsApi {
 
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
-    Boolean isPrivate = verifyIfPrivate(rawMethodUrl);
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
@@ -197,6 +200,7 @@ public class MethodsApiController implements MethodsApi {
         String repository = githubUrlComponents.repo();
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
+        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository);
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
@@ -223,7 +227,8 @@ public class MethodsApiController implements MethodsApi {
     } catch (ApiException
         | JsonProcessingException
         | WomtoolValueTypeNotFoundException
-        | URISyntaxException e) {
+        | URISyntaxException
+        | GitHubClient.GitHubClientException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",
@@ -246,7 +251,6 @@ public class MethodsApiController implements MethodsApi {
     }
 
     List<MethodDetails> methodDetails;
-
     if (methodVersionId != null) {
       methodDetails =
           List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
