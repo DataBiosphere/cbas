@@ -1,9 +1,9 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.retry.RetryLoggingListener;
+import jakarta.ws.rs.ProcessingException;
 import java.net.SocketTimeoutException;
 import java.util.List;
-import javax.ws.rs.ProcessingException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.retry.RetryListener;

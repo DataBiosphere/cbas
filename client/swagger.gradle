@@ -8,6 +8,9 @@ dependencies {
     implementation 'io.swagger.core.v3:swagger-annotations'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli'
 
+    implementation 'jakarta.annotation:jakarta.annotation-api'
+    implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
+
     // Expose to consumer applications compile
     api group: 'org.glassfish.jersey.inject', name: 'jersey-hk2'
 }
@@ -19,9 +22,9 @@ generateSwaggerCode {
     language = 'java'
     library = 'jersey2'
 
-    // For Swagger Codegen v3 on Java 16+
-    // See https://github.com/swagger-api/swagger-codegen/issues/10966
-    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+//    // For Swagger Codegen v3 on Java 16+
+//    // See https://github.com/swagger-api/swagger-codegen/issues/10966
+//    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
 
     components = [
         apiDocs  : false, apiTests: false,
@@ -34,7 +37,8 @@ generateSwaggerCode {
         apiPackage    : "${artifactGroup}.api",
         invokerPackage: "${artifactGroup}.client",
         dateLibrary   : 'java11',
-        java8: true
+        java8         : true,
+        jakarta       : true
     ]
 
     rawOptions = ['--ignore-file-override', "${projectDir}/.swagger-codegen-ignore"]
