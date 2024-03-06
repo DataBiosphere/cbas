@@ -22,9 +22,9 @@ generateSwaggerCode {
     language = 'java'
     library = 'jersey2'
 
-    // For Swagger Codegen v3 on Java 16+
-    // See https://github.com/swagger-api/swagger-codegen/issues/10966
-    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
+//    // For Swagger Codegen v3 on Java 16+
+//    // See https://github.com/swagger-api/swagger-codegen/issues/10966
+//    jvmArgs = ['--add-opens=java.base/java.util=ALL-UNNAMED']
 
     components = [
         apiDocs  : false, apiTests: false,
