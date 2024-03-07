@@ -391,7 +391,7 @@ class TestSamService {
       setTokenValue(validTokenWithNoAccess);
       samService.hasReadPermission();
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
+      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
     }
 
     @Test
@@ -404,7 +404,7 @@ class TestSamService {
       setTokenValue(validTokenWithComputeAccess);
       samService.hasReadPermission();
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
+      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
     }
   }
 }
