@@ -22,6 +22,16 @@ public final class MethodUtil {
 
   private MethodUtil() {}
 
+  public static String convertGithubToRawUrl(String originalUrl)
+      throws URISyntaxException, MalformedURLException {
+    URL url = new URI(originalUrl).toURL();
+    if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
+      return originalUrl;
+    } else {
+      return originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
+    }
+  }
+
   public static String convertToRawUrl(
       String originalUrl,
       MethodSourceEnum methodSource,
@@ -29,14 +39,7 @@ public final class MethodUtil {
       DockstoreService dockstoreService)
       throws URISyntaxException, MalformedURLException, bio.terra.dockstore.client.ApiException {
     return switch (methodSource) {
-      case GITHUB -> {
-        URL url = new URI(originalUrl).toURL();
-        if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
-          yield originalUrl;
-        } else {
-          yield originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
-        }
-      }
+      case GITHUB -> convertGithubToRawUrl(originalUrl);
       case DOCKSTORE -> {
         ToolDescriptor toolDescriptor =
             dockstoreService.descriptorGetV1(originalUrl, methodVersion);
