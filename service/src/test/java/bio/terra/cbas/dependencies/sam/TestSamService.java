@@ -337,7 +337,11 @@ class TestSamService {
   // Tests for including user IDs in logs once permissions have been checked
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=human-readable-logging")
+  @SpringBootTest(
+      properties = {
+        "spring.profiles.active=human-readable-logging",
+        "spring.main.allow-bean-definition-overriding=true"
+      })
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamReadableLogs {
 
@@ -384,7 +388,7 @@ class TestSamService {
       setTokenValue(validTokenWithNoAccess);
       samService.hasReadPermission();
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
+      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
     }
 
     @Test
@@ -397,7 +401,7 @@ class TestSamService {
       setTokenValue(validTokenWithComputeAccess);
       samService.hasReadPermission();
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
-      assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
+      assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
     }
   }
 }
