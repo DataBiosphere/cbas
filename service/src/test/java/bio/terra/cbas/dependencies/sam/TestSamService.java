@@ -1,5 +1,7 @@
 package bio.terra.cbas.dependencies.sam;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -200,7 +202,9 @@ class TestSamService {
     setTokenValue(expiredTokenValue);
     SamUnauthorizedException e =
         assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
-    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
+    assertThat(
+        e.getMessage(),
+        containsString("Error getting user status info from Sam: Message: Unauthorized :("));
     assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
   }
 
@@ -365,7 +369,8 @@ class TestSamService {
   }
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=")
+  @SpringBootTest(
+      properties = {"spring.profiles.active=", "spring.main.allow-bean-definition-overriding=true"})
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamPlainLogs {
 
