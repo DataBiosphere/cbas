@@ -3,7 +3,9 @@ package bio.terra.cbas.util.methods;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,25 +21,20 @@ import bio.terra.cbas.util.BackfillOriginalWorkspaceIds;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-@SpringBootTest
 public class TestBackfillOriginalWorkspaceIds {
-  @MockBean private RunSetDao runSetDao;
-  @MockBean private MethodDao methodDao;
-  @MockBean private MethodVersionDao methodVersionDao;
-  @MockBean private CbasContextConfiguration cbasContextConfig;
   private Logger logger = LoggerFactory.getLogger(TestBackfillOriginalWorkspaceIds.class);
 
-  @BeforeEach
-  void setupContext() {
+  @Test
+  void testBackfillMethods() {
+    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
     when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
     when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
+
+    MethodDao methodDao = mock(MethodDao.class);
     when(methodDao.getMethods())
         .thenReturn(
             Arrays.asList(
@@ -46,28 +43,10 @@ public class TestBackfillOriginalWorkspaceIds {
                 methodClonedBackfilled,
                 methodCreatedBackfilled));
     when(methodDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
-    when(runSetDao.getRunSets(eq(null), anyBoolean()))
-        .thenReturn(
-            Arrays.asList(
-                runSetClonedNull,
-                runSetCreatedNull,
-                runSetClonedBackfilled,
-                runSetCreatedBackfilled));
-    when(runSetDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
-    when(methodVersionDao.getMethodVersions())
-        .thenReturn(
-            Arrays.asList(
-                methodVersionClonedNull,
-                methodVersionCreatedNull,
-                methodVersionClonedBackfilled,
-                methodVersionCreatedBackfilled));
-    when(methodVersionDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
-  }
 
-  @Test
-  void testBackfillMethods() {
     BackfillOriginalWorkspaceIds.backfillMethods(methodDao, cbasContextConfig, logger);
 
+    verify(methodDao, times(1)).getMethods();
     verify(methodDao).updateOriginalWorkspaceId(methodClonedNull.methodId(), nullWorkspaceId);
     verify(methodDao).updateOriginalWorkspaceId(methodCreatedNull.methodId(), currentWorkspaceId);
     verify(methodDao, never())
@@ -78,8 +57,23 @@ public class TestBackfillOriginalWorkspaceIds {
 
   @Test
   void testBackfillRunSets() {
+    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
+    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
+    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
+
+    RunSetDao runSetDao = mock(RunSetDao.class);
+    when(runSetDao.getRunSets(eq(null), anyBoolean()))
+        .thenReturn(
+            Arrays.asList(
+                runSetClonedNull,
+                runSetCreatedNull,
+                runSetClonedBackfilled,
+                runSetCreatedBackfilled));
+    when(runSetDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
+
     BackfillOriginalWorkspaceIds.backfillRunSets(runSetDao, cbasContextConfig, logger);
-    // verify(runSetDao, times(2)).getRunSets(null, false);
+
+    verify(runSetDao, times(1)).getRunSets(null, false);
     verify(runSetDao).updateOriginalWorkspaceId(runSetClonedNull.runSetId(), nullWorkspaceId);
     verify(runSetDao).updateOriginalWorkspaceId(runSetCreatedNull.runSetId(), currentWorkspaceId);
     verify(runSetDao, never())
@@ -90,9 +84,24 @@ public class TestBackfillOriginalWorkspaceIds {
 
   @Test
   void testBackfillMethodVersions() {
+    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
+    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
+    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
+
+    MethodVersionDao methodVersionDao = mock(MethodVersionDao.class);
+    when(methodVersionDao.getMethodVersions())
+        .thenReturn(
+            Arrays.asList(
+                methodVersionClonedNull,
+                methodVersionCreatedNull,
+                methodVersionClonedBackfilled,
+                methodVersionCreatedBackfilled));
+    when(methodVersionDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
+
     BackfillOriginalWorkspaceIds.backfillMethodVersions(
         methodVersionDao, cbasContextConfig, logger);
 
+    verify(methodVersionDao, times(1)).getMethodVersions();
     verify(methodVersionDao)
         .updateOriginalWorkspaceId(methodVersionClonedNull.methodVersionId(), nullWorkspaceId);
     verify(methodVersionDao)
