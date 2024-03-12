@@ -20,8 +20,7 @@ public class DependencyUrlLoader {
 
   public enum DependencyUrlType {
     WDS_URL,
-    CROMWELL_URL,
-    WSM_URL,
+    CROMWELL_URL
   }
 
   private record DependencyCacheKey(DependencyUrlType urlType, String userToken) {}
