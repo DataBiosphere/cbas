@@ -37,8 +37,9 @@ public class CloneRecoveryBean {
         cbasContextConfig.getWorkspaceId(),
         cbasContextConfig.getWorkspaceCreatedDate());
 
-    // TODO: Should we be deleting all runs at this point?
-
+    // NOTE:  The following BackfillOriginalWorkspaceIds method calls are inherently temporary.
+    //        Once all original workspace IDs have been backfilled, these lines
+    //        (and the BackfillOriginalWorkspaceIds class itself) should be deleted.
     BackfillOriginalWorkspaceIds.backfillRunSets(runSetDao, cbasContextConfig, logger);
     BackfillOriginalWorkspaceIds.backfillMethods(methodDao, cbasContextConfig, logger);
     BackfillOriginalWorkspaceIds.backfillMethodVersions(
