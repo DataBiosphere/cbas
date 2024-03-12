@@ -50,20 +50,29 @@ public class CloneRecoveryBean {
     BackfillOriginalWorkspaceIds.backfillMethodVersions(
         methodVersionDao, cbasContextConfig, logger);
 
+    // BackfillOriginalWorkspaceIds method calls should precede pruneOriginalWorkspaceHistory
+    // until all workspaces have been backfilled.
+    pruneOriginalWorkspaceHistory();
+  }
+
+  public Set<UUID> getMethodLatestRunSetIds() {
+    return methodDao.getMethods().stream()
+        .map(
+            m -> {
+              if (m.lastRunSetId() != null) {
+                return m.lastRunSetId();
+              } else {
+                return runSetDao.getRunSetWithMethodId(m.methodId()).runSetId();
+              }
+            })
+        .collect(Collectors.toSet());
+  }
+
+  public void pruneOriginalWorkspaceHistory() {
     runDao.deleteRunsBefore(cbasContextConfig.getWorkspaceCreatedDate());
     logger.info("Deleted all runs prior to workspace creation date");
 
-    Set<UUID> latestRunSetIdsPerMethod =
-        methodDao.getMethods().stream()
-            .map(
-                m -> {
-                  if (m.lastRunSetId() != null) {
-                    return m.lastRunSetId();
-                  } else {
-                    return runSetDao.getRunSetWithMethodId(m.methodId()).runSetId();
-                  }
-                })
-            .collect(Collectors.toSet());
+    Set<UUID> latestRunSetIdsPerMethod = getMethodLatestRunSetIds();
     logger.info("Identified latest run set per method: {}", latestRunSetIdsPerMethod);
 
     // prune all run sets except the latest for each method, and set them as templates
