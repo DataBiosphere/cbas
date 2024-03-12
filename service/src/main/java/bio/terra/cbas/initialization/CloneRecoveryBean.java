@@ -38,10 +38,10 @@ public class CloneRecoveryBean {
 
   public void cloneRecovery() {
     logger.info(
-        "Starting clone recovery (workspaceId: {}, workspaceCreatedDate: {}",
+        "Starting clone recovery (workspaceId: {}, workspaceCreatedDate: {})",
         cbasContextConfig.getWorkspaceId(),
         cbasContextConfig.getWorkspaceCreatedDate());
-    
+
     // NOTE:  The following BackfillOriginalWorkspaceIds method calls are inherently temporary.
     //        Once all original workspace IDs have been backfilled, these lines
     //        (and the BackfillOriginalWorkspaceIds class itself) should be deleted.
@@ -80,13 +80,13 @@ public class CloneRecoveryBean {
         .forEach(
             rs -> {
               if (!latestRunSetIdsPerMethod.contains(rs.runSetId())) {
-                logger.info("Deleting run set: {}", rs.runSetId());
+                logger.info("Deleting run set {}", rs.runSetId());
                 runSetDao.deleteRunSet(rs.runSetId());
               } else if (!rs.isTemplate()) {
-                logger.info("Converting to template run set: {}", rs.runSetId());
+                logger.info("Converting run set {} to template.", rs.runSetId());
                 runSetDao.updateIsTemplate(rs.runSetId(), true);
               } else {
-                logger.info("Run set is already a template; no change: {}", rs.runSetId());
+                logger.info("Run set {} is already a template; no change.", rs.runSetId());
               }
             });
 
