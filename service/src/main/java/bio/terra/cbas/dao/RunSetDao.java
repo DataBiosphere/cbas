@@ -140,7 +140,18 @@ public class RunSetDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
-  public int deleteRunSets(UUID runSetId) {
+  public int updateIsTemplate(UUID runSetId, Boolean isTemplate) {
+    String updateClause = "UPDATE run_set SET %s = :is_template".formatted(RunSet.IS_TEMPLATE_COL);
+
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(Map.of("run_set_id", runSetId, "is_template", isTemplate));
+
+    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
+
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
+  }
+
+  public int deleteRunSet(UUID runSetId) {
     return jdbcTemplate.update(
         "DELETE FROM run_set WHERE run_set_id = :run_set_id",
         new MapSqlParameterSource(RunSet.RUN_SET_ID_COL, runSetId));

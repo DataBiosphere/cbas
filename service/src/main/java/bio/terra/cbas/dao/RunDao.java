@@ -191,6 +191,12 @@ public class RunDao {
         "DELETE FROM run WHERE run_id = :run_id", new MapSqlParameterSource(Run.RUN_ID_COL, runId));
   }
 
+  public int deleteRunsBefore(OffsetDateTime timestampCutoff) {
+    return jdbcTemplate.update(
+        "DELETE FROM run WHERE submission_timestamp < :timestamp_cutoff",
+        new MapSqlParameterSource("timestamp_cutoff", timestampCutoff));
+  }
+
   private static class StatusCountMapper implements RowMapper<StatusCountRecord> {
     public StatusCountRecord mapRow(ResultSet rs, int rowNum) throws SQLException {
       return new StatusCountRecord(

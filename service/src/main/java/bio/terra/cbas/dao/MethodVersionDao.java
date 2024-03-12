@@ -3,7 +3,6 @@ package bio.terra.cbas.dao;
 import bio.terra.cbas.dao.mappers.MethodVersionMappers;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
-import bio.terra.cbas.models.RunSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class MethodVersionDao {
         new MethodVersionMappers.ShallowMethodVersionMapper(method));
   }
 
-  public int updateLastRunWithRunSet(RunSet runSet) {
+  public int updateLastRunSetId(UUID runSetId, UUID methodVersionId) {
     String sql =
         "UPDATE method_version SET %s = :run_set_id WHERE %s = :method_version_id"
             .formatted(MethodVersion.LAST_RUN_SET_ID_COL, MethodVersion.METHOD_VERSION_ID_COL);
@@ -69,11 +68,7 @@ public class MethodVersionDao {
     return jdbcTemplate.update(
         sql,
         new MapSqlParameterSource(
-            Map.of(
-                "run_set_id",
-                runSet.runSetId(),
-                "method_version_id",
-                runSet.methodVersion().methodVersionId())));
+            Map.of("run_set_id", runSetId, "method_version_id", methodVersionId)));
   }
 
   public int updateOriginalWorkspaceId(UUID methodVersionId, UUID originalWorkspaceId) {

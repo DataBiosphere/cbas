@@ -273,8 +273,8 @@ public class RunSetsApiController implements RunSetsApi {
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
     runSetDao.createRunSet(runSet);
-    methodDao.updateLastRunWithRunSet(runSet);
-    methodVersionDao.updateLastRunWithRunSet(runSet);
+    methodDao.updateLastRunSetId(runSet.runSetId(), methodVersion.method().methodId());
+    methodVersionDao.updateLastRunSetId(runSet.runSetId(), methodVersion.methodVersionId());
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
