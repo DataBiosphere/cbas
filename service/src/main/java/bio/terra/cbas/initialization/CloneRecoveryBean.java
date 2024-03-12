@@ -60,10 +60,7 @@ public class CloneRecoveryBean {
                   if (m.lastRunSetId() != null) {
                     return m.lastRunSetId();
                   } else {
-                    return runSetDao
-                        .getRunSetWithMethodId(m.methodId())
-                        .runSetId(); // TODO: is this getting the latest or earliest run set for the
-                    // method?
+                    return runSetDao.getRunSetWithMethodId(m.methodId()).runSetId();
                   }
                 })
             .collect(Collectors.toSet());
@@ -89,11 +86,5 @@ public class CloneRecoveryBean {
                 logger.info("Run set {} is already a template; no change.", rs.runSetId());
               }
             });
-
-    //    logger.info("setting lastRunSetId for methods and method versions to null");
-    //    methodDao.getMethods().stream().forEach(m -> methodDao.updateLastRunSetId(null,
-    // m.methodId()));
-    //    methodVersionDao.getMethodVersions().stream()
-    //        .forEach(mv -> methodDao.updateLastRunSetId(null, mv.methodVersionId()));
   }
 }
