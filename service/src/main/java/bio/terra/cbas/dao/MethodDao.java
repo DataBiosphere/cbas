@@ -84,7 +84,7 @@ public class MethodDao {
         .collect(Collectors.toMap(MethodLastRunDetails::getRunSetId, Function.identity()));
   }
 
-  public int updateLastRunWithRunSet(RunSet runSet) {
+  public int updateLastRunSetId(UUID runSetId, UUID methodId) {
     String sql =
         "UPDATE method SET %s = :run_set_id WHERE %s = :method_id"
             .formatted(Method.LAST_RUN_SET_ID_COL, Method.METHOD_ID_COL);
@@ -93,8 +93,8 @@ public class MethodDao {
         sql,
         new MapSqlParameterSource(
             Map.of(
-                "run_set_id", runSet.runSetId(),
-                "method_id", runSet.methodVersion().method().methodId())));
+                "run_set_id", runSetId,
+                "method_id", methodId)));
   }
 
   public int updateOriginalWorkspaceId(UUID methodId, UUID originalWorkspaceId) {
