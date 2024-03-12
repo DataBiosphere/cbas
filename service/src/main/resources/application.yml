@@ -89,9 +89,6 @@ wds:
   apiV: "v0.2"
   debugApiLogging: false
 
-wsm:
-  apiV: "v0.2"
-
 leonardo:
   baseUri: "https://leonardo.dsde-dev.broadinstitute.org/"
   # The below appTypeNames are in priority order for the named app type. This order is necessary for
