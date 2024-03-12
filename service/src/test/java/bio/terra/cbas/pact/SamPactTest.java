@@ -56,7 +56,7 @@ class SamPactTest {
         .method("GET")
         .willRespondWith()
         .status(200)
-        .body(new PactDslJsonBody().booleanValue("ok", true))
+        .body(new PactDslJsonBody().booleanValue("ok", true).object("systems"))
         .toPact();
   }
 
@@ -82,6 +82,7 @@ class SamPactTest {
         new PactDslJsonBody()
             .stringType("userSubjectId")
             .stringType("userEmail")
+            .booleanType("adminEnabled")
             .booleanValue("enabled", true);
     return builder
         .given("user status info request with access token")

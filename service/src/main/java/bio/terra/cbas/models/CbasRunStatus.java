@@ -3,9 +3,9 @@ package bio.terra.cbas.models;
 import bio.terra.cbas.model.RunState;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import jakarta.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 public enum CbasRunStatus {
   UNKNOWN("UNKNOWN"),

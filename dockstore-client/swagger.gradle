@@ -7,6 +7,9 @@ dependencies {
 
     implementation 'io.swagger.core.v3:swagger-annotations'
     swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli'
+
+    implementation 'jakarta.annotation:jakarta.annotation-api'
+    implementation 'jakarta.ws.rs:jakarta.ws.rs-api'
 }
 
 def artifactGroup = "${group}.dockstore"
@@ -29,6 +32,7 @@ generateSwaggerCode {
         modelPackage  : "${artifactGroup}.model",
         apiPackage    : "${artifactGroup}.api",
         invokerPackage: "${artifactGroup}.client",
+        jakarta       : true,
         dateLibrary   : 'java11',
         java8         : true
     ]

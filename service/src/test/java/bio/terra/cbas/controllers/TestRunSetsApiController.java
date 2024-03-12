@@ -375,7 +375,7 @@ class TestRunSetsApiController {
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
-    doCallRealMethod().when(samService).hasComputePermission();
+    doCallRealMethod().when(samService).hasWritePermission();
     doCallRealMethod().when(samService).getSamUser();
     doReturn(usersApi).when(samService).getUsersApi();
     when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "No token provided"));
@@ -387,9 +387,10 @@ class TestRunSetsApiController {
             result -> assertTrue(result.getResolvedException() instanceof SamUnauthorizedException))
         .andExpect(
             result ->
-                assertEquals(
-                    "Error getting user status info from Sam: No token provided",
-                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
+                assertThat(
+                    Objects.requireNonNull(result.getResolvedException()).getMessage(),
+                    containsString(
+                        "Error getting user status info from Sam: Message: No token provided")));
   }
 
   @Test
@@ -1220,7 +1221,7 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
-    when(samService.hasComputePermission())
+    when(samService.hasWritePermission())
         .thenThrow(
             new BeanCreationException(
                 "BearerToken bean instantiation failed.",
@@ -1246,7 +1247,7 @@ class TestRunSetsApiController {
 
   @Test
   void returnErrorForAbortRequestWithoutToken() throws Exception {
-    when(samService.hasComputePermission())
+    when(samService.hasWritePermission())
         .thenThrow(
             new BeanCreationException(
                 "BearerToken bean instantiation failed.",
@@ -1292,7 +1293,7 @@ class TestRunSetsApiController {
   void returnErrorForSamInterruptedException() throws Exception {
     // throw SamInterruptedException which is thrown when InterruptedException happens in
     // hasPermission()
-    when(samService.hasComputePermission())
+    when(samService.hasWritePermission())
         .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
 
     MvcResult response =

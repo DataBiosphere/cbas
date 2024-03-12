@@ -2,11 +2,11 @@ package bio.terra.cbas.dependencies.github;
 
 import bio.terra.cbas.config.GitHubConfiguration;
 import com.google.gson.Gson;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.springframework.stereotype.Component;
 
 @Component

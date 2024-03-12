@@ -1,5 +1,7 @@
 package bio.terra.cbas.dependencies.sam;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -200,7 +202,9 @@ class TestSamService {
     setTokenValue(expiredTokenValue);
     SamUnauthorizedException e =
         assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
-    assertEquals("Error getting user status info from Sam: Unauthorized :(", e.getMessage());
+    assertThat(
+        e.getMessage(),
+        containsString("Error getting user status info from Sam: Message: Unauthorized :("));
     assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
   }
 
@@ -333,7 +337,11 @@ class TestSamService {
   // Tests for including user IDs in logs once permissions have been checked
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=human-readable-logging")
+  @SpringBootTest(
+      properties = {
+        "spring.profiles.active=human-readable-logging",
+        "spring.main.allow-bean-definition-overriding=true"
+      })
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamReadableLogs {
 
@@ -365,9 +373,13 @@ class TestSamService {
   }
 
   @Nested
-  @SpringBootTest(properties = "spring.profiles.active=")
+  @SpringBootTest(
+      properties = {"spring.profiles.active=", "spring.main.allow-bean-definition-overriding=true"})
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamPlainLogs {
+    // These 2 tests will fail when run locally because for local testing Spring default's to
+    // 'human-readable-logging'. But in CI the format is not human-readable by default and hence the
+    // test assertions are met as expected.
 
     @Test
     void testUserIdInPlainLogsWithNoAccess(CapturedOutput output) {
