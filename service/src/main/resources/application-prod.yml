@@ -12,6 +12,10 @@ spring:
   # https://github.com/DataBiosphere/terra-common-lib/blob/480ab3daae282ddff0fef8dc329494a4422e32f1/src/main/java/bio/terra/common/logging/GoogleJsonLayout.java#L118
   application.name: cbas
   application.version: ${cbas.version.gitHash:unknown}
+  datasource:
+    jdbc-url: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+    username: ${DATABASE_USER:cbas_user}
+    password: ${DATABASE_USER_PASSWORD:cbas_password}
   sql:
     init:
       mode: always
@@ -39,6 +43,10 @@ cbas:
     workspaceId: "00000000-0000-0000-0000-000000000000"
     # workspaceCreatedDate is supplied by Leo. When testing locally, manually fill in this value.
     workspaceCreatedDate: "1990-02-16T14:13:02.500743Z"
+  cbas-database:
+    uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
+    password: ${DATABASE_USER_PASSWORD:cbas_password}
+    username: ${DATABASE_USER:cbas_user}
   cbas-api:
     # for POST/run_sets, the number of record IDs must be less than or equal to this value.
     runSetsMaximumRecordIds: 100
