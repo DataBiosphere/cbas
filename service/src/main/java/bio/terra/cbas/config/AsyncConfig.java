@@ -10,6 +10,25 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @EnableAsync
 public class AsyncConfig {
 
+  //  static class ContextCopyingDecorator implements TaskDecorator {
+  //    @Nonnull
+  //    @Override
+  //    public Runnable decorate(@Nonnull Runnable runnable) {
+  //      RequestAttributes context = RequestContextHolder.currentRequestAttributes();
+  //      Map<String, String> contextMap = MDC.getCopyOfContextMap();
+  //      return () -> {
+  //        try {
+  //          RequestContextHolder.setRequestAttributes(context);
+  //          MDC.setContextMap(contextMap);
+  //          runnable.run();
+  //        } finally {
+  //          MDC.clear();
+  //          RequestContextHolder.resetRequestAttributes();
+  //        }
+  //      };
+  //    }
+  //  }
+
   @Bean
   public ThreadPoolTaskExecutor runSetExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

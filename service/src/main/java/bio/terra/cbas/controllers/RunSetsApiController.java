@@ -1,44 +1,32 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
 import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
-import static bio.terra.cbas.model.RunSetState.ERROR;
-import static bio.terra.cbas.model.RunSetState.RUNNING;
-import static bio.terra.cbas.models.CbasRunStatus.INITIALIZING;
 import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
-import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.common.exceptions.InputProcessingException;
-import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.controllers.helper.RunSetSubmissionHelper;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
-import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
-import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
-import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
@@ -50,35 +38,25 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
-import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
-import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import cromwell.client.model.WorkflowIdAndStatus;
 import jakarta.servlet.http.HttpServletRequest;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.databiosphere.workspacedata.model.RecordResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -100,9 +78,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunSetAbortManager abortManager;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
-
-  private record WdsRecordResponseDetails(
-      ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
+  private final RunSetSubmissionHelper runSetSubmissionHelper;
 
   public RunSetsApiController(
       SamService samService,
@@ -120,7 +96,8 @@ public class RunSetsApiController implements RunSetsApi {
       UuidSource uuidSource,
       RunSetAbortManager abortManager,
       BearerTokenFactory bearerTokenFactory,
-      HttpServletRequest httpServletRequest) {
+      HttpServletRequest httpServletRequest,
+      RunSetSubmissionHelper runSetSubmissionHelper) {
     this.samService = samService;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
@@ -137,6 +114,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.abortManager = abortManager;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
+    this.runSetSubmissionHelper = runSetSubmissionHelper;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -339,98 +317,20 @@ public class RunSetsApiController implements RunSetsApi {
 
     captureResponseMetrics(response);
 
-    triggerWorkflowSubmit(
-        request, methodVersion, runSet, dataTableIdToRunIdMapping, runSetId, userToken);
+    log.info("### FIND ME About to trigger workflow submit for RunSet {}", runSetId);
+    runSetSubmissionHelper.triggerWorkflowSubmit(
+        wdsService,
+        cromwellService,
+        dockstoreService,
+        request,
+        methodVersion,
+        runSet,
+        dataTableIdToRunIdMapping,
+        runSetId,
+        userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
-  }
-
-  @Async("runSetExecutor")
-  public void triggerWorkflowSubmit(
-      RunSetRequest request,
-      MethodVersion methodVersion,
-      RunSet runSet,
-      Map<String, UUID> dataTableIdToRunIdMapping,
-      UUID runSetId,
-      BearerToken userToken) {
-    // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, userToken);
-
-    if (!wdsRecordResponses.recordIdsWithError.isEmpty()) {
-      String errorMsg =
-          "Error while fetching WDS Records for Record ID(s): "
-              + wdsRecordResponses.recordIdsWithError;
-      log.warn(errorMsg);
-      runSetDao.updateStateAndRunDetails(
-          runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
-    }
-
-    // convert method url to raw url and use that while calling Cromwell's submit workflow
-    // endpoint
-    String rawMethodUrl;
-    try {
-      PostMethodRequest.MethodSourceEnum methodSourceEnum =
-          convertToMethodSourceEnum(methodVersion.method().methodSource());
-
-      rawMethodUrl =
-          MethodUtil.convertToRawUrl(
-              methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
-
-      // this could happen if there was no url or empty url received in the Dockstore workflow's
-      // descriptor response
-      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
-        String errorMsg =
-            "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.";
-        log.warn(errorMsg);
-        runSetDao.updateStateAndRunDetails(
-            runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
-        return;
-      }
-    } catch (URISyntaxException
-        | MalformedURLException
-        | UnknownMethodSourceException
-        | bio.terra.dockstore.client.ApiException e) {
-      // the flow shouldn't reach here since if it was invalid URL or invalid method source it
-      // should have been caught when method was imported
-      String errorMsg =
-          "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
-      log.error(errorMsg, e);
-      runSetDao.updateStateAndRunDetails(
-          runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
-      return;
-    }
-
-    // For each Record ID, build workflow inputs and submit the workflow to Cromwell
-    List<RunStateResponse> runStateResponseList =
-        buildInputsAndSubmitRun(
-            request,
-            runSet,
-            wdsRecordResponses.recordResponseList,
-            rawMethodUrl,
-            dataTableIdToRunIdMapping,
-            userToken);
-
-    // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
-    // the Run Set as Failed
-    RunSetState runSetState;
-    List<RunStateResponse> runsInErrorState =
-        runStateResponseList.stream()
-            .filter(run -> CbasRunStatus.fromValue(run.getState()).inErrorState())
-            .toList();
-
-    if (runsInErrorState.size() == request.getWdsRecords().getRecordIds().size()) {
-      runSetState = ERROR;
-    } else runSetState = RUNNING;
-
-    runSetDao.updateStateAndRunDetails(
-        runSetId,
-        CbasRunSetStatus.fromValue(runSetState),
-        runStateResponseList.size(),
-        runsInErrorState.size(),
-        OffsetDateTime.now());
-
-    log.info("### FIND ME - triggerWorkflowSubmit complete for run set %s".formatted(runSetId));
   }
 
   @Override
@@ -531,147 +431,5 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     return errorList;
-  }
-
-  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request, BearerToken userToken) {
-    String recordType = request.getWdsRecords().getRecordType();
-
-    log.info(
-        "### FIND ME - fetching WDS records for run_set name %s"
-            .formatted(request.getRunSetName()));
-
-    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
-    HashMap<String, String> recordIdsWithError = new HashMap<>();
-    for (String recordId : request.getWdsRecords().getRecordIds()) {
-      try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
-      } catch (WdsServiceApiException e) {
-        log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
-      } catch (WdsServiceException e) {
-        log.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, e.getMessage());
-      }
-    }
-
-    return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
-  }
-
-  private RunStateResponse recordFailureToStartRun(UUID runId, String error) {
-    runDao.updateRunStatusWithError(runId, SYSTEM_ERROR, DateUtils.currentTimeInUTC(), error);
-    return new RunStateResponse()
-        .runId(runId)
-        .state(CbasRunStatus.toCbasApiState(SYSTEM_ERROR))
-        .errors(error);
-  }
-
-  private RunStateResponse recordSuccessInitializingRun(UUID runId) {
-    runDao.updateRunStatus(runId, INITIALIZING, DateUtils.currentTimeInUTC());
-    return new RunStateResponse()
-        .runId(runId)
-        .state(CbasRunStatus.toCbasApiState(INITIALIZING))
-        .errors(null);
-  }
-
-  private List<RunStateResponse> buildInputsAndSubmitRun(
-      RunSetRequest request,
-      RunSet runSet,
-      ArrayList<RecordResponse> recordResponses,
-      String rawMethodUrl,
-      Map<String, UUID> recordIdToRunIdMapping,
-      BearerToken userToken) {
-    ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
-
-    log.info(
-        "### FIND ME - submitting workflows to Cromwell for run set %s"
-            .formatted(runSet.runSetId().toString()));
-
-    // Build the JSON that specifies additional configuration for cromwell workflows. The same
-    // options
-    // will be used for all workflows submitted as part of this run set.
-    String workflowOptionsJson =
-        cromwellService.buildWorkflowOptionsJson(
-            Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
-
-    for (List<RecordResponse> batch :
-        Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
-
-      Map<UUID, RecordResponse> requestedIdToRecord =
-          batch.stream()
-              .map(
-                  singleRecord ->
-                      Map.entry(recordIdToRunIdMapping.get(singleRecord.getId()), singleRecord))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-      // Build the inputs set from workflow parameter definitions and the fetched record
-      Map<UUID, String> requestedIdToWorkflowInput =
-          requestedIdToRecord.entrySet().stream()
-              .map(
-                  entry -> {
-                    UUID runId = entry.getKey();
-
-                    try {
-                      return Map.entry(
-                          entry.getKey(),
-                          InputGenerator.inputsToJson(
-                              InputGenerator.buildInputs(
-                                  request.getWorkflowInputDefinitions(), entry.getValue())));
-                    } catch (CoercionException e) {
-                      String errorMsg =
-                          String.format(
-                              "Input generation failed for record %s. Coercion error: %s",
-                              entry.getValue().getId(), e.getMessage());
-                      log.warn(errorMsg, e);
-                      runStateResponseList.add(recordFailureToStartRun(runId, errorMsg));
-                    } catch (InputProcessingException e) {
-                      log.warn(e.getMessage());
-                      runStateResponseList.add(recordFailureToStartRun(runId, e.getMessage()));
-                    } catch (JsonProcessingException e) {
-                      // Should be super rare that jackson cannot convert an object to Json...
-                      String errorMsg =
-                          String.format(
-                              "Failed to convert inputs object to JSON for batch in RunSet %s.",
-                              runSet.runSetId());
-                      log.warn(errorMsg, e);
-                      runStateResponseList.add(
-                          recordFailureToStartRun(runId, errorMsg + e.getMessage()));
-                    }
-                    return null;
-                  })
-              .filter(inputs -> !Objects.isNull(inputs))
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-      if (requestedIdToWorkflowInput.isEmpty()) {
-        return runStateResponseList;
-      }
-
-      try {
-        // Submit the workflows and store the Runs to database
-        List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
-            cromwellService.submitWorkflowBatch(
-                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson, userToken);
-
-        runStateResponseList.addAll(
-            submitWorkflowBatchResponse.stream()
-                .map(
-                    idAndStatus -> {
-                      UUID requestedId = UUID.fromString(idAndStatus.getId());
-                      return recordSuccessInitializingRun(requestedId);
-                    })
-                .toList());
-      } catch (cromwell.client.ApiException e) {
-        String errorMsg =
-            String.format(
-                "Cromwell submission failed for batch in RunSet %s. ApiException: ",
-                runSet.runSetId());
-        log.warn(errorMsg, e);
-        runStateResponseList.addAll(
-            requestedIdToWorkflowInput.keySet().stream()
-                .map(requestedId -> recordFailureToStartRun(requestedId, errorMsg + e.getMessage()))
-                .toList());
-      }
-    }
-
-    return runStateResponseList;
   }
 }
