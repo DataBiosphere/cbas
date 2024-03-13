@@ -79,7 +79,7 @@ class TestRunSetDao {
   @AfterAll
   void cleanup() {
     try {
-      int recordsRunSetDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+      int recordsRunSetDeleted = runSetDao.deleteRunSet(runSet.runSetId());
       int recordsMethodVersionDeleted =
           methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
       int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
