@@ -45,6 +45,11 @@ public class CromwellService implements HealthCheck {
     this.cromwellAuthReadClient = cromwellAuthReadClient;
   }
 
+  public CromwellService withInstantiatedAuth() {
+    return new CromwellService(
+        cromwellClient, cromwellWriteClient, cbasNetworkConfiguration, cromwellAuthReadClient);
+  }
+
   public List<WorkflowIdAndStatus> submitWorkflowBatch(
       String workflowUrl, Map<UUID, String> requestedIdToWorkflowInput, String workflowOptionsJson)
       throws ApiException {

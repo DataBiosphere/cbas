@@ -29,6 +29,11 @@ public class WdsService {
     this.bearerToken = bearerToken;
   }
 
+  public WdsService withInstantiatedAuth() {
+    return new WdsService(
+        wdsClient, wdsServerConfiguration, listenerResetRetryTemplate, bearerToken);
+  }
+
   public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
