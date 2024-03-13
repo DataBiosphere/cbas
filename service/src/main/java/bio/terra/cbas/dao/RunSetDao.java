@@ -156,4 +156,26 @@ public class RunSetDao {
         "DELETE FROM run_set WHERE run_set_id = :run_set_id",
         new MapSqlParameterSource(RunSet.RUN_SET_ID_COL, runSetId));
   }
+
+  private String uuidToPlaceholder(UUID uuid) {
+    return uuid.toString().replace("-", "");
+  }
+
+  public int deleteAllExcept(List<UUID> runSetIds) {
+
+    // TODO: SQL doesn't like uuids as a wildcard/placeholder. Use something else...
+    String sql = "DELETE FROM run_set";
+
+    if (!runSetIds.isEmpty()) {
+      String placeholders =
+          String.join(",", runSetIds.stream().map(rsId -> ":" + uuidToPlaceholder(rsId)).toList());
+      sql.concat("WHERE run_set_id NOT IN (" + placeholders + ")");
+    }
+
+    System.out.println(sql);
+    HashMap<String, Object> parameterMap = new HashMap<>();
+    runSetIds.stream().forEach(rsId -> parameterMap.put(uuidToPlaceholder(rsId), rsId));
+    System.out.println(parameterMap);
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
+  }
 }

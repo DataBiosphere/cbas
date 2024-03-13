@@ -5,12 +5,10 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.BackfillOriginalWorkspaceIds;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,45 +53,29 @@ public class CloneRecoveryBean {
     pruneOriginalWorkspaceHistory();
   }
 
-  public Set<UUID> getMethodLatestRunSetIds() {
+  public List<UUID> getMethodLatestRunSetIds() {
     return methodDao.getMethods().stream()
         .map(
             m -> {
               if (m.lastRunSetId() != null) {
                 return m.lastRunSetId();
               } else {
+                // TODO: does getRunSetWithMethodId retrieve templates as well?
                 return runSetDao.getRunSetWithMethodId(m.methodId()).runSetId();
               }
             })
-        .collect(Collectors.toSet());
+        .collect(Collectors.toList());
   }
 
   public void pruneOriginalWorkspaceHistory() {
     runDao.deleteRunsBefore(cbasContextConfig.getWorkspaceCreatedDate());
     logger.info("Deleted all runs prior to workspace creation date");
 
-    Set<UUID> latestRunSetIdsPerMethod = getMethodLatestRunSetIds();
+    List<UUID> latestRunSetIdsPerMethod = getMethodLatestRunSetIds();
     logger.info("Identified latest run set per method: {}", latestRunSetIdsPerMethod);
 
     // prune all run sets except the latest for each method, and set them as templates
-    Stream<RunSet> runSets =
-        runSetDao.getRunSets(null, false).stream()
-            .filter(
-                rs ->
-                    rs.submissionTimestamp().isBefore(cbasContextConfig.getWorkspaceCreatedDate()));
-    Stream<RunSet> templates = runSetDao.getRunSets(null, true).stream();
-    Stream.concat(runSets, templates)
-        .forEach(
-            rs -> {
-              if (!latestRunSetIdsPerMethod.contains(rs.runSetId())) {
-                logger.info("Deleting run set {}", rs.runSetId());
-                runSetDao.deleteRunSet(rs.runSetId());
-              } else if (!rs.isTemplate()) {
-                logger.info("Converting run set {} to template.", rs.runSetId());
-                runSetDao.updateIsTemplate(rs.runSetId(), true);
-              } else {
-                logger.info("Run set {} is already a template; no change.", rs.runSetId());
-              }
-            });
+    runSetDao.deleteAllExcept(latestRunSetIdsPerMethod);
+    latestRunSetIdsPerMethod.forEach(rsId -> runSetDao.updateIsTemplate(rsId, true));
   }
 }
