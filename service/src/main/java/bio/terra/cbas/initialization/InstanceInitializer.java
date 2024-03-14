@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class InstanceInitializer implements ApplicationListener<ContextRefreshedEvent> {
 
-  private final CloneRecoveryBean cloneRecoveryBean;
+  private final BackfillOriginalWorkspaceIdBean backfillOriginalWorkspaceIdBean;
 
-  public InstanceInitializer(CloneRecoveryBean cloneRecoveryBean) {
-    this.cloneRecoveryBean = cloneRecoveryBean;
+  public InstanceInitializer(BackfillOriginalWorkspaceIdBean backfillOriginalWorkspaceIdBean) {
+    this.backfillOriginalWorkspaceIdBean = backfillOriginalWorkspaceIdBean;
   }
 
   @Override
   public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
-    cloneRecoveryBean.cloneRecovery();
+    backfillOriginalWorkspaceIdBean.backfillOriginalWorkspaceIds();
   }
 }
