@@ -1,6 +1,5 @@
 package bio.terra.cbas.dependencies.github;
 
-import bio.terra.cbas.config.GitHubConfiguration;
 import com.google.gson.Gson;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -13,16 +12,15 @@ import org.springframework.stereotype.Component;
 public class GitHubClient {
   private static final String BASE_URL = "https://api.github.com";
   private final Client client;
-  private final String token;
   private final Gson gson;
 
-  public GitHubClient(GitHubConfiguration gitHubConfiguration) {
+  public GitHubClient() {
     this.client = ClientBuilder.newClient();
-    this.token = gitHubConfiguration.personalAccessToken();
     this.gson = new Gson();
   }
 
-  public RepoInfo getRepo(String organization, String repo) throws GitHubClientException {
+  public RepoInfo getRepo(String organization, String repo, String token)
+      throws GitHubClientException {
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
     Response response =
         target

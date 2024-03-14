@@ -10,9 +10,9 @@ public class GitHubService {
     this.client = gitHubClient;
   }
 
-  public Boolean isRepoPrivate(String organization, String repo)
+  public Boolean isRepoPrivate(String organization, String repo, String token)
       throws GitHubClient.GitHubClientException {
-    GitHubClient.RepoInfo repoInfo = client.getRepo(organization, repo);
+    GitHubClient.RepoInfo repoInfo = client.getRepo(organization, repo, token);
     return repoInfo.isPrivate();
   }
 }

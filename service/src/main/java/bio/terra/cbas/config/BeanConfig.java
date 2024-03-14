@@ -1,6 +1,7 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
+import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -58,5 +59,12 @@ public class BeanConfig {
   public cromwell.client.ApiClient cromwellAuthReadClient(
       BearerToken bearerToken, CromwellClient cromwellClient) {
     return cromwellClient.getAuthReadApiClient(bearerToken.getToken());
+  }
+
+  @Bean("ecmAuthClient")
+  @RequestScope
+  public bio.terra.externalcreds.client.ApiClient ecmAuthClient(
+      BearerToken bearerToken, EcmClient ecmClient) {
+    return ecmClient.ecmAuthClient(bearerToken.getToken());
   }
 }

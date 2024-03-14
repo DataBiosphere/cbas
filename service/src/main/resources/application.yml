@@ -128,5 +128,5 @@ sam:
   checkAuthAccess: true
 
 ecm:
-  baseUri: "https://externalcreds.dsde-dev.broadinstitute.org"
+  baseUri: "https://externalcreds.dsde-dev.broadinstitute.org/"
   debugApiLogging: false
