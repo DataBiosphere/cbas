@@ -10,6 +10,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -52,6 +53,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
+  @MockBean private EcmService ecmService;
 
   String workflowDescriptionString =
       """
@@ -174,7 +176,8 @@ class TestMethodsApiControllerUnits {
             runSetDao,
             objectMapper,
             cbasContextConfiguration,
-            githubMethodDetailsDao);
+            githubMethodDetailsDao,
+            ecmService);
   }
 
   @Test

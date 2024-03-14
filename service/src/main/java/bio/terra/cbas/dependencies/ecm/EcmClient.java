@@ -24,7 +24,7 @@ public class EcmClient {
     return apiClient;
   }
 
-  public ApiClient apiAuthClient(String accessToken) {
+  public ApiClient ecmAuthClient(String accessToken) {
     ApiClient apiClient = new ApiClient();
 
     apiClient.setBasePath(ecmServerConfiguration.baseUri());

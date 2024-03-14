@@ -20,7 +20,7 @@ public class EcmService implements HealthCheck {
   }
 
   public String getAccessToken() {
-    ApiClient client = ecmClient.apiAuthClient(bearerToken.getToken());
+    ApiClient client = ecmClient.ecmAuthClient(bearerToken.getToken());
     return ecmClient.oAuthApi(client).getProviderAccessToken(Provider.GITHUB);
   }
 
