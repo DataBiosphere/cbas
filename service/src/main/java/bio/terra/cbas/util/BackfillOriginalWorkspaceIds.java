@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 
 /*
 NOTE: This class is inherently temporary.  Once all original workspace IDs have been backfilled,
-      this entire class should be deleted, along with its method calls in CloneRecoveryBean.java
+      this entire class should be deleted, along with its method calls in BackfillOriginalWorkspaceIdBean.java
  */
 public class BackfillOriginalWorkspaceIds {
 
