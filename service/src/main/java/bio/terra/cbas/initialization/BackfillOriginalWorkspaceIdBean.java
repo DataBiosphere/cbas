@@ -28,7 +28,7 @@ public class BackfillOriginalWorkspaceIdBean {
 
   public void backfillOriginalWorkspaceIds() {
     logger.info(
-        "Starting clone recovery (workspaceId: {}, workspaceCreatedDate: {}",
+        "Backfilling original workspace IDs (workspaceId: {}, workspaceCreatedDate: {}",
         cbasContextConfig.getWorkspaceId(),
         cbasContextConfig.getWorkspaceCreatedDate());
 
