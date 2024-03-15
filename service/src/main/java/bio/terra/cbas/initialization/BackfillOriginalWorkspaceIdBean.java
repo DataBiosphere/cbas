@@ -27,17 +27,32 @@ public class BackfillOriginalWorkspaceIdBean {
   }
 
   public void backfillOriginalWorkspaceIds() {
-    logger.info(
-        "Backfilling original workspace IDs (workspaceId: {}, workspaceCreatedDate: {}",
-        cbasContextConfig.getWorkspaceId(),
-        cbasContextConfig.getWorkspaceCreatedDate());
+    Boolean workspaceCreatedDateIsValid = false;
 
-    // NOTE:  The following BackfillOriginalWorkspaceIds method calls are inherently temporary.
-    //        Once all original workspace IDs have been backfilled, these lines
-    //        (and the BackfillOriginalWorkspaceIds class itself) should be deleted.
-    BackfillOriginalWorkspaceIds.backfillRunSets(runSetDao, cbasContextConfig, logger);
-    BackfillOriginalWorkspaceIds.backfillMethods(methodDao, cbasContextConfig, logger);
-    BackfillOriginalWorkspaceIds.backfillMethodVersions(
-        methodVersionDao, cbasContextConfig, logger);
+    try {
+      // call this without assignment to make sure it's not empty,
+      // e.g. during local testing, or due to an upstream error
+      cbasContextConfig.getWorkspaceCreatedDate();
+      workspaceCreatedDateIsValid = true;
+    } catch (java.time.format.DateTimeParseException e) {
+      logger.error(
+          "Aborting backfillOriginalWorkspaceIds; There was an error parsing workspaceCreatedDate: {}",
+          e.getMessage());
+    }
+
+    if (workspaceCreatedDateIsValid) {
+      logger.info(
+          "Backfilling original workspace IDs (workspaceId: {}, workspaceCreatedDate: {}",
+          cbasContextConfig.getWorkspaceId(),
+          cbasContextConfig.getWorkspaceCreatedDate());
+
+      // NOTE:  The following BackfillOriginalWorkspaceIds method calls are inherently temporary.
+      //        Once all original workspace IDs have been backfilled, these lines
+      //        (and the BackfillOriginalWorkspaceIds class itself) should be deleted.
+      BackfillOriginalWorkspaceIds.backfillRunSets(runSetDao, cbasContextConfig, logger);
+      BackfillOriginalWorkspaceIds.backfillMethods(methodDao, cbasContextConfig, logger);
+      BackfillOriginalWorkspaceIds.backfillMethodVersions(
+          methodVersionDao, cbasContextConfig, logger);
+    }
   }
 }
