@@ -1,29 +1,70 @@
 package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers
 class TestRunSetDao {
 
   @Autowired RunSetDao runSetDao;
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
+
+  @Container
+  static JdbcDatabaseContainer postgres =
+      new PostgreSQLContainer("postgres:14")
+          .withDatabaseName("test_db")
+          .withUsername("test_user")
+          .withPassword("test_password");
+
+  @DynamicPropertySource
+  static void postgresProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+  }
+
+  @BeforeAll
+  static void setup() {
+    postgres.start();
+  }
+
+  @BeforeEach
+  void init() {
+    methodDao.createMethod(method);
+    methodVersionDao.createMethodVersion(methodVersion);
+    runSetDao.createRunSet(runSet);
+  }
+
+  @AfterEach
+  void cleanupDb() throws SQLException {
+    DriverManager.getConnection(
+            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        .createStatement()
+        .execute("DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method;");
+  }
 
   private final UUID workspaceId = UUID.randomUUID();
 
@@ -68,29 +109,6 @@ class TestRunSetDao {
           "sample",
           "user-foo",
           workspaceId);
-
-  @BeforeAll
-  void init() {
-    methodDao.createMethod(method);
-    methodVersionDao.createMethodVersion(methodVersion);
-    runSetDao.createRunSet(runSet);
-  }
-
-  @AfterAll
-  void cleanup() {
-    try {
-      int recordsRunSetDeleted = runSetDao.deleteRunSets(runSet.runSetId());
-      int recordsMethodVersionDeleted =
-          methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
-      int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
-
-      assertEquals(1, recordsRunSetDeleted);
-      assertEquals(1, recordsMethodDeleted);
-      assertEquals(1, recordsMethodVersionDeleted);
-    } catch (Exception ex) {
-      fail("Failure while removing test run set record from a database", ex);
-    }
-  }
 
   @Test
   void retrievesSingleRunSet() {
