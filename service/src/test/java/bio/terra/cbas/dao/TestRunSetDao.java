@@ -134,4 +134,38 @@ class TestRunSetDao {
     List<RunSet> templateRunSets = runSetDao.getRunSets(2, true);
     assertEquals(1, templateRunSets.size());
   }
+
+  @Test
+  void getLatestRunSetWithMethodId() {
+    // initially there is only one run set associated with this method
+    assertEquals(
+        runSet.runSetId(), runSetDao.getLatestRunSetWithMethodId(method.methodId()).runSetId());
+
+    // now create a run set, submitted a day later, and confirm that it's retrieved instead.
+    // this later run set has isTemplate=false, demonstrating that getLatestRunSetWithMethodId
+    // is indifferent to a run set's isTemplate value.
+    UUID laterRunSetId = UUID.fromString("10000000-0000-0000-0000-000000000007");
+    runSetDao.createRunSet(
+        new RunSet(
+            laterRunSetId,
+            methodVersion,
+            "fetch_sra_to_bam workflow",
+            "fetch_sra_to_bam sample submission",
+            false,
+            false,
+            CbasRunSetStatus.COMPLETE,
+            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
+            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
+            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
+            0,
+            0,
+            "[]",
+            "[]",
+            "sample",
+            "user-foo",
+            workspaceId));
+
+    assertEquals(
+        laterRunSetId, runSetDao.getLatestRunSetWithMethodId(method.methodId()).runSetId());
+  }
 }

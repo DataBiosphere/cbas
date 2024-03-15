@@ -52,16 +52,20 @@ public class RunSetDao {
         .get(0);
   }
 
-  public RunSet getRunSetWithMethodId(UUID methodId) {
+  public RunSet getLatestRunSetWithMethodId(UUID methodId) {
+    return getRunSetsWithMethodId(methodId).get(0);
+  }
+
+  public List<RunSet> getRunSetsWithMethodId(UUID methodId) {
+    // Returns run sets in order from most to least recent
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
             + "INNER JOIN method on method_version.method_id = method.method_id "
             + "WHERE method.method_id = :methodId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
             + "ORDER BY MIN(run_set.submission_timestamp) DESC";
-    return jdbcTemplate
-        .query(sql, new MapSqlParameterSource(Map.of("methodId", methodId)), new RunSetMapper())
-        .get(0);
+    return jdbcTemplate.query(
+        sql, new MapSqlParameterSource(Map.of("methodId", methodId)), new RunSetMapper());
   }
 
   public int createRunSet(RunSet runSet) {
@@ -140,9 +144,20 @@ public class RunSetDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
-  public int deleteRunSets(UUID runSetId) {
+  public int deleteRunSet(UUID runSetId) {
     return jdbcTemplate.update(
         "DELETE FROM run_set WHERE run_set_id = :run_set_id",
         new MapSqlParameterSource(RunSet.RUN_SET_ID_COL, runSetId));
+  }
+
+  public int updateIsTemplate(UUID runSetId, Boolean isTemplate) {
+    String updateClause = "UPDATE run_set SET %s = :is_template".formatted(RunSet.IS_TEMPLATE_COL);
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
+            Map.of(
+                "run_set_id", runSetId,
+                "is_template", isTemplate));
+    String sql = updateClause + " WHERE %s = :run_set_id".formatted(RunSet.RUN_SET_ID_COL);
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 }

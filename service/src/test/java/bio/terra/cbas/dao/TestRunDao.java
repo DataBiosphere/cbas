@@ -148,7 +148,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);
@@ -180,7 +180,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);
@@ -202,7 +202,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);

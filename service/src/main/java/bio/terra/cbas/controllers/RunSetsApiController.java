@@ -156,7 +156,7 @@ public class RunSetsApiController implements RunSetsApi {
     List<RunSet> filteredRunSet;
 
     if (methodId != null) {
-      filteredRunSet = Collections.singletonList(runSetDao.getRunSetWithMethodId(methodId));
+      filteredRunSet = Collections.singletonList(runSetDao.getLatestRunSetWithMethodId(methodId));
     } else {
       filteredRunSet = runSetDao.getRunSets(pageSize, false);
     }
