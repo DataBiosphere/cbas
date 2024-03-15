@@ -7,18 +7,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.models.Method;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers
 class TestMethodDao {
 
   @MockBean MicrometerMetrics micrometerMetrics;
@@ -49,9 +57,27 @@ class TestMethodDao {
           null,
           methodSource,
           workspaceId);
+  @Container
+  static JdbcDatabaseContainer postgres =
+      new PostgreSQLContainer("postgres:14")
+          .withDatabaseName("test_db")
+          .withUsername("test_user")
+          .withPassword("test_password");
+
+  @DynamicPropertySource
+  static void postgresProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+  }
 
   @BeforeAll
-  void setUp() {
+  static void setup() {
+    postgres.start();
+  }
+
+  @BeforeEach
+  void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int recordsCreated2 = methodDao.createMethod(method2);
 
@@ -59,13 +85,12 @@ class TestMethodDao {
     assertEquals(1, recordsCreated2);
   }
 
-  @AfterAll
-  void cleanUp() {
-    int recordsDeleted1 = methodDao.deleteMethod(methodId1);
-    int recordsDeleted2 = methodDao.deleteMethod(methodId2);
-
-    assertEquals(1, recordsDeleted1);
-    assertEquals(1, recordsDeleted2);
+  @AfterEach
+  void cleanupDb() throws SQLException {
+    DriverManager.getConnection(
+            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        .createStatement()
+        .execute("DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method;");
   }
 
   @Test
