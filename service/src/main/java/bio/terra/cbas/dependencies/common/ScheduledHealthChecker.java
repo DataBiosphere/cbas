@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.common;
 
+import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -26,13 +27,17 @@ public class ScheduledHealthChecker {
 
   @Autowired
   public ScheduledHealthChecker(
-      CromwellService cromwellService, LeonardoService leonardoService, SamService samService) {
+      CromwellService cromwellService,
+      LeonardoService leonardoService,
+      SamService samService,
+      EcmService ecmService) {
     this.healthCheckStatuses = new ConcurrentHashMap<>();
     this.healthCheckSystems =
         Map.of(
             "leonardo", leonardoService,
             "sam", samService,
-            "cromwell", cromwellService);
+            "cromwell", cromwellService,
+            "ecm", ecmService);
   }
 
   @Scheduled(
