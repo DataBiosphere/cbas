@@ -40,6 +40,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -154,7 +155,7 @@ public class MethodsApiController implements MethodsApi {
     // outputs
     WorkflowDescription workflowDescription;
     try {
-      // workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
+      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
       workflowDescription = new WorkflowDescription();
       workflowDescription.setValid(true);
       // return 400 if method is invalid
@@ -174,8 +175,8 @@ public class MethodsApiController implements MethodsApi {
       // validate that passed input and output mappings exist in workflow
       List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
       List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
-      List<String> invalidMappingErrors = new ArrayList<>();
-      // validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+      List<String> invalidMappingErrors =
+          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
 
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
@@ -230,8 +231,8 @@ public class MethodsApiController implements MethodsApi {
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch ( // ApiException
-    JsonProcessingException
+    } catch (ApiException
+        | JsonProcessingException
         | WomtoolValueTypeNotFoundException
         | URISyntaxException
         | GitHubClient.GitHubClientException e) {
@@ -341,7 +342,6 @@ public class MethodsApiController implements MethodsApi {
     methodDao.createMethod(method);
 
     if (githubMethodDetails != null) {
-      System.out.println(githubMethodDetails);
       githubMethodDetailsDao.createGithubMethodSourceDetails(githubMethodDetails);
     }
 
