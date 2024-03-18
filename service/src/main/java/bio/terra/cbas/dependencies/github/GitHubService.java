@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.github;
 
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,7 +13,7 @@ public class GitHubService {
 
   public Boolean isRepoPrivate(String organization, String repo, String token)
       throws GitHubClient.GitHubClientException {
-    GitHubClient.RepoInfo repoInfo = client.getRepo(organization, repo, token);
-    return repoInfo.isPrivate();
+    JSONObject repoInfo = client.getRepo(organization, repo, token);
+    return Boolean.valueOf(repoInfo.get("private").toString());
   }
 }

@@ -1,11 +1,14 @@
 package bio.terra.cbas.dependencies.github;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,42 +16,50 @@ public class GitHubClient {
   private static final String BASE_URL = "https://api.github.com";
   private final Client client;
   private final Gson gson;
+  private final ObjectMapper objectMapper;
 
   public GitHubClient() {
     this.client = ClientBuilder.newClient();
     this.gson = new Gson();
+    this.objectMapper = new ObjectMapper();
   }
 
-  public RepoInfo getRepo(String organization, String repo, String token)
+  public JSONObject getRepo(String organization, String repo, String token)
       throws GitHubClientException {
+
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
     Response response =
         target
             .request(MediaType.APPLICATION_JSON_TYPE)
-            .header("Authorization", "Bearer: " + token)
+            .header("Accept", "application/vnd.github+json")
+            .header("Authorization", "Bearer " + token)
+            .header("X-GitHub-Api-Version", "2022-11-28")
             .get();
+
     if (response.getStatus() == 200) {
-      return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
+      String gitHubResponse = response.readEntity(String.class);
+      return new JSONObject(gitHubResponse);
     } else {
       RepoError error = gson.fromJson(response.readEntity(String.class), RepoError.class);
       throw new GitHubClientException("GitHub Service getRepo failed: " + error.getMessage());
     }
   }
 
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class RepoInfo {
-    private boolean isPrivate;
-    private String url;
+    private boolean _private;
+    private String html_url;
     private String id;
 
-    public boolean isPrivate() {
-      return isPrivate;
+    public boolean _private() {
+      return _private;
     }
 
-    public String getUrl() {
-      return url;
+    public String html_url() {
+      return html_url;
     }
 
-    public String getId() {
+    public String id() {
       return id;
     }
   }
