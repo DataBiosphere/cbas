@@ -64,7 +64,27 @@ public class TestCloneRecoveryBean {
     DriverManager.getConnection(
             postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
         .createStatement()
-        .execute("DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method;");
+        .execute(
+            "DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method; DELETE FROM run;");
+  }
+
+  @Test
+  void testUpdateMethodTemplate() {
+    methodDao.createMethod(clonedMethod);
+    methodVersionDao.createMethodVersion(clonedMethodVersion);
+    runSetDao.createRunSet(clonedTemplate);
+    runSetDao.createRunSet(clonedRunSet);
+    runDao.createRun(clonedRun);
+
+    CloneRecoveryBean cloneRecoveryBean =
+        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
+
+    UUID newTemplateRunSetId = cloneRecoveryBean.updateMethodTemplate(clonedMethod);
+
+    RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSet.runSetId());
+
+    assertEquals(true, updatedRunSet.isTemplate());
+    assertEquals(newTemplateRunSetId, clonedRunSet.runSetId());
   }
 
   @Test
@@ -75,40 +95,44 @@ public class TestCloneRecoveryBean {
     runSetDao.createRunSet(clonedRunSet);
     runDao.createRun(clonedRun);
 
-    CloneRecoveryBean cloneRecoveryBean =
-        new CloneRecoveryBean(runSetDao, runDao, methodDao, methodVersionDao, cbasContextConfig);
+    List<RunSet> initialRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
+    List<Run> initialRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
+    List<RunSet> initialTemplates = runSetDao.getRunSets(null, true);
 
+    assertEquals(2, initialRunSets.size());
+    assertEquals(1, initialRuns.size());
+    assertEquals(1, initialTemplates.size());
+    assertEquals(clonedTemplate.runSetId(), initialTemplates.get(0).runSetId());
+
+    CloneRecoveryBean cloneRecoveryBean =
+        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
     cloneRecoveryBean.pruneCloneSourceWorkspaceHistory();
 
-    List<RunSet> remainingRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
-    List<Run> remainingRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
-    RunSet remainingRunSet = remainingRunSets.get(0);
+    List<RunSet> finalRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
+    List<Run> finalRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
+    List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
 
-    assertEquals(1, remainingRunSets.size());
-    assertEquals(0, remainingRuns.size());
-    assertEquals(true, remainingRunSet.isTemplate());
-    assertEquals(clonedRunSet.runSetId(), remainingRunSet.runSetId());
-  }
+    System.out.println("Final Templates: " + finalTemplates);
 
-  @Test
-  void testRecoveryFromAppUpgrade() {
-    CloneRecoveryBean cloneRecoveryBean =
-        new CloneRecoveryBean(runSetDao, runDao, methodDao, methodVersionDao, cbasContextConfig);
-
-    cloneRecoveryBean.pruneCloneSourceWorkspaceHistory();
+    assertEquals(1, finalRunSets.size());
+    assertEquals(0, finalRuns.size());
+    assertEquals(1, finalTemplates.size());
+    assertEquals(clonedRunSet.runSetId(), finalTemplates.get(0).runSetId());
   }
 
   private final UUID originalWorkspaceId = UUID.randomUUID();
+  private final OffsetDateTime originalWorkspaceCreationDate =
+      OffsetDateTime.parse("2000-01-01T00:00:00.000000Z");
   private final UUID currentWorkspaceId = UUID.randomUUID();
   private final OffsetDateTime currentWorkspaceCreatedDate =
-      OffsetDateTime.parse("2023-01-27T19:21:24.563932Z");
+      OffsetDateTime.parse("2000-01-02T00:00:00.000000Z");
 
   Method clonedMethod =
       new Method(
           UUID.randomUUID(),
           "",
           "",
-          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          currentWorkspaceCreatedDate.minusMinutes(5),
           null,
           "",
           originalWorkspaceId);
@@ -119,7 +143,7 @@ public class TestCloneRecoveryBean {
           clonedMethod,
           "",
           "",
-          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          currentWorkspaceCreatedDate.minusMinutes(5),
           null,
           "",
           originalWorkspaceId,
@@ -134,9 +158,9 @@ public class TestCloneRecoveryBean {
           false,
           true,
           CbasRunSetStatus.COMPLETE,
-          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
-          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          originalWorkspaceCreationDate.plusMinutes(1),
+          originalWorkspaceCreationDate.plusMinutes(1),
+          originalWorkspaceCreationDate.plusMinutes(1),
           0,
           0,
           "[]",
@@ -154,9 +178,9 @@ public class TestCloneRecoveryBean {
           false,
           false,
           CbasRunSetStatus.COMPLETE,
-          OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
-          OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
-          OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
+          originalWorkspaceCreationDate.plusMinutes(5),
+          originalWorkspaceCreationDate.plusMinutes(5),
+          originalWorkspaceCreationDate.plusMinutes(5),
           0,
           0,
           "[]",
