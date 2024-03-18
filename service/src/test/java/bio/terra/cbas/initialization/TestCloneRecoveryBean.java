@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ public class TestCloneRecoveryBean {
             postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
         .createStatement()
         .execute(
-            "DELETE FROM run; DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method;");
+            "TRUNCATE TABLE run CASCADE; TRUNCATE TABLE method_version CASCADE; TRUNCATE TABLE run_set CASCADE; TRUNCATE TABLE method CASCADE; TRUNCATE TABLE github_method_details CASCADE");
   }
 
   @Test
@@ -73,25 +74,38 @@ public class TestCloneRecoveryBean {
     methodDao.createMethod(clonedMethod);
     methodVersionDao.createMethodVersion(clonedMethodVersion);
     runSetDao.createRunSet(clonedTemplate);
+
     runSetDao.createRunSet(clonedRunSet);
     runDao.createRun(clonedRun);
+
+    runSetDao.createRunSet(clonedRunSetLatest);
+    runDao.createRun(clonedRunLatest);
+
+    runSetDao.createRunSet(currentRunSet);
+    runDao.createRun(currentRun);
 
     CloneRecoveryBean cloneRecoveryBean =
         new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
 
-    UUID newTemplateRunSetId = cloneRecoveryBean.updateMethodTemplate(clonedMethod);
+    cloneRecoveryBean.updateMethodTemplate(clonedMethod);
+    RunSet formerTemplate = runSetDao.getRunSet(clonedTemplate.runSetId());
+    RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSetLatest.runSetId());
+    RunSet clonedRunSetRemaining = runSetDao.getRunSet(clonedRunSet.runSetId());
+    RunSet currentRunSetRemaining = runSetDao.getRunSet(currentRunSet.runSetId());
 
-    RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSet.runSetId());
-
+    assertEquals(false, formerTemplate.isTemplate());
     assertEquals(true, updatedRunSet.isTemplate());
-    assertEquals(newTemplateRunSetId, clonedRunSet.runSetId());
+    assertEquals(false, clonedRunSetRemaining.isTemplate());
+    assertEquals(false, currentRunSetRemaining.isTemplate());
   }
 
   @Test
   void testRecoveryFromWorkspaceCloning() {
     methodDao.createMethod(clonedMethod);
     methodVersionDao.createMethodVersion(clonedMethodVersion);
+
     runSetDao.createRunSet(clonedTemplate);
+
     runSetDao.createRunSet(clonedRunSet);
     runDao.createRun(clonedRun);
 
@@ -112,8 +126,6 @@ public class TestCloneRecoveryBean {
     List<Run> finalRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
     List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
 
-    System.out.println("Final Templates: " + finalTemplates);
-
     assertEquals(1, finalRunSets.size());
     assertEquals(0, finalRuns.size());
     assertEquals(1, finalTemplates.size());
@@ -124,10 +136,13 @@ public class TestCloneRecoveryBean {
   void testRecoveryFromAppUpgrade() {
     methodDao.createMethod(clonedMethod);
     methodVersionDao.createMethodVersion(clonedMethodVersion);
+
     runSetDao.createRunSet(clonedTemplate);
+
     runSetDao.createRunSet(clonedRunSet);
-    runSetDao.createRunSet(currentRunSet);
     runDao.createRun(clonedRun);
+
+    runSetDao.createRunSet(currentRunSet);
     runDao.createRun(currentRun);
     methodDao.updateLastRunWithRunSet(currentRunSet);
     methodVersionDao.updateLastRunWithRunSet(currentRunSet);
@@ -149,20 +164,21 @@ public class TestCloneRecoveryBean {
 
     List<RunSet> finalRunSets = runSetDao.getRunSets(null, false);
     List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
-    List<Run> finalRuns = runDao.getRuns(RunDao.RunsFilters.empty());
+    List<String> finalRunSetIds =
+        Stream.concat(
+                finalRunSets.stream().map(RunSet::runSetId),
+                finalTemplates.stream().map(RunSet::runSetId))
+            .map(UUID::toString)
+            .toList();
 
-    System.out.println("Final run sets: " + finalRunSets);
+    List<Run> finalRuns = runDao.getRuns(RunDao.RunsFilters.empty());
 
     assertEquals(1, finalRunSets.size());
     assertEquals(1, finalRuns.size());
     assertEquals(1, finalTemplates.size());
     assertEquals(true, runSetDao.getRunSet(clonedRunSet.runSetId()).isTemplate());
     assertEquals(false, runSetDao.getRunSet(currentRunSet.runSetId()).isTemplate());
-    assertEquals(
-        false,
-        runSetDao
-            .getRunSet(clonedTemplate.runSetId())
-            .isTemplate()); // this shouldn't exist, should cause error
+    assertEquals(false, finalRunSetIds.contains(clonedTemplate.runSetId().toString()));
   }
 
   private final UUID originalWorkspaceId = UUID.randomUUID();
@@ -247,9 +263,41 @@ public class TestCloneRecoveryBean {
           clonedRunSet.lastPolledTimestamp(),
           "");
 
-  RunSet currentRunSet =
+  RunSet clonedRunSetLatest =
       new RunSet(
           UUID.fromString("00000000-0000-0000-0000-000000000003"),
+          clonedMethodVersion,
+          "",
+          "",
+          false,
+          false,
+          CbasRunSetStatus.COMPLETE,
+          originalWorkspaceCreationDate.plusMinutes(6),
+          originalWorkspaceCreationDate.plusMinutes(6),
+          originalWorkspaceCreationDate.plusMinutes(6),
+          0,
+          0,
+          "[]",
+          "[]",
+          "",
+          "",
+          originalWorkspaceId);
+
+  Run clonedRunLatest =
+      new Run(
+          UUID.randomUUID(),
+          UUID.randomUUID().toString(),
+          clonedRunSetLatest,
+          "",
+          clonedRunSetLatest.submissionTimestamp(),
+          CbasRunStatus.COMPLETE,
+          clonedRunSetLatest.lastModifiedTimestamp(),
+          clonedRunSetLatest.lastPolledTimestamp(),
+          "");
+
+  RunSet currentRunSet =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000004"),
           clonedMethodVersion,
           "",
           "",

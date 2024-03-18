@@ -7,8 +7,9 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,41 +42,55 @@ public class CloneRecoveryBean {
   }
 
   public void pruneCloneSourceWorkspaceHistory() {
-    methodDao.getMethods().stream()
-        .filter(this::isMethodCloned)
-        .forEach(this::updateMethodTemplate);
+    List<Method> methods = methodDao.getMethods().stream().filter(this::isMethodCloned).toList();
 
-    runSetDao.getRunSets(null, true).forEach(this::deleteRunSetRuns);
+    methods.forEach(this::updateMethodTemplate);
 
-    runSetDao
-        .getRunSets(null, false)
-        .forEach(
-            rs -> {
-              deleteRunSetRuns(rs);
-              runSetDao.deleteRunSet(rs.runSetId());
-            });
+    methods.forEach(this::cleanupClonedMethodHistory);
   }
 
   public Boolean isMethodCloned(Method m) {
-    return m.originalWorkspaceId() != cbasContextConfig.getWorkspaceId();
+    return !m.originalWorkspaceId().equals(cbasContextConfig.getWorkspaceId());
   }
 
-  public UUID updateMethodTemplate(Method m) {
-    UUID newTemplateRunSetId;
-    if (m.lastRunSetId() != null) {
-      newTemplateRunSetId = m.lastRunSetId();
-    } else {
-      newTemplateRunSetId = runSetDao.getLatestRunSetWithMethodId(m.methodId()).runSetId();
+  public Boolean isRunSetCloned(RunSet r) {
+    return !r.originalWorkspaceId().equals(cbasContextConfig.getWorkspaceId());
+  }
+
+  public void updateMethodTemplate(Method m) {
+    Stream<RunSet> runSetsAndTemplates =
+        Stream.concat(
+            runSetDao.getRunSets(null, false).stream(), runSetDao.getRunSets(null, true).stream());
+
+    List<RunSet> methodClonedRunSets =
+        runSetsAndTemplates
+            .filter(this::isRunSetCloned)
+            .filter(rs -> rs.methodVersion().getMethodId().equals(m.methodId()))
+            .sorted(Comparator.comparing(RunSet::submissionTimestamp).reversed())
+            .toList();
+
+    if (!methodClonedRunSets.isEmpty()) {
+      RunSet newTemplateRunSet = methodClonedRunSets.get(0);
+      runSetDao.updateIsTemplate(newTemplateRunSet.runSetId(), true);
+      methodClonedRunSets.stream()
+          .skip(1) // skip the latest run set, which was promoted to isTemplate = true
+          .forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), false));
     }
-    runSetDao
-        .getRunSetsWithMethodId(m.methodId())
-        .forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), false));
-    runSetDao.updateIsTemplate(newTemplateRunSetId, true);
-    return newTemplateRunSetId;
+  }
+
+  public void cleanupClonedMethodHistory(Method method) {
+    runSetDao.getRunSetsWithMethodId(method.methodId()).stream()
+        .filter(this::isRunSetCloned)
+        .forEach(
+            rs -> {
+              deleteRunSetRuns(rs);
+              if (!rs.isTemplate()) {
+                runSetDao.deleteRunSet(rs.runSetId());
+              }
+            });
   }
 
   public void deleteRunSetRuns(RunSet runSet) {
-    logger.info("deleteRunSetRuns: {}", runSet.runSetId());
     List<Run> runsToDelete = runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null));
     runsToDelete.forEach(r -> runDao.deleteRun(r.runId()));
   }
