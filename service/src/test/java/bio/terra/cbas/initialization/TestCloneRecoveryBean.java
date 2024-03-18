@@ -65,7 +65,7 @@ public class TestCloneRecoveryBean {
             postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
         .createStatement()
         .execute(
-            "DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method; DELETE FROM run;");
+            "DELETE FROM run; DELETE FROM run_set; DELETE FROM method_version; DELETE FROM method;");
   }
 
   @Test
