@@ -156,8 +156,7 @@ public class MethodsApiController implements MethodsApi {
     WorkflowDescription workflowDescription;
     try {
       workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
-      workflowDescription = new WorkflowDescription();
-      workflowDescription.setValid(true);
+
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
