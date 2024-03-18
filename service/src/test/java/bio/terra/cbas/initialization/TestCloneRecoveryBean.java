@@ -120,10 +120,55 @@ public class TestCloneRecoveryBean {
     assertEquals(clonedRunSet.runSetId(), finalTemplates.get(0).runSetId());
   }
 
+  @Test
+  void testRecoveryFromAppUpgrade() {
+    methodDao.createMethod(clonedMethod);
+    methodVersionDao.createMethodVersion(clonedMethodVersion);
+    runSetDao.createRunSet(clonedTemplate);
+    runSetDao.createRunSet(clonedRunSet);
+    runSetDao.createRunSet(currentRunSet);
+    runDao.createRun(clonedRun);
+    runDao.createRun(currentRun);
+    methodDao.updateLastRunWithRunSet(currentRunSet);
+    methodVersionDao.updateLastRunWithRunSet(currentRunSet);
+
+    List<RunSet> initialRunSets = runSetDao.getRunSets(null, false);
+    List<RunSet> initialTemplates = runSetDao.getRunSets(null, true);
+    List<Run> initialRuns = runDao.getRuns(RunDao.RunsFilters.empty());
+
+    assertEquals(2, initialRunSets.size());
+    assertEquals(2, initialRuns.size());
+    assertEquals(1, initialTemplates.size());
+    assertEquals(false, runSetDao.getRunSet(clonedRunSet.runSetId()).isTemplate());
+    assertEquals(false, runSetDao.getRunSet(currentRunSet.runSetId()).isTemplate());
+    assertEquals(true, runSetDao.getRunSet(clonedTemplate.runSetId()).isTemplate());
+
+    CloneRecoveryBean cloneRecoveryBean =
+        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
+    cloneRecoveryBean.pruneCloneSourceWorkspaceHistory();
+
+    List<RunSet> finalRunSets = runSetDao.getRunSets(null, false);
+    List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
+    List<Run> finalRuns = runDao.getRuns(RunDao.RunsFilters.empty());
+
+    System.out.println("Final run sets: " + finalRunSets);
+
+    assertEquals(1, finalRunSets.size());
+    assertEquals(1, finalRuns.size());
+    assertEquals(1, finalTemplates.size());
+    assertEquals(true, runSetDao.getRunSet(clonedRunSet.runSetId()).isTemplate());
+    assertEquals(false, runSetDao.getRunSet(currentRunSet.runSetId()).isTemplate());
+    assertEquals(
+        false,
+        runSetDao
+            .getRunSet(clonedTemplate.runSetId())
+            .isTemplate()); // this shouldn't exist, should cause error
+  }
+
   private final UUID originalWorkspaceId = UUID.randomUUID();
   private final OffsetDateTime originalWorkspaceCreationDate =
       OffsetDateTime.parse("2000-01-01T00:00:00.000000Z");
-  private final UUID currentWorkspaceId = UUID.randomUUID();
+  private final UUID currentWorkspaceId = UUID.fromString("00000000-0000-0000-0000-000000000123");
   private final OffsetDateTime currentWorkspaceCreatedDate =
       OffsetDateTime.parse("2000-01-02T00:00:00.000000Z");
 
@@ -151,6 +196,7 @@ public class TestCloneRecoveryBean {
 
   RunSet clonedTemplate =
       new RunSet(
+          // UUID.randomUUID(),
           UUID.fromString("00000000-0000-0000-0000-000000000001"),
           clonedMethodVersion,
           "",
@@ -199,5 +245,37 @@ public class TestCloneRecoveryBean {
           CbasRunStatus.COMPLETE,
           clonedRunSet.lastModifiedTimestamp(),
           clonedRunSet.lastPolledTimestamp(),
+          "");
+
+  RunSet currentRunSet =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000003"),
+          clonedMethodVersion,
+          "",
+          "",
+          false,
+          false,
+          CbasRunSetStatus.COMPLETE,
+          currentWorkspaceCreatedDate.plusMinutes(10),
+          currentWorkspaceCreatedDate.plusMinutes(10),
+          currentWorkspaceCreatedDate.plusMinutes(10),
+          0,
+          0,
+          "[]",
+          "[]",
+          "",
+          "",
+          currentWorkspaceId);
+
+  Run currentRun =
+      new Run(
+          UUID.randomUUID(),
+          UUID.randomUUID().toString(),
+          currentRunSet,
+          "",
+          currentRunSet.submissionTimestamp(),
+          CbasRunStatus.COMPLETE,
+          currentRunSet.lastModifiedTimestamp(),
+          currentRunSet.lastPolledTimestamp(),
           "");
 }
