@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -13,6 +14,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
+// Without @DirtiesContext, multiple ContainerizedDaoTest classes executed in rapid succession
+// can cause loss of connection to the containerized database.
+// See: https://stackoverflow.com/a/68992727
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Testcontainers
 public class ContainerizedDaoTest {
 
