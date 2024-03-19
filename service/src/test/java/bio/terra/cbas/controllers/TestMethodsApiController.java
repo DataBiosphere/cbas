@@ -465,6 +465,12 @@ class TestMethodsApiController {
     assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
+
+    ArgumentCaptor<GithubMethodDetails> newDetailsCaptor =
+        ArgumentCaptor.forClass(GithubMethodDetails.class);
+    verify(githubMethodDetailsDao).createGithubMethodSourceDetails(newDetailsCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newDetailsCaptor.getValue().methodId());
+    assertEquals(true, newDetailsCaptor.getValue().isPrivate());
   }
 
   @Test

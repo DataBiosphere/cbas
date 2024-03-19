@@ -205,8 +205,8 @@ public class MethodsApiController implements MethodsApi {
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
 
-        String token = ecmService.getAccessToken();
-        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, token);
+        String githubToken = ecmService.getAccessToken();
+        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);

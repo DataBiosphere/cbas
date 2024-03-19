@@ -15,29 +15,9 @@ class TestGithubService {
 
   @Test
   void returnCorrectBooleanValue() throws GitHubClient.GitHubClientException {
-    String jsonResponseFalse =
-        """
-        {
-          "name": "foo",
-          "organization": "broadinstitute",
-          "private": %s
-        }
-        """
-            .formatted("false")
-            .stripIndent()
-            .trim();
+    String jsonResponseFalse = jsonResponse(false);
+    String jsonResponseTrue = jsonResponse(true);
 
-    String jsonResponseTrue =
-        """
-        {
-          "name": "foo",
-          "organization": "broadinstitute",
-          "private": %s
-        }
-        """
-            .formatted("true")
-            .stripIndent()
-            .trim();
     JSONObject jsonObjectFalse = new JSONObject(jsonResponseFalse);
     JSONObject jsonObjectTrue = new JSONObject(jsonResponseTrue);
 
@@ -48,5 +28,18 @@ class TestGithubService {
 
     when(githubClient.getRepo("broadinstitute", "foo", "token")).thenReturn(jsonObjectTrue);
     assertTrue(gitHubService.isRepoPrivate("broadinstitute", "foo", "token"));
+  }
+
+  private String jsonResponse(boolean isPrivate) {
+    return """
+        {
+          "name": "foo",
+          "organization": "broadinstitute",
+          "private": %s
+        }
+        """
+        .formatted(isPrivate)
+        .stripIndent()
+        .trim();
   }
 }
