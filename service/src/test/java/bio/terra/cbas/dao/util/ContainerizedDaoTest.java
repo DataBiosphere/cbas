@@ -22,7 +22,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public class ContainerizedDaoTest {
 
   @Container
-  protected static JdbcDatabaseContainer postgres =
+  protected static final JdbcDatabaseContainer postgres =
       new PostgreSQLContainer("postgres:14")
           .withDatabaseName("test_db")
           .withUsername("test_user")
