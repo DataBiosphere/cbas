@@ -3,44 +3,18 @@ package bio.terra.cbas.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@Testcontainers
-class TestGithubMethodDetailsDao {
+class TestGithubMethodDetailsDao extends ContainerizedDaoTest {
   @Autowired GithubMethodDetailsDao githubMethodDetailsDao;
 
   @Autowired MethodDao methodDao;
-
-  @Container
-  static JdbcDatabaseContainer postgres =
-      new PostgreSQLContainer("postgres:14")
-          .withDatabaseName("test_db")
-          .withUsername("test_user")
-          .withPassword("test_password");
-
-  @DynamicPropertySource
-  static void postgresProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
 
   UUID methodId1 = UUID.randomUUID();
   String methodName = "test method";
@@ -61,11 +35,6 @@ class TestGithubMethodDetailsDao {
   GithubMethodDetails details =
       new GithubMethodDetails("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
 
-  @BeforeAll
-  static void setup() {
-    postgres.start();
-  }
-
   @BeforeEach
   void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
@@ -73,15 +42,6 @@ class TestGithubMethodDetailsDao {
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, githubMethodDetails);
-  }
-
-  @AfterEach
-  void cleanupDb() throws SQLException {
-    DriverManager.getConnection(
-            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-        .createStatement()
-        .execute(
-            "TRUNCATE TABLE run CASCADE; TRUNCATE TABLE method_version CASCADE; TRUNCATE TABLE run_set CASCADE; TRUNCATE TABLE method CASCADE; TRUNCATE TABLE github_method_details CASCADE");
   }
 
   @Test

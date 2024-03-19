@@ -4,28 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@Testcontainers
-class TestMethodVersionDao {
+class TestMethodVersionDao extends ContainerizedDaoTest {
 
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
@@ -63,25 +51,6 @@ class TestMethodVersionDao {
           workspaceId,
           branch);
 
-  @Container
-  static JdbcDatabaseContainer postgres =
-      new PostgreSQLContainer("postgres:14")
-          .withDatabaseName("test_db")
-          .withUsername("test_user")
-          .withPassword("test_password");
-
-  @DynamicPropertySource
-  static void postgresProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
-
-  @BeforeAll
-  static void setup() {
-    postgres.start();
-  }
-
   @BeforeEach
   void init() {
     int methodRecordsCreated = methodDao.createMethod(method);
@@ -89,15 +58,6 @@ class TestMethodVersionDao {
 
     assertEquals(1, methodRecordsCreated);
     assertEquals(1, methodVersionRecordsCreated);
-  }
-
-  @AfterEach
-  void cleanupDb() throws SQLException {
-    DriverManager.getConnection(
-            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-        .createStatement()
-        .execute(
-            "TRUNCATE TABLE run CASCADE; TRUNCATE TABLE method_version CASCADE; TRUNCATE TABLE run_set CASCADE; TRUNCATE TABLE method CASCADE; TRUNCATE TABLE github_method_details CASCADE");
   }
 
   @Test
