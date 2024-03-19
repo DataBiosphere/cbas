@@ -9,11 +9,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestRunsFilters {
 
   // Sort the NON_TERMINAL_STATES so that we can guarantee the order (based on enum ordination):
