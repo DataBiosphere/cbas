@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 // See: https://stackoverflow.com/a/68992727
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Testcontainers
-public class ContainerizedDaoTest {
+public abstract class ContainerizedDaoTest {
 
   @Container
   protected static final JdbcDatabaseContainer postgres =
