@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InstanceInitializer implements ApplicationListener<ContextRefreshedEvent> {
 
-  @Autowired BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService;
+  private final BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService;
 
   public InstanceInitializer(
       BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService) {
