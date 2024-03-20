@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
@@ -42,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
 
 class TestSamService {
   private SamClient samClient;
@@ -341,10 +341,11 @@ class TestSamService {
   @SpringBootTest(
       properties = {
         "spring.profiles.active=human-readable-logging",
-        "spring.main.allow-bean-definition-overriding=true"
+        "spring.main.allow-bean-definition-overriding: true",
+        "cbas.context.workspaceCreatedDate: 1990-12-20T00:00:00.000000Z"
       })
   @ExtendWith(OutputCaptureExtension.class)
-  class TestSamReadableLogs extends ContainerizedDaoTest {
+  class TestSamReadableLogs {
 
     @Test
     void testUserIdInLogsWithNoAccess(CapturedOutput output) {
@@ -374,10 +375,10 @@ class TestSamService {
   }
 
   @Nested
-  @SpringBootTest(
-      properties = {"spring.profiles.active=", "spring.main.allow-bean-definition-overriding=true"})
+  @SpringBootTest
+  @ActiveProfiles("test")
   @ExtendWith(OutputCaptureExtension.class)
-  class TestSamPlainLogs extends ContainerizedDaoTest {
+  class TestSamPlainLogs {
     // These 2 tests will fail when run locally because for local testing Spring default's to
     // 'human-readable-logging'. But in CI the format is not human-readable by default and hence the
     // test assertions are met as expected.
