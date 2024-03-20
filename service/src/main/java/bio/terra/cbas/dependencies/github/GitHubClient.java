@@ -49,16 +49,16 @@ public class GitHubClient {
     private String url;
     private String id;
 
-    public Boolean isPrivate(Boolean isPrivate) {
-      return this.isPrivate = isPrivate;
+    public void isPrivate(Boolean isPrivate) {
+      this.isPrivate = isPrivate;
     }
 
-    public String url(String url) {
-      return this.url = url;
+    public void url(String url) {
+      this.url = url;
     }
 
-    public String id(String id) {
-      return this.id = id;
+    public void id(String id) {
+      this.id = id;
     }
 
     public Boolean getIsPrivate() {
