@@ -1,12 +1,12 @@
 package bio.terra.cbas.dependencies.github;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,7 +20,7 @@ public class GitHubClient {
     this.gson = new Gson();
   }
 
-  public JSONObject getRepo(String organization, String repo, String token)
+  public RepoInfo getRepo(String organization, String repo, String token)
       throws GitHubClientException {
 
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
@@ -33,11 +33,44 @@ public class GitHubClient {
             .get();
 
     if (response.getStatus() == 200) {
-      String gitHubResponse = response.readEntity(String.class);
-      return new JSONObject(gitHubResponse);
+      return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
     } else {
       RepoError error = gson.fromJson(response.readEntity(String.class), RepoError.class);
       throw new GitHubClientException("GitHub Service getRepo failed: " + error.getMessage());
+    }
+  }
+
+  public static class RepoInfo {
+    // Adding this annotation because the "private" JSON field cannot be properly deserialized
+    // being that it is a protected name in Java.
+    @SerializedName("private")
+    private Boolean isPrivate;
+
+    private String url;
+    private String id;
+
+    public Boolean isPrivate(Boolean isPrivate) {
+      return this.isPrivate = isPrivate;
+    }
+
+    public String url(String url) {
+      return this.url = url;
+    }
+
+    public String id(String id) {
+      return this.id = id;
+    }
+
+    public Boolean getIsPrivate() {
+      return this.isPrivate;
+    }
+
+    public String getUrl() {
+      return this.url;
+    }
+
+    public String getId() {
+      return this.id;
     }
   }
 
