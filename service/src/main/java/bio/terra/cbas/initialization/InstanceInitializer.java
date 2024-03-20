@@ -8,16 +8,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class InstanceInitializer implements ApplicationListener<ContextRefreshedEvent> {
-
   private final BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService;
+  private final CloneRecoveryService cloneRecoveryService;
 
   public InstanceInitializer(
-      BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService) {
+      BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService,
+      CloneRecoveryService cloneRecoveryService) {
     this.backfillOriginalWorkspaceIdService = backfillOriginalWorkspaceIdService;
+    this.cloneRecoveryService = cloneRecoveryService;
   }
 
   @Override
   public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
     backfillOriginalWorkspaceIdService.backfillAll();
+    cloneRecoveryService.cloneRecovery();
   }
 }
