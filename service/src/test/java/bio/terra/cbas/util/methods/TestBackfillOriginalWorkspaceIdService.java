@@ -21,22 +21,28 @@ import bio.terra.cbas.util.BackfillOriginalWorkspaceIdService;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 public class TestBackfillOriginalWorkspaceIdService {
-  @MockBean RunSetDao runSetDao;
-  @MockBean MethodDao methodDao;
-  @MockBean MethodVersionDao methodVersionDao;
-  @MockBean CbasContextConfiguration cbasContextConfig;
+  RunSetDao runSetDao;
+  MethodDao methodDao;
+  MethodVersionDao methodVersionDao;
+  CbasContextConfiguration cbasContextConfig;
+
+  @BeforeEach
+  void setup() {
+    cbasContextConfig = mock(CbasContextConfiguration.class);
+    runSetDao = mock(RunSetDao.class);
+    methodDao = mock(MethodDao.class);
+    methodVersionDao = mock(MethodVersionDao.class);
+
+    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
+    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
+  }
 
   @Test
   void testBackfillMethods() {
-    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
-    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
-    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
-
-    MethodDao methodDao = mock(MethodDao.class);
     when(methodDao.getMethods())
         .thenReturn(
             Arrays.asList(
@@ -62,11 +68,6 @@ public class TestBackfillOriginalWorkspaceIdService {
 
   @Test
   void testBackfillRunSets() {
-    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
-    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
-    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
-
-    RunSetDao runSetDao = mock(RunSetDao.class);
     when(runSetDao.getRunSets(eq(null), anyBoolean()))
         .thenReturn(
             Arrays.asList(
@@ -92,11 +93,6 @@ public class TestBackfillOriginalWorkspaceIdService {
 
   @Test
   void testBackfillMethodVersions() {
-    CbasContextConfiguration cbasContextConfig = mock(CbasContextConfiguration.class);
-    when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
-    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(workspaceCreatedDate);
-
-    MethodVersionDao methodVersionDao = mock(MethodVersionDao.class);
     when(methodVersionDao.getMethodVersions())
         .thenReturn(
             Arrays.asList(
