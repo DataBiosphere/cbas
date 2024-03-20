@@ -7,7 +7,6 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.common.db.WriteTransaction;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,7 +37,6 @@ public class BackfillOriginalWorkspaceIdService {
     this.methodVersionDao = methodVersionDao;
   }
 
-  @WriteTransaction
   public void backfillAll() {
     try {
       backfillMethods();
@@ -51,7 +49,6 @@ public class BackfillOriginalWorkspaceIdService {
     }
   }
 
-  @WriteTransaction
   public List<RunSet> backfillRunSets() {
     List<RunSet> runSetsToBackfill =
         runSetDao.getRunSets(null, false).stream()
@@ -86,7 +83,6 @@ public class BackfillOriginalWorkspaceIdService {
     return runSetsToBackfill;
   }
 
-  @WriteTransaction
   public List<Method> backfillMethods() {
     List<Method> methodsToBackfill =
         methodDao.getMethods().stream()
@@ -124,7 +120,6 @@ public class BackfillOriginalWorkspaceIdService {
     return methodsToBackfill;
   }
 
-  @WriteTransaction
   public List<MethodVersion> backfillMethodVersions() {
     List<MethodVersion> methodVersionsToBackfill =
         methodVersionDao.getMethodVersions().stream()
