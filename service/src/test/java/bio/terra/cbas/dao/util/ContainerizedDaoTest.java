@@ -33,6 +33,9 @@ public abstract class ContainerizedDaoTest {
     registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("cbas.cbas-database.uri", postgres::getJdbcUrl);
+    registry.add("cbas.cbas-database.username", postgres::getUsername);
+    registry.add("cbas.cbas-database.password", postgres::getPassword);
   }
 
   @BeforeAll
