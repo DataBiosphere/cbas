@@ -52,7 +52,7 @@ public class RunSetDao {
         .get(0);
   }
 
-  public RunSet getRunSetWithMethodId(UUID methodId) {
+  public RunSet getLatestRunSetWithMethodId(UUID methodId) {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
@@ -126,7 +126,7 @@ public class RunSetDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
-  public int deleteRunSets(UUID runSetId) {
+  public int deleteRunSet(UUID runSetId) {
     return jdbcTemplate.update(
         "DELETE FROM run_set WHERE run_set_id = :run_set_id",
         new MapSqlParameterSource(RunSet.RUN_SET_ID_COL, runSetId));

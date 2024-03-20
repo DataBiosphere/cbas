@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -15,16 +16,11 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestRunDao {
+class TestRunDao extends ContainerizedDaoTest {
   @Autowired RunDao runDao;
   @Autowired RunSetDao runSetDao;
   @Autowired MethodDao methodDao;
@@ -86,24 +82,10 @@ class TestRunDao {
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null);
 
-  @BeforeAll
+  @BeforeEach
   void init() {
     methodDao.createMethod(method);
     methodVersionDao.createMethodVersion(methodVersion);
-  }
-
-  @AfterAll
-  void cleanup() {
-    try {
-      int recordsMethodVersionDeleted =
-          methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId());
-      int recordsMethodDeleted = methodDao.deleteMethod(method.methodId());
-
-      assertEquals(1, recordsMethodDeleted);
-      assertEquals(1, recordsMethodVersionDeleted);
-    } catch (Exception ex) {
-      fail("Failure while removing test method record from a database", ex);
-    }
   }
 
   @Test
@@ -127,7 +109,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);
@@ -159,7 +141,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);
@@ -181,7 +163,7 @@ class TestRunDao {
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
-        int runSetsDeleted = runSetDao.deleteRunSets(runSet.runSetId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
 
         assertEquals(1, runsDeleted);
         assertEquals(1, runSetsDeleted);

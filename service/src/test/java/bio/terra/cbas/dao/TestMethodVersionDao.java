@@ -4,20 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestMethodVersionDao {
+class TestMethodVersionDao extends ContainerizedDaoTest {
 
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
@@ -55,22 +51,13 @@ class TestMethodVersionDao {
           workspaceId,
           branch);
 
-  @BeforeAll
-  void setUp() {
+  @BeforeEach
+  void init() {
     int methodRecordsCreated = methodDao.createMethod(method);
     int methodVersionRecordsCreated = methodVersionDao.createMethodVersion(methodVersion);
 
     assertEquals(1, methodRecordsCreated);
     assertEquals(1, methodVersionRecordsCreated);
-  }
-
-  @AfterAll
-  void cleanUp() {
-    int methodVersionRecordsDeleted = methodVersionDao.deleteMethodVersion(methodVersionId);
-    int methodRecordsDeleted = methodDao.deleteMethod(methodId);
-
-    assertEquals(1, methodVersionRecordsDeleted);
-    assertEquals(1, methodRecordsDeleted);
   }
 
   @Test

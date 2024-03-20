@@ -6,20 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestMethodDao {
+class TestMethodDao extends ContainerizedDaoTest {
 
   @MockBean MicrometerMetrics micrometerMetrics;
   @Autowired MethodDao methodDao;
@@ -50,22 +46,13 @@ class TestMethodDao {
           methodSource,
           workspaceId);
 
-  @BeforeAll
-  void setUp() {
+  @BeforeEach
+  void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int recordsCreated2 = methodDao.createMethod(method2);
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, recordsCreated2);
-  }
-
-  @AfterAll
-  void cleanUp() {
-    int recordsDeleted1 = methodDao.deleteMethod(methodId1);
-    int recordsDeleted2 = methodDao.deleteMethod(methodId2);
-
-    assertEquals(1, recordsDeleted1);
-    assertEquals(1, recordsDeleted2);
   }
 
   @Test

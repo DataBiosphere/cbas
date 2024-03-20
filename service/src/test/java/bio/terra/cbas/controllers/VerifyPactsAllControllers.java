@@ -284,7 +284,7 @@ class VerifyPactsAllControllers {
 
     List<RunSet> response = List.of(targetRunSet);
 
-    when(runSetDao.getRunSetWithMethodId(
+    when(runSetDao.getLatestRunSetWithMethodId(
             eq(UUID.fromString("00000000-0000-0000-0000-000000000009"))))
         .thenReturn(targetRunSet);
 

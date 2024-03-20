@@ -3,22 +3,19 @@ package bio.terra.cbas.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import java.util.UUID;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TestGithubMethodDetailsDao {
+class TestGithubMethodDetailsDao extends ContainerizedDaoTest {
   @Autowired GithubMethodDetailsDao githubMethodDetailsDao;
 
   @Autowired MethodDao methodDao;
+
   UUID methodId1 = UUID.randomUUID();
   String methodName = "test method";
   String methodDesc = "test method description";
@@ -38,22 +35,13 @@ class TestGithubMethodDetailsDao {
   GithubMethodDetails details =
       new GithubMethodDetails("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
 
-  @BeforeAll
-  void setUp() {
+  @BeforeEach
+  void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int githubMethodDetails = githubMethodDetailsDao.createGithubMethodSourceDetails(details);
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, githubMethodDetails);
-  }
-
-  @AfterAll
-  void cleanUp() {
-    int detailsDeleted = githubMethodDetailsDao.deleteMethodSourceDetails(methodId1);
-    int recordsDeleted1 = methodDao.deleteMethod(methodId1);
-
-    assertEquals(1, recordsDeleted1);
-    assertEquals(1, detailsDeleted);
   }
 
   @Test
