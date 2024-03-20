@@ -142,7 +142,7 @@ jobs:
           echo "${{ secrets.PERF_TESTRUNNER_ACCOUNT_B64 }}" | base64 -d > "integration/src/main/resources/rendered/testrunner-perf.json"
 
       - name: Launch the background process for integration tests
-        run: ./gradlew --build-cache bootRun | tee bootrun.log &
+        run: ./gradlew --build-cache bootRun --args='--cbas.context.workspaceCreatedDate=1970-01-00T00:00:00.000000Z' | tee bootrun.log &
 
       - name: Wait for boot run to be ready
         run: |

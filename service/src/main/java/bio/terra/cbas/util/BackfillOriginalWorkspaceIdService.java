@@ -8,7 +8,6 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.common.db.WriteTransaction;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -41,21 +40,14 @@ public class BackfillOriginalWorkspaceIdService {
 
   @WriteTransaction
   public void backfillAll() {
-    if (cbasContextConfig
-        .getWorkspaceCreatedDate()
-        .isEqual(OffsetDateTime.parse("0000-01-01T00:00:00.000000Z"))) {
-      logger.info(
-          "Skipping BackfillOriginalWorkspaceId operation. This could indicate that workspaceCreatedDate in application.yml has not been configured properly.");
-    } else {
-      try {
-        backfillMethods();
-        backfillRunSets();
-        backfillMethodVersions();
-      } catch (Exception e) {
-        // we want CBAS to fail if this operation fails, just like a liquibase migration
-        throw new RuntimeException(
-            "There was a problem while trying to backfill original workspace IDs: %s".formatted(e));
-      }
+    try {
+      backfillMethods();
+      backfillRunSets();
+      backfillMethodVersions();
+    } catch (Exception e) {
+      // we want CBAS to fail if this operation fails, just like a liquibase migration
+      throw new RuntimeException(
+          "There was a problem while trying to backfill original workspace IDs: %s".formatted(e));
     }
   }
 
