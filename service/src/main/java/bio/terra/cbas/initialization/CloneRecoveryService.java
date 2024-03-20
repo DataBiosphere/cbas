@@ -11,17 +11,16 @@ import bio.terra.common.db.WriteTransaction;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CloneRecoveryService {
 
   private final Logger logger = LoggerFactory.getLogger(CloneRecoveryService.class);
-  @Autowired private final RunDao runDao;
-  @Autowired private final RunSetDao runSetDao;
-  @Autowired private final MethodDao methodDao;
-  @Autowired private final CbasContextConfiguration cbasContextConfig;
+  private final RunDao runDao;
+  private final RunSetDao runSetDao;
+  private final MethodDao methodDao;
+  private final CbasContextConfiguration cbasContextConfig;
 
   public CloneRecoveryService(
       RunSetDao runSetDao,
