@@ -8,9 +8,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.common.db.WriteTransaction;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,15 +62,9 @@ public class CloneRecoveryService {
 
   @WriteTransaction
   public void updateMethodTemplate(Method m) {
-    Stream<RunSet> runSetsAndTemplates =
-        Stream.concat(
-            runSetDao.getRunSets(null, false).stream(), runSetDao.getRunSets(null, true).stream());
-
     List<RunSet> methodClonedRunSets =
-        runSetsAndTemplates
+        runSetDao.getRunSetsWithMethodId(m.methodId()).stream()
             .filter(this::isRunSetCloned)
-            .filter(rs -> rs.methodVersion().getMethodId().equals(m.methodId()))
-            .sorted(Comparator.comparing(RunSet::submissionTimestamp).reversed())
             .toList();
 
     if (!methodClonedRunSets.isEmpty()) {
