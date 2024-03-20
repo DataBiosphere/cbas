@@ -14,7 +14,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /*
@@ -24,10 +23,10 @@ NOTE: This class is inherently temporary.  Once all original workspace IDs have 
 @Service
 public class BackfillOriginalWorkspaceIdService {
   private final Logger logger = LoggerFactory.getLogger(BackfillOriginalWorkspaceIdService.class);
-  @Autowired CbasContextConfiguration cbasContextConfig;
-  @Autowired RunSetDao runSetDao;
-  @Autowired MethodDao methodDao;
-  @Autowired MethodVersionDao methodVersionDao;
+  private final CbasContextConfiguration cbasContextConfig;
+  private final RunSetDao runSetDao;
+  private final MethodDao methodDao;
+  private final MethodVersionDao methodVersionDao;
 
   public BackfillOriginalWorkspaceIdService(
       CbasContextConfiguration cbasContextConfig,
