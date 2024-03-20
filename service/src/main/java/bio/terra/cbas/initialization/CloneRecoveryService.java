@@ -7,21 +7,25 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.common.db.WriteTransaction;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-public class CloneRecoveryBean {
+@Service
+public class CloneRecoveryService {
 
-  private final Logger logger = LoggerFactory.getLogger(CloneRecoveryBean.class);
-  private final RunDao runDao;
-  private final RunSetDao runSetDao;
-  private final MethodDao methodDao;
-  private final CbasContextConfiguration cbasContextConfig;
+  private final Logger logger = LoggerFactory.getLogger(CloneRecoveryService.class);
+  @Autowired private final RunDao runDao;
+  @Autowired private final RunSetDao runSetDao;
+  @Autowired private final MethodDao methodDao;
+  @Autowired private final CbasContextConfiguration cbasContextConfig;
 
-  public CloneRecoveryBean(
+  public CloneRecoveryService(
       RunSetDao runSetDao,
       RunDao runDao,
       MethodDao methodDao,
@@ -41,6 +45,7 @@ public class CloneRecoveryBean {
     pruneCloneSourceWorkspaceHistory();
   }
 
+  @WriteTransaction
   public void pruneCloneSourceWorkspaceHistory() {
     List<Method> methods = methodDao.getMethods().stream().filter(this::isMethodCloned).toList();
 
@@ -57,6 +62,7 @@ public class CloneRecoveryBean {
     return !r.originalWorkspaceId().equals(cbasContextConfig.getWorkspaceId());
   }
 
+  @WriteTransaction
   public void updateMethodTemplate(Method m) {
     Stream<RunSet> runSetsAndTemplates =
         Stream.concat(
@@ -78,6 +84,7 @@ public class CloneRecoveryBean {
     }
   }
 
+  @WriteTransaction
   public void cleanupClonedMethodHistory(Method method) {
     runSetDao.getRunSetsWithMethodId(method.methodId()).stream()
         .filter(this::isRunSetCloned)
@@ -90,6 +97,7 @@ public class CloneRecoveryBean {
             });
   }
 
+  @WriteTransaction
   public void deleteRunSetRuns(RunSet runSet) {
     List<Run> runsToDelete = runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null));
     runsToDelete.forEach(r -> runDao.deleteRun(r.runId()));

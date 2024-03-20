@@ -8,9 +8,8 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dao.util.ContainerizedDaoTest;
 import bio.terra.cbas.models.*;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -18,55 +17,18 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest(properties = {"spring.main.allow-bean-definition-overriding=true"})
-@Testcontainers
-public class TestCloneRecoveryBean {
+public class TestCloneRecoveryService extends ContainerizedDaoTest {
   @Autowired MethodDao methodDao;
   @Autowired RunSetDao runSetDao;
   @Autowired RunDao runDao;
   @Autowired MethodVersionDao methodVersionDao;
   @Mock CbasContextConfiguration cbasContextConfig;
 
-  @Container
-  static JdbcDatabaseContainer postgres =
-      new PostgreSQLContainer("postgres:14")
-          .withDatabaseName("test_db")
-          .withUsername("test_user")
-          .withPassword("test_password");
-
-  @DynamicPropertySource
-  static void postgresProperties(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
-
-  @BeforeAll
-  static void setup() {
-    postgres.start();
-  }
-
   @BeforeEach
   void init() {
     when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
     when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(currentWorkspaceCreatedDate);
-  }
-
-  @AfterEach
-  void cleanupDb() throws SQLException {
-    DriverManager.getConnection(
-            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-        .createStatement()
-        .execute(
-            "TRUNCATE TABLE run CASCADE; TRUNCATE TABLE method_version CASCADE; TRUNCATE TABLE run_set CASCADE; TRUNCATE TABLE method CASCADE; TRUNCATE TABLE github_method_details CASCADE");
   }
 
   @Test
@@ -84,10 +46,10 @@ public class TestCloneRecoveryBean {
     runSetDao.createRunSet(currentRunSet);
     runDao.createRun(currentRun);
 
-    CloneRecoveryBean cloneRecoveryBean =
-        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
+    CloneRecoveryService cloneRecoveryService =
+        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
 
-    cloneRecoveryBean.updateMethodTemplate(clonedMethod);
+    cloneRecoveryService.updateMethodTemplate(clonedMethod);
     RunSet formerTemplate = runSetDao.getRunSet(clonedTemplate.runSetId());
     RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSetLatest.runSetId());
     RunSet clonedRunSetRemaining = runSetDao.getRunSet(clonedRunSet.runSetId());
@@ -118,9 +80,9 @@ public class TestCloneRecoveryBean {
     assertEquals(1, initialTemplates.size());
     assertEquals(clonedTemplate.runSetId(), initialTemplates.get(0).runSetId());
 
-    CloneRecoveryBean cloneRecoveryBean =
-        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
-    cloneRecoveryBean.pruneCloneSourceWorkspaceHistory();
+    CloneRecoveryService cloneRecoveryService =
+        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+    cloneRecoveryService.pruneCloneSourceWorkspaceHistory();
 
     List<RunSet> finalRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
     List<Run> finalRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
@@ -158,9 +120,9 @@ public class TestCloneRecoveryBean {
     assertEquals(false, runSetDao.getRunSet(currentRunSet.runSetId()).isTemplate());
     assertEquals(true, runSetDao.getRunSet(clonedTemplate.runSetId()).isTemplate());
 
-    CloneRecoveryBean cloneRecoveryBean =
-        new CloneRecoveryBean(runSetDao, runDao, methodDao, cbasContextConfig);
-    cloneRecoveryBean.pruneCloneSourceWorkspaceHistory();
+    CloneRecoveryService cloneRecoveryService =
+        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+    cloneRecoveryService.pruneCloneSourceWorkspaceHistory();
 
     List<RunSet> finalRunSets = runSetDao.getRunSets(null, false);
     List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
