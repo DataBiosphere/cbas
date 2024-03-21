@@ -14,9 +14,7 @@ if (!isCiServer) {
     tasks.withType(JavaExec).configureEach {
         systemProperty 'spring.profiles.include', 'human-readable-logging'
     }
-    tasks.withType(Test).configureEach {
-        systemProperty 'spring.profiles.include', 'human-readable-logging'
-    }
+    tasks.withType(Test).configureEach {}
 }
 
 java {
