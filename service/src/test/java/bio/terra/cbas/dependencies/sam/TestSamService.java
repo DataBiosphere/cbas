@@ -378,10 +378,7 @@ class TestSamService {
       properties = {"spring.profiles.active=", "spring.main.allow-bean-definition-overriding=true"})
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamPlainLogs extends ContainerizedDaoTest {
-    // These 2 tests will fail when run locally because for local testing Spring default's to
-    // 'human-readable-logging'. But in CI the format is not human-readable by default and hence the
-    // test assertions are met as expected.
-
+    
     @Test
     void testUserIdInPlainLogsWithNoAccess(CapturedOutput output) {
       ListAppender<ILoggingEvent> appender = new ListAppender<>();
