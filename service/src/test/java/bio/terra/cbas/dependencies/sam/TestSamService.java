@@ -41,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ActiveProfiles;
 
 class TestSamService {
   private SamClient samClient;
@@ -337,12 +338,8 @@ class TestSamService {
   // Tests for including user IDs in logs once permissions have been checked
 
   @Nested
-  @SpringBootTest(
-      properties = {
-        "spring.profiles.active=human-readable-logging",
-        "spring.main.allow-bean-definition-overriding=true",
-        "cbas.context.workspaceCreatedDate=1970-01-01T00:00:00.000000Z"
-      })
+  @SpringBootTest
+  @ActiveProfiles({"test", "human-readable-logging"})
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamReadableLogs {
 
@@ -374,12 +371,8 @@ class TestSamService {
   }
 
   @Nested
-  @SpringBootTest(
-      properties = {
-        "spring.profiles.active=",
-        "spring.main.allow-bean-definition-overriding=true",
-        "cbas.context.workspaceCreatedDate=1970-01-01T00:00:00.000000Z"
-      })
+  @SpringBootTest
+  @ActiveProfiles("test")
   @ExtendWith(OutputCaptureExtension.class)
   class TestSamPlainLogs {
     // These 2 tests will fail when run locally because for local testing Spring default's to

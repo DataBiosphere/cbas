@@ -38,6 +38,7 @@ spring:
     change-log: changelog/changelog.yaml
 
 cbas:
+  initialization.enabled: true
   context:
     # Should match wds.instanceId and sam.workspaceId:
     workspaceId: "00000000-0000-0000-0000-000000000000"

@@ -1,5 +1,6 @@
 package bio.terra.cbas.initialization;
 
+import bio.terra.cbas.config.CbasInitializationConfiguration;
 import bio.terra.cbas.util.BackfillOriginalWorkspaceIdService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
@@ -11,16 +12,22 @@ public class InstanceInitializer implements ApplicationListener<ContextRefreshed
   private final BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService;
   private final CloneRecoveryService cloneRecoveryService;
 
+  private final CbasInitializationConfiguration cbasInitializationConfiguration;
+
   public InstanceInitializer(
+      CbasInitializationConfiguration cbasInitializationConfiguration,
       BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService,
       CloneRecoveryService cloneRecoveryService) {
+    this.cbasInitializationConfiguration = cbasInitializationConfiguration;
     this.backfillOriginalWorkspaceIdService = backfillOriginalWorkspaceIdService;
     this.cloneRecoveryService = cloneRecoveryService;
   }
 
   @Override
   public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
-    backfillOriginalWorkspaceIdService.backfillAll();
-    cloneRecoveryService.cloneRecovery();
+    if (cbasInitializationConfiguration.getEnabled()) {
+      backfillOriginalWorkspaceIdService.backfillAll();
+      cloneRecoveryService.cloneRecovery();
+    }
   }
 }
