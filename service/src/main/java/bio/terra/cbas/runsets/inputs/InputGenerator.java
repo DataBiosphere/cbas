@@ -12,6 +12,7 @@ import bio.terra.cbas.model.ParameterDefinitionNone;
 import bio.terra.cbas.model.ParameterDefinitionObjectBuilder;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
+import bio.terra.cbas.model.ParameterTypeDefinitionOptional;
 import bio.terra.cbas.model.ParameterTypeDefinitionStruct;
 import bio.terra.cbas.model.StructField;
 import bio.terra.cbas.model.WorkflowInputDefinition;
@@ -135,6 +136,10 @@ public class InputGenerator {
         }
       }
       parameterValue = fields;
+    } else if (inputType instanceof ParameterTypeDefinitionOptional optionalType) {
+      // Handle
+      return handleObjectBuilderInput(
+          optionalType.getOptionalType(), recordResponse, objectBuilderSource);
     } else {
       throw new InappropriateInputSourceException(objectBuilderSource, inputType);
     }
