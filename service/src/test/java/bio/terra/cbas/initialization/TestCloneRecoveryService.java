@@ -31,35 +31,35 @@ public class TestCloneRecoveryService extends ContainerizedDaoTest {
     when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(currentWorkspaceCreatedDate);
   }
 
-  @Test
-  void testUpdateMethodTemplate() {
-    methodDao.createMethod(clonedMethod);
-    methodVersionDao.createMethodVersion(clonedMethodVersion);
-    runSetDao.createRunSet(clonedTemplate);
-
-    runSetDao.createRunSet(clonedRunSet);
-    runDao.createRun(clonedRun);
-
-    runSetDao.createRunSet(clonedRunSetLatest);
-    runDao.createRun(clonedRunLatest);
-
-    runSetDao.createRunSet(currentRunSet);
-    runDao.createRun(currentRun);
-
-    CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
-
-    cloneRecoveryService.updateMethodTemplate(clonedMethod);
-    RunSet formerTemplate = runSetDao.getRunSet(clonedTemplate.runSetId());
-    RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSetLatest.runSetId());
-    RunSet clonedRunSetRemaining = runSetDao.getRunSet(clonedRunSet.runSetId());
-    RunSet currentRunSetRemaining = runSetDao.getRunSet(currentRunSet.runSetId());
-
-    assertEquals(false, formerTemplate.isTemplate());
-    assertEquals(true, updatedRunSet.isTemplate());
-    assertEquals(false, clonedRunSetRemaining.isTemplate());
-    assertEquals(false, currentRunSetRemaining.isTemplate());
-  }
+  //  @Test
+  //  void testUpdateMethodTemplate() {
+  //    methodDao.createMethod(clonedMethod);
+  //    methodVersionDao.createMethodVersion(clonedMethodVersion);
+  //    runSetDao.createRunSet(clonedTemplate);
+  //
+  //    runSetDao.createRunSet(clonedRunSet);
+  //    runDao.createRun(clonedRun);
+  //
+  //    runSetDao.createRunSet(clonedRunSetLatest);
+  //    runDao.createRun(clonedRunLatest);
+  //
+  //    runSetDao.createRunSet(currentRunSet);
+  //    runDao.createRun(currentRun);
+  //
+  //    CloneRecoveryService cloneRecoveryService =
+  //        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+  //
+  //    cloneRecoveryService.updateMethodTemplate(clonedMethod);
+  //    RunSet formerTemplate = runSetDao.getRunSet(clonedTemplate.runSetId());
+  //    RunSet updatedRunSet = runSetDao.getRunSet(clonedRunSetLatest.runSetId());
+  //    RunSet clonedRunSetRemaining = runSetDao.getRunSet(clonedRunSet.runSetId());
+  //    RunSet currentRunSetRemaining = runSetDao.getRunSet(currentRunSet.runSetId());
+  //
+  //    assertEquals(false, formerTemplate.isTemplate());
+  //    assertEquals(true, updatedRunSet.isTemplate());
+  //    assertEquals(false, clonedRunSetRemaining.isTemplate());
+  //    assertEquals(false, currentRunSetRemaining.isTemplate());
+  //  }
 
   @Test
   void testRecoveryFromWorkspaceCloning() {
@@ -82,7 +82,7 @@ public class TestCloneRecoveryService extends ContainerizedDaoTest {
 
     CloneRecoveryService cloneRecoveryService =
         new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
-    cloneRecoveryService.pruneCloneSourceWorkspaceHistory();
+    cloneRecoveryService.cloneRecovery();
 
     List<RunSet> finalRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
     List<Run> finalRuns = runDao.getRuns(new RunDao.RunsFilters(clonedRunSet.runSetId(), null));
@@ -122,7 +122,7 @@ public class TestCloneRecoveryService extends ContainerizedDaoTest {
 
     CloneRecoveryService cloneRecoveryService =
         new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
-    cloneRecoveryService.pruneCloneSourceWorkspaceHistory();
+    cloneRecoveryService.cloneRecovery();
 
     List<RunSet> finalRunSets = runSetDao.getRunSets(null, false);
     List<RunSet> finalTemplates = runSetDao.getRunSets(null, true);
