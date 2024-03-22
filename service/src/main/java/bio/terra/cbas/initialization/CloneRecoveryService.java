@@ -7,8 +7,9 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.common.db.WriteTransaction;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +50,20 @@ public class CloneRecoveryService {
             .map(this::generateTemplateUpdateManifest)
             .toList();
 
-    templateUpdateManifests.forEach(
-        manifest -> {
-          manifest.templateRunSets.forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), true));
-          manifest.nonTemplateRunSets.forEach(
-              rs -> runSetDao.updateIsTemplate(rs.runSetId(), false));
-        });
+    templateUpdateManifests.stream()
+        .map(MethodTemplateUpdateManifest::templateRunSets)
+        .forEach(rsList -> rsList.forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), true)));
 
-    clonedMethods.forEach(this::cleanupClonedMethodHistory);
+    templateUpdateManifests.stream()
+        .map(MethodTemplateUpdateManifest::nonTemplateRunSets)
+        .forEach(rsList -> rsList.forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), false)));
+
+    clonedMethods.forEach(
+        method -> {
+          List<RunSet> methodRunSets = runSetDao.getRunSetsWithMethodId(method.methodId());
+          getRunSetsToDelete(methodRunSets).forEach(rs -> runSetDao.deleteRunSet(rs.runSetId()));
+          getRunsToDelete(methodRunSets).forEach(r -> runDao.deleteRun(r.runId()));
+        });
   }
 
   public record MethodTemplateUpdateManifest(
@@ -64,7 +71,11 @@ public class CloneRecoveryService {
   ;
 
   public MethodTemplateUpdateManifest generateTemplateUpdateManifest(List<RunSet> methodRunSets) {
-    List<RunSet> methodClonedRunSets = methodRunSets.stream().filter(this::isRunSetCloned).toList();
+    List<RunSet> methodClonedRunSets =
+        methodRunSets.stream()
+            .sorted(Comparator.comparing(RunSet::submissionTimestamp).reversed()) // latest first
+            .filter(this::isRunSetCloned)
+            .toList();
 
     if (methodClonedRunSets.isEmpty()) {
       return new MethodTemplateUpdateManifest(Collections.emptyList(), Collections.emptyList());
@@ -74,19 +85,26 @@ public class CloneRecoveryService {
     }
   }
 
-  public void cleanupClonedMethodHistory(Method method) {
-    runSetDao.getRunSetsWithMethodId(method.methodId()).stream()
-        .filter(this::isRunSetCloned)
-        .forEach(this::deleteRunSetRuns);
+  public List<Run> getRunsToDelete(List<RunSet> methodRunSets) {
+    final List<Run> runsToDelete = new ArrayList<>();
+    methodRunSets.forEach(
+        rs -> {
+          if (isRunSetCloned(rs)) {
+            runsToDelete.addAll(runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), null)));
+          }
+        });
+    return runsToDelete;
   }
 
-  @WriteTransaction
-  public void deleteRunSetRuns(RunSet runSet) {
-    List<Run> runsToDelete = runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null));
-    runsToDelete.forEach(r -> runDao.deleteRun(r.runId()));
-    if (!runSet.isTemplate()) {
-      runSetDao.deleteRunSet(runSet.runSetId());
-    }
+  public List<RunSet> getRunSetsToDelete(List<RunSet> methodRunSets) {
+    final List<RunSet> runSetsToDelete = new ArrayList<>();
+    methodRunSets.forEach(
+        rs -> {
+          if (isRunSetCloned(rs) && !rs.isTemplate()) {
+            runSetsToDelete.add(rs);
+          }
+        });
+    return runSetsToDelete;
   }
 
   public Boolean isMethodCloned(Method m) {
