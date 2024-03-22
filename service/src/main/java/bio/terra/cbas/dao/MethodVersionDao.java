@@ -4,6 +4,7 @@ import bio.terra.cbas.dao.mappers.MethodVersionMappers;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,6 +42,14 @@ public class MethodVersionDao {
         .get(0);
   }
 
+  public List<MethodVersion> getMethodVersions() {
+    String sql =
+        "SELECT * FROM method_version "
+            + "INNER JOIN method on method_version.method_id = method.method_id";
+    return jdbcTemplate.query(
+        sql, new MapSqlParameterSource(), new MethodVersionMappers.DeepMethodVersionMapper());
+  }
+
   public List<MethodVersion> getMethodVersionsForMethod(Method method) {
     String sql =
         "SELECT * FROM method_version "
@@ -65,6 +74,26 @@ public class MethodVersionDao {
                 runSet.runSetId(),
                 "method_version_id",
                 runSet.methodVersion().methodVersionId())));
+  }
+
+  public int updateOriginalWorkspaceId(UUID methodVersionId, UUID originalWorkspaceId) {
+    String updateClause =
+        "UPDATE method_version SET %s = :method_version_original_workspace_id"
+            .formatted(MethodVersion.ORIGINAL_WORKSPACE_ID_COL);
+
+    HashMap<String, Object> parameterMap =
+        new HashMap<>(
+            Map.of(
+                "method_version_id",
+                methodVersionId,
+                "method_version_original_workspace_id",
+                originalWorkspaceId));
+
+    String sql =
+        updateClause
+            + " WHERE %s = :method_version_id".formatted(MethodVersion.METHOD_VERSION_ID_COL);
+
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(parameterMap));
   }
 
   public int deleteMethodVersion(UUID methodVersionId) {
