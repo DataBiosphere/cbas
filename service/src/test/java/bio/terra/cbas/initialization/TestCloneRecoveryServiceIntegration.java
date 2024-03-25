@@ -8,7 +8,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.*;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.*;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class TestIntegrationCloneRecoveryService extends ContainerizedDaoTest {
+public class TestCloneRecoveryServiceIntegration extends ContainerizedDatabaseTest {
   @Autowired MethodDao methodDao;
   @Autowired RunSetDao runSetDao;
   @Autowired RunDao runDao;

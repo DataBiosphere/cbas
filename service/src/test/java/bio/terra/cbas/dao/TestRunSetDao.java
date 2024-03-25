@@ -4,12 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import java.awt.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TestRunSetDao extends ContainerizedDaoTest {
+class TestRunSetDao extends ContainerizedDatabaseTest {
 
   @Autowired RunSetDao runSetDao;
   @Autowired MethodDao methodDao;

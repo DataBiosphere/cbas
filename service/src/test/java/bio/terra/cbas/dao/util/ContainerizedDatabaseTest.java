@@ -16,12 +16,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @ActiveProfiles("test")
-// Without @DirtiesContext, multiple ContainerizedDaoTest classes executed in rapid succession
+// Without @DirtiesContext, multiple ContainerizedDatabaseTest classes executed in rapid succession
 // can cause loss of connection to the containerized database.
 // See: https://stackoverflow.com/a/68992727
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @Testcontainers
-public abstract class ContainerizedDaoTest {
+public abstract class ContainerizedDatabaseTest {
 
   @Container
   protected static final JdbcDatabaseContainer postgres =

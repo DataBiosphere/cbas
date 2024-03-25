@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 
-public class UnitTestCloneRecoveryService {
+public class TestCloneRecoveryServiceUnits {
   MethodDao methodDao;
   RunSetDao runSetDao;
   RunDao runDao;

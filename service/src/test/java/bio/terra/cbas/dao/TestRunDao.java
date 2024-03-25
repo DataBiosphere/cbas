@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TestRunDao extends ContainerizedDaoTest {
+class TestRunDao extends ContainerizedDatabaseTest {
   @Autowired RunDao runDao;
   @Autowired RunSetDao runSetDao;
   @Autowired MethodDao methodDao;

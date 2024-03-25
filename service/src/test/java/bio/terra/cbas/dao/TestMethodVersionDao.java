@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import java.util.List;
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TestMethodVersionDao extends ContainerizedDaoTest {
+class TestMethodVersionDao extends ContainerizedDatabaseTest {
 
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
