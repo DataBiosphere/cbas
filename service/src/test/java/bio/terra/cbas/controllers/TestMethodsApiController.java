@@ -18,6 +18,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -70,6 +71,7 @@ class TestMethodsApiController {
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
+  @MockBean private EcmService ecmService;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -420,7 +422,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
+    when(gitHubService.isRepoPrivate(any(), any(), any())).thenReturn(true);
 
     MvcResult response =
         mockMvc
@@ -463,6 +465,12 @@ class TestMethodsApiController {
     assertEquals(expectedInput, newRunSetCaptor.getValue().inputDefinition());
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
+
+    ArgumentCaptor<GithubMethodDetails> newDetailsCaptor =
+        ArgumentCaptor.forClass(GithubMethodDetails.class);
+    verify(githubMethodDetailsDao).createGithubMethodSourceDetails(newDetailsCaptor.capture());
+    assertEquals(postMethodResponse.getMethodId(), newDetailsCaptor.getValue().methodId());
+    assertEquals(true, newDetailsCaptor.getValue().isPrivate());
   }
 
   @Test

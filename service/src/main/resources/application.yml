@@ -44,7 +44,6 @@ cbas:
     workspaceId: "00000000-0000-0000-0000-000000000000"
     # workspaceCreatedDate is supplied by Leo.
     # When testing locally, manually fill in this value, e.g. "2024-02-16T14:13:02.500743Z".
-    # BackfillOriginalWorkspaceIdService will be skipped if the default value below is used.
     workspaceCreatedDate:
   cbas-database:
     uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
@@ -133,5 +132,5 @@ sam:
   checkAuthAccess: true
 
 ecm:
-  baseUri: "https://externalcreds.dsde-dev.broadinstitute.org"
+  baseUri: "https://externalcreds.dsde-dev.broadinstitute.org/"
   debugApiLogging: false
