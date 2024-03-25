@@ -49,11 +49,14 @@ public class BackfillOriginalWorkspaceIdService {
     }
   }
 
-  public List<RunSet> backfillRunSets() {
-    List<RunSet> runSetsToBackfill =
-        runSetDao.getRunSets(null, false).stream()
-            .filter(rs -> rs.getOriginalWorkspaceId() == null)
-            .toList();
+  public List<RunSet> getRunSetsToBackfill() {
+    return runSetDao.getRunSets(null, false).stream()
+        .filter(rs -> rs.getOriginalWorkspaceId() == null)
+        .toList();
+  }
+
+  public List<UUID> backfillRunSets() {
+    List<RunSet> runSetsToBackfill = getRunSetsToBackfill();
     logger.info("{} Run Sets have null originalWorkspaceIds.", runSetsToBackfill.size());
 
     if (!runSetsToBackfill.isEmpty()) {
@@ -80,14 +83,17 @@ public class BackfillOriginalWorkspaceIdService {
                 runSetDao.updateOriginalWorkspaceId(rs.runSetId(), updatedOriginalWorkspaceUUID);
               });
     }
-    return runSetsToBackfill;
+    return runSetsToBackfill.stream().map(RunSet::runSetId).toList();
   }
 
-  public List<Method> backfillMethods() {
-    List<Method> methodsToBackfill =
-        methodDao.getMethods().stream()
-            .filter(m -> m.getOriginalWorkspaceId() == null)
-            .collect(Collectors.toList());
+  public List<Method> getMethodsToBackfill() {
+    return methodDao.getMethods().stream()
+        .filter(m -> m.getOriginalWorkspaceId() == null)
+        .collect(Collectors.toList());
+  }
+
+  public List<UUID> backfillMethods() {
+    List<Method> methodsToBackfill = getMethodsToBackfill();
 
     logger.info("{} Methods have null originalWorkspaceIds.", methodsToBackfill.size());
 
@@ -117,14 +123,17 @@ public class BackfillOriginalWorkspaceIdService {
               });
     }
 
-    return methodsToBackfill;
+    return methodsToBackfill.stream().map(Method::methodId).toList();
   }
 
-  public List<MethodVersion> backfillMethodVersions() {
-    List<MethodVersion> methodVersionsToBackfill =
-        methodVersionDao.getMethodVersions().stream()
-            .filter(mv -> mv.getOriginalWorkspaceId() == null)
-            .collect(Collectors.toList());
+  public List<MethodVersion> getMethodVersionsToBackfill() {
+    return methodVersionDao.getMethodVersions().stream()
+        .filter(mv -> mv.getOriginalWorkspaceId() == null)
+        .collect(Collectors.toList());
+  }
+
+  public List<UUID> backfillMethodVersions() {
+    List<MethodVersion> methodVersionsToBackfill = getMethodVersionsToBackfill();
 
     logger.info(
         "{} Method Versions have null originalWorkspaceIds.", methodVersionsToBackfill.size());
@@ -156,6 +165,6 @@ public class BackfillOriginalWorkspaceIdService {
                     mv.methodVersionId(), updatedOriginalWorkspaceUUID);
               });
     }
-    return methodVersionsToBackfill;
+    return methodVersionsToBackfill.stream().map(MethodVersion::methodVersionId).toList();
   }
 }
