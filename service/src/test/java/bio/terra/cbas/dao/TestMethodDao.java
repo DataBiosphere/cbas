@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.Method;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-class TestMethodDao extends ContainerizedDaoTest {
+class TestMethodDao extends ContainerizedDatabaseTest {
 
   @MockBean MicrometerMetrics micrometerMetrics;
   @Autowired MethodDao methodDao;
