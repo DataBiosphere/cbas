@@ -6,10 +6,10 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
-import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService.MethodTemplateUpdateManifest;
+import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryTransactionService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 public class TestCloneRecoveryServiceUnits {
   MethodDao methodDao;
   RunSetDao runSetDao;
-  RunDao runDao;
+  CloneRecoveryTransactionService transactionService;
   CbasContextConfiguration cbasContextConfig;
 
   @BeforeEach
@@ -38,7 +38,7 @@ public class TestCloneRecoveryServiceUnits {
   @Test
   void generateTemplateUpdateManifest() {
     CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+        new CloneRecoveryService(runSetDao, methodDao, transactionService, cbasContextConfig);
 
     List<RunSet> methodRunSets =
         List.of(clonedRunSet, clonedRunSetLatest, clonedTemplate, currentRunSet);

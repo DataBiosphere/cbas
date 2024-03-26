@@ -2,14 +2,12 @@ package bio.terra.cbas.initialization.cloneRecovery;
 
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
-import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.RunSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,19 +16,19 @@ import org.springframework.stereotype.Service;
 public class CloneRecoveryService {
 
   private final Logger logger = LoggerFactory.getLogger(CloneRecoveryService.class);
-  private final RunDao runDao;
   private final RunSetDao runSetDao;
   private final MethodDao methodDao;
+  private final CloneRecoveryTransactionService transactionService;
   private final CbasContextConfiguration cbasContextConfig;
 
   public CloneRecoveryService(
       RunSetDao runSetDao,
-      RunDao runDao,
       MethodDao methodDao,
+      CloneRecoveryTransactionService transactionService,
       CbasContextConfiguration cbasContextConfig) {
     this.runSetDao = runSetDao;
-    this.runDao = runDao;
     this.methodDao = methodDao;
+    this.transactionService = transactionService;
     this.cbasContextConfig = cbasContextConfig;
   }
 
@@ -50,25 +48,9 @@ public class CloneRecoveryService {
             .toList();
 
     templateUpdateManifests.forEach(
-        manifest -> manifest.keepAsTemplate.forEach(this::convertToTemplate));
+        manifest -> manifest.keepAsTemplate.forEach(transactionService::convertToTemplate));
     templateUpdateManifests.forEach(
-        manifest -> manifest.toBeDeleted.forEach(this::deleteRunSetAndRuns));
-  }
-
-  public void deleteRuns(UUID runSetId) {
-    runDao
-        .getRuns(new RunDao.RunsFilters(runSetId, null))
-        .forEach(r -> runDao.deleteRun(r.runId()));
-  }
-
-  public void convertToTemplate(RunSet runSet) {
-    deleteRuns(runSet.runSetId());
-    runSetDao.updateIsTemplate(runSet.runSetId(), true);
-  }
-
-  public void deleteRunSetAndRuns(RunSet runSet) {
-    deleteRuns(runSet.runSetId());
-    runSetDao.deleteRunSet(runSet.runSetId());
+        manifest -> manifest.toBeDeleted.forEach(transactionService::deleteRunSetAndRuns));
   }
 
   public record MethodTemplateUpdateManifest(

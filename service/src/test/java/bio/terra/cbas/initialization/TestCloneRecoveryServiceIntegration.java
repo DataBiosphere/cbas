@@ -10,6 +10,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
+import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryTransactionService;
 import bio.terra.cbas.models.*;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,6 +24,7 @@ public class TestCloneRecoveryServiceIntegration extends ContainerizedDatabaseTe
   @Autowired MethodDao methodDao;
   @Autowired RunSetDao runSetDao;
   @Autowired RunDao runDao;
+  @Autowired CloneRecoveryTransactionService transactionService;
   @Autowired MethodVersionDao methodVersionDao;
   @Mock CbasContextConfiguration cbasContextConfig;
 
@@ -52,7 +54,7 @@ public class TestCloneRecoveryServiceIntegration extends ContainerizedDatabaseTe
     assertEquals(clonedTemplate.runSetId(), initialTemplates.get(0).runSetId());
 
     CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+        new CloneRecoveryService(runSetDao, methodDao, transactionService, cbasContextConfig);
     cloneRecoveryService.cloneRecovery();
 
     List<RunSet> finalRunSets = runSetDao.getRunSetsWithMethodId(clonedMethod.methodId());
@@ -92,7 +94,7 @@ public class TestCloneRecoveryServiceIntegration extends ContainerizedDatabaseTe
     assertEquals(true, runSetDao.getRunSet(clonedTemplate.runSetId()).isTemplate());
 
     CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
+        new CloneRecoveryService(runSetDao, methodDao, transactionService, cbasContextConfig);
     cloneRecoveryService.cloneRecovery();
 
     List<RunSet> finalRunSets = runSetDao.getRunSets(null, false);
