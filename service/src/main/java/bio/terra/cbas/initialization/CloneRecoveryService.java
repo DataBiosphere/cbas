@@ -9,6 +9,7 @@ import bio.terra.cbas.models.RunSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -54,17 +55,19 @@ public class CloneRecoveryService {
         manifest -> manifest.toBeDeleted.forEach(this::deleteRunSetAndRuns));
   }
 
-  public void convertToTemplate(RunSet runSet) {
+  public void deleteRuns(UUID runSetId) {
     runDao
-        .getRuns(new RunDao.RunsFilters(runSet.runSetId(), null))
+        .getRuns(new RunDao.RunsFilters(runSetId, null))
         .forEach(r -> runDao.deleteRun(r.runId()));
+  }
+
+  public void convertToTemplate(RunSet runSet) {
+    deleteRuns(runSet.runSetId());
     runSetDao.updateIsTemplate(runSet.runSetId(), true);
   }
 
   public void deleteRunSetAndRuns(RunSet runSet) {
-    runDao
-        .getRuns(new RunDao.RunsFilters(runSet.runSetId(), null))
-        .forEach(r -> runDao.deleteRun(r.runId()));
+    deleteRuns(runSet.runSetId());
     runSetDao.deleteRunSet(runSet.runSetId());
   }
 
