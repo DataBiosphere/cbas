@@ -50,15 +50,15 @@ public class TestCloneRecoveryServiceUnits {
     // only cloned run sets should be listed in the manifest.
     // the latest cloned run set should be the new template.
     // all other clone run sets should be listed as non-templates.
-    assertEquals(1, manifest.templateRunSets().size());
-    assertEquals(2, manifest.nonTemplateRunSets().size());
-    assertTrue(manifest.templateRunSets().contains(clonedRunSetLatest));
-    assertTrue(manifest.nonTemplateRunSets().contains(clonedTemplate));
-    assertTrue(manifest.nonTemplateRunSets().contains(clonedRunSet));
+    assertEquals(1, manifest.keepAsTemplate().size());
+    assertEquals(2, manifest.toBeDeleted().size());
+    assertTrue(manifest.keepAsTemplate().contains(clonedRunSetLatest));
+    assertTrue(manifest.toBeDeleted().contains(clonedTemplate));
+    assertTrue(manifest.toBeDeleted().contains(clonedRunSet));
 
     // current workspace run sets should not appear in the manifest
-    assertFalse(manifest.nonTemplateRunSets().contains(currentRunSet));
-    assertFalse(manifest.templateRunSets().contains(currentRunSet));
+    assertFalse(manifest.toBeDeleted().contains(currentRunSet));
+    assertFalse(manifest.keepAsTemplate().contains(currentRunSet));
   }
 
   @Test

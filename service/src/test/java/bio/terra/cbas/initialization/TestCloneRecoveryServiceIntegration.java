@@ -195,41 +195,9 @@ public class TestCloneRecoveryServiceIntegration extends ContainerizedDatabaseTe
           clonedRunSet.lastPolledTimestamp(),
           "");
 
-  RunSet clonedRunSetLatest =
-      new RunSet(
-          UUID.fromString("00000000-0000-0000-0000-000000000003"),
-          clonedMethodVersion,
-          "",
-          "",
-          false,
-          false,
-          CbasRunSetStatus.COMPLETE,
-          originalWorkspaceCreationDate.plusMinutes(6),
-          originalWorkspaceCreationDate.plusMinutes(6),
-          originalWorkspaceCreationDate.plusMinutes(6),
-          0,
-          0,
-          "[]",
-          "[]",
-          "",
-          "",
-          originalWorkspaceId);
-
-  Run clonedRunLatest =
-      new Run(
-          UUID.randomUUID(),
-          UUID.randomUUID().toString(),
-          clonedRunSetLatest,
-          "",
-          clonedRunSetLatest.submissionTimestamp(),
-          CbasRunStatus.COMPLETE,
-          clonedRunSetLatest.lastModifiedTimestamp(),
-          clonedRunSetLatest.lastPolledTimestamp(),
-          "");
-
   RunSet currentRunSet =
       new RunSet(
-          UUID.fromString("00000000-0000-0000-0000-000000000004"),
+          UUID.fromString("00000000-0000-0000-0000-000000000003"),
           clonedMethodVersion,
           "",
           "",

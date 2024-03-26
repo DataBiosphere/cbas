@@ -51,11 +51,11 @@ public class CloneRecoveryService {
             .toList();
 
     templateUpdateManifests.stream()
-        .map(MethodTemplateUpdateManifest::templateRunSets)
+        .map(MethodTemplateUpdateManifest::keepAsTemplate)
         .forEach(rsList -> rsList.forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), true)));
 
     templateUpdateManifests.stream()
-        .map(MethodTemplateUpdateManifest::nonTemplateRunSets)
+        .map(MethodTemplateUpdateManifest::toBeDeleted)
         .forEach(rsList -> rsList.forEach(rs -> runSetDao.updateIsTemplate(rs.runSetId(), false)));
 
     clonedMethods.forEach(
@@ -67,7 +67,7 @@ public class CloneRecoveryService {
   }
 
   public record MethodTemplateUpdateManifest(
-      List<RunSet> templateRunSets, List<RunSet> nonTemplateRunSets) {}
+      List<RunSet> keepAsTemplate, List<RunSet> toBeDeleted) {}
   ;
 
   public MethodTemplateUpdateManifest generateTemplateUpdateManifest(List<RunSet> methodRunSets) {

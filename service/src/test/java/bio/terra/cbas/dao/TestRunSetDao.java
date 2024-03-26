@@ -2,6 +2,7 @@ package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
@@ -12,7 +13,6 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -175,12 +175,6 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
   void deleteRunSet() {
     int response = runSetDao.deleteRunSet(runSet.runSetId());
     assertEquals(1, response);
-
-    try {
-      RunSet deletedRunSet = runSetDao.getRunSet(runSet.runSetId());
-      Assertions.fail("Expected an exception, but none was thrown.");
-    } catch (Exception e) {
-      assertEquals("Index 0 out of bounds for length 0", e.getMessage());
-    }
+    assertThrows(IndexOutOfBoundsException.class, () -> runSetDao.getRunSet(runSet.runSetId()));
   }
 }
