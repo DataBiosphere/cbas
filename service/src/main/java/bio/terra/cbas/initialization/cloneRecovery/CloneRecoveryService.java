@@ -1,4 +1,4 @@
-package bio.terra.cbas.initialization;
+package bio.terra.cbas.initialization.cloneRecovery;
 
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;

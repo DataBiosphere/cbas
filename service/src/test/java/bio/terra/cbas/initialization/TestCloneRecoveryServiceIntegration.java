@@ -9,6 +9,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
 import bio.terra.cbas.models.*;
 import java.time.OffsetDateTime;
 import java.util.List;

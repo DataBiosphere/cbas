@@ -2,6 +2,7 @@ package bio.terra.cbas.initialization;
 
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.config.CbasInitializationConfiguration;
+import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
