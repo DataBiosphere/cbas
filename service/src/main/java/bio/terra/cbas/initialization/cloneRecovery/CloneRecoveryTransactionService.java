@@ -17,8 +17,7 @@ public class CloneRecoveryTransactionService {
     this.runDao = runDao;
   }
 
-  @WriteTransaction
-  public void deleteRuns(UUID runSetId) {
+  private void deleteRuns(UUID runSetId) {
     runDao
         .getRuns(new RunDao.RunsFilters(runSetId, null))
         .forEach(r -> runDao.deleteRun(r.runId()));
