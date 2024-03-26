@@ -1,7 +1,6 @@
 package bio.terra.cbas.initialization;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.stubbing.Answer;
 
 public class TestCloneRecoveryServiceUnits {
   MethodDao methodDao;
@@ -59,58 +57,6 @@ public class TestCloneRecoveryServiceUnits {
     // current workspace run sets should not appear in the manifest
     assertFalse(manifest.toBeDeleted().contains(currentRunSet));
     assertFalse(manifest.keepAsTemplate().contains(currentRunSet));
-  }
-
-  @Test
-  void getRunsToDelete() {
-    runDao = mock(RunDao.class);
-
-    Answer<List<Run>> answer =
-        invocation -> {
-          RunDao.RunsFilters filters = invocation.getArgument(0);
-          if (filters.runSetId().equals(clonedRunSetLatest.runSetId())) {
-            return List.of(clonedRunLatest);
-          } else if (filters.runSetId().equals(clonedRunSet.runSetId())) {
-            return List.of(clonedRun);
-          } else if (filters.runSetId().equals(currentRunSet.runSetId())) {
-            return List.of(currentRun);
-          } else if (filters.runSetId().equals(clonedTemplate.runSetId())) {
-            return List.of();
-          } else {
-            return List.of();
-          }
-        };
-
-    when(runDao.getRuns(any(RunDao.RunsFilters.class))).thenAnswer(answer);
-
-    CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
-
-    List<RunSet> methodRunSets =
-        List.of(clonedRunSet, clonedRunSetLatest, clonedTemplate, currentRunSet);
-
-    List<Run> runsToDelete = cloneRecoveryService.getRunsToDelete(methodRunSets);
-
-    assertEquals(2, runsToDelete.size());
-    assertTrue(runsToDelete.contains(clonedRun));
-    assertTrue(runsToDelete.contains(clonedRunLatest));
-    assertFalse(runsToDelete.contains(currentRun));
-  }
-
-  @Test
-  void getRunSetsToDelete() {
-    CloneRecoveryService cloneRecoveryService =
-        new CloneRecoveryService(runSetDao, runDao, methodDao, cbasContextConfig);
-
-    List<RunSet> methodRunSets =
-        List.of(clonedRunSet, clonedRunSetLatest, clonedTemplate, currentRunSet);
-
-    List<RunSet> runSetsToDelete = cloneRecoveryService.getRunSetsToDelete(methodRunSets);
-    assertEquals(2, runSetsToDelete.size());
-    assertTrue(runSetsToDelete.contains(clonedRunSet));
-    assertTrue(runSetsToDelete.contains(clonedRunSetLatest));
-    assertFalse(runSetsToDelete.contains(clonedTemplate));
-    assertFalse(runSetsToDelete.contains(currentRunSet));
   }
 
   private final UUID currentWorkspaceId = UUID.fromString("00000000-1111-1111-1111-000000000000");
