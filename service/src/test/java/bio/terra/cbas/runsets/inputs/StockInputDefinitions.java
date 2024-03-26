@@ -182,6 +182,170 @@ public final class StockInputDefinitions {
           }
         }""";
 
+  public static WorkflowInputDefinition inputDefinitionWithNestedOptionalStructInputsLiteral()
+      throws JsonProcessingException {
+    String paramDefinitionJson =
+        nestedOptionalStructInsideOptionalStructLiteralJson.stripIndent().trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  private static String nestedOptionalStructInsideOptionalStructLiteralJson =
+      """
+       {
+         "input_name": "literal_foo",
+         "input_type": {
+           "type": "optional",
+           "optional_type": {
+             "type": "struct",
+             "name": "Struct",
+             "fields": [
+               {
+                 "field_name": "foo",
+                 "field_type": {
+                   "type": "optional",
+                   "optional_type": {
+                     "type": "struct",
+                     "name": "Struct",
+                     "fields": [
+                       {
+                         "field_name": "x",
+                         "field_type": {
+                           "type": "primitive",
+                           "primitive_type": "Int"
+                         }
+                       }
+                     ]
+                   }
+                 }
+               }
+             ]
+           }
+         },
+         "source": {
+           "type": "object_builder",
+           "fields": [
+             {
+               "name": "foo",
+               "source": {
+                 "type": "object_builder",
+                 "fields": [
+                   {
+                     "name": "x",
+                     "source": {
+                       "type": "literal",
+                       "parameter_value": 17
+                     }
+                   }
+                 ]
+               }
+             }
+           ]
+         }
+       }""";
+
+  public static WorkflowInputDefinition inputDefinitionWithNestedOptionalStructInputsLookup()
+      throws JsonProcessingException {
+    String paramDefinitionJson =
+        nestedOptionalStructInsideOptionalStructLookupJson.stripIndent().trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  private static String nestedOptionalStructInsideOptionalStructLookupJson =
+      """
+      {
+         "input_name": "lookup_foo",
+         "input_type": {
+           "type": "optional",
+           "optional_type": {
+             "type": "struct",
+             "name": "Struct",
+             "fields": [
+               {
+                 "field_name": "foo",
+                 "field_type": {
+                   "type": "optional",
+                   "optional_type": {
+                     "type": "struct",
+                     "name": "Struct",
+                     "fields": [
+                       {
+                         "field_name": "x",
+                         "field_type": {
+                           "type": "primitive",
+                           "primitive_type": "Int"
+                         }
+                       }
+                     ]
+                   }
+                 }
+               }
+             ]
+           }
+         },
+         "source": {
+           "type": "object_builder",
+           "fields": [
+             {
+               "name": "foo",
+               "source": {
+                 "type": "object_builder",
+                 "fields": [
+                   {
+                     "name": "x",
+                     "source": {
+                       "type": "record_lookup",
+                       "record_attribute": "foo-rating"
+                     }
+                   }
+                 ]
+               }
+             }
+           ]
+         }
+       }""";
+
+  public static WorkflowInputDefinition inputDefinitionStructBuilderForOptionalInt()
+      throws JsonProcessingException {
+    String paramDefinitionJson = structBuilderForOptionalIntInput.stripIndent().trim();
+
+    return objectMapper.readValue(paramDefinitionJson, WorkflowInputDefinition.class);
+  }
+
+  private static String structBuilderForOptionalIntInput =
+      """
+      {
+         "input_name": "lookup_foo",
+         "input_type": {
+           "type": "optional",
+           "optional_type": {
+             "type": "primitive",
+             "primitive_type": "Int"
+           }
+         },
+         "source": {
+           "type": "object_builder",
+           "fields": [
+             {
+               "name": "foo",
+               "source": {
+                 "type": "object_builder",
+                 "fields": [
+                   {
+                     "name": "x",
+                     "source": {
+                       "type": "record_lookup",
+                       "record_attribute": "foo-rating"
+                     }
+                   }
+                 ]
+               }
+             }
+           ]
+         }
+       }""";
+
   public static WorkflowInputDefinition
       inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder(
           String fieldName, String fieldType) throws JsonProcessingException {
