@@ -25,7 +25,8 @@ public class TestCloneRecoveryTransactionService {
   void setup() {
     runSetDao = mock(RunSetDao.class);
     runDao = mock(RunDao.class);
-    when(runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null))).thenReturn(List.of(run));
+    when(runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null)))
+        .thenReturn(List.of(run1, run2, run3));
     transactionService = new CloneRecoveryTransactionService(runSetDao, runDao);
   }
 
@@ -33,14 +34,18 @@ public class TestCloneRecoveryTransactionService {
   void convertToTemplate() {
     transactionService.convertToTemplate(runSet);
     verify(runSetDao).updateIsTemplate(runSet.runSetId(), true);
-    verify(runDao).deleteRun(run.runId());
+    verify(runDao).deleteRun(run1.runId());
+    verify(runDao).deleteRun(run2.runId());
+    verify(runDao).deleteRun(run3.runId());
   }
 
   @Test
   void deleteRunSetsAndRuns() {
     transactionService.deleteRunSetAndRuns(runSet);
     verify(runSetDao).deleteRunSet(runSet.runSetId());
-    verify(runDao).deleteRun(run.runId());
+    verify(runDao).deleteRun(run1.runId());
+    verify(runDao).deleteRun(run2.runId());
+    verify(runDao).deleteRun(run3.runId());
   }
 
   RunSet runSet =
@@ -63,7 +68,31 @@ public class TestCloneRecoveryTransactionService {
           "",
           null);
 
-  Run run =
+  Run run1 =
+      new Run(
+          UUID.randomUUID(),
+          UUID.randomUUID().toString(),
+          runSet,
+          "",
+          runSet.submissionTimestamp(),
+          CbasRunStatus.COMPLETE,
+          runSet.lastModifiedTimestamp(),
+          runSet.lastPolledTimestamp(),
+          "");
+
+  Run run2 =
+      new Run(
+          UUID.randomUUID(),
+          UUID.randomUUID().toString(),
+          runSet,
+          "",
+          runSet.submissionTimestamp(),
+          CbasRunStatus.COMPLETE,
+          runSet.lastModifiedTimestamp(),
+          runSet.lastPolledTimestamp(),
+          "");
+
+  Run run3 =
       new Run(
           UUID.randomUUID(),
           UUID.randomUUID().toString(),

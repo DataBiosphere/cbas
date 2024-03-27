@@ -11,10 +11,8 @@ import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService.MethodTemplateUpdateManifest;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryTransactionService;
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
-import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,7 +20,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class TestCloneRecoveryServiceUnits {
+public class TestCloneRecoveryService {
   MethodDao methodDao;
   RunSetDao runSetDao;
   CloneRecoveryTransactionService transactionService;
@@ -51,9 +49,8 @@ public class TestCloneRecoveryServiceUnits {
     // all other clone run sets should be listed as non-templates.
     assertEquals(1, manifest.keepAsTemplate().size());
     assertEquals(2, manifest.toBeDeleted().size());
-    assertTrue(manifest.keepAsTemplate().contains(clonedRunSetLatest));
-    assertTrue(manifest.toBeDeleted().contains(clonedTemplate));
-    assertTrue(manifest.toBeDeleted().contains(clonedRunSet));
+    assertEquals(manifest.keepAsTemplate(), List.of(clonedRunSetLatest));
+    assertEquals(manifest.toBeDeleted(), List.of(clonedRunSet, clonedTemplate));
 
     // current workspace run sets should not appear in the manifest
     assertFalse(manifest.toBeDeleted().contains(currentRunSet));
@@ -130,18 +127,6 @@ public class TestCloneRecoveryServiceUnits {
           "",
           originalWorkspaceId);
 
-  Run clonedRun =
-      new Run(
-          UUID.randomUUID(),
-          UUID.randomUUID().toString(),
-          clonedRunSet,
-          "",
-          clonedRunSet.submissionTimestamp(),
-          CbasRunStatus.COMPLETE,
-          clonedRunSet.lastModifiedTimestamp(),
-          clonedRunSet.lastPolledTimestamp(),
-          "");
-
   UUID clonedRunSetLatestId = UUID.fromString("00000000-0000-0000-0000-000000000003");
   RunSet clonedRunSetLatest =
       new RunSet(
@@ -163,18 +148,6 @@ public class TestCloneRecoveryServiceUnits {
           "",
           originalWorkspaceId);
 
-  Run clonedRunLatest =
-      new Run(
-          UUID.randomUUID(),
-          UUID.randomUUID().toString(),
-          clonedRunSetLatest,
-          "",
-          clonedRunSetLatest.submissionTimestamp(),
-          CbasRunStatus.COMPLETE,
-          clonedRunSetLatest.lastModifiedTimestamp(),
-          clonedRunSetLatest.lastPolledTimestamp(),
-          "");
-
   RunSet currentRunSet =
       new RunSet(
           UUID.fromString("00000000-0000-0000-0000-000000000004"),
@@ -194,16 +167,4 @@ public class TestCloneRecoveryServiceUnits {
           "",
           "",
           currentWorkspaceId);
-
-  Run currentRun =
-      new Run(
-          UUID.randomUUID(),
-          UUID.randomUUID().toString(),
-          currentRunSet,
-          "",
-          currentRunSet.submissionTimestamp(),
-          CbasRunStatus.COMPLETE,
-          currentRunSet.lastModifiedTimestamp(),
-          currentRunSet.lastPolledTimestamp(),
-          "");
 }
