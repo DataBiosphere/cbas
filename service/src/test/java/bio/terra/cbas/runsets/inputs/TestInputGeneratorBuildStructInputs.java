@@ -2,11 +2,15 @@ package bio.terra.cbas.runsets.inputs;
 
 import static bio.terra.cbas.common.exceptions.InputProcessingException.InappropriateInputSourceException;
 import static bio.terra.cbas.common.exceptions.InputProcessingException.StructMissingFieldException;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionStructBuilderForOptionalInt;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithNestedOptionalStructInputsLiteral;
+import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithNestedOptionalStructInputsLookup;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOneFieldStructFooRatingParameterObjectBuilder;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOneFieldStructFooRatingParameterRecordLookup;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.inputDefinitionWithOneNestedFieldStructFooRatingParameterObjectBuilder;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.nestedStructInputDefinitionWithBadFieldNamesInSource;
 import static bio.terra.cbas.runsets.inputs.StockInputDefinitions.objectBuilderSourceUsedForStringInput;
+import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.emptyRecord;
 import static bio.terra.cbas.runsets.inputs.StockWdsRecordResponses.wdsRecordWithFooRating;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -67,6 +71,47 @@ class TestInputGeneratorBuildStructInputs {
 
     Map<String, Object> expected = Map.of("lookup_foo", Map.of("struct_field", 5L));
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void nestedOptionalStructLiteral()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithNestedOptionalStructInputsLiteral()), emptyRecord());
+
+    Map<String, Object> expected = Map.of("literal_foo", Map.of("foo", Map.of("x", 17L)));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void nestedOptionalStructLookup()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithNestedOptionalStructInputsLookup()),
+            wdsRecordWithFooRating("17"));
+
+    Map<String, Object> expected = Map.of("lookup_foo", Map.of("foo", Map.of("x", 17L)));
+    assertEquals(expected, actual);
+  }
+
+  @Test
+  void invalidStructBuilder()
+      throws JsonProcessingException, CoercionException, InputProcessingException {
+
+    Map<String, Object> actual =
+        InputGenerator.buildInputs(
+            List.of(inputDefinitionWithNestedOptionalStructInputsLookup()),
+            wdsRecordWithFooRating("17"));
+
+    assertThrows(
+        InappropriateInputSourceException.class,
+        () ->
+            InputGenerator.buildInputs(
+                List.of(inputDefinitionStructBuilderForOptionalInt()), emptyRecord()));
   }
 
   @Test

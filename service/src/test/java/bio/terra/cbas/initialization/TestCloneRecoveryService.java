@@ -47,8 +47,6 @@ public class TestCloneRecoveryService {
     // only cloned run sets should be listed in the manifest.
     // the latest cloned run set should be the new template.
     // all other clone run sets should be listed as non-templates.
-    assertEquals(1, manifest.keepAsTemplate().size());
-    assertEquals(2, manifest.toBeDeleted().size());
     assertEquals(manifest.keepAsTemplate(), List.of(clonedRunSetLatest));
     assertEquals(manifest.toBeDeleted(), List.of(clonedRunSet, clonedTemplate));
 
