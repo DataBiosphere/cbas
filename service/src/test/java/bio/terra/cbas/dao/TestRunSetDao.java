@@ -1,13 +1,15 @@
 package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import bio.terra.cbas.dao.util.ContainerizedDaoTest;
+import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
-import java.awt.*;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TestRunSetDao extends ContainerizedDaoTest {
+class TestRunSetDao extends ContainerizedDatabaseTest {
 
   @Autowired RunSetDao runSetDao;
   @Autowired MethodDao methodDao;
@@ -98,36 +100,81 @@ class TestRunSetDao extends ContainerizedDaoTest {
   }
 
   @Test
-  void getLatestRunSetWithMethodId() {
+  void getRunSetsWithMethodId() {
     // initially there is only one run set associated with this method
     assertEquals(
-        runSet.runSetId(), runSetDao.getLatestRunSetWithMethodId(method.methodId()).runSetId());
+        runSet.runSetId(), runSetDao.getRunSetsWithMethodId(method.methodId()).get(0).runSetId());
 
-    // now create a run set, submitted a day later, and confirm that it's retrieved instead.
-    // this later run set has isTemplate=false, demonstrating that getLatestRunSetWithMethodId
-    // is indifferent to a run set's isTemplate value.
-    UUID laterRunSetId = UUID.fromString("10000000-0000-0000-0000-000000000007");
-    runSetDao.createRunSet(
+    RunSet laterRunSet =
         new RunSet(
-            laterRunSetId,
+            UUID.randomUUID(),
             methodVersion,
             "fetch_sra_to_bam workflow",
             "fetch_sra_to_bam sample submission",
             false,
             false,
             CbasRunSetStatus.COMPLETE,
-            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
-            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
-            OffsetDateTime.parse("2023-01-28T19:21:24.563932Z"),
+            runSet.submissionTimestamp().plusDays(1),
+            runSet.lastModifiedTimestamp().plusDays(1),
+            runSet.lastPolledTimestamp().plusDays(1),
             0,
             0,
             "[]",
             "[]",
             "sample",
             "user-foo",
-            workspaceId));
+            workspaceId);
+    runSetDao.createRunSet(laterRunSet);
+
+    RunSet latestRunSet =
+        new RunSet(
+            UUID.randomUUID(),
+            methodVersion,
+            "fetch_sra_to_bam workflow",
+            "fetch_sra_to_bam sample submission",
+            false,
+            false,
+            CbasRunSetStatus.COMPLETE,
+            runSet.submissionTimestamp().plusDays(2),
+            runSet.lastModifiedTimestamp().plusDays(2),
+            runSet.lastPolledTimestamp().plusDays(2),
+            0,
+            0,
+            "[]",
+            "[]",
+            "sample",
+            "user-foo",
+            workspaceId);
+
+    runSetDao.createRunSet(latestRunSet);
 
     assertEquals(
-        laterRunSetId, runSetDao.getLatestRunSetWithMethodId(method.methodId()).runSetId());
+        latestRunSet.runSetId(),
+        runSetDao.getRunSetsWithMethodId(method.methodId()).get(0).runSetId());
+    assertEquals(
+        laterRunSet.runSetId(),
+        runSetDao.getRunSetsWithMethodId(method.methodId()).get(1).runSetId());
+    assertEquals(
+        runSet.runSetId(), runSetDao.getRunSetsWithMethodId(method.methodId()).get(2).runSetId());
+
+    assertEquals(3, runSetDao.getRunSetsWithMethodId(method.methodId()).size());
+  }
+
+  @Test
+  void updateIsTemplate() {
+    runSetDao.updateIsTemplate(runSet.runSetId(), true);
+    RunSet updatedRunSetIsTemplate = runSetDao.getRunSet(runSet.runSetId());
+    assertTrue(updatedRunSetIsTemplate.isTemplate());
+
+    runSetDao.updateIsTemplate(updatedRunSetIsTemplate.runSetId(), false);
+    RunSet updatedRunSetIsNotTemplate = runSetDao.getRunSet(runSet.runSetId());
+    assertFalse(updatedRunSetIsNotTemplate.isTemplate());
+  }
+
+  @Test
+  void deleteRunSet() {
+    int response = runSetDao.deleteRunSet(runSet.runSetId());
+    assertEquals(1, response);
+    assertThrows(IndexOutOfBoundsException.class, () -> runSetDao.getRunSet(runSet.runSetId()));
   }
 }
