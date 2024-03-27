@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 
 @Controller
 public class MethodsApiController implements MethodsApi {
@@ -214,8 +214,7 @@ public class MethodsApiController implements MethodsApi {
         } catch (GitHubClient.GitHubClientException e) {
           githubToken = ecmService.getAccessToken();
           isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
-        } catch (HttpClientErrorException.NotFound e) {
-          log.warn(e.getMessage());
+        } catch (RestClientException e) {
           recordMethodCreationCompletion(
               methodSource, HttpStatus.NOT_FOUND.value(), requestStartNanos);
           return new ResponseEntity<>(

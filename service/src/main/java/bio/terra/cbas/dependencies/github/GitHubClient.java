@@ -91,7 +91,7 @@ public class GitHubClient {
     }
   }
 
-  public class GitHubClientException extends Exception {
+  public static class GitHubClientException extends Exception {
     public GitHubClientException(String message) {
       super(message);
     }

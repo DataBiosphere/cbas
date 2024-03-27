@@ -18,7 +18,9 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.ecm.EcmService;
+import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -52,6 +54,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.client.RestClientException;
 
 @WebMvcTest
 @ExtendWith(MockitoExtension.class)
@@ -879,6 +882,39 @@ class TestMethodsApiController {
         githubMethodDetailsDao
             .getMethodSourceDetails(postMethodResponse.getMethodId())
             .isPrivate());
+  }
+
+  @Test
+  void userNoTokenAndNoAuth() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
+    EcmClient ecmClient = mock(EcmClient.class);
+    initSamMocks();
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(cromwellService.describeWorkflow(validRawWorkflow))
+        .thenReturn(workflowDescForValidWorkflow);
+
+    when(gitHubService.isRepoPrivate(any(), any(), eq("")))
+        .thenThrow(GitHubClient.GitHubClientException.class);
+    when(ecmService.getAccessToken())
+        .thenThrow(new RestClientException("Cannot fetch token for user"));
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andExpect(
+                result -> assertTrue(result.getResolvedException() instanceof RestClientException))
+            .andReturn();
+
+    // verify that the response object is of type ErrorReport and that the nested Unauthorized
+    // exception was surfaced to user
+    ErrorReport errorResponse =
+        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
+
+    assertEquals("Cannot fetch token for user", errorResponse.getMessage());
+    assertEquals(500, errorResponse.getStatusCode());
   }
 
   private static final Method neverRunMethod1 =
