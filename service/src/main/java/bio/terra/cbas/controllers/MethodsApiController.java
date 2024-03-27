@@ -175,7 +175,8 @@ public class MethodsApiController implements MethodsApi {
       // validate that passed input and output mappings exist in workflow
       List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
       List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
-      List<String> invalidMappingErrors = validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+      List<String> invalidMappingErrors =
+          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
 
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
@@ -243,7 +244,7 @@ public class MethodsApiController implements MethodsApi {
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch ( ApiException
+    } catch (ApiException
         | JsonProcessingException
         | WomtoolValueTypeNotFoundException
         | URISyntaxException
