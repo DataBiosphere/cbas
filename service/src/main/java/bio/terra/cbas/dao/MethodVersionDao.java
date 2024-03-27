@@ -76,6 +76,14 @@ public class MethodVersionDao {
                 runSet.methodVersion().methodVersionId())));
   }
 
+  public int unsetLastRunSetId(UUID methodVersionId) {
+    String sql =
+        "UPDATE method_version SET %s = NULL WHERE %s = :method_version_id"
+            .formatted(MethodVersion.LAST_RUN_SET_ID_COL, MethodVersion.METHOD_VERSION_ID_COL);
+    return jdbcTemplate.update(
+        sql, new MapSqlParameterSource(Map.of("method_version_id", methodVersionId)));
+  }
+
   public int updateOriginalWorkspaceId(UUID methodVersionId, UUID originalWorkspaceId) {
     String updateClause =
         "UPDATE method_version SET %s = :method_version_original_workspace_id"

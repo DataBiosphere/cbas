@@ -85,4 +85,12 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
     assertEquals(branch, actual.get(0).branchOrTagName());
     assertNull(actual.get(0).lastRunSetId());
   }
+
+  @Test
+  void unsetLastRunSetId() {
+    methodVersionDao.unsetLastRunSetId(methodVersion.methodVersionId());
+    MethodVersion updatedMethodVersion =
+        methodVersionDao.getMethodVersion(methodVersion.methodVersionId());
+    assertNull(updatedMethodVersion.lastRunSetId());
+  }
 }

@@ -83,4 +83,11 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     assertEquals(method2.methodId(), allMethods.get(0).methodId());
     assertEquals(method1.methodId(), allMethods.get(1).methodId());
   }
+
+  @Test
+  void unsetLastRunSetId() {
+    methodDao.unsetLastRunSetId(method1.methodId());
+    Method updatedMethod = methodDao.getMethod(method1.methodId());
+    assertNull(updatedMethod.lastRunSetId());
+  }
 }
