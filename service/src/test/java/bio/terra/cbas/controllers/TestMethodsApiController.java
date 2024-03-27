@@ -18,7 +18,6 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
-import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
@@ -848,15 +847,18 @@ class TestMethodsApiController {
   }
 
   @Test
-  void postMethodForUserWithNoToken() throws Exception {
+  void userNoTokenFetchFromEcm() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
-
+    String ecmToken = "token";
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(gitHubService.isRepoPrivate("cromwell", "develop", "")).thenReturn(false);
+
+    when(gitHubService.isRepoPrivate(any(), any(), eq("")))
+        .thenThrow(GitHubClient.GitHubClientException.class);
+    when(ecmService.getAccessToken()).thenReturn(ecmToken);
 
     MvcResult response =
         mockMvc
@@ -865,29 +867,12 @@ class TestMethodsApiController {
             .andExpect(status().isOk())
             .andReturn();
 
-    PostMethodResponse postMethodResponse =
-        objectMapper.readValue(
-            response.getResponse().getContentAsString(), PostMethodResponse.class);
-
-    when(githubMethodDetailsDao.getMethodSourceDetails(any()))
-        .thenReturn(
-            new GithubMethodDetails(
-                "cromwell",
-                "broadinstitute",
-                "this/is/a/path",
-                false,
-                postMethodResponse.getMethodId()));
-
-    assertFalse(
-        githubMethodDetailsDao
-            .getMethodSourceDetails(postMethodResponse.getMethodId())
-            .isPrivate());
+    assertEquals(200, response.getResponse().getStatus());
   }
 
   @Test
   void userNoTokenAndNoAuth() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
-    EcmClient ecmClient = mock(EcmClient.class);
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
