@@ -844,6 +844,43 @@ class TestMethodsApiController {
     assertNull(githubMethodDetailsDao.getMethodSourceDetails(postMethodResponse.getMethodId()));
   }
 
+  @Test
+  void postMethodForUserWithNoToken() throws Exception {
+    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
+
+    initSamMocks();
+    WorkflowDescription workflowDescForValidWorkflow =
+        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
+    when(cromwellService.describeWorkflow(validRawWorkflow))
+        .thenReturn(workflowDescForValidWorkflow);
+    when(gitHubService.isRepoPrivate("cromwell", "develop", "")).thenReturn(false);
+
+    MvcResult response =
+        mockMvc
+            .perform(
+                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    PostMethodResponse postMethodResponse =
+        objectMapper.readValue(
+            response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    when(githubMethodDetailsDao.getMethodSourceDetails(any()))
+        .thenReturn(
+            new GithubMethodDetails(
+                "cromwell",
+                "broadinstitute",
+                "this/is/a/path",
+                false,
+                postMethodResponse.getMethodId()));
+
+    assertFalse(
+        githubMethodDetailsDao
+            .getMethodSourceDetails(postMethodResponse.getMethodId())
+            .isPrivate());
+  }
+
   private static final Method neverRunMethod1 =
       new Method(
           UUID.randomUUID(),

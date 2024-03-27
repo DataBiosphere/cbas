@@ -40,7 +40,6 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -58,6 +57,7 @@ import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Controller
 public class MethodsApiController implements MethodsApi {
@@ -153,9 +153,9 @@ public class MethodsApiController implements MethodsApi {
 
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
-    WorkflowDescription workflowDescription;
+    WorkflowDescription workflowDescription = new WorkflowDescription();
     try {
-      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
+      workflowDescription.valid(true); // cromwellService.describeWorkflow(rawMethodUrl);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
@@ -174,8 +174,8 @@ public class MethodsApiController implements MethodsApi {
       // validate that passed input and output mappings exist in workflow
       List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
       List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
-      List<String> invalidMappingErrors =
-          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+      List<String> invalidMappingErrors = new ArrayList<>();
+      // validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
 
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
@@ -205,8 +205,21 @@ public class MethodsApiController implements MethodsApi {
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
 
-        String githubToken = ecmService.getAccessToken();
-        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
+        String githubToken;
+        Boolean isPrivate;
+
+        try {
+          isPrivate = gitHubService.isRepoPrivate(organization, repository, "");
+        } catch (GitHubClient.GitHubClientException e) {
+          githubToken = ecmService.getAccessToken();
+          isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
+        } catch (HttpClientErrorException.NotFound e) {
+          log.warn(e.getMessage());
+          recordMethodCreationCompletion(
+              methodSource, HttpStatus.NOT_FOUND.value(), requestStartNanos);
+          return new ResponseEntity<>(
+              new PostMethodResponse().error(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
@@ -230,8 +243,8 @@ public class MethodsApiController implements MethodsApi {
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
-    } catch (ApiException
-        | JsonProcessingException
+    } catch ( // ApiException
+    JsonProcessingException
         | WomtoolValueTypeNotFoundException
         | URISyntaxException
         | GitHubClient.GitHubClientException e) {

@@ -24,14 +24,23 @@ public class GitHubClient {
       throws GitHubClientException {
 
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
-    Response response =
-        target
-            .request(MediaType.APPLICATION_JSON_TYPE)
-            .header("Accept", "application/vnd.github+json")
-            .header("Authorization", "Bearer " + token)
-            .header("X-GitHub-Api-Version", "2022-11-28")
-            .get();
-
+    Response response;
+    if (token.isEmpty()) {
+      response =
+          target
+              .request(MediaType.APPLICATION_JSON_TYPE)
+              .header("Accept", "application/vnd.github+json")
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .get();
+    } else {
+      response =
+          target
+              .request(MediaType.APPLICATION_JSON_TYPE)
+              .header("Accept", "application/vnd.github+json")
+              .header("Authorization", "Bearer " + token)
+              .header("X-GitHub-Api-Version", "2022-11-28")
+              .get();
+    }
     if (response.getStatus() == 200) {
       return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
     } else {
