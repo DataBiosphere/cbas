@@ -1,7 +1,7 @@
 package bio.terra.cbas.pact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import bio.terra.externalcreds.pact.State;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
@@ -37,7 +37,7 @@ public class TestEcmPact {
   RequestResponsePact getGithubTokenPact(PactDslWithProvider builder) {
     return builder
         .given(
-            "github is registered",
+            State.USER_IS_REGISTERED.toString(),
             Map.of(
                 "provider", mockProvider)) // TODO: confirm with Katrina that this state makes sense
         .uponReceiving("a request for an access token")
