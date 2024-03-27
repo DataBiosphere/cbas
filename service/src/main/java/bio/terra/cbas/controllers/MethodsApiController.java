@@ -216,9 +216,9 @@ public class MethodsApiController implements MethodsApi {
           isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
         } catch (RestClientException e) {
           recordMethodCreationCompletion(
-              methodSource, HttpStatus.NOT_FOUND.value(), requestStartNanos);
+              methodSource, HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
           return new ResponseEntity<>(
-              new PostMethodResponse().error(e.getMessage()), HttpStatus.NOT_FOUND);
+              new PostMethodResponse().error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         githubMethodDetails =
