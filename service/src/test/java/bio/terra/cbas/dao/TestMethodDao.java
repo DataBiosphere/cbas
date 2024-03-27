@@ -7,7 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
+import bio.terra.cbas.models.RunSet;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +23,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @MockBean MicrometerMetrics micrometerMetrics;
   @Autowired MethodDao methodDao;
+  @Autowired MethodVersionDao methodVersionDao;
+  @Autowired RunSetDao runSetDao;
   UUID methodId1 = UUID.randomUUID();
   UUID methodId2 = UUID.randomUUID();
   String methodName = "test method";
@@ -44,6 +50,37 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           DateUtils.currentTimeInUTC(),
           null,
           methodSource,
+          workspaceId);
+
+  MethodVersion methodVersion =
+      new MethodVersion(
+          UUID.fromString("80000000-0000-0000-0000-000000000008"),
+          method1,
+          "1.0",
+          "fetch_sra_to_bam sample submission",
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          null,
+          "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
+          workspaceId,
+          "develop");
+  RunSet runSet =
+      new RunSet(
+          UUID.randomUUID(),
+          methodVersion,
+          "fetch_sra_to_bam workflow",
+          "fetch_sra_to_bam sample submission",
+          false,
+          false,
+          CbasRunSetStatus.COMPLETE,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          0,
+          0,
+          "[]",
+          "[]",
+          "sample",
+          "user-foo",
           workspaceId);
 
   @BeforeEach
@@ -86,8 +123,13 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void unsetLastRunSetId() {
-    methodDao.unsetLastRunSetId(method1.methodId());
-    Method updatedMethod = methodDao.getMethod(method1.methodId());
+    methodVersionDao.createMethodVersion(methodVersion);
+    runSetDao.createRunSet(runSet);
+    methodDao.updateLastRunWithRunSet(runSet);
+    Method retrievedMethod = methodDao.getMethod(methodId1);
+    assertEquals(runSet.runSetId(), retrievedMethod.lastRunSetId());
+    methodDao.unsetLastRunSetId(retrievedMethod.methodId());
+    Method updatedMethod = methodDao.getMethod(retrievedMethod.methodId());
     assertNull(updatedMethod.lastRunSetId());
   }
 }

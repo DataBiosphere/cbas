@@ -46,6 +46,8 @@ public class TestCloneRecoveryTransactionService {
     verify(runDao).deleteRun(run1.runId());
     verify(runDao).deleteRun(run2.runId());
     verify(runDao).deleteRun(run3.runId());
+    verify(methodDao).unsetLastRunSetId(method.methodId());
+    verify(methodVersionDao).unsetLastRunSetId(methodVersion.methodVersionId());
   }
 
   @Test

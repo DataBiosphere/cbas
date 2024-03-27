@@ -27,6 +27,9 @@ public class CloneRecoveryTransactionService {
     runDao
         .getRuns(new RunDao.RunsFilters(runSet.runSetId(), null))
         .forEach(r -> runDao.deleteRun(r.runId()));
+  }
+
+  private void unsetLastRunSet(RunSet runSet) {
     methodDao.unsetLastRunSetId(runSet.methodVersion().getMethodId());
     methodVersionDao.unsetLastRunSetId(runSet.getMethodVersionId());
   }
@@ -35,11 +38,13 @@ public class CloneRecoveryTransactionService {
   public void convertToTemplate(RunSet runSet) {
     deleteRuns(runSet);
     runSetDao.updateIsTemplate(runSet.runSetId(), true);
+    unsetLastRunSet(runSet);
   }
 
   @WriteTransaction
   public void deleteRunSetAndRuns(RunSet runSet) {
     deleteRuns(runSet);
     runSetDao.deleteRunSet(runSet.runSetId());
+    unsetLastRunSet(runSet);
   }
 }

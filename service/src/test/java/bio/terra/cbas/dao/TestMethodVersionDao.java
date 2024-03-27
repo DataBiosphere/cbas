@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import bio.terra.cbas.models.RunSet;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +20,7 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
 
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
+  @Autowired RunSetDao runSetDao;
 
   UUID methodId = UUID.randomUUID();
   UUID methodVersionId = UUID.randomUUID();
@@ -50,6 +54,26 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
           methodUrl,
           workspaceId,
           branch);
+
+  RunSet runSet =
+      new RunSet(
+          UUID.randomUUID(),
+          methodVersion,
+          "fetch_sra_to_bam workflow",
+          "fetch_sra_to_bam sample submission",
+          false,
+          false,
+          CbasRunSetStatus.COMPLETE,
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+          0,
+          0,
+          "[]",
+          "[]",
+          "sample",
+          "user-foo",
+          workspaceId);
 
   @BeforeEach
   void init() {
@@ -88,6 +112,11 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
 
   @Test
   void unsetLastRunSetId() {
+    runSetDao.createRunSet(runSet);
+    methodVersionDao.updateLastRunWithRunSet(runSet);
+    MethodVersion retrievedMethodVersion =
+        methodVersionDao.getMethodVersion(methodVersion.methodVersionId());
+    assertEquals(runSet.runSetId(), retrievedMethodVersion.lastRunSetId());
     methodVersionDao.unsetLastRunSetId(methodVersion.methodVersionId());
     MethodVersion updatedMethodVersion =
         methodVersionDao.getMethodVersion(methodVersion.methodVersionId());
