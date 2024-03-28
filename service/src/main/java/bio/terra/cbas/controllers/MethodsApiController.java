@@ -58,6 +58,7 @@ import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.client.RestClientException;
 
 @Controller
 public class MethodsApiController implements MethodsApi {
@@ -205,8 +206,20 @@ public class MethodsApiController implements MethodsApi {
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
 
-        String githubToken = ecmService.getAccessToken();
-        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
+        String githubToken;
+        Boolean isPrivate;
+
+        try {
+          isPrivate = gitHubService.isRepoPrivate(organization, repository, "");
+        } catch (GitHubClient.GitHubClientException e) {
+          githubToken = ecmService.getAccessToken();
+          isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
+        } catch (RestClientException e) {
+          recordMethodCreationCompletion(
+              methodSource, HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
+          return new ResponseEntity<>(
+              new PostMethodResponse().error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);

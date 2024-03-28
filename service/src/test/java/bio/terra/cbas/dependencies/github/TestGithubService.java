@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.github;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,5 +24,18 @@ class TestGithubService {
 
     when(githubClient.getRepo("broadinstitute", "foo", "token")).thenReturn(repoInfo);
     assertTrue(gitHubService.isRepoPrivate("broadinstitute", "foo", "token"));
+  }
+
+  @Test
+  void throwsClientError() throws GitHubClient.GitHubClientException {
+
+    GitHubClient githubClient = mock(GitHubClient.class);
+    GitHubService gitHubService = new GitHubService(githubClient);
+
+    when(githubClient.getRepo("broadinstitute", "foo", "token"))
+        .thenThrow(GitHubClient.GitHubClientException.class);
+    assertThrows(
+        GitHubClient.GitHubClientException.class,
+        () -> gitHubService.isRepoPrivate("broadinstitute", "foo", "token"));
   }
 }
