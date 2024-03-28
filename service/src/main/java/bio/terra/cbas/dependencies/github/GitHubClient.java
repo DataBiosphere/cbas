@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -25,22 +26,19 @@ public class GitHubClient {
 
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
     Response response;
-    if (token.isEmpty()) {
-      response =
-          target
-              .request(MediaType.APPLICATION_JSON_TYPE)
-              .header("Accept", "application/vnd.github+json")
-              .header("X-GitHub-Api-Version", "2022-11-28")
-              .get();
-    } else {
-      response =
-          target
-              .request(MediaType.APPLICATION_JSON_TYPE)
-              .header("Accept", "application/vnd.github+json")
-              .header("Authorization", "Bearer " + token)
-              .header("X-GitHub-Api-Version", "2022-11-28")
-              .get();
+
+    Invocation.Builder responseBuilder =
+        target
+            .request(MediaType.APPLICATION_JSON_TYPE)
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2022-11-28");
+
+    if (!token.isEmpty()) {
+      responseBuilder.header("Authorization", "Bearer " + token);
     }
+
+    response = responseBuilder.get();
+
     if (response.getStatus() == 200) {
       return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
     } else {
