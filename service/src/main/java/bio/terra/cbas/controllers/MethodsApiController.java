@@ -17,7 +17,6 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
-import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
@@ -71,7 +70,6 @@ public class MethodsApiController implements MethodsApi {
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
   private final GithubMethodDetailsDao githubMethodDetailsDao;
-  private final EcmService ecmService;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -83,8 +81,7 @@ public class MethodsApiController implements MethodsApi {
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfig,
-      GithubMethodDetailsDao githubMethodDetailsDao,
-      EcmService ecmService) {
+      GithubMethodDetailsDao githubMethodDetailsDao) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.gitHubService = gitHubService;
@@ -95,7 +92,6 @@ public class MethodsApiController implements MethodsApi {
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
     this.githubMethodDetailsDao = githubMethodDetailsDao;
-    this.ecmService = ecmService;
   }
 
   private final ObjectMapper objectMapper;
