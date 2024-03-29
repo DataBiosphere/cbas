@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.DateUtils;
@@ -19,7 +20,6 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.ecm.EcmService;
-import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -424,7 +424,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
-    when(gitHubService.isRepoPrivate(any(), any(), any())).thenReturn(true);
+    when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
 
     MvcResult response =
         mockMvc
@@ -847,59 +847,33 @@ class TestMethodsApiController {
   }
 
   @Test
-  void userNoTokenFetchFromEcm() throws Exception {
+  void errorThrownForInvalidToken() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
-    String ecmToken = "token";
+    String errorResponse =
+        """
+        {
+          "error" : "Something went wrong while importing the method 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl'. Error(s): exception thrown"
+        }
+        """
+            .trim();
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
 
-    when(gitHubService.isRepoPrivate(any(), any(), eq("")))
-        .thenThrow(GitHubClient.GitHubClientException.class);
-    when(ecmService.getAccessToken()).thenReturn(ecmToken);
-
-    MvcResult response =
-        mockMvc
-            .perform(
-                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    assertEquals(200, response.getResponse().getStatus());
-  }
-
-  @Test
-  void userNoTokenAndNoAuth() throws Exception {
-    String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
-    initSamMocks();
-    WorkflowDescription workflowDescForValidWorkflow =
-        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
-        .thenReturn(workflowDescForValidWorkflow);
-
-    when(gitHubService.isRepoPrivate(any(), any(), eq("")))
-        .thenThrow(GitHubClient.GitHubClientException.class);
-    when(ecmService.getAccessToken())
-        .thenThrow(new RestClientException("Cannot fetch token for user"));
+    when(gitHubService.isRepoPrivate(any(), any()))
+        .thenThrow(new RestClientException("exception thrown"));
 
     MvcResult response =
         mockMvc
             .perform(
                 post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isInternalServerError())
-            .andExpect(
-                result -> assertTrue(result.getResolvedException() instanceof RestClientException))
+            .andExpect(content().string(errorResponse))
             .andReturn();
 
-    // verify that the response object is of type ErrorReport and that the nested Unauthorized
-    // exception was surfaced to user
-    ErrorReport errorResponse =
-        objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
-
-    assertEquals("Cannot fetch token for user", errorResponse.getMessage());
-    assertEquals(500, errorResponse.getStatusCode());
+    System.out.println(response.getResponse().getContentAsString());
   }
 
   private static final Method neverRunMethod1 =

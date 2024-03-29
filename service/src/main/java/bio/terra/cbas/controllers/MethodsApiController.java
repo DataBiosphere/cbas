@@ -176,7 +176,7 @@ public class MethodsApiController implements MethodsApi {
       List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
       List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
       List<String> invalidMappingErrors =
-          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+       validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
 
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
@@ -206,20 +206,7 @@ public class MethodsApiController implements MethodsApi {
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
 
-        String githubToken;
-        Boolean isPrivate;
-
-        try {
-          isPrivate = gitHubService.isRepoPrivate(organization, repository, "");
-        } catch (GitHubClient.GitHubClientException e) {
-          githubToken = ecmService.getAccessToken();
-          isPrivate = gitHubService.isRepoPrivate(organization, repository, githubToken);
-        } catch (RestClientException e) {
-          recordMethodCreationCompletion(
-              methodSource, HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
-          return new ResponseEntity<>(
-              new PostMethodResponse().error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository);
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
@@ -244,10 +231,11 @@ public class MethodsApiController implements MethodsApi {
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
     } catch (ApiException
-        | JsonProcessingException
-        | WomtoolValueTypeNotFoundException
-        | URISyntaxException
-        | GitHubClient.GitHubClientException e) {
+             | JsonProcessingException
+             | WomtoolValueTypeNotFoundException
+             | URISyntaxException
+             | GitHubClient.GitHubClientException
+             | RestClientException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",
