@@ -176,7 +176,7 @@ public class MethodsApiController implements MethodsApi {
       List<MethodInputMapping> methodInputMappings = postMethodRequest.getMethodInputMappings();
       List<MethodOutputMapping> methodOutputMappings = postMethodRequest.getMethodOutputMappings();
       List<String> invalidMappingErrors =
-       validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
+          validateMethodMappings(workflowDescription, methodInputMappings, methodOutputMappings);
 
       // return 400 if input and/or output mappings is invalid
       if (!invalidMappingErrors.isEmpty()) {
@@ -231,11 +231,11 @@ public class MethodsApiController implements MethodsApi {
 
       return new ResponseEntity<>(postMethodResponse, HttpStatus.OK);
     } catch (ApiException
-             | JsonProcessingException
-             | WomtoolValueTypeNotFoundException
-             | URISyntaxException
-             | GitHubClient.GitHubClientException
-             | RestClientException e) {
+        | JsonProcessingException
+        | WomtoolValueTypeNotFoundException
+        | URISyntaxException
+        | GitHubClient.GitHubClientException
+        | RestClientException e) {
       String errorMsg =
           String.format(
               "Something went wrong while importing the method '%s'. Error(s): %s",
