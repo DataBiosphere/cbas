@@ -8,12 +8,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 
 class TestGithubUrlComponents {
 
   @Test
   void returnsExpectedUrlComponents() throws URISyntaxException {
+
     List<Map<String, String>> githubMethods = new ArrayList<>();
     Map<String, String> source1 = new HashMap<>();
     Map<String, String> source2 = new HashMap<>();
@@ -46,5 +50,37 @@ class TestGithubUrlComponents {
     }
 
     githubMethods.clear();
+  }
+
+  @TestFactory
+  Stream<DynamicTest> tableDrivenTest() {
+
+    record TestCase(String org, String repo, String branchOrTag, String path, String url) {
+
+      public void check() throws URISyntaxException {
+        assertEquals(extractGithubDetailsFromUrl(url).org(), org);
+        assertEquals(extractGithubDetailsFromUrl(url).path(), path);
+        assertEquals(extractGithubDetailsFromUrl(url).branchOrTag(), branchOrTag);
+        assertEquals(extractGithubDetailsFromUrl(url).repo(), repo);
+      }
+    }
+
+    var testCases =
+        new TestCase[] {
+          new TestCase(
+              "broadinstitute",
+              "cromwell",
+              "develop",
+              "wdl/transforms/draft3/src/test/cases/simple_task.wdl",
+              "raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl"),
+          new TestCase(
+              "broadinstitute",
+              "cromwell",
+              "develop",
+              "wdl/transforms/draft3/src/test/cases/simple_task.wdl",
+              "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/wdl/transforms/draft3/src/test/cases/simple_task.wdl"),
+        };
+
+    return DynamicTest.stream(Stream.of(testCases), TestCase::url, TestCase::check);
   }
 }
