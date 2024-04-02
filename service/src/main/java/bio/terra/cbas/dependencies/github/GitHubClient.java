@@ -98,6 +98,11 @@ public class GitHubClient {
     public String getMessage() {
       return message;
     }
+
+    public String message(String m) {
+
+      return this.message = m;
+    }
   }
 
   public static class GitHubClientException extends Exception {
