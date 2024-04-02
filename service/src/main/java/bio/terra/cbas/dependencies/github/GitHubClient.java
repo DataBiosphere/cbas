@@ -99,9 +99,8 @@ public class GitHubClient {
       return message;
     }
 
-    public String message(String m) {
-
-      return this.message = m;
+    public void message(String m) {
+      this.message = m;
     }
   }
 
