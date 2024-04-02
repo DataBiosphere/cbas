@@ -6,10 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.gson.Gson;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
@@ -23,69 +21,35 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class TestGithubClient {
-  private static final com.fasterxml.jackson.databind.ObjectMapper objectMapper =
-      new com.fasterxml.jackson.databind.ObjectMapper()
-          .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-  @Mock GitHubClient gitHubClientMock;
   @Mock Gson gson;
-  @Mock Client client; // ClientBuilder.newClient();
+  @Mock Client client;
 
   @Test
   void getsTargetGivenOrg() throws Exception {
     String org = "broad";
     String repo = "cromwell";
-    GitHubClient gc = new GitHubClient(client, gson);
-    // Client client = mock(Client.class);
-    ClientBuilder clientBuilder = mock(ClientBuilder.class);
     WebTarget mockTarget = mock(WebTarget.class);
     Invocation.Builder mockBuilder = mock(Invocation.Builder.class);
-    // GitHubClient gitHubClient = new GitHubClient();
-    MultivaluedMap<String, Object> headerMap = new MultivaluedHashMap<>();
-    Response resp = mock(Response.class);
-    String response =
-        """
-        {
-          "id": "abc123",
-          "private": "false",
-          "url": "www.urlfoo.com",
-          "status": "200"
-        }
-        """
-            .trim();
+    Response mockResponse = mock(Response.class);
 
-    // Response newResponse = objectMapper.readValue(response, Response.class);
-
-    // when(this.client).thenReturn(client);
+    when(mockResponse.getStatus()).thenReturn(200);
+    when(mockBuilder.get()).thenReturn(mockResponse);
+    when(mockTarget.path(any())).thenReturn(mockTarget);
     when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE)).thenReturn(mockBuilder);
+
     when(client.target(any(String.class))).thenReturn(mockTarget);
-    // when(gc.getHeaders("")).thenReturn(headerMap);
-    // when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).get()).thenReturn(resp);
-    // when(resp.getStatus()).thenReturn(200);
-    // when(resp.readEntity(String.class)).thenReturn(response);
 
     GitHubClient.RepoInfo info = new GitHubClient.RepoInfo();
     info.url("www.iurl.com");
     info.isPrivate(false);
     info.id("abc123");
 
-    Response mockResponse = mock(Response.class); // =
-    //        mockTarget
-    //            .request(MediaType.APPLICATION_JSON_TYPE)
-    //            .header("Accept", "application/vnd.github+json")
-    //            .header("X-GitHub-Api-Version", "2022-11-28")
-    //            .get();
-
-    // when(client.target("/test/me")).thenReturn(mockTarget);
-
-    // GitHubClient.RepoInfo repoInfo = gitHubClientMock.getRepo(org, repo, "");
-    // when(gitHubClientMock.getRepo(org, repo, "")).thenReturn(info);
     when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).headers(any()))
         .thenReturn(mockBuilder);
-    when(mockResponse.getStatus()).thenReturn(200);
-    when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).headers(any()).get())
-        .thenReturn(mockResponse);
     when(gson.fromJson(mockResponse.readEntity(String.class), GitHubClient.RepoInfo.class))
         .thenReturn(info);
+
+    GitHubClient gc = new GitHubClient(client, gson);
     assertFalse(gc.getRepo(org, repo, "").getIsPrivate());
   }
 

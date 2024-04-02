@@ -58,6 +58,10 @@ public class GitHubClient {
     return mapping;
   }
 
+//  Client buildClient(Client client, String org, String repo) {
+//
+//  }
+
   public static class RepoInfo {
     // Adding this annotation because the "private" JSON field cannot be properly deserialized
     // being that it is a protected name in Java.
