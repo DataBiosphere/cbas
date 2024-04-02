@@ -10,6 +10,7 @@ import bio.terra.cbas.models.RunSet;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -50,9 +51,10 @@ public class BackfillOriginalWorkspaceIdService {
   }
 
   public List<RunSet> getRunSetsToBackfill() {
-    return runSetDao.getRunSets(null, false).stream()
-        .filter(rs -> rs.getOriginalWorkspaceId() == null)
-        .toList();
+    Stream<RunSet> allRunSets =
+        Stream.concat(
+            runSetDao.getRunSets(null, false).stream(), runSetDao.getRunSets(null, true).stream());
+    return allRunSets.filter(rs -> rs.getOriginalWorkspaceId() == null).toList();
   }
 
   public List<UUID> backfillRunSets() {
