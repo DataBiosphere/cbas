@@ -33,9 +33,9 @@ public class GitHubClient {
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
     Response response;
 
-    MultivaluedMap<String, Object> responseBuilder = getHeaders(token);
+    MultivaluedMap<String, Object> requestHeaders = getHeaders(token);
 
-    response = target.request(MediaType.APPLICATION_JSON_TYPE).headers(responseBuilder).get();
+    response = target.request(MediaType.APPLICATION_JSON_TYPE).headers(requestHeaders).get();
 
     if (response.getStatus() == 200) {
       return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
@@ -46,21 +46,17 @@ public class GitHubClient {
   }
 
   public MultivaluedMap<String, Object> getHeaders(String token) {
-    MultivaluedMap<String, Object> mapping = new MultivaluedHashMap<>();
+    MultivaluedMap<String, Object> headersMap = new MultivaluedHashMap<>();
 
-    mapping.add("Accept", "application/vnd.github+json");
-    mapping.add("X-GitHub-Api-Version", "2022-11-28");
+    headersMap.add("Accept", "application/vnd.github+json");
+    headersMap.add("X-GitHub-Api-Version", "2022-11-28");
 
     if (!token.isEmpty()) {
-      mapping.add("Authorization", "Bearer " + token);
+      headersMap.add("Authorization", "Bearer " + token);
     }
 
-    return mapping;
+    return headersMap;
   }
-
-//  Client buildClient(Client client, String org, String repo) {
-//
-//  }
 
   public static class RepoInfo {
     // Adding this annotation because the "private" JSON field cannot be properly deserialized
