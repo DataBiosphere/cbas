@@ -72,20 +72,3 @@ class TestGithubClient {
     assertEquals(3, actualMap.size());
   }
 }
-
-//  // when(client.target("/test/me").path("/repos").path(org).path(repo)).thenReturn(mockTarget);
-//  when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE)).thenReturn(mockBuilder);
-//
-//    Response mockResponse =
-//    mockTarget
-//    .request(MediaType.APPLICATION_JSON_TYPE)
-//    .header("Accept", "application/vnd.github+json")
-//    .header("X-GitHub-Api-Version", "2022-11-28")
-//    .get();
-//
-//    //    when(mockBuilder.header("Content-type", MediaType.APPLICATION_JSON_TYPE))
-//    //        .thenReturn(mockBuilder);
-//    when(mockBuilder.get()).thenReturn(mockResponse);
-//
-//    when(gson.fromJson(mockResponse.readEntity(String.class), GitHubClient.RepoInfo.class))
-//    .thenReturn(info);
