@@ -22,6 +22,11 @@ public class GitHubClient {
     this.gson = new Gson();
   }
 
+  public GitHubClient(Client client, Gson gson) {
+    this.client = client;
+    this.gson = gson;
+  }
+
   public RepoInfo getRepo(String organization, String repo, String token)
       throws GitHubClientException {
 

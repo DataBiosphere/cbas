@@ -2,12 +2,14 @@ package bio.terra.cbas.dependencies.github;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.google.gson.Gson;
 import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.Invocation;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
@@ -18,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
 class TestGithubClient {
@@ -26,16 +27,19 @@ class TestGithubClient {
       new com.fasterxml.jackson.databind.ObjectMapper()
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   @Mock GitHubClient gitHubClientMock;
-  @Mock Gson gson = new Gson();
+  @Mock Gson gson;
+  @Mock Client client; // ClientBuilder.newClient();
 
   @Test
   void getsTargetGivenOrg() throws Exception {
     String org = "broad";
     String repo = "cromwell";
-    Client client = mock(Client.class);
+    GitHubClient gc = new GitHubClient(client, gson);
+    // Client client = mock(Client.class);
+    ClientBuilder clientBuilder = mock(ClientBuilder.class);
     WebTarget mockTarget = mock(WebTarget.class);
     Invocation.Builder mockBuilder = mock(Invocation.Builder.class);
-    GitHubClient gitHubClient = new GitHubClient();
+    // GitHubClient gitHubClient = new GitHubClient();
     MultivaluedMap<String, Object> headerMap = new MultivaluedHashMap<>();
     Response resp = mock(Response.class);
     String response =
@@ -43,16 +47,18 @@ class TestGithubClient {
         {
           "id": "abc123",
           "private": "false",
-          "url": "www.urlfoo.com"
+          "url": "www.urlfoo.com",
+          "status": "200"
         }
         """
             .trim();
 
     // Response newResponse = objectMapper.readValue(response, Response.class);
 
-    // when(client.target("/test/target")).thenReturn(mockTarget);
-    // when(gitHubClientMock.getHeaders("")).thenReturn(headerMap);
+    // when(this.client).thenReturn(client);
     when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE)).thenReturn(mockBuilder);
+    when(client.target(any(String.class))).thenReturn(mockTarget);
+    // when(gc.getHeaders("")).thenReturn(headerMap);
     // when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).get()).thenReturn(resp);
     // when(resp.getStatus()).thenReturn(200);
     // when(resp.readEntity(String.class)).thenReturn(response);
@@ -61,13 +67,8 @@ class TestGithubClient {
     info.url("www.iurl.com");
     info.isPrivate(false);
     info.id("abc123");
-    //    when(mockTarget
-    //            .request(MediaType.APPLICATION_JSON_TYPE)
-    //            .header("header", "one")
-    //            .header("header", "two"))
-    //        .thenReturn(mockBuilder);
 
-    //    Response mockResponse =
+    Response mockResponse = mock(Response.class); // =
     //        mockTarget
     //            .request(MediaType.APPLICATION_JSON_TYPE)
     //            .header("Accept", "application/vnd.github+json")
@@ -78,9 +79,14 @@ class TestGithubClient {
 
     // GitHubClient.RepoInfo repoInfo = gitHubClientMock.getRepo(org, repo, "");
     // when(gitHubClientMock.getRepo(org, repo, "")).thenReturn(info);
-    assertFalse(info.getIsPrivate());
-    // GitHubClient.RepoInfo responseEntity =
-    // mockResponse.readEntity(GitHubClient.RepoInfo.class);
+    when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).headers(any()))
+        .thenReturn(mockBuilder);
+    when(mockResponse.getStatus()).thenReturn(200);
+    when(mockTarget.request(MediaType.APPLICATION_JSON_TYPE).headers(any()).get())
+        .thenReturn(mockResponse);
+    when(gson.fromJson(mockResponse.readEntity(String.class), GitHubClient.RepoInfo.class))
+        .thenReturn(info);
+    assertFalse(gc.getRepo(org, repo, "").getIsPrivate());
   }
 
   @Test
