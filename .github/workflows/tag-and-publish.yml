@@ -107,34 +107,6 @@ jobs:
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
 
-      - name: Clone Cromwhelm
-        uses: actions/checkout@v2
-        with:
-          repository: broadinstitute/cromwhelm
-          token: ${{ secrets.BROADBOT_TOKEN }} # Has to be set at checkout AND later when pushing to work
-          path: cromwhelm
-
-      - name: Update CBAS Helm Chart in cromwhelm
-        env:
-          BROADBOT_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
-        run: |
-          set -e
-          cd cromwhelm
-          git checkout main
-          ls -la
-          HELM_CUR_TAG=$(grep "/cbas:" terra-batch-libchart/values.yaml | sed "s,.*/cbas:,,")
-          HELM_NEW_TAG=${{ steps.tag.outputs.new_tag }}
-          [[ -n "$HELM_CUR_TAG" && -n "$HELM_NEW_TAG" ]]
-          # prefixing search and replacement text with 'cbas' is needed to avoid replacing tag for cbas-ui
-          # when both cbas and cbas-ui have the same image version
-          sed -i "s/cbas:$HELM_CUR_TAG/cbas:$HELM_NEW_TAG/" terra-batch-libchart/values.yaml
-          git diff
-          git config --global user.name "broadbot"
-          git config --global user.email "broadbot@broadinstitute.org"
-          git commit -am "${{ steps.ensure-jira-id.outputs.JIRA_ID }}: Auto update CBAS version to $HELM_NEW_TAG"
-          git push https://broadbot:$BROADBOT_TOKEN@github.com/broadinstitute/cromwhelm.git main
-          cd -
-
       - name: Clone terra-helmfile
         uses: actions/checkout@v3
         with:
