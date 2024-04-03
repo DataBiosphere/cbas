@@ -1,7 +1,6 @@
 package bio.terra.cbas.util.methods;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -68,13 +67,20 @@ public class TestBackfillOriginalWorkspaceIdService {
 
   @Test
   void testBackfillRunSets() {
-    when(runSetDao.getRunSets(eq(null), anyBoolean()))
+    when(runSetDao.getRunSets(eq(null), eq(false)))
         .thenReturn(
             Arrays.asList(
                 runSetClonedNull,
                 runSetCreatedNull,
                 runSetClonedBackfilled,
                 runSetCreatedBackfilled));
+    when(runSetDao.getRunSets(eq(null), eq(true)))
+        .thenReturn(
+            Arrays.asList(
+                templateClonedNull,
+                templateCreatedNull,
+                templateClonedBackfilled,
+                templateCreatedBackfilled));
     when(runSetDao.updateOriginalWorkspaceId(any(), any())).thenReturn(1);
 
     BackfillOriginalWorkspaceIdService backfillOriginalWorkspaceIdService =
@@ -83,12 +89,19 @@ public class TestBackfillOriginalWorkspaceIdService {
     backfillOriginalWorkspaceIdService.backfillRunSets();
 
     verify(runSetDao, times(1)).getRunSets(null, false);
+    verify(runSetDao, times(1)).getRunSets(null, true);
     verify(runSetDao).updateOriginalWorkspaceId(runSetClonedNull.runSetId(), nullWorkspaceId);
     verify(runSetDao).updateOriginalWorkspaceId(runSetCreatedNull.runSetId(), currentWorkspaceId);
+    verify(runSetDao).updateOriginalWorkspaceId(templateClonedNull.runSetId(), nullWorkspaceId);
+    verify(runSetDao).updateOriginalWorkspaceId(templateCreatedNull.runSetId(), currentWorkspaceId);
     verify(runSetDao, never())
         .updateOriginalWorkspaceId(eq(runSetClonedBackfilled.runSetId()), any());
     verify(runSetDao, never())
         .updateOriginalWorkspaceId(eq(runSetCreatedBackfilled.runSetId()), any());
+    verify(runSetDao, never())
+        .updateOriginalWorkspaceId(eq(templateClonedBackfilled.runSetId()), any());
+    verify(runSetDao, never())
+        .updateOriginalWorkspaceId(eq(templateCreatedBackfilled.runSetId()), any());
   }
 
   @Test
@@ -280,6 +293,86 @@ public class TestBackfillOriginalWorkspaceIdService {
           "A run set that was created in the current workspace, with a backfilled originalWorkspaceId",
           false,
           false,
+          CbasRunSetStatus.COMPLETE,
+          creationDateAfter,
+          creationDateAfter,
+          creationDateAfter,
+          1,
+          0,
+          "",
+          "",
+          "",
+          "",
+          nullWorkspaceId);
+
+  private RunSet templateClonedNull =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000011"),
+          methodVersionClonedNull,
+          "TemplateClonedNull",
+          "A run set that was cloned from a source workspace, with a null originalWorkspaceId",
+          false,
+          true,
+          CbasRunSetStatus.COMPLETE,
+          creationDateBefore,
+          creationDateBefore,
+          creationDateBefore,
+          1,
+          0,
+          "",
+          "",
+          "",
+          "",
+          null);
+
+  private RunSet templateCreatedNull =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000022"),
+          methodVersionCreatedNull,
+          "TemplateCreatedNull",
+          "A run set that was created in the current workspace, with a null originalWorkspaceId",
+          false,
+          true,
+          CbasRunSetStatus.COMPLETE,
+          creationDateAfter,
+          creationDateAfter,
+          creationDateAfter,
+          1,
+          0,
+          "",
+          "",
+          "",
+          "",
+          null);
+
+  private RunSet templateClonedBackfilled =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000033"),
+          methodVersionClonedBackfilled,
+          "TemplateClonedBackfilled",
+          "A run set that was cloned from a source workspace, with a backfilled originalWorkspaceId",
+          false,
+          true,
+          CbasRunSetStatus.COMPLETE,
+          creationDateBefore,
+          creationDateBefore,
+          creationDateBefore,
+          1,
+          0,
+          "",
+          "",
+          "",
+          "",
+          nullWorkspaceId);
+
+  private RunSet templateCreatedBackfilled =
+      new RunSet(
+          UUID.fromString("00000000-0000-0000-0000-000000000044"),
+          methodVersionCreatedBackfilled,
+          "TemplateCreatedBackfilled",
+          "A run set that was created in the current workspace, with a backfilled originalWorkspaceId",
+          false,
+          true,
           CbasRunSetStatus.COMPLETE,
           creationDateAfter,
           creationDateAfter,
