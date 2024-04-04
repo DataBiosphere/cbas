@@ -10,18 +10,18 @@ import org.junit.jupiter.api.TestFactory;
 
 class TestGithubUrlComponents {
 
+  record TestCase(String org, String repo, String branchOrTag, String path, String url) {
+
+    public void check() throws URISyntaxException {
+      assertEquals(extractGithubDetailsFromUrl(url).org(), org);
+      assertEquals(extractGithubDetailsFromUrl(url).path(), path);
+      assertEquals(extractGithubDetailsFromUrl(url).branchOrTag(), branchOrTag);
+      assertEquals(extractGithubDetailsFromUrl(url).repo(), repo);
+    }
+  }
+
   @TestFactory
   Stream<DynamicTest> returnExpectedUrlComponents() {
-
-    record TestCase(String org, String repo, String branchOrTag, String path, String url) {
-
-      public void check() throws URISyntaxException {
-        assertEquals(extractGithubDetailsFromUrl(url).org(), org);
-        assertEquals(extractGithubDetailsFromUrl(url).path(), path);
-        assertEquals(extractGithubDetailsFromUrl(url).branchOrTag(), branchOrTag);
-        assertEquals(extractGithubDetailsFromUrl(url).repo(), repo);
-      }
-    }
 
     var testCases =
         new TestCase[] {
