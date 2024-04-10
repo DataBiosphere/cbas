@@ -69,6 +69,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -211,7 +213,8 @@ public class RunSetsApiController implements RunSetsApi {
     long fetchWdsRecordsStartTime = System.currentTimeMillis();
 
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, bearerToken, runSetId);
+    WdsRecordResponseDetails wdsRecordResponses =
+        fetchWdsRecords(request, bearerToken.getToken(), runSetId);
 
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
@@ -446,7 +449,7 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
-      RunSetRequest request, BearerToken bearerToken, UUID runSetId) {
+      RunSetRequest request, String bearerToken, UUID runSetId) {
     String recordType = request.getWdsRecords().getRecordType();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
@@ -464,24 +467,39 @@ public class RunSetsApiController implements RunSetsApi {
     //    }
 
     List<String> recordIds = request.getWdsRecords().getRecordIds();
+    ForkJoinPool customThreadPool = new ForkJoinPool(4);
 
-    recordIds.parallelStream()
-        .forEach(
-            recordId -> {
-              log.info(
-                  "### Find Parallel-ness information: RunSet ID %s ### Fetching data for WDS record %s in thread %s"
-                      .formatted(runSetId.toString(), recordId, Thread.currentThread().getName()));
-              try {
-                recordResponses.add(wdsService.getRecord(recordType, recordId, bearerToken));
-              } catch (WdsServiceApiException e) {
-                log.warn("Record lookup for Record ID {} failed.", recordId, e);
-                recordIdsWithError.put(
-                    recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
-              } catch (WdsServiceException e) {
-                log.warn("Record lookup for Record ID {} failed.", recordId, e);
-                recordIdsWithError.put(recordId, e.getMessage());
-              }
-            });
+    try {
+      customThreadPool
+          .submit(
+              () ->
+                  recordIds.parallelStream()
+                      .forEach(
+                          recordId -> {
+                            log.info(
+                                "### Find Parallel-ness information: RunSet ID %s ### Fetching data for WDS record %s in thread %s"
+                                    .formatted(
+                                        runSetId.toString(),
+                                        recordId,
+                                        Thread.currentThread().getName()));
+                            try {
+                              recordResponses.add(
+                                  wdsService.getRecord(recordType, recordId, bearerToken));
+                            } catch (WdsServiceApiException e) {
+                              log.warn("Record lookup for Record ID {} failed.", recordId, e);
+                              recordIdsWithError.put(
+                                  recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
+                            } catch (WdsServiceException e) {
+                              log.warn("Record lookup for Record ID {} failed.", recordId, e);
+                              recordIdsWithError.put(recordId, e.getMessage());
+                            }
+                          }))
+          .get();
+    } catch (ExecutionException | InterruptedException e) {
+      throw new RuntimeException(e);
+    } finally {
+      customThreadPool.shutdown();
+    }
 
     return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }

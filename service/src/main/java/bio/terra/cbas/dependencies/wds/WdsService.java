@@ -29,13 +29,13 @@ public class WdsService {
     this.bearerToken = bearerToken;
   }
 
-  public RecordResponse getRecord(String recordType, String recordId, BearerToken bearerToken)
+  public RecordResponse getRecord(String recordType, String recordId, String bearerToken)
       throws WdsServiceException {
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () ->
             wdsClient
-                .recordsApi(bearerToken.getToken())
+                .recordsApi(bearerToken)
                 .getRecord(
                     wdsServerConfiguration.instanceId(),
                     wdsServerConfiguration.apiV(),
