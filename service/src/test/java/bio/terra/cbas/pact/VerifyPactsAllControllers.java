@@ -1,4 +1,4 @@
-package bio.terra.cbas.controllers;
+package bio.terra.cbas.pact;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
@@ -15,6 +15,10 @@ import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.controllers.GlobalExceptionHandler;
+import bio.terra.cbas.controllers.MethodsApiController;
+import bio.terra.cbas.controllers.RunSetsApiController;
+import bio.terra.cbas.controllers.RunsApiController;
 import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
