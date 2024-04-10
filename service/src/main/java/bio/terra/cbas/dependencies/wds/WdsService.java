@@ -29,7 +29,8 @@ public class WdsService {
     this.bearerToken = bearerToken;
   }
 
-  public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {
+  public RecordResponse getRecord(String recordType, String recordId, BearerToken bearerToken)
+      throws WdsServiceException {
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () ->
