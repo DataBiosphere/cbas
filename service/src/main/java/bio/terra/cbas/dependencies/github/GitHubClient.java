@@ -6,6 +6,8 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import org.springframework.stereotype.Component;
 
@@ -20,33 +22,40 @@ public class GitHubClient {
     this.gson = new Gson();
   }
 
+  public GitHubClient(Client client, Gson gson) {
+    this.client = client;
+    this.gson = gson;
+  }
+
   public RepoInfo getRepo(String organization, String repo, String token)
       throws GitHubClientException {
 
     WebTarget target = client.target(BASE_URL).path("/repos").path(organization).path(repo);
     Response response;
-    if (token.isEmpty()) {
-      response =
-          target
-              .request(MediaType.APPLICATION_JSON_TYPE)
-              .header("Accept", "application/vnd.github+json")
-              .header("X-GitHub-Api-Version", "2022-11-28")
-              .get();
-    } else {
-      response =
-          target
-              .request(MediaType.APPLICATION_JSON_TYPE)
-              .header("Accept", "application/vnd.github+json")
-              .header("Authorization", "Bearer " + token)
-              .header("X-GitHub-Api-Version", "2022-11-28")
-              .get();
-    }
+
+    MultivaluedMap<String, Object> requestHeaders = getHeaders(token);
+
+    response = target.request(MediaType.APPLICATION_JSON_TYPE).headers(requestHeaders).get();
+
     if (response.getStatus() == 200) {
       return gson.fromJson(response.readEntity(String.class), RepoInfo.class);
     } else {
       RepoError error = gson.fromJson(response.readEntity(String.class), RepoError.class);
       throw new GitHubClientException("GitHub Service getRepo failed: " + error.getMessage());
     }
+  }
+
+  public MultivaluedMap<String, Object> getHeaders(String token) {
+    MultivaluedMap<String, Object> headersMap = new MultivaluedHashMap<>();
+
+    headersMap.add("Accept", "application/vnd.github+json");
+    headersMap.add("X-GitHub-Api-Version", "2022-11-28");
+
+    if (!token.isEmpty()) {
+      headersMap.add("Authorization", "Bearer " + token);
+    }
+
+    return headersMap;
   }
 
   public static class RepoInfo {
@@ -88,6 +97,10 @@ public class GitHubClient {
 
     public String getMessage() {
       return message;
+    }
+
+    public void message(String m) {
+      this.message = m;
     }
   }
 
