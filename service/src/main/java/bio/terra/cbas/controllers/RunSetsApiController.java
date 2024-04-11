@@ -52,7 +52,6 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
-import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -189,7 +188,13 @@ public class RunSetsApiController implements RunSetsApi {
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     long requestReceivedTime = System.currentTimeMillis();
 
-    BearerToken bearerToken = bearerTokenFactory.from(httpServletRequest);
+    //    BearerToken bearerToken = bearerTokenFactory.from(httpServletRequest);
+    //
+    //    String tokenUsingContextHolder = TokenUtil.tokenFromRequestContext();
+    //
+    //    System.out.printf(
+    //        "################ both tokens same? %s%n",
+    //        bearerToken.getToken().equals(tokenUsingContextHolder));
 
     long samCheckStartTime = System.currentTimeMillis();
     if (!samService.hasWritePermission()) {
@@ -213,8 +218,7 @@ public class RunSetsApiController implements RunSetsApi {
     long fetchWdsRecordsStartTime = System.currentTimeMillis();
 
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses =
-        fetchWdsRecords(request, bearerToken.getToken(), runSetId);
+    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, runSetId);
 
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
@@ -448,8 +452,7 @@ public class RunSetsApiController implements RunSetsApi {
     return errorList;
   }
 
-  private WdsRecordResponseDetails fetchWdsRecords(
-      RunSetRequest request, String bearerToken, UUID runSetId) {
+  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request, UUID runSetId) {
     String recordType = request.getWdsRecords().getRecordType();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
@@ -483,8 +486,7 @@ public class RunSetsApiController implements RunSetsApi {
                                         recordId,
                                         Thread.currentThread().getName()));
                             try {
-                              recordResponses.add(
-                                  wdsService.getRecord(recordType, recordId, bearerToken));
+                              recordResponses.add(wdsService.getRecord(recordType, recordId));
                             } catch (WdsServiceApiException e) {
                               log.warn("Record lookup for Record ID {} failed.", recordId, e);
                               recordIdsWithError.put(

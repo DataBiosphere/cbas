@@ -2,7 +2,7 @@ package bio.terra.cbas.dependencies.leonardo;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
-import bio.terra.common.iam.BearerToken;
+import bio.terra.cbas.util.TokenUtil;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class LeonardoService implements HealthCheck {
 
   private final LeonardoClient leonardoClient;
-  private final BearerToken bearerToken;
+  //  private final BearerToken bearerToken;
   private final RetryTemplate listenerResetRetryTemplate;
 
   private final WdsServerConfiguration wdsServerConfiguration;
@@ -24,16 +24,17 @@ public class LeonardoService implements HealthCheck {
   public LeonardoService(
       LeonardoClient leonardoClient,
       WdsServerConfiguration wdsServerConfiguration,
-      RetryTemplate listenerResetRetryTemplate,
-      BearerToken bearerToken) {
+      RetryTemplate listenerResetRetryTemplate
+      //      BearerToken bearerToken
+      ) {
     this.leonardoClient = leonardoClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.listenerResetRetryTemplate = listenerResetRetryTemplate;
-    this.bearerToken = bearerToken;
+    //    this.bearerToken = bearerToken;
   }
 
   AppsApi getAppsApi() {
-    return new AppsApi(leonardoClient.getApiClient(bearerToken.getToken()));
+    return new AppsApi(leonardoClient.getApiClient(TokenUtil.tokenFromRequestContext()));
   }
 
   private ServiceInfoApi getServiceInfoApi() {

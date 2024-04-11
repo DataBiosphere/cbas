@@ -2,6 +2,7 @@ package bio.terra.cbas.dependencies.wds;
 
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
+import bio.terra.cbas.util.TokenUtil;
 import bio.terra.common.iam.BearerToken;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.databiosphere.workspacedata.model.RecordRequest;
@@ -29,13 +30,13 @@ public class WdsService {
     this.bearerToken = bearerToken;
   }
 
-  public RecordResponse getRecord(String recordType, String recordId, String bearerToken)
-      throws WdsServiceException {
+  public RecordResponse getRecord(String recordType, String recordId) throws WdsServiceException {
+    // TODO: handle if the Bearer token returned is null
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () ->
             wdsClient
-                .recordsApi(bearerToken)
+                .recordsApi(TokenUtil.tokenFromRequestContext())
                 .getRecord(
                     wdsServerConfiguration.instanceId(),
                     wdsServerConfiguration.apiV(),
