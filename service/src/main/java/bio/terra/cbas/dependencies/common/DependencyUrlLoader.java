@@ -43,9 +43,9 @@ public class DependencyUrlLoader {
           @Override
           public String load(DependencyCacheKey key) throws DependencyNotAvailableException {
             if (key.urlType == DependencyUrlType.WDS_URL) {
-              return fetchWdsUrl();
+              return fetchWdsUrl(key.userToken);
             } else if (key.urlType == DependencyUrlType.CROMWELL_URL) {
-              return fetchCromwellUrl();
+              return fetchCromwellUrl(key.userToken);
             }
             throw new DependencyNotAvailableException(
                 key.urlType.toString(), "Unknown dependency URL type");
@@ -58,28 +58,29 @@ public class DependencyUrlLoader {
             .build(loader);
   }
 
-  private String fetchWdsUrl() throws DependencyNotAvailableException {
+  private String fetchWdsUrl(String userToken) throws DependencyNotAvailableException {
     try {
-      List<ListAppResponse> allApps = leonardoService.getApps(false);
+      List<ListAppResponse> allApps = leonardoService.getApps(userToken, false);
       return appUtils.findUrlForWds(allApps);
     } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("WDS", "Failed to poll Leonardo for URL", e);
     }
   }
 
-  private String fetchCromwellUrl() throws DependencyNotAvailableException {
+  private String fetchCromwellUrl(String userToken) throws DependencyNotAvailableException {
     try {
-      List<ListAppResponse> allApps = leonardoService.getApps(true);
+      List<ListAppResponse> allApps = leonardoService.getApps(userToken, true);
       return appUtils.findUrlForCromwell(allApps);
     } catch (LeonardoServiceException e) {
       throw new DependencyNotAvailableException("CROMWELL", "Failed to poll Leonardo for URL", e);
     }
   }
 
-  public String loadDependencyUrl(DependencyUrlType urlType, String accessToken)
+  // TODO: change the userToken to be of type BearerToken instead of String
+  public String loadDependencyUrl(DependencyUrlType urlType, String userToken)
       throws DependencyNotAvailableException {
     try {
-      return cache.get(new DependencyCacheKey(urlType, accessToken));
+      return cache.get(new DependencyCacheKey(urlType, userToken));
     } catch (ExecutionException | UncheckedExecutionException e) {
       if (e.getCause() instanceof DependencyNotAvailableException dnae) {
         throw dnae;

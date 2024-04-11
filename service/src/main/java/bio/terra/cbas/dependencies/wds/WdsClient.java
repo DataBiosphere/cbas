@@ -3,6 +3,7 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import bio.terra.common.iam.BearerToken;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.databiosphere.workspacedata.api.RecordsApi;
@@ -24,7 +25,7 @@ public class WdsClient {
     singletonHttpClient = new ApiClient().getHttpClient().newBuilder().build();
   }
 
-  protected ApiClient getApiClient(String accessToken) throws DependencyNotAvailableException {
+  protected ApiClient getApiClient(BearerToken userToken) throws DependencyNotAvailableException {
 
     String uri;
 
@@ -32,14 +33,15 @@ public class WdsClient {
     if (baseUriFromConfig.isPresent()) {
       uri = baseUriFromConfig.get();
     } else {
+      // TODO: don't extract the token out yet, pass it as is to loadDependencyUrl()
       uri =
           dependencyUrlLoader.loadDependencyUrl(
-              DependencyUrlLoader.DependencyUrlType.WDS_URL, accessToken);
+              DependencyUrlLoader.DependencyUrlType.WDS_URL, userToken.getToken());
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setHttpClient(singletonHttpClient);
-    apiClient.addDefaultHeader("Authorization", "Bearer " + accessToken);
+    apiClient.addDefaultHeader("Authorization", "Bearer " + userToken.getToken());
     // By closing the connection after each request, we avoid the problem of the open connection
     // being force-closed ungracefully by the Azure Relay/Listener infrastructure:
     apiClient.addDefaultHeader("Connection", "close");
@@ -47,7 +49,7 @@ public class WdsClient {
     return apiClient;
   }
 
-  RecordsApi recordsApi(String accessToken) throws DependencyNotAvailableException {
-    return new RecordsApi(getApiClient(accessToken));
+  RecordsApi recordsApi(BearerToken userToken) throws DependencyNotAvailableException {
+    return new RecordsApi(getApiClient(userToken));
   }
 }

@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @SpringBootApplication(
     scanBasePackages = {
+      // Scan for iam components & configs
+      "bio.terra.common.iam",
       // Scan for logging-related components & configs
       "bio.terra.common.logging",
       // Scan for Liquibase migration components & configs

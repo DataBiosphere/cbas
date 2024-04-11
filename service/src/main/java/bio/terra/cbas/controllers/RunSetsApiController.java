@@ -52,10 +52,13 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
@@ -90,6 +93,8 @@ public class RunSetsApiController implements RunSetsApi {
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
+  private final BearerTokenFactory bearerTokenFactory;
+  private final HttpServletRequest httpServletRequest;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -108,7 +113,9 @@ public class RunSetsApiController implements RunSetsApi {
       CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
-      RunSetAbortManager abortManager) {
+      RunSetAbortManager abortManager,
+      BearerTokenFactory bearerTokenFactory,
+      HttpServletRequest httpServletRequest) {
     this.samService = samService;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
@@ -123,6 +130,8 @@ public class RunSetsApiController implements RunSetsApi {
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;
     this.abortManager = abortManager;
+    this.bearerTokenFactory = bearerTokenFactory;
+    this.httpServletRequest = httpServletRequest;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -176,6 +185,11 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    // TODO: change this logic to use bearerToken from above instead of getting it injected from
+    // beans
     if (!samService.hasWritePermission()) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
@@ -192,7 +206,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
+    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, userToken);
 
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
@@ -239,6 +253,7 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    // TODO: change this to using bearer token from above
     UserStatusInfo user = samService.getSamUser();
 
     // Create a new run_set
@@ -275,6 +290,8 @@ public class RunSetsApiController implements RunSetsApi {
     runSetDao.createRunSet(runSet);
     methodDao.updateLastRunWithRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
+
+    // TODO: use bearer token from request
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
@@ -406,14 +423,14 @@ public class RunSetsApiController implements RunSetsApi {
     return errorList;
   }
 
-  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
+  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId));
+        recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
       } catch (WdsServiceApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
