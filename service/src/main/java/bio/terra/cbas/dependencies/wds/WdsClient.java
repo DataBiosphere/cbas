@@ -33,10 +33,9 @@ public class WdsClient {
     if (baseUriFromConfig.isPresent()) {
       uri = baseUriFromConfig.get();
     } else {
-      // TODO: don't extract the token out yet, pass it as is to loadDependencyUrl()
       uri =
           dependencyUrlLoader.loadDependencyUrl(
-              DependencyUrlLoader.DependencyUrlType.WDS_URL, userToken.getToken());
+              DependencyUrlLoader.DependencyUrlType.WDS_URL, userToken);
     }
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);

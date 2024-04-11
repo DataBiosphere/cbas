@@ -5,6 +5,7 @@ import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.leonardo.LeonardoServiceException;
+import bio.terra.common.iam.BearerToken;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -77,10 +78,10 @@ public class DependencyUrlLoader {
   }
 
   // TODO: change the userToken to be of type BearerToken instead of String
-  public String loadDependencyUrl(DependencyUrlType urlType, String userToken)
+  public String loadDependencyUrl(DependencyUrlType urlType, BearerToken userToken)
       throws DependencyNotAvailableException {
     try {
-      return cache.get(new DependencyCacheKey(urlType, userToken));
+      return cache.get(new DependencyCacheKey(urlType, userToken.getToken()));
     } catch (ExecutionException | UncheckedExecutionException e) {
       if (e.getCause() instanceof DependencyNotAvailableException dnae) {
         throw dnae;

@@ -291,12 +291,10 @@ public class RunSetsApiController implements RunSetsApi {
     methodDao.updateLastRunWithRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
 
-    // TODO: use bearer token from request
-
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(
-            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl);
+            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl, userToken);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -339,7 +337,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     aborted.runSetId(runSetId);
 
-    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId, userToken);
     List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
     List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
 
@@ -485,7 +483,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetRequest request,
       RunSet runSet,
       ArrayList<RecordResponse> recordResponses,
-      String rawMethodUrl) {
+      String rawMethodUrl,
+      BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
@@ -571,7 +570,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Submit the workflows and store the Runs to database
         List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
-                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson);
+                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson, userToken);
 
         runStateResponseList.addAll(
             submitWorkflowBatchResponse.stream()

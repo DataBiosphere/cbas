@@ -160,13 +160,11 @@ public class MethodsApiController implements MethodsApi {
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    // TODO: update below API call to use bearer token from above
-
     // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
     // outputs
     WorkflowDescription workflowDescription;
     try {
-      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
+      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl, userToken);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {

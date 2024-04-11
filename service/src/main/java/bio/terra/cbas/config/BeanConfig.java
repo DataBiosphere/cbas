@@ -1,7 +1,5 @@
 package bio.terra.cbas.config;
 
-import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
-import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -34,7 +32,8 @@ public class BeanConfig {
 
   /**
    * Taken from <a
-   * href="https://github.com/DataBiosphere/terra-data-catalog/blob/5cda83aef8548ff98e7cfbe2a6eaaed9ad1bff45/common/src/main/java/bio/terra/catalog/config/BeanConfig.java#L34-L38">Terra
+   *
+   * <p>href="https://github.com/DataBiosphere/terra-data-catalog/blob/5cda83aef8548ff98e7cfbe2a6eaaed9ad1bff45/common/src/main/java/bio/terra/catalog/config/BeanConfig.java#L34-L38">Terra
    * Data Catalog</a> Lasts for the duration of one request, and is injected into dependent beans,
    * even singletons
    */
@@ -43,22 +42,22 @@ public class BeanConfig {
   public BearerToken bearerToken(HttpServletRequest request) {
     return new BearerTokenFactory().from(request);
   }
-
-  @Bean("cromwellWriteClient")
-  @RequestScope
-  public cromwell.client.ApiClient cromwellWriteClient(
-      BearerToken bearerToken, CromwellClient cromwellClient)
-      throws DependencyNotAvailableException {
-
-    return cromwellClient.getWriteApiClient(bearerToken.getToken());
-  }
-
-  @Bean("cromwellAuthReadClient")
-  @RequestScope
-  public cromwell.client.ApiClient cromwellAuthReadClient(
-      BearerToken bearerToken, CromwellClient cromwellClient) {
-    return cromwellClient.getAuthReadApiClient(bearerToken.getToken());
-  }
+  //
+  //  @Bean("cromwellWriteClient")
+  //  @RequestScope
+  //  public cromwell.client.ApiClient cromwellWriteClient(
+  //      BearerToken bearerToken, CromwellClient cromwellClient)
+  //      throws DependencyNotAvailableException {
+  //
+  //    return cromwellClient.getWriteApiClient(bearerToken.getToken());
+  //  }
+  //
+  //  @Bean("cromwellAuthReadClient")
+  //  @RequestScope
+  //  public cromwell.client.ApiClient cromwellAuthReadClient(
+  //      BearerToken bearerToken, CromwellClient cromwellClient) {
+  //    return cromwellClient.getAuthReadApiClient(bearerToken.getToken());
+  //  }
   //
   //  @Bean("ecmAuthClient")
   //  @RequestScope

@@ -6,6 +6,7 @@ import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import cromwell.client.ApiClient;
 import cromwell.client.ApiException;
@@ -29,28 +30,25 @@ public class CromwellService implements HealthCheck {
   private static final Integer MAX_ALLOWED_CHARACTERS = 100;
   private final CromwellClient cromwellClient;
   private static final String API_VERSION = "v1";
-  private final ApiClient cromwellWriteClient;
-  private final ApiClient cromwellAuthReadClient;
 
   private final CbasNetworkConfiguration cbasNetworkConfiguration;
 
   public CromwellService(
-      CromwellClient cromwellClient,
-      ApiClient cromwellWriteClient,
-      CbasNetworkConfiguration cbasNetworkConfiguration,
-      ApiClient cromwellAuthReadClient) {
+      CromwellClient cromwellClient, CbasNetworkConfiguration cbasNetworkConfiguration) {
     this.cromwellClient = cromwellClient;
-    this.cromwellWriteClient = cromwellWriteClient;
     this.cbasNetworkConfiguration = cbasNetworkConfiguration;
-    this.cromwellAuthReadClient = cromwellAuthReadClient;
   }
 
   public List<WorkflowIdAndStatus> submitWorkflowBatch(
-      String workflowUrl, Map<UUID, String> requestedIdToWorkflowInput, String workflowOptionsJson)
+      String workflowUrl,
+      Map<UUID, String> requestedIdToWorkflowInput,
+      String workflowOptionsJson,
+      BearerToken userToken)
       throws ApiException {
 
     // Ensure the order of inputs and ids passed to the endpoint are identical
     List<UUID> requestedIdOrder = requestedIdToWorkflowInput.keySet().stream().toList();
+    ApiClient cromwellWriteClient = cromwellClient.getWriteApiClient(userToken);
 
     return cromwellClient
         .workflowsApi(cromwellWriteClient)
@@ -106,9 +104,11 @@ public class CromwellService implements HealthCheck {
     return cromwellClient.wesAPI(client).getRunLog(id).getOutputs();
   }
 
-  public WorkflowDescription describeWorkflow(String workflowUrl) throws ApiException {
+  public WorkflowDescription describeWorkflow(String workflowUrl, BearerToken userToken)
+      throws ApiException {
+    ApiClient authedReadClient = cromwellClient.getAuthReadApiClient(userToken);
     return cromwellClient
-        .womtoolApi(cromwellAuthReadClient)
+        .womtoolApi(authedReadClient)
         .describe(API_VERSION, null, workflowUrl, null, null, null);
   }
 
@@ -197,7 +197,8 @@ public class CromwellService implements HealthCheck {
     }
   }
 
-  public void cancelRun(Run run) throws ApiException {
+  public void cancelRun(Run run, BearerToken userToken) throws ApiException {
+    ApiClient cromwellWriteClient = cromwellClient.getWriteApiClient(userToken);
     cromwellClient.wesAPI(cromwellWriteClient).cancelRun(run.engineId());
   }
 
