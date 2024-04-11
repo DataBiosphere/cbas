@@ -1,6 +1,7 @@
 package bio.terra.cbas.dependencies.ecm;
 
 import bio.terra.cbas.config.EcmServerConfiguration;
+import bio.terra.common.iam.BearerToken;
 import bio.terra.externalcreds.api.OauthApi;
 import bio.terra.externalcreds.api.PublicApi;
 import bio.terra.externalcreds.client.ApiClient;
@@ -24,11 +25,11 @@ public class EcmClient {
     return apiClient;
   }
 
-  public ApiClient ecmAuthClient(String accessToken) {
+  public ApiClient ecmAuthClient(BearerToken userToken) {
     ApiClient apiClient = new ApiClient();
 
     apiClient.setBasePath(ecmServerConfiguration.baseUri());
-    apiClient.setAccessToken(accessToken);
+    apiClient.setAccessToken(userToken.getToken());
     apiClient.addDefaultHeader("Connection", "close");
     apiClient.setDebugging(ecmServerConfiguration.debugApiLogging());
 

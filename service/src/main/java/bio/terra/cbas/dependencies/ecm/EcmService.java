@@ -12,15 +12,13 @@ import org.springframework.web.client.RestClientException;
 public class EcmService implements HealthCheck {
 
   private final EcmClient ecmClient;
-  private final BearerToken bearerToken;
 
-  public EcmService(EcmClient ecmClient, BearerToken bearerToken) {
+  public EcmService(EcmClient ecmClient) {
     this.ecmClient = ecmClient;
-    this.bearerToken = bearerToken;
   }
 
-  public String getAccessToken() {
-    ApiClient client = ecmClient.ecmAuthClient(bearerToken.getToken());
+  public String getAccessToken(BearerToken userToken) {
+    ApiClient client = ecmClient.ecmAuthClient(userToken);
     return ecmClient.oAuthApi(client).getProviderAccessToken(Provider.GITHUB);
   }
 

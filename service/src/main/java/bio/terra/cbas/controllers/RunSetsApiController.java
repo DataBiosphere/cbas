@@ -156,7 +156,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    if (!samService.hasReadPermission()) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    if (!samService.hasReadPermission(userToken)) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -188,9 +191,7 @@ public class RunSetsApiController implements RunSetsApi {
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
 
-    // TODO: change this logic to use bearerToken from above instead of getting it injected from
-    // beans
-    if (!samService.hasWritePermission()) {
+    if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -253,8 +254,7 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // TODO: change this to using bearer token from above
-    UserStatusInfo user = samService.getSamUser();
+    UserStatusInfo user = samService.getSamUser(userToken);
 
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
@@ -328,7 +328,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
-    if (!samService.hasWritePermission()) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 

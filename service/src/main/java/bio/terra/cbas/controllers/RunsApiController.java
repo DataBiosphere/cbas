@@ -18,6 +18,9 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,18 +36,24 @@ public class RunsApiController implements RunsApi {
   private final RunDao runDao;
   private final RunCompletionHandler runCompletionHandler;
   private final MicrometerMetrics micrometerMetrics;
+  private final BearerTokenFactory bearerTokenFactory;
+  private final HttpServletRequest httpServletRequest;
 
   public RunsApiController(
       RunDao runDao,
       SmartRunsPoller smartPoller,
       SamService samService,
       RunCompletionHandler runCompletionHandler,
-      MicrometerMetrics micrometerMetrics) {
+      MicrometerMetrics micrometerMetrics,
+      BearerTokenFactory bearerTokenFactory,
+      HttpServletRequest httpServletRequest) {
     this.runDao = runDao;
     this.smartPoller = smartPoller;
     this.samService = samService;
     this.runCompletionHandler = runCompletionHandler;
     this.micrometerMetrics = micrometerMetrics;
+    this.bearerTokenFactory = bearerTokenFactory;
+    this.httpServletRequest = httpServletRequest;
   }
 
   private RunLog runToRunLog(Run run) {
@@ -67,8 +76,11 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<RunLogResponse> getRuns(UUID runSetId) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
     // check if current user has read permissions on the workspace
-    if (!samService.hasReadPermission()) {
+    if (!samService.hasReadPermission(userToken)) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -84,6 +96,9 @@ public class RunsApiController implements RunsApi {
 
   @Override
   public ResponseEntity<Void> postRunResults(RunResultsRequest body) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
     // validate request
     UUID engineId = body.getWorkflowId();
     CbasRunStatus resultsStatus = CbasRunStatus.fromCromwellStatus(body.getState().toString());
@@ -116,7 +131,7 @@ public class RunsApiController implements RunsApi {
 
     // validate user permission
     // check if current user has write permissions on the workspace
-    if (!samService.hasWritePermission()) {
+    if (!samService.hasWritePermission(userToken)) {
       // This is a corner case when user got kicked off write permission while running a workflow.
       // Nor this service, nor API caller can remediate the situation.
       // Therefore, we update Status in database to SYSTEM_ERROR and return OK response.
