@@ -10,9 +10,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 class TestGithubUrlComponents {
-  // assertThrows(
-  //            CustomChangeException.class, () ->
-  // backfillGithubDetails.generateStatements(mockDb));
   record TestCase(String org, String repo, String branchOrTag, String path, String url) {
 
     public void check() throws URISyntaxException {
