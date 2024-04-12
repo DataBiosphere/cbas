@@ -13,6 +13,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.runsets.outputs.OutputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,9 +59,18 @@ public class RunCompletionHandler {
   }
 
   public RunCompletionResult updateResults(
-      Run updatableRun, CbasRunStatus status, Object workflowOutputs, List<String> workflowErrors) {
+      Run updatableRun,
+      CbasRunStatus status,
+      Object workflowOutputs,
+      List<String> workflowErrors,
+      BearerToken userToken) {
     return updateResults(
-        updatableRun, status, workflowOutputs, workflowErrors, DateUtils.currentTimeInUTC());
+        updatableRun,
+        status,
+        workflowOutputs,
+        workflowErrors,
+        DateUtils.currentTimeInUTC(),
+        userToken);
   }
 
   public RunCompletionResult updateResults(
@@ -68,7 +78,8 @@ public class RunCompletionHandler {
       CbasRunStatus status,
       Object workflowOutputs,
       List<String> workflowErrors,
-      OffsetDateTime engineStatusChange) {
+      OffsetDateTime engineStatusChange,
+      BearerToken userToken) {
     long updateResultsStartNanos = System.nanoTime();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
     try {
@@ -104,7 +115,7 @@ public class RunCompletionHandler {
           return RunCompletionResult.VALIDATION_ERROR;
         }
         if (recordAttributes != null && !recordAttributes.isEmpty()) {
-          String errorMessage = saveOutputsToWDS(updatableRun, recordAttributes);
+          String errorMessage = saveOutputsToWDS(updatableRun, recordAttributes, userToken);
           if (errorMessage != null && !errorMessage.isEmpty()) {
             // Failure to update WDS. Let this be retried by Cromwell
             logger.error(errorMessage);
@@ -145,7 +156,8 @@ public class RunCompletionHandler {
    * @param recordAttributes Workflow outputs parsed into the record attributes.
    * @return A string containing error message if any occurred during WDS API call.
    */
-  private String saveOutputsToWDS(Run updatableRun, RecordAttributes recordAttributes) {
+  private String saveOutputsToWDS(
+      Run updatableRun, RecordAttributes recordAttributes, BearerToken userToken) {
     try {
       RecordRequest request = new RecordRequest().attributes(recordAttributes);
       logger.info(
@@ -153,7 +165,8 @@ public class RunCompletionHandler {
           updatableRun.recordId(),
           updatableRun.engineId());
 
-      wdsService.updateRecord(request, updatableRun.runSet().recordType(), updatableRun.recordId());
+      wdsService.updateRecord(
+          request, updatableRun.runSet().recordType(), updatableRun.recordId(), userToken);
     } catch (WdsServiceException e) {
       // log WDS or other Runtime error and mark Run as Failed.
       String errorMessage =

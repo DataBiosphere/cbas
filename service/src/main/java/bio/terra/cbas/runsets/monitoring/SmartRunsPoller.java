@@ -15,6 +15,7 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
 import java.time.Duration;
@@ -54,8 +55,8 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public UpdateResult<Run> updateRuns(List<Run> runs) {
-    return updateRuns(runs, Optional.empty());
+  public UpdateResult<Run> updateRuns(List<Run> runs, BearerToken userToken) {
+    return updateRuns(runs, Optional.empty(), userToken);
   }
 
   /**
@@ -65,7 +66,8 @@ public class SmartRunsPoller {
    * @param runs The list of input runs to check for updates
    * @return A new list containing up-to-date run information for all runs in the input
    */
-  public UpdateResult<Run> updateRuns(List<Run> runs, Optional<OffsetDateTime> customEndTime) {
+  public UpdateResult<Run> updateRuns(
+      List<Run> runs, Optional<OffsetDateTime> customEndTime, BearerToken userToken) {
     // For metrics:
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
@@ -90,7 +92,7 @@ public class SmartRunsPoller {
                                           cbasApiConfiguration
                                               .getMinSecondsBetweenRunStatusPolls()))),
               Comparator.comparing(Run::lastPolledTimestamp),
-              this::tryUpdateRun,
+              r -> tryUpdateRun(r, userToken),
               actualEndTime);
 
       increaseEventCounter("run updates required", runUpdateResult.totalEligible());
@@ -110,7 +112,7 @@ public class SmartRunsPoller {
     }
   }
 
-  private Run tryUpdateRun(Run r) {
+  private Run tryUpdateRun(Run r, BearerToken userToken) {
     logger.info("Fetching update for run %s".formatted(r.runId()));
     // Get the new workflow summary:
     long getStatusStartNanos = System.nanoTime();
@@ -140,7 +142,7 @@ public class SmartRunsPoller {
     }
 
     try {
-      return updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r);
+      return updateDatabaseRunStatus(newStatus, engineChangedTimestamp, r, userToken);
     } catch (Exception e) {
       logger.warn("Unable to update run details for {} in database.", r.runId(), e);
       return r;
@@ -164,7 +166,10 @@ public class SmartRunsPoller {
   }
 
   private Run updateDatabaseRunStatus(
-      CbasRunStatus status, OffsetDateTime engineStatusChanged, Run updatableRun) {
+      CbasRunStatus status,
+      OffsetDateTime engineStatusChanged,
+      Run updatableRun,
+      BearerToken userToken) {
     long updateDatabaseRunStatusStartNanos = System.nanoTime();
     boolean updateDatabaseRunStatusSuccess = false;
     ArrayList<String> errors = new ArrayList<>();
@@ -200,7 +205,7 @@ public class SmartRunsPoller {
       micrometerMetrics.logRunCompletion("smartpoller", updatedRunState);
       var updateResult =
           runCompletionHandler.updateResults(
-              updatableRun, updatedRunState, outputs, errors, engineStatusChanged);
+              updatableRun, updatedRunState, outputs, errors, engineStatusChanged, userToken);
       updateDatabaseRunStatusSuccess = (updateResult == RunCompletionResult.SUCCESS);
     } finally {
       recordMethodCompletion(updateDatabaseRunStatusStartNanos, updateDatabaseRunStatusSuccess);

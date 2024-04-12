@@ -174,7 +174,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     TimeLimitedUpdater.UpdateResult<RunSet> runSetUpdateResult =
-        smartRunSetsPoller.updateRunSets(filteredRunSet);
+        smartRunSetsPoller.updateRunSets(filteredRunSet, userToken);
     List<RunSet> updatedRunSets = runSetUpdateResult.updatedList();
     List<RunSetDetailsResponse> filteredRunSetDetails =
         updatedRunSets.stream().map(this::convertToRunSetDetails).toList();

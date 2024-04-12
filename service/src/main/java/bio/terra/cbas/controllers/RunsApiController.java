@@ -85,7 +85,7 @@ public class RunsApiController implements RunsApi {
     }
 
     List<Run> queryResults = runDao.getRuns(new RunDao.RunsFilters(runSetId, null));
-    UpdateResult<Run> updatedRunsResult = smartPoller.updateRuns(queryResults);
+    UpdateResult<Run> updatedRunsResult = smartPoller.updateRuns(queryResults, userToken);
 
     List<RunLog> responseList =
         updatedRunsResult.updatedList().stream().map(this::runToRunLog).toList();
@@ -147,7 +147,7 @@ public class RunsApiController implements RunsApi {
     // perform workflow completion work
     RunCompletionResult result =
         runCompletionHandler.updateResults(
-            runRecord.get(), resultsStatus, body.getOutputs(), failures);
+            runRecord.get(), resultsStatus, body.getOutputs(), failures, userToken);
 
     micrometerMetrics.logRunCompletion("callback", resultsStatus);
     return new ResponseEntity<>(result.toHttpStatus());

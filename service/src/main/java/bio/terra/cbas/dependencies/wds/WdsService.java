@@ -16,17 +16,13 @@ public class WdsService {
   private final WdsServerConfiguration wdsServerConfiguration;
   private final RetryTemplate listenerResetRetryTemplate;
 
-  private final BearerToken bearerToken;
-
   public WdsService(
       WdsClient wdsClient,
       WdsServerConfiguration wdsServerConfiguration,
-      RetryTemplate listenerResetRetryTemplate,
-      BearerToken bearerToken) {
+      RetryTemplate listenerResetRetryTemplate) {
     this.wdsClient = wdsClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.listenerResetRetryTemplate = listenerResetRetryTemplate;
-    this.bearerToken = bearerToken;
   }
 
   public RecordResponse getRecord(String recordType, String recordId, BearerToken userToken)
@@ -43,13 +39,14 @@ public class WdsService {
                     recordId));
   }
 
-  public RecordResponse updateRecord(RecordRequest request, String type, String id)
+  public RecordResponse updateRecord(
+      RecordRequest request, String type, String id, BearerToken userToken)
       throws WdsServiceException {
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () -> {
           wdsClient
-              .recordsApi(bearerToken)
+              .recordsApi(userToken)
               .updateRecord(
                   request,
                   wdsServerConfiguration.instanceId(),
