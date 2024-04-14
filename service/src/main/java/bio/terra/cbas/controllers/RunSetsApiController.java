@@ -204,6 +204,8 @@ public class RunSetsApiController implements RunSetsApi {
 
     UUID runSetId = this.uuidSource.generateUUID();
 
+    log.info("### FIND ME - pre-registering run set %s".formatted(runSetId));
+
     RunSet runSet =
         new RunSet(
             runSetId,
@@ -234,6 +236,10 @@ public class RunSetsApiController implements RunSetsApi {
   public List<RunStateResponse> preRegisterRuns(
       RunSet runSet, Map<String, UUID> dataTableIdToRunIdMapping)
       throws DatabaseConnectivityException.RunCreationException {
+
+    log.info(
+        "### FIND ME - pre-registering runs for run_set %s"
+            .formatted(runSet.runSetId().toString()));
 
     List<RunStateResponse> responses = new ArrayList<>();
 
@@ -281,7 +287,7 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    UserStatusInfo user = samService.getSamUser();
+    UserStatusInfo user = samService.getSamUser(userToken);
 
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
@@ -333,19 +339,21 @@ public class RunSetsApiController implements RunSetsApi {
 
     captureResponseMetrics(response);
 
-    triggerWorkflowSubmit(request, methodVersion, runSet, dataTableIdToRunIdMapping, runSetId);
+    triggerWorkflowSubmit(
+        request, methodVersion, runSet, dataTableIdToRunIdMapping, runSetId, userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
   @Async("runSetExecutor")
-  protected void triggerWorkflowSubmit(
+  public void triggerWorkflowSubmit(
       RunSetRequest request,
       MethodVersion methodVersion,
       RunSet runSet,
       Map<String, UUID> dataTableIdToRunIdMapping,
-      UUID runSetId) {
+      UUID runSetId,
+      BearerToken userToken) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, userToken);
 
@@ -421,6 +429,8 @@ public class RunSetsApiController implements RunSetsApi {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
+
+    log.info("### FIND ME - triggerWorkflowSubmit complete for run set %s".formatted(runSetId));
   }
 
   @Override
@@ -526,6 +536,10 @@ public class RunSetsApiController implements RunSetsApi {
   private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
+    log.info(
+        "### FIND ME - fetching WDS records for run_set name %s"
+            .formatted(request.getRunSetName()));
+
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
     for (String recordId : request.getWdsRecords().getRecordIds()) {
@@ -567,6 +581,10 @@ public class RunSetsApiController implements RunSetsApi {
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
+
+    log.info(
+        "### FIND ME - submitting workflows to Cromwell for run set %s"
+            .formatted(runSet.runSetId().toString()));
 
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
     // options
