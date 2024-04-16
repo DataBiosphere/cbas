@@ -176,9 +176,13 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    long requestReceivedTime = System.currentTimeMillis();
+
+    long samCheckStartTime = System.currentTimeMillis();
     if (!samService.hasWritePermission()) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
+    long samCheckEndTime = System.currentTimeMillis();
 
     captureRequestMetrics(request);
 
@@ -191,6 +195,8 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
+    long fetchWdsRecordsStartTime = System.currentTimeMillis();
+
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
 
@@ -202,6 +208,8 @@ public class RunSetsApiController implements RunSetsApi {
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
+
+    long fetchWdsRecordsEndTime = System.currentTimeMillis();
 
     // Fetch existing method:
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
@@ -239,7 +247,9 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    long getSamUserStartTime = System.currentTimeMillis();
     UserStatusInfo user = samService.getSamUser();
+    long getSamUserEndTime = System.currentTimeMillis();
 
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
@@ -276,10 +286,14 @@ public class RunSetsApiController implements RunSetsApi {
     methodDao.updateLastRunWithRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
 
+    long configureAndSubmitToCromwellStartTime = System.currentTimeMillis();
+
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(
             request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl);
+
+    long configureAndSubmitToCromwellEndTime = System.currentTimeMillis();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -304,6 +318,19 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
+
+    long requestEndTime = System.currentTimeMillis();
+
+    // Print timings
+    log.info(
+        "### FIND ME - Timings from postRunSet() for run set %s ### Check permissions with SAM: %s ### Fetch WDS records: %s ### Get User info from SAM: %s ### Configure inputs and submit to Cromwell: %s ### Total request timing: %s"
+            .formatted(
+                runSetId,
+                samCheckEndTime - samCheckStartTime,
+                fetchWdsRecordsEndTime - fetchWdsRecordsStartTime,
+                getSamUserEndTime - getSamUserStartTime,
+                configureAndSubmitToCromwellEndTime - configureAndSubmitToCromwellStartTime,
+                requestEndTime - requestReceivedTime));
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
@@ -478,6 +505,8 @@ public class RunSetsApiController implements RunSetsApi {
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
+      long configureInputsStartTime = System.currentTimeMillis();
+
       Map<UUID, RecordResponse> requestedIdToRecord =
           batch.stream()
               .map(singleRecord -> Map.entry(uuidSource.generateUUID(), singleRecord))
@@ -543,9 +572,13 @@ public class RunSetsApiController implements RunSetsApi {
               .filter(inputs -> !Objects.isNull(inputs))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+      long configureInputsEndTime = System.currentTimeMillis();
+
       if (requestedIdToWorkflowInput.isEmpty()) {
         return runStateResponseList;
       }
+
+      long submitWorkflowsStartTime = System.currentTimeMillis();
 
       try {
         // Submit the workflows and store the Runs to database
@@ -586,6 +619,16 @@ public class RunSetsApiController implements RunSetsApi {
                             errorMsg + e.getMessage()))
                 .toList());
       }
+
+      long submitWorkflowsEndTime = System.currentTimeMillis();
+
+      log.info(
+          "### FIND ME - Timings from buildInputsAndSubmitRun() for run set %s batch size %s ### Configure inputs: %s ### Submit to Cromwell: %s"
+              .formatted(
+                  runSet.runSetId().toString(),
+                  batch.size(),
+                  configureInputsEndTime - configureInputsStartTime,
+                  submitWorkflowsEndTime - submitWorkflowsStartTime));
     }
 
     return runStateResponseList;
