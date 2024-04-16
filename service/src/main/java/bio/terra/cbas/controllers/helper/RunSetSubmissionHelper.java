@@ -82,8 +82,11 @@ public class RunSetSubmissionHelper {
 
     logger.info("Triggering workflow submit for RunSet {}", runSetId);
 
+    long fetchWdsRecordsStartTime = System.currentTimeMillis();
+
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
+    WdsRecordResponseDetails wdsRecordResponses =
+        fetchWdsRecords(wdsService, request, userToken, runSetId);
 
     if (!wdsRecordResponses.recordIdsWithError.isEmpty()) {
       String errorMsg =
@@ -93,6 +96,8 @@ public class RunSetSubmissionHelper {
       runSetDao.updateStateAndRunDetails(
           runSetId, CbasRunSetStatus.ERROR, 0, 0, OffsetDateTime.now());
     }
+
+    long fetchWdsRecordsEndTime = System.currentTimeMillis();
 
     // convert method url to raw url and use that while calling Cromwell's submit workflow
     // endpoint
@@ -129,6 +134,8 @@ public class RunSetSubmissionHelper {
       return;
     }
 
+    long configureAndSubmitToCromwellStartTime = System.currentTimeMillis();
+
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(
@@ -139,6 +146,8 @@ public class RunSetSubmissionHelper {
             rawMethodUrl,
             dataTableIdToRunIdMapping,
             userToken);
+
+    long configureAndSubmitToCromwellEndTime = System.currentTimeMillis();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -159,14 +168,20 @@ public class RunSetSubmissionHelper {
         runsInErrorState.size(),
         OffsetDateTime.now());
 
+    // Print timings
+    logger.info(
+        "### FIND ME - Timings from triggerWorkflowSubmit() run set %s ### Fetch WDS records: %s ### Configure inputs and submit to Cromwell: %s"
+            .formatted(
+                runSetId,
+                fetchWdsRecordsEndTime - fetchWdsRecordsStartTime,
+                configureAndSubmitToCromwellEndTime - configureAndSubmitToCromwellStartTime));
+
     logger.info("### FIND ME - triggerWorkflowSubmit complete for run set %s".formatted(runSetId));
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
-      WdsService wdsService, RunSetRequest request, BearerToken userToken) {
-    logger.info(
-        "### FIND ME - fetching WDS records for run_set name %s"
-            .formatted(request.getRunSetName()));
+      WdsService wdsService, RunSetRequest request, BearerToken userToken, UUID runSetId) {
+    logger.info("### FIND ME - fetching WDS records for run set %s".formatted(runSetId));
 
     String recordType = request.getWdsRecords().getRecordType();
 
@@ -210,6 +225,8 @@ public class RunSetSubmissionHelper {
 
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
+
+      long configureInputsStartTime = System.currentTimeMillis();
 
       Map<UUID, RecordResponse> requestedIdToRecord =
           batch.stream()
@@ -256,9 +273,13 @@ public class RunSetSubmissionHelper {
               .filter(inputs -> !Objects.isNull(inputs))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+      long configureInputsEndTime = System.currentTimeMillis();
+
       if (requestedIdToWorkflowInput.isEmpty()) {
         return runStateResponseList;
       }
+
+      long submitWorkflowsStartTime = System.currentTimeMillis();
 
       try {
         // Submit the workflows and store the Runs to database
@@ -285,6 +306,16 @@ public class RunSetSubmissionHelper {
                 .map(requestedId -> recordFailureToStartRun(requestedId, errorMsg + e.getMessage()))
                 .toList());
       }
+
+      long submitWorkflowsEndTime = System.currentTimeMillis();
+
+      logger.info(
+          "### FIND ME - Timings from buildInputsAndSubmitRun() batch size %s run set %s ### Configure inputs: %s ### Submit to Cromwell: %s"
+              .formatted(
+                  batch.size(),
+                  runSet.runSetId().toString(),
+                  configureInputsEndTime - configureInputsStartTime,
+                  submitWorkflowsEndTime - submitWorkflowsStartTime));
     }
 
     return runStateResponseList;

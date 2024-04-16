@@ -216,7 +216,7 @@ public class RunSetsApiController implements RunSetsApi {
       throws DatabaseConnectivityException.RunCreationException {
 
     log.info(
-        "### FIND ME - pre-registering runs for run_set %s"
+        "### FIND ME - pre-registering runs for run set %s"
             .formatted(runSet.runSetId().toString()));
 
     List<RunStateResponse> responses = new ArrayList<>();
@@ -248,14 +248,19 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
+    long requestReceivedTime = System.currentTimeMillis();
+
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
 
     captureRequestMetrics(request);
 
+    long samCheckStartTime = System.currentTimeMillis();
     if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
+    long samCheckEndTime = System.currentTimeMillis();
+
     // request validation
     List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);
     if (!requestErrors.isEmpty()) {
@@ -265,7 +270,9 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
+    long getSamUserStartTime = System.currentTimeMillis();
     UserStatusInfo user = samService.getSamUser(userToken);
+    long getSamUserEndTime = System.currentTimeMillis();
 
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
@@ -328,6 +335,17 @@ public class RunSetsApiController implements RunSetsApi {
         dataTableIdToRunIdMapping,
         runSetId,
         userToken);
+
+    long requestEndTime = System.currentTimeMillis();
+
+    // Print timings
+    log.info(
+        "### FIND ME - Timings from postRunSet() run set %s ### Check permissions with SAM: %s ### Get User info from SAM: %s ### Total request timing: %s"
+            .formatted(
+                runSetId,
+                samCheckEndTime - samCheckStartTime,
+                getSamUserEndTime - getSamUserStartTime,
+                requestEndTime - requestReceivedTime));
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
