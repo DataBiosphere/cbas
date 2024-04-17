@@ -13,6 +13,7 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +63,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           null,
           "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.empty());
   RunSet runSet =
       new RunSet(
           UUID.randomUUID(),

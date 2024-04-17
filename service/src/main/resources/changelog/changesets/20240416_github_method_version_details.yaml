@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: "1"
+      author: cjllanwarne
+      changes:
+        - createTable:
+            tableName: github_method_version_details
+            columns:
+              - column:
+                  name: githash
+                  type: varchar(40)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: method_version_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_method_version_details_method_version_id
+                    references: method_version(method_version_id)

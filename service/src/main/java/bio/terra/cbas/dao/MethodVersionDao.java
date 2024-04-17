@@ -1,6 +1,7 @@
 package bio.terra.cbas.dao;
 
 import bio.terra.cbas.dao.mappers.MethodVersionMappers;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -22,18 +23,43 @@ public class MethodVersionDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
+  public static String methodVersionJoinMethod =
+      "INNER JOIN method on method_version.%S = method.%S "
+          .formatted(MethodVersion.METHOD_ID_COL, Method.METHOD_ID_COL);
+  public static String methodVersionJoinGithubMethodVersionDetails =
+      "LEFT JOIN github_method_version_details on method_version.%S = github_method_version_details.%S "
+          .formatted(
+              MethodVersion.METHOD_VERSION_ID_COL,
+              GithubMethodVersionDetails.METHOD_VERSION_ID_COL);
+
   public int createMethodVersion(MethodVersion methodVersion) {
-    return jdbcTemplate.update(
-        "insert into method_version (method_version_id, method_id, method_version_name, method_version_description, method_version_created, method_version_last_run_set_id, method_version_url, method_version_original_workspace_id, branch_or_tag_name) "
-            + "values (:methodVersionId, :methodId, :name, :description, :created, :lastRunSetId, :url, :originalWorkspaceId, :branchOrTagName)",
-        new BeanPropertySqlParameterSource(methodVersion));
+    int inserted =
+        jdbcTemplate.update(
+            "insert into method_version (method_version_id, method_id, method_version_name, method_version_description, method_version_created, method_version_last_run_set_id, method_version_url, method_version_original_workspace_id, branch_or_tag_name) "
+                + "values (:methodVersionId, :methodId, :name, :description, :created, :lastRunSetId, :url, :originalWorkspaceId, :branchOrTagName)",
+            new BeanPropertySqlParameterSource(methodVersion));
+
+    if (methodVersion.methodVersionDetails().isPresent()) {
+      inserted +=
+          jdbcTemplate.update(
+              "insert into github_method_version_details (%S, %S) "
+                      .formatted(
+                          GithubMethodVersionDetails.GITHASH_COL,
+                          GithubMethodVersionDetails.METHOD_VERSION_ID_COL)
+                  + "values (:githash, :methodVersionId)",
+              new BeanPropertySqlParameterSource(methodVersion.methodVersionDetails().get()));
+    }
+
+    return inserted;
   }
 
   public MethodVersion getMethodVersion(UUID methodVersionId) {
     String sql =
         "SELECT * FROM method_version "
-            + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE method_version_id = :method_version_id";
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails
+            + "WHERE method_version.%S = :method_version_id"
+                .formatted(MethodVersion.METHOD_VERSION_ID_COL);
     return jdbcTemplate
         .query(
             sql,
@@ -45,7 +71,8 @@ public class MethodVersionDao {
   public List<MethodVersion> getMethodVersions() {
     String sql =
         "SELECT * FROM method_version "
-            + "INNER JOIN method on method_version.method_id = method.method_id";
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(), new MethodVersionMappers.DeepMethodVersionMapper());
   }
@@ -53,8 +80,9 @@ public class MethodVersionDao {
   public List<MethodVersion> getMethodVersionsForMethod(Method method) {
     String sql =
         "SELECT * FROM method_version "
-            + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE method_version.method_id = :methodId";
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails
+            + "WHERE method_version.%S = :methodId".formatted(MethodVersion.METHOD_ID_COL);
     return jdbcTemplate.query(
         sql,
         new MapSqlParameterSource("methodId", method.methodId()),

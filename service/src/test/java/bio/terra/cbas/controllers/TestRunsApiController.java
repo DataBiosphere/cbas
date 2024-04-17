@@ -42,6 +42,7 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -109,7 +110,8 @@ class TestRunsApiController {
               runSetId,
               "methodurl",
               workspaceId,
-              "develop"),
+              "develop",
+              Optional.empty()),
           "runSetName",
           "runSetDescription",
           true,
