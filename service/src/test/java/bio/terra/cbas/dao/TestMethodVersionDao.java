@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -13,7 +14,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -77,17 +78,17 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
           "user-foo",
           workspaceId);
 
-  @BeforeEach
-  void init() {
+  void createMethodAndVersion(Method method, MethodVersion methodVersion) {
     int methodRecordsCreated = methodDao.createMethod(method);
-    int methodVersionRecordsCreated = methodVersionDao.createMethodVersion(methodVersion);
-
     assertEquals(1, methodRecordsCreated);
+    int methodVersionRecordsCreated = methodVersionDao.createMethodVersion(methodVersion);
     assertEquals(1, methodVersionRecordsCreated);
   }
 
   @Test
   void retrievesSingleMethodVersion() {
+    createMethodAndVersion(method, methodVersion);
+
     MethodVersion actual = methodVersionDao.getMethodVersion(methodVersionId);
 
     assertEquals(methodVersionId, actual.methodVersionId());
@@ -96,10 +97,13 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
     assertEquals(methodUrl, actual.url());
     assertEquals(branch, actual.branchOrTagName());
     assertNull(actual.lastRunSetId());
+    assertEquals(actual.methodVersionDetails(), Optional.empty());
   }
 
   @Test
   void retrievesMethodVersionsForMethod() {
+    createMethodAndVersion(method, methodVersion);
+
     List<MethodVersion> actual = methodVersionDao.getMethodVersionsForMethod(method);
 
     assertEquals(1, actual.size());
@@ -110,10 +114,73 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
     assertEquals(methodUrl, actual.get(0).url());
     assertEquals(branch, actual.get(0).branchOrTagName());
     assertNull(actual.get(0).lastRunSetId());
+    assertEquals(actual.get(0).methodVersionDetails(), Optional.empty());
+  }
+
+  @Test
+  void storeAndRetrieveGithashDuringLookupById() {
+    String githash = "1234567890abcdef";
+    GithubMethodVersionDetails githubMethodVersionDetails =
+        new GithubMethodVersionDetails(githash, methodVersionId);
+    MethodVersion methodVersionWithGithash =
+        methodVersion.withMethodVersionDetails(githubMethodVersionDetails);
+
+    createMethodAndVersion(method, methodVersionWithGithash);
+
+    MethodVersion actual = methodVersionDao.getMethodVersion(methodVersionId);
+    assertEquals(githash, actual.methodVersionDetails().get().githash());
+  }
+
+  private MethodVersion randomizedMethodVersion() {
+    UUID methodVersionId = UUID.randomUUID();
+    // Githash is a random 40-character hex string:
+    String githash = RandomStringUtils.random(40, "0123456789abcdef");
+    GithubMethodVersionDetails githubMethodVersionDetails =
+        new GithubMethodVersionDetails(githash, methodVersionId);
+    return methodVersion
+        .withMethodVersionId(methodVersionId)
+        .withMethodVersionDetails(githubMethodVersionDetails);
+  }
+
+  @Test
+  void storeAndRetrieveGithashDuringLookupByList() {
+
+    int methodRecordsCreated = methodDao.createMethod(method);
+    assertEquals(1, methodRecordsCreated);
+
+    List<MethodVersion> methodVersions =
+        List.of(
+            randomizedMethodVersion(),
+            randomizedMethodVersion(),
+            randomizedMethodVersion(),
+            randomizedMethodVersion(),
+            randomizedMethodVersion());
+
+    for (MethodVersion methodVersion : methodVersions) {
+      int methodVersionRecordsCreated = methodVersionDao.createMethodVersion(methodVersion);
+      assertEquals(1, methodVersionRecordsCreated);
+    }
+
+    List<MethodVersion> actual = methodVersionDao.getMethodVersions();
+
+    assertEquals(methodVersions.size(), actual.size());
+
+    for (MethodVersion expectedVersion : methodVersions) {
+      MethodVersion actualVersion =
+          actual.stream()
+              .filter(v -> v.methodVersionId().equals(expectedVersion.methodVersionId()))
+              .findFirst()
+              .orElseThrow();
+      assertEquals(
+          expectedVersion.methodVersionDetails().get().githash(),
+          actualVersion.methodVersionDetails().get().githash());
+    }
   }
 
   @Test
   void unsetLastRunSetId() {
+    createMethodAndVersion(method, methodVersion);
+
     runSetDao.createRunSet(runSet);
     methodVersionDao.updateLastRunWithRunSet(runSet);
     MethodVersion retrievedMethodVersion =
