@@ -1,5 +1,8 @@
 package bio.terra.cbas.dao;
 
+import static bio.terra.cbas.dao.MethodVersionDao.methodVersionJoinGithubMethodVersionDetails;
+import static bio.terra.cbas.dao.MethodVersionDao.methodVersionJoinMethod;
+
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.mappers.RunSetMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
@@ -27,8 +30,11 @@ public class RunSetDao {
   public List<RunSet> getRunSets(Integer pageSize, boolean isTemplate) {
     String sql =
         "SELECT * FROM run_set "
-            + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id AND run_set.is_template = :isTemplate "
-            + "INNER JOIN method on method_version.method_id = method.method_id GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id ORDER BY MIN(run_set.submission_timestamp) DESC";
+            + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails
+            + "WHERE run_set.is_template = :isTemplate "
+            + "ORDER BY run_set.submission_timestamp DESC";
 
     HashMap<String, Object> parameterMap = new HashMap<>(Map.of("isTemplate", isTemplate));
 
@@ -44,9 +50,9 @@ public class RunSetDao {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-            + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE run_set.run_set_id = :runSetId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
-            + "ORDER BY MIN(run_set.submission_timestamp) DESC";
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails
+            + "WHERE run_set.run_set_id = :runSetId ";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
         .get(0);
@@ -61,9 +67,10 @@ public class RunSetDao {
     String sql =
         "SELECT * FROM run_set "
             + "INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-            + "INNER JOIN method on method_version.method_id = method.method_id "
-            + "WHERE method.method_id = :methodId GROUP BY run_set.run_set_id, method_version.method_version_id, method.method_id "
-            + "ORDER BY MIN(run_set.submission_timestamp) DESC";
+            + methodVersionJoinMethod
+            + methodVersionJoinGithubMethodVersionDetails
+            + "WHERE method.method_id = :methodId "
+            + "ORDER BY run_set.submission_timestamp DESC";
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(Map.of("methodId", methodId)), new RunSetMapper());
   }

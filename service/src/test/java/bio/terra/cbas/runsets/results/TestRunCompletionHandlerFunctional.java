@@ -37,6 +37,7 @@ import cromwell.client.model.RunLog;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.client.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -483,7 +484,8 @@ class TestRunCompletionHandlerFunctional {
             runSetId,
             "file:///method/source/url",
             workspaceId,
-            "develop"),
+            "develop",
+            Optional.empty()),
         "runSetName",
         "runSetDescription",
         true,

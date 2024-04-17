@@ -1,5 +1,8 @@
 package bio.terra.cbas.dao;
 
+import static bio.terra.cbas.dao.MethodVersionDao.methodVersionJoinGithubMethodVersionDetails;
+import static bio.terra.cbas.dao.MethodVersionDao.methodVersionJoinMethod;
+
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.mappers.RunSetMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
@@ -27,10 +30,12 @@ public class RunDao {
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
   // SQL query for reading Run records.
+
   private static final String RUN_SELECT_SQL =
       "SELECT * FROM run INNER JOIN run_set ON run.run_set_id = run_set.run_set_id"
           + " INNER JOIN method_version ON run_set.method_version_id = method_version.method_version_id "
-          + " INNER JOIN method ON method_version.method_id = method.method_id ";
+          + methodVersionJoinMethod
+          + methodVersionJoinGithubMethodVersionDetails;
 
   public RunDao(NamedParameterJdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;

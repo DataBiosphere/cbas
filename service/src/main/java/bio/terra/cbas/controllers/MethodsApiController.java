@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -310,7 +311,8 @@ public class MethodsApiController implements MethodsApi {
             null,
             postMethodRequest.getMethodUrl(),
             cbasContextConfig.getWorkspaceId(),
-            branchOrTagName);
+            branchOrTagName,
+            Optional.empty());
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());

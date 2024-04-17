@@ -16,6 +16,7 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,7 +67,8 @@ public class TestCloneRecoveryTransactionService {
 
   Method method = new Method(UUID.randomUUID(), "", "", null, null, "", null);
   MethodVersion methodVersion =
-      new MethodVersion(UUID.randomUUID(), method, "", "", null, null, "", null, "");
+      new MethodVersion(
+          UUID.randomUUID(), method, "", "", null, null, "", null, "", Optional.empty());
 
   RunSet runSet =
       new RunSet(

@@ -19,6 +19,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.BackfillOriginalWorkspaceIdService;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -188,7 +189,8 @@ public class TestBackfillOriginalWorkspaceIdService {
           UUID.randomUUID(), // this can be random because it isn't relevant to these tests.
           "http://wdlhub.biz",
           null,
-          "branch");
+          "branch",
+          Optional.empty());
 
   private MethodVersion methodVersionCreatedNull =
       new MethodVersion(
@@ -200,7 +202,8 @@ public class TestBackfillOriginalWorkspaceIdService {
           UUID.randomUUID(), // this can be random because it isn't relevant to these tests.
           "http://wdlhub.biz",
           null,
-          "branch");
+          "branch",
+          Optional.empty());
 
   private MethodVersion methodVersionClonedBackfilled =
       new MethodVersion(
@@ -212,7 +215,8 @@ public class TestBackfillOriginalWorkspaceIdService {
           UUID.randomUUID(), // this can be random because it isn't relevant to these tests.
           "http://wdlhub.biz",
           nullWorkspaceId,
-          "branch");
+          "branch",
+          Optional.empty());
   private MethodVersion methodVersionCreatedBackfilled =
       new MethodVersion(
           UUID.fromString("00000000-0000-0000-0000-000000000041"),
@@ -223,7 +227,8 @@ public class TestBackfillOriginalWorkspaceIdService {
           UUID.randomUUID(), // this can be random because it isn't relevant to these tests.
           "http://wdlhub.biz",
           nullWorkspaceId,
-          "branch");
+          "branch",
+          Optional.empty());
 
   private RunSet runSetClonedNull =
       new RunSet(
