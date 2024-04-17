@@ -39,15 +39,15 @@ public class MethodVersionDao {
                 + "values (:methodVersionId, :methodId, :name, :description, :created, :lastRunSetId, :url, :originalWorkspaceId, :branchOrTagName)",
             new BeanPropertySqlParameterSource(methodVersion));
 
-    if (methodVersion.methodVersionDetails().isPresent()) {
-      jdbcTemplate.update(
-          "insert into github_method_version_details (%S, %S) "
-                  .formatted(
-                      GithubMethodVersionDetails.GITHASH_COL,
-                      GithubMethodVersionDetails.METHOD_VERSION_ID_COL)
-              + "values (:githash, :methodVersionId)",
-          new BeanPropertySqlParameterSource(methodVersion.methodVersionDetails().get()));
-    }
+    methodVersion.methodVersionDetails().ifPresent(methodVersionDetails ->
+        jdbcTemplate.update(
+            "insert into github_method_version_details (%S, %S) "
+                    .formatted(
+                        GithubMethodVersionDetails.GITHASH_COL,
+                        GithubMethodVersionDetails.METHOD_VERSION_ID_COL)
+                + "values (:githash, :methodVersionId)",
+            new BeanPropertySqlParameterSource(methodVersionDetails))
+    );
 
     return inserted;
   }
