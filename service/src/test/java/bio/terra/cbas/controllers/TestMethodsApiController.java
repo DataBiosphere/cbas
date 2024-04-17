@@ -57,7 +57,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.client.RestClientException;
 
 @WebMvcTest
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class})
 @ContextConfiguration(classes = {MethodsApiController.class, GlobalExceptionHandler.class})
 class TestMethodsApiController {
 
@@ -426,6 +426,7 @@ class TestMethodsApiController {
     when(cromwellService.describeWorkflow(validRawWorkflow))
         .thenReturn(workflowDescForValidWorkflow);
     when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
+    when(gitHubService.getCurrentGithash(any(), any(), any())).thenReturn("abcd123");
 
     MvcResult response =
         mockMvc
@@ -455,6 +456,8 @@ class TestMethodsApiController {
     assertEquals(validRawWorkflow, newMethodVersionCaptor.getValue().url());
     assertNull(newMethodVersionCaptor.getValue().lastRunSetId());
     assertEquals("develop", newMethodVersionCaptor.getValue().branchOrTagName());
+    assertEquals(
+        "abcd123", newMethodVersionCaptor.getValue().methodVersionDetails().get().githash());
 
     UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
