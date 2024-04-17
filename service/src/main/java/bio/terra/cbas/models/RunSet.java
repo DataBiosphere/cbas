@@ -24,6 +24,7 @@ public record RunSet(
 
   // Corresponding table column names in database
   public static final String RUN_SET_ID_COL = "run_set_id";
+  public static final String METHOD_VERSION_ID_COL = "method_version_id";
   public static final String STATUS_COL = "status";
   public static final String NAME_COL = "run_set_name";
   public static final String DESCRIPTION_COL = "run_set_description";
