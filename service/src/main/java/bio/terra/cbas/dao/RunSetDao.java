@@ -29,8 +29,8 @@ public class RunSetDao {
   }
 
   public static final String RUN_SET_JOIN_METHOD_VERSION =
-      "INNER JOIN method_version ON run_set.%S = method_version.%S ".formatted(
-          RunSet.METHOD_VERSION_ID_COL, MethodVersion.METHOD_VERSION_ID_COL);
+      "INNER JOIN method_version ON run_set.%S = method_version.%S "
+          .formatted(RunSet.METHOD_VERSION_ID_COL, MethodVersion.METHOD_VERSION_ID_COL);
 
   public List<RunSet> getRunSets(Integer pageSize, boolean isTemplate) {
     String sql =
