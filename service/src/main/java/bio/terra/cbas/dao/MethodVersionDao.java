@@ -23,10 +23,10 @@ public class MethodVersionDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public static final String methodVersionJoinMethod =
+  public static final String METHOD_VERSION_JOIN_METHOD =
       "INNER JOIN method on method_version.%S = method.%S "
           .formatted(MethodVersion.METHOD_ID_COL, Method.METHOD_ID_COL);
-  public static final String methodVersionJoinGithubMethodVersionDetails =
+  public static final String METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS =
       "LEFT JOIN github_method_version_details on method_version.%S = github_method_version_details.%S "
           .formatted(
               MethodVersion.METHOD_VERSION_ID_COL,
@@ -57,8 +57,8 @@ public class MethodVersionDao {
   public MethodVersion getMethodVersion(UUID methodVersionId) {
     String sql =
         "SELECT * FROM method_version "
-            + methodVersionJoinMethod
-            + methodVersionJoinGithubMethodVersionDetails
+            + METHOD_VERSION_JOIN_METHOD
+            + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
             + "WHERE method_version.%S = :method_version_id"
                 .formatted(MethodVersion.METHOD_VERSION_ID_COL);
     return jdbcTemplate
@@ -72,8 +72,8 @@ public class MethodVersionDao {
   public List<MethodVersion> getMethodVersions() {
     String sql =
         "SELECT * FROM method_version "
-            + methodVersionJoinMethod
-            + methodVersionJoinGithubMethodVersionDetails;
+            + METHOD_VERSION_JOIN_METHOD
+            + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(), new MethodVersionMappers.DeepMethodVersionMapper());
   }
@@ -81,8 +81,8 @@ public class MethodVersionDao {
   public List<MethodVersion> getMethodVersionsForMethod(Method method) {
     String sql =
         "SELECT * FROM method_version "
-            + methodVersionJoinMethod
-            + methodVersionJoinGithubMethodVersionDetails
+            + METHOD_VERSION_JOIN_METHOD
+            + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
             + "WHERE method_version.%S = :methodId".formatted(MethodVersion.METHOD_ID_COL);
     return jdbcTemplate.query(
         sql,
