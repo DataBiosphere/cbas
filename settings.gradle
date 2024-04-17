@@ -1,4 +1,4 @@
 rootProject.name = 'cbas'
 include('service', 'integration', 'client', 'dockstore-client')
 
-gradle.ext.releaseVersion = '0.0.211'
+gradle.ext.releaseVersion = '0.0.212'
