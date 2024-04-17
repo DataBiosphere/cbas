@@ -40,14 +40,13 @@ public class MethodVersionDao {
             new BeanPropertySqlParameterSource(methodVersion));
 
     if (methodVersion.methodVersionDetails().isPresent()) {
-      inserted +=
-          jdbcTemplate.update(
-              "insert into github_method_version_details (%S, %S) "
-                      .formatted(
-                          GithubMethodVersionDetails.GITHASH_COL,
-                          GithubMethodVersionDetails.METHOD_VERSION_ID_COL)
-                  + "values (:githash, :methodVersionId)",
-              new BeanPropertySqlParameterSource(methodVersion.methodVersionDetails().get()));
+      jdbcTemplate.update(
+          "insert into github_method_version_details (%S, %S) "
+                  .formatted(
+                      GithubMethodVersionDetails.GITHASH_COL,
+                      GithubMethodVersionDetails.METHOD_VERSION_ID_COL)
+              + "values (:githash, :methodVersionId)",
+          new BeanPropertySqlParameterSource(methodVersion.methodVersionDetails().get()));
     }
 
     return inserted;

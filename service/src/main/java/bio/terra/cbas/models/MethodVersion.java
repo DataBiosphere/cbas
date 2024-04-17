@@ -38,4 +38,32 @@ public record MethodVersion(
   public Optional<GithubMethodVersionDetails> getMethodVersionDetails() {
     return methodVersionDetails;
   }
+
+  public MethodVersion withMethodVersionId(UUID methodVersionId) {
+    return new MethodVersion(
+        methodVersionId,
+        method,
+        name,
+        description,
+        created,
+        lastRunSetId,
+        url,
+        originalWorkspaceId,
+        branchOrTagName,
+        methodVersionDetails);
+  }
+
+  public MethodVersion withMethodVersionDetails(GithubMethodVersionDetails methodVersionDetails) {
+    return new MethodVersion(
+        methodVersionId,
+        method,
+        name,
+        description,
+        created,
+        lastRunSetId,
+        url,
+        originalWorkspaceId,
+        branchOrTagName,
+        Optional.of(methodVersionDetails));
+  }
 }
