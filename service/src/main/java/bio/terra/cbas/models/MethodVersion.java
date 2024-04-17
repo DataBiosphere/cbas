@@ -35,10 +35,6 @@ public record MethodVersion(
     return originalWorkspaceId;
   }
 
-  public Optional<GithubMethodVersionDetails> getMethodVersionDetails() {
-    return methodVersionDetails;
-  }
-
   public MethodVersion withMethodVersionId(UUID methodVersionId) {
     return new MethodVersion(
         methodVersionId,
