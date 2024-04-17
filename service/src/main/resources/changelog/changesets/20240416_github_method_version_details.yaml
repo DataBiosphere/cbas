@@ -10,7 +10,7 @@ databaseChangeLog:
                   name: githash
                   type: varchar(40)
                   constraints:
-                    nullable: true
+                    nullable: false
               - column:
                   name: method_version_id
                   type: uuid
