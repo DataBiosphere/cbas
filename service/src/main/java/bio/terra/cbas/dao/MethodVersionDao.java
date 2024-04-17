@@ -23,10 +23,10 @@ public class MethodVersionDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public static String methodVersionJoinMethod =
+  public static final String methodVersionJoinMethod =
       "INNER JOIN method on method_version.%S = method.%S "
           .formatted(MethodVersion.METHOD_ID_COL, Method.METHOD_ID_COL);
-  public static String methodVersionJoinGithubMethodVersionDetails =
+  public static final String methodVersionJoinGithubMethodVersionDetails =
       "LEFT JOIN github_method_version_details on method_version.%S = github_method_version_details.%S "
           .formatted(
               MethodVersion.METHOD_VERSION_ID_COL,
