@@ -15,6 +15,7 @@ import bio.terra.cbas.config.EcmServerConfiguration;
 import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.externalcreds.pact.ProviderStates;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +37,7 @@ public class EcmPactTest {
   @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getStatus(PactDslWithProvider builder) {
     return builder
-        .given("ECM is ok")
+        .given(ProviderStates.ECM_IS_OK)
         .uponReceiving("a status request")
         .path("/status")
         .method("GET")
@@ -57,7 +58,7 @@ public class EcmPactTest {
   @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getGithubAccessToken(PactDslWithProvider builder) {
     return builder
-        .given("a user is registered")
+        .given(ProviderStates.USER_IS_REGISTERED)
         .uponReceiving("a github token request")
         .path("/api/oauth/v1/github/access-token")
         .headers("Authorization", "Bearer accessToken")
