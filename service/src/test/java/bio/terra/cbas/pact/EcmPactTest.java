@@ -2,7 +2,7 @@ package bio.terra.cbas.pact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import bio.terra.externalcreds.pact.ProviderStates;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
@@ -36,7 +36,7 @@ public class EcmPactTest {
   @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getStatus(PactDslWithProvider builder) {
     return builder
-        .given("ECM is ok")
+        .given(ProviderStates.ECM_IS_OK)
         .uponReceiving("a status request")
         .path("/status")
         .method("GET")
@@ -57,7 +57,7 @@ public class EcmPactTest {
   @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getGithubAccessToken(PactDslWithProvider builder) {
     return builder
-        .given("a user is registered")
+        .given(ProviderStates.USER_IS_REGISTERED)
         .uponReceiving("a github token request")
         .path("/api/oauth/v1/github/access-token")
         .headers("Authorization", "Bearer accessToken")
