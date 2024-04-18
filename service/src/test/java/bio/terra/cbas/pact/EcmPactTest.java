@@ -2,7 +2,7 @@ package bio.terra.cbas.pact;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import bio.terra.externalcreds.pact.ProviderStates;
+
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
@@ -15,6 +15,7 @@ import bio.terra.cbas.config.EcmServerConfiguration;
 import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.common.iam.BearerToken;
+import bio.terra.externalcreds.pact.ProviderStates;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
