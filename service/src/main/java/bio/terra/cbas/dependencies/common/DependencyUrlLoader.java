@@ -77,7 +77,6 @@ public class DependencyUrlLoader {
     }
   }
 
-  // TODO: change the userToken to be of type BearerToken instead of String
   public String loadDependencyUrl(DependencyUrlType urlType, BearerToken userToken)
       throws DependencyNotAvailableException {
     try {
