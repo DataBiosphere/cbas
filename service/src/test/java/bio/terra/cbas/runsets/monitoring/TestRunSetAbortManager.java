@@ -18,6 +18,7 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ class TestRunSetAbortManager {
   @MockBean private RunDao runDao;
   @MockBean private CromwellService cromwellService;
   private final UUID workspaceId = UUID.randomUUID();
+  private final BearerToken mockToken = new BearerToken("mock-token");
 
   @Test
   void testRunSetAbort() throws ApiException {
@@ -107,10 +109,10 @@ class TestRunSetAbortManager {
 
     when(runDao.getRuns(any())).thenReturn(runs);
 
-    var result = runSetAbortManager.abortRunSet(runSetId);
+    var result = runSetAbortManager.abortRunSet(runSetId, mockToken);
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
-    verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture());
+    verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture(), any());
     List<Run> capturedRuns = newRunCaptor.getAllValues();
     assertEquals(2, capturedRuns.size());
     assertEquals(run1Running.runId(), capturedRuns.get(0).runId());
@@ -195,9 +197,9 @@ class TestRunSetAbortManager {
 
     doThrow(new cromwell.client.ApiException("Unable to abort workflow %s.".formatted(runId2)))
         .when(cromwellService)
-        .cancelRun(run2Running);
+        .cancelRun(eq(run2Running), any());
 
-    var result = runSetAbortManager.abortRunSet(runSetId);
+    var result = runSetAbortManager.abortRunSet(runSetId, mockToken);
 
     assertEquals(1, result.getAbortRequestFailedIds().size());
     assertEquals(1, result.getAbortRequestSubmittedIds().size());

@@ -12,6 +12,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
+import bio.terra.common.iam.BearerToken;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class TestSmartRunSetsPoller {
   private CbasApiConfiguration cbasApiConfiguration;
 
   private final UUID workspaceId = UUID.randomUUID();
+  private final BearerToken mockToken = new BearerToken("mock-token");
 
   @BeforeEach
   void init() {
@@ -95,7 +97,7 @@ public class TestSmartRunSetsPoller {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId1, CbasRunStatus.NON_TERMINAL_STATES)))
         .thenReturn(List.of(run1Incomplete));
 
-    when(smartRunsPoller.updateRuns(eq(List.of(run1Incomplete)), any()))
+    when(smartRunsPoller.updateRuns(eq(List.of(run1Incomplete)), any(), any()))
         .thenAnswer(
             i -> {
               Thread.sleep(1000);
@@ -108,7 +110,7 @@ public class TestSmartRunSetsPoller {
     // Run the update method and check results (note: run sets are out of order, to test last-polled
     // ordering):
     TimeLimitedUpdater.UpdateResult<RunSet> updateResult =
-        smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate2, runSetToUpdate1));
+        smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate2, runSetToUpdate1), mockToken);
     assertEquals(
         updateResult.updatedList().stream().map(RunSet::runSetId).toList(),
         List.of(runSetId2, runSetId1));
@@ -190,7 +192,7 @@ public class TestSmartRunSetsPoller {
         .thenReturn(List.of(run1Incomplete, run2Incomplete));
 
     // When the smart runs poller is checked:
-    when(smartRunsPoller.updateRuns(List.of(run1Incomplete, run2Incomplete)))
+    when(smartRunsPoller.updateRuns(eq(List.of(run1Incomplete, run2Incomplete)), any()))
         .thenReturn(
             new TimeLimitedUpdater.UpdateResult<>(List.of(run1Complete, run2Complete), 2, 2, true));
 
@@ -211,14 +213,14 @@ public class TestSmartRunSetsPoller {
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetUpdated);
 
     // Run the update:
-    var result = smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate));
+    var result = smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate), mockToken);
 
     // Validate the results:
     verify(runDao).getRuns(any());
     assertEquals(runSetId, runsFiltersForGetRuns.getValue().runSetId());
     assertEquals(NON_TERMINAL_STATES, runsFiltersForGetRuns.getValue().statuses());
 
-    verify(smartRunsPoller).updateRuns(eq(List.of(run1Incomplete, run2Incomplete)), any());
+    verify(smartRunsPoller).updateRuns(eq(List.of(run1Incomplete, run2Incomplete)), any(), any());
 
     verify(runDao).getRunStatusCounts(any());
     assertEquals(runSetId, runsFiltersForGetRunStatusCounts.getValue().runSetId());
@@ -288,7 +290,7 @@ public class TestSmartRunSetsPoller {
     when(runDao.getRuns(runsFiltersForGetRuns.capture())).thenReturn(List.of(run1));
 
     // When the smart runs poller is checked:
-    when(smartRunsPoller.updateRuns(List.of(run1)))
+    when(smartRunsPoller.updateRuns(List.of(run1), mockToken))
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(List.of(run1), 1, 1, true));
 
     // When we re-query for up-to-the-minute run status counts:
@@ -305,14 +307,14 @@ public class TestSmartRunSetsPoller {
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetTimestampUpdated);
 
     // Run the update:
-    var result = smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate));
+    var result = smartRunSetsPoller.updateRunSets(List.of(runSetToUpdate), mockToken);
 
     // Validate the results:
     verify(runDao).getRuns(any());
     assertEquals(runSetId, runsFiltersForGetRuns.getValue().runSetId());
     assertEquals(NON_TERMINAL_STATES, runsFiltersForGetRuns.getValue().statuses());
 
-    verify(smartRunsPoller).updateRuns(eq(List.of(run1)), any());
+    verify(smartRunsPoller).updateRuns(eq(List.of(run1)), any(), any());
 
     verify(runDao).getRunStatusCounts(any());
     assertEquals(runSetId, runsFiltersForGetRunStatusCounts.getValue().runSetId());
