@@ -17,11 +17,13 @@ import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,8 @@ class TestMethodsApiControllerUnits {
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
+  @MockBean private BearerTokenFactory bearerTokenFactory;
+  @MockBean private HttpServletRequest httpServletRequest;
 
   String workflowDescriptionString =
       """
@@ -174,7 +178,9 @@ class TestMethodsApiControllerUnits {
             runSetDao,
             objectMapper,
             cbasContextConfiguration,
-            githubMethodDetailsDao);
+            githubMethodDetailsDao,
+            bearerTokenFactory,
+            httpServletRequest);
   }
 
   @Test
