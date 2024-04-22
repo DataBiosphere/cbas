@@ -35,6 +35,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,6 @@ import java.util.Objects;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -78,6 +78,7 @@ class TestRunsApiController {
   @MockBean private SamService samService;
 
   @MockBean private MicrometerMetrics micrometerMetrics;
+  @MockBean private BearerTokenFactory bearerTokenFactory;
 
   private static final UUID returnedRunId = UUID.randomUUID();
   private static final UUID returnedRunEngineId = UUID.randomUUID();
@@ -152,16 +153,16 @@ class TestRunsApiController {
 
   @Test
   void smartPollAndUpdateStatus() throws Exception {
-    when(samService.hasReadPermission()).thenReturn(true);
+    when(samService.hasReadPermission(any())).thenReturn(true);
 
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
 
-    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun))))
+    when(smartRunsPoller.updateRuns(eq(List.of(returnedRun)), any()))
         .thenReturn(new UpdateResult<>(List.of(updatedRun), 1, 1, true));
 
     MvcResult result = mockMvc.perform(get(API)).andExpect(status().isOk()).andReturn();
 
-    verify(smartRunsPoller).updateRuns(List.of(returnedRun));
+    verify(smartRunsPoller).updateRuns(eq(List.of(returnedRun)), any());
 
     var parsedResponse =
         objectMapper.readValue(result.getResponse().getContentAsString(), RunLogResponse.class);
@@ -179,7 +180,7 @@ class TestRunsApiController {
 
   @Test
   void returnErrorForUserWithNoReadAccess() throws Exception {
-    when(samService.hasReadPermission()).thenReturn(false);
+    when(samService.hasReadPermission(any())).thenReturn(false);
 
     mockMvc
         .perform(get(API))
@@ -195,11 +196,10 @@ class TestRunsApiController {
 
   @Test
   void returnErrorForGetRequestWithoutToken() throws Exception {
-    when(samService.hasReadPermission())
+    when(bearerTokenFactory.from(any()))
         .thenThrow(
-            new BeanCreationException(
-                "BearerToken bean instantiation failed.",
-                new UnauthorizedException("Authorization header missing")));
+            new UnauthorizedException(
+                "Exception thrown for testing. Authorization header missing."));
 
     MvcResult response =
         mockMvc
@@ -207,7 +207,7 @@ class TestRunsApiController {
             .andExpect(status().isUnauthorized())
             .andExpect(
                 result ->
-                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+                    assertTrue(result.getResolvedException() instanceof UnauthorizedException))
             .andReturn();
 
     // verify that the response object is of type ErrorReport and that the nested Unauthorized
@@ -216,14 +216,15 @@ class TestRunsApiController {
         objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
 
     assertEquals(401, errorResponse.getStatusCode());
-    assertEquals("Authorization header missing", errorResponse.getMessage());
+    assertEquals(
+        "Exception thrown for testing. Authorization header missing.", errorResponse.getMessage());
   }
 
   @Test
   void returnErrorForSamApiException() throws Exception {
     // throw a form of ErrorReportException which is thrown when an ApiException happens in
     // hasPermission()
-    when(samService.hasReadPermission())
+    when(samService.hasReadPermission(any()))
         .thenThrow(new SamUnauthorizedException("Exception thrown for testing purposes"));
 
     MvcResult response = mockMvc.perform(get(API)).andExpect(status().isUnauthorized()).andReturn();
@@ -241,7 +242,7 @@ class TestRunsApiController {
   void returnErrorForSamInterruptedException() throws Exception {
     // throw SamInterruptedException which is thrown when InterruptedException happens in
     // hasPermission()
-    when(samService.hasReadPermission())
+    when(samService.hasReadPermission(any()))
         .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
 
     MvcResult response =
@@ -258,9 +259,9 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsSuccessOnTerminalStatus() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any()))
+    when(runsResultsManager.updateResults(any(), eq(COMPLETE), any(), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
@@ -284,10 +285,10 @@ class TestRunsApiController {
   @Test
   void runResultsUpdateReturnsSuccessOnFailedWithErrors() throws Exception {
     var errorList = List.of("error workflow engine", "system error");
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            returnedRun, CbasRunStatus.EXECUTOR_ERROR, null, errorList))
+            eq(returnedRun), eq(CbasRunStatus.EXECUTOR_ERROR), eq(null), eq(errorList), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
@@ -310,10 +311,10 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsSystemErrorWhenUpdateThrows() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any()))
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any(), any()))
         .thenThrow(new RuntimeException("Failed to connect to database"));
 
     var requestBody =
@@ -333,10 +334,10 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsSystemErrorWhenUpdateErrors() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any()))
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), eq(null), any(), any()))
         .thenReturn(RunCompletionResult.ERROR);
 
     var requestBody =
@@ -358,10 +359,10 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsUserErrorWhenValidationErrors() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            eq(returnedRun), eq(CbasRunStatus.COMPLETE), any(), any()))
+            eq(returnedRun), eq(CbasRunStatus.COMPLETE), any(), any(), any()))
         .thenReturn(RunCompletionResult.VALIDATION_ERROR);
 
     var requestBody =
@@ -384,10 +385,10 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsSuccessWhenUserHasNoPermission() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(false);
+    when(samService.hasWritePermission(any())).thenReturn(false);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
     when(runsResultsManager.updateResults(
-            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), any(), any()))
+            eq(returnedRun), eq(CbasRunStatus.SYSTEM_ERROR), any(), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
     var requestBody =
@@ -409,13 +410,14 @@ class TestRunsApiController {
             eq(returnedRun),
             eq(CbasRunStatus.SYSTEM_ERROR),
             ArgumentMatchers.isNull(),
-            isNotNull());
+            isNotNull(),
+            any());
     assertEquals(0, result.getResponse().getContentLength());
   }
 
   @Test
   void runResultsUpdateReturnsUserErrorWhenRunIdNotFound() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(Collections.emptyList());
     var requestBody =
         new RunResultsRequest()
@@ -438,9 +440,9 @@ class TestRunsApiController {
 
   @Test
   void runResultsUpdateReturnsUserErrorWhenMissingOutputs() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
     when(runDao.getRuns(any())).thenReturn(List.of(returnedRun));
-    when(runsResultsManager.updateResults(eq(returnedRun), eq(COMPLETE), eq(null), any()))
+    when(runsResultsManager.updateResults(eq(returnedRun), eq(COMPLETE), eq(null), any(), any()))
         .thenReturn(RunCompletionResult.VALIDATION_ERROR);
 
     var requestBody =

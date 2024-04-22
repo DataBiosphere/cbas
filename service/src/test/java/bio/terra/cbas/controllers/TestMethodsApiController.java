@@ -30,6 +30,7 @@ import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
 import bio.terra.common.exception.UnauthorizedException;
+import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
 import bio.terra.dockstore.model.ToolDescriptor;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -74,6 +74,7 @@ class TestMethodsApiController {
   @MockBean private RunSetDao runSetDao;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private EcmService ecmService;
+  @MockBean private BearerTokenFactory bearerTokenFactory;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -86,8 +87,8 @@ class TestMethodsApiController {
 
   private void initSamMocks() {
     // setup Sam permission check to return true
-    when(samService.hasReadPermission()).thenReturn(true);
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasReadPermission(any())).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
   }
 
   // Set up the database query responses.
@@ -314,7 +315,7 @@ class TestMethodsApiController {
     String expectedError =
         "Bad user request. Method 'https://raw.githubusercontent.com/abc/invalidWorkflow.wdl' in invalid. Error(s): Workflow invalid for test purposes";
 
-    when(cromwellService.describeWorkflow(invalidWorkflow))
+    when(cromwellService.describeWorkflow(eq(invalidWorkflow), any()))
         .thenReturn(workflowDescForInvalidWorkflow);
 
     MvcResult response =
@@ -367,7 +368,7 @@ class TestMethodsApiController {
 
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -422,9 +423,9 @@ class TestMethodsApiController {
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
-    when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
+    when(gitHubService.isRepoPrivate(any(), any(), any())).thenReturn(true);
 
     MvcResult response =
         mockMvc
@@ -482,7 +483,7 @@ class TestMethodsApiController {
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -515,7 +516,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
         .thenReturn(mockToolDescriptor);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -594,7 +595,7 @@ class TestMethodsApiController {
 
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -666,7 +667,7 @@ class TestMethodsApiController {
 
   @Test
   void returnErrorForUserWithNoReadAccess() throws Exception {
-    when(samService.hasReadPermission()).thenReturn(false);
+    when(samService.hasReadPermission(any())).thenReturn(false);
 
     mockMvc
         .perform(get(API))
@@ -684,7 +685,7 @@ class TestMethodsApiController {
   void returnErrorForUserWithNoWriteAccess() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
 
-    when(samService.hasWritePermission()).thenReturn(false);
+    when(samService.hasWritePermission(any())).thenReturn(false);
 
     mockMvc
         .perform(post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
@@ -700,11 +701,10 @@ class TestMethodsApiController {
 
   @Test
   void returnErrorForGetRequestWithoutToken() throws Exception {
-    when(samService.hasReadPermission())
+    when(bearerTokenFactory.from(any()))
         .thenThrow(
-            new BeanCreationException(
-                "BearerToken bean instantiation failed.",
-                new UnauthorizedException("Authorization header missing")));
+            new UnauthorizedException(
+                "Exception thrown for testing. Authorization header missing."));
 
     MvcResult response =
         mockMvc
@@ -712,7 +712,7 @@ class TestMethodsApiController {
             .andExpect(status().isUnauthorized())
             .andExpect(
                 result ->
-                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+                    assertTrue(result.getResolvedException() instanceof UnauthorizedException))
             .andReturn();
 
     // verify that the response object is of type ErrorReport and that the nested Unauthorized
@@ -721,18 +721,18 @@ class TestMethodsApiController {
         objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
 
     assertEquals(401, errorResponse.getStatusCode());
-    assertEquals("Authorization header missing", errorResponse.getMessage());
+    assertEquals(
+        "Exception thrown for testing. Authorization header missing.", errorResponse.getMessage());
   }
 
   @Test
   void returnErrorForPostRequestWithoutToken() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
 
-    when(samService.hasWritePermission())
+    when(bearerTokenFactory.from(any()))
         .thenThrow(
-            new BeanCreationException(
-                "BearerToken bean instantiation failed.",
-                new UnauthorizedException("Authorization header missing")));
+            new UnauthorizedException(
+                "Exception thrown for testing. Authorization header missing."));
 
     MvcResult response =
         mockMvc
@@ -741,7 +741,7 @@ class TestMethodsApiController {
             .andExpect(status().isUnauthorized())
             .andExpect(
                 result ->
-                    assertTrue(result.getResolvedException() instanceof BeanCreationException))
+                    assertTrue(result.getResolvedException() instanceof UnauthorizedException))
             .andReturn();
 
     // verify that the response object is of type ErrorReport and that the nested Unauthorized
@@ -750,14 +750,15 @@ class TestMethodsApiController {
         objectMapper.readValue(response.getResponse().getContentAsString(), ErrorReport.class);
 
     assertEquals(401, errorResponse.getStatusCode());
-    assertEquals("Authorization header missing", errorResponse.getMessage());
+    assertEquals(
+        "Exception thrown for testing. Authorization header missing.", errorResponse.getMessage());
   }
 
   @Test
   void returnErrorForSamApiException() throws Exception {
     // throw a form of ErrorReportException which is thrown when an ApiException happens in
     // hasPermission()
-    when(samService.hasReadPermission())
+    when(samService.hasReadPermission(any()))
         .thenThrow(new SamUnauthorizedException("Exception thrown for testing purposes"));
 
     MvcResult response = mockMvc.perform(get(API)).andExpect(status().isUnauthorized()).andReturn();
@@ -777,7 +778,7 @@ class TestMethodsApiController {
 
     // throw SamInterruptedException which is thrown when InterruptedException happens in
     // hasPermission()
-    when(samService.hasWritePermission())
+    when(samService.hasWritePermission(any()))
         .thenThrow(new SamInterruptedException("InterruptedException thrown for testing purposes"));
 
     MvcResult response =
@@ -830,7 +831,7 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
         .thenReturn(mockToolDescriptor);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -859,10 +860,10 @@ class TestMethodsApiController {
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
-    when(gitHubService.isRepoPrivate(any(), any()))
+    when(gitHubService.isRepoPrivate(any(), any(), any()))
         .thenThrow(new RestClientException("exception thrown"));
 
     MvcResult response =
