@@ -1,7 +1,7 @@
 package bio.terra.cbas.util;
 
-import static bio.terra.cbas.common.MethodUtil.convertGithubToRawUrl;
-import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
+import static bio.terra.cbas.common.MethodUtil.asRawMethodUrlGithub;
+import static bio.terra.cbas.common.MethodUtil.extractGithubUrlComponents;
 
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import java.sql.PreparedStatement;
@@ -59,8 +59,8 @@ public class BackfillGithubMethodDetails implements CustomSqlChange {
 
         if (methodVersionResultSet.next()) {
           // extract GitHub details for each method
-          String rawUrl = convertGithubToRawUrl(methodVersionResultSet.getString(2));
-          GithubUrlComponents githubMethodDetails = extractGithubDetailsFromUrl(rawUrl);
+          String rawUrl = asRawMethodUrlGithub(methodVersionResultSet.getString(2));
+          GithubUrlComponents githubMethodDetails = extractGithubUrlComponents(rawUrl);
 
           // create insert statement for inserting data in 'github_method_details' table
           InsertStatement insertGithubDetailsStmt =

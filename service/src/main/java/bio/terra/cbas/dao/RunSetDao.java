@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import static bio.terra.cbas.dao.MethodDao.METHOD_JOIN_GITHUB_METHOD_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_METHOD;
 
@@ -38,6 +39,7 @@ public class RunSetDao {
             + RUN_SET_JOIN_METHOD_VERSION
             + METHOD_VERSION_JOIN_METHOD
             + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
+            + METHOD_JOIN_GITHUB_METHOD_DETAILS
             + "WHERE run_set.is_template = :isTemplate "
             + "ORDER BY run_set.submission_timestamp DESC";
 
@@ -57,6 +59,7 @@ public class RunSetDao {
             + RUN_SET_JOIN_METHOD_VERSION
             + METHOD_VERSION_JOIN_METHOD
             + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
+            + METHOD_JOIN_GITHUB_METHOD_DETAILS
             + "WHERE run_set.run_set_id = :runSetId ";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("runSetId", runSetId), new RunSetMapper())
@@ -74,6 +77,7 @@ public class RunSetDao {
             + RUN_SET_JOIN_METHOD_VERSION
             + METHOD_VERSION_JOIN_METHOD
             + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
+            + METHOD_JOIN_GITHUB_METHOD_DETAILS
             + "WHERE method.method_id = :methodId "
             + "ORDER BY run_set.submission_timestamp DESC";
     return jdbcTemplate.query(

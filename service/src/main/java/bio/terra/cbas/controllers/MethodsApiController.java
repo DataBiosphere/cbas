@@ -1,8 +1,10 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.SUPPORTED_URL_HOSTS;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
+import static bio.terra.cbas.dependencies.github.GitHubService.buildRawGithubUrl;
+import static bio.terra.cbas.dependencies.github.GitHubService.validateGithubUrl;
+import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.GITHUB;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
 
@@ -10,9 +12,9 @@ import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -28,6 +30,7 @@ import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.model.PostMethodRequest;
+import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
@@ -46,9 +49,7 @@ import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +57,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
@@ -74,7 +74,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
-  private final GithubMethodDetailsDao githubMethodDetailsDao;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
 
@@ -88,7 +87,6 @@ public class MethodsApiController implements MethodsApi {
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfig,
-      GithubMethodDetailsDao githubMethodDetailsDao,
       BearerTokenFactory bearerTokenFactory,
       HttpServletRequest httpServletRequest) {
     this.cromwellService = cromwellService;
@@ -100,7 +98,6 @@ public class MethodsApiController implements MethodsApi {
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
-    this.githubMethodDetailsDao = githubMethodDetailsDao;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
   }
@@ -127,28 +124,59 @@ public class MethodsApiController implements MethodsApi {
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    String methodSource = postMethodRequest.getMethodSource().toString();
+    MethodSourceEnum methodSource = postMethodRequest.getMethodSource();
+    String methodUrl = postMethodRequest.getMethodUrl();
+    String methodVersionString = postMethodRequest.getMethodVersion();
 
-    // convert method url to raw url and use that to call Cromwell's /describe endpoint
-    String rawMethodUrl;
+    UUID methodId = UUID.randomUUID();
+    UUID methodVersionId = UUID.randomUUID();
+    UUID runSetId = UUID.randomUUID();
+
+    String branchOrTagName = null;
+    GithubMethodDetails githubMethodDetails = null;
+    Optional<GithubMethodVersionDetails> githubMethodVersionDetails = Optional.empty();
+
+    // resolve url to its raw/pinned form and use that to call Cromwell's /describe endpoint
+    String resolvedMethodUrl;
     try {
-      rawMethodUrl =
-          MethodUtil.convertToRawUrl(
-              postMethodRequest.getMethodUrl(),
-              postMethodRequest.getMethodSource(),
-              postMethodRequest.getMethodVersion(),
-              dockstoreService);
+      resolvedMethodUrl =
+          switch (methodSource) {
+            case DOCKSTORE -> dockstoreService
+                .descriptorGetV1(methodUrl, methodVersionString)
+                .getUrl();
+            case GITHUB -> {
+              GithubUrlComponents githubUrlComponents =
+                  MethodUtil.extractGithubUrlComponents(methodUrl);
+              branchOrTagName = githubUrlComponents.branchOrTag();
+              Boolean isPrivate =
+                  gitHubService.isRepoPrivate(
+                      githubUrlComponents.org(), githubUrlComponents.repo(), userToken);
+              githubMethodDetails =
+                  new GithubMethodDetails(
+                      githubUrlComponents.repo(),
+                      githubUrlComponents.org(),
+                      githubUrlComponents.path(),
+                      isPrivate,
+                      methodId);
 
-      // this could happen if there was no url or empty url received in the Dockstore workflow's
-      // descriptor response
-      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
-        String errorMsg =
-            "Error while importing Dockstore workflow. No workflow url found at specified path.";
-        log.warn(errorMsg);
-        return new ResponseEntity<>(
-            new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
-      }
-    } catch (URISyntaxException | MalformedURLException e) {
+              String gitHash =
+                  gitHubService.getCurrentGithash(
+                      githubUrlComponents.org(),
+                      githubUrlComponents.repo(),
+                      branchOrTagName,
+                      userToken);
+
+              githubMethodVersionDetails =
+                  Optional.of(new GithubMethodVersionDetails(gitHash, methodVersionId));
+
+              yield buildRawGithubUrl(
+                  githubUrlComponents.org(),
+                  githubUrlComponents.repo(),
+                  gitHash,
+                  githubUrlComponents.path());
+            }
+          };
+    } catch (URISyntaxException | MalformedURLException | MethodProcessingException e) {
       String errorMsg =
           "Bad user request. Method url has invalid value. Error: %s".formatted(e.getMessage());
       log.warn(errorMsg, e);
@@ -158,25 +186,38 @@ public class MethodsApiController implements MethodsApi {
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
       log.warn(errorMsg, e);
       increaseEventCounter("Dockstore method import error", 1);
-
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+    } catch (GitHubClient.GitHubClientException e) {
+      String errorMsg =
+          "Error while importing GitHub workflow. Error: %s".formatted(e.getMessage());
+      log.warn(errorMsg, e);
+      increaseEventCounter("GitHub method import error", 1);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    // call Cromwell's /describe endpoint to get description of the workflow along with inputs and
-    // outputs
+    // this could happen if there was no url,
+    // or if an empty url was received in the Dockstore workflow's descriptor response.
+    if (resolvedMethodUrl == null || resolvedMethodUrl.isEmpty()) {
+      String errorMsg = "Error while importing workflow. No workflow URL found at specified path.";
+      log.warn(errorMsg);
+      return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
+    }
+
+    // call Cromwell's /describe endpoint to get description of the workflow,
+    // along with inputs and outputs.
     WorkflowDescription workflowDescription;
     try {
-      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl, userToken);
+      workflowDescription = cromwellService.describeWorkflow(resolvedMethodUrl, userToken);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
         String invalidMethodErrors =
             String.format(
-                "Bad user request. Method '%s' in invalid. Error(s): %s",
-                rawMethodUrl, String.join(". ", workflowDescription.getErrors()));
+                "Bad user request. Method '%s' (resolved to %s) is invalid. Error(s): %s",
+                methodUrl, resolvedMethodUrl, String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
         recordMethodCreationCompletion(
-            methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
+            methodSource.toString(), HttpStatus.BAD_REQUEST.value(), requestStartNanos);
 
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMethodErrors), HttpStatus.BAD_REQUEST);
@@ -194,44 +235,13 @@ public class MethodsApiController implements MethodsApi {
             String.format("Bad user request. Error(s): %s", String.join(" ", invalidMappingErrors));
         log.warn(invalidMappingError);
         recordMethodCreationCompletion(
-            methodSource, HttpStatus.BAD_REQUEST.value(), requestStartNanos);
+            methodSource.toString(), HttpStatus.BAD_REQUEST.value(), requestStartNanos);
 
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMappingError), HttpStatus.BAD_REQUEST);
       }
 
       // store method in database along with input and output definitions
-      UUID methodId = UUID.randomUUID();
-      UUID methodVersionId = UUID.randomUUID();
-      UUID runSetId = UUID.randomUUID();
-
-      GithubUrlComponents githubUrlComponents;
-      GithubMethodDetails githubMethodDetails;
-      Optional<GithubMethodVersionDetails> githubMethodVersionDetails;
-      String branchOrTagName;
-
-      if (postMethodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
-        githubUrlComponents = MethodUtil.extractGithubDetailsFromUrl(rawMethodUrl);
-
-        String path = githubUrlComponents.path();
-        String repository = githubUrlComponents.repo();
-        String organization = githubUrlComponents.org();
-        branchOrTagName = githubUrlComponents.branchOrTag();
-
-        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, userToken);
-
-        githubMethodDetails =
-            new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
-
-        String githash =
-            gitHubService.getCurrentGithash(organization, repository, branchOrTagName, userToken);
-        githubMethodVersionDetails =
-            Optional.of(new GithubMethodVersionDetails(githash, methodVersionId));
-      } else {
-        githubMethodDetails = null;
-        branchOrTagName = null;
-        githubMethodVersionDetails = Optional.empty();
-      }
 
       createNewMethod(
           methodId,
@@ -245,7 +255,8 @@ public class MethodsApiController implements MethodsApi {
           githubMethodVersionDetails,
           branchOrTagName);
 
-      recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
+      recordMethodCreationCompletion(
+          methodSource.toString(), HttpStatus.OK.value(), requestStartNanos);
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
@@ -253,8 +264,6 @@ public class MethodsApiController implements MethodsApi {
     } catch (ApiException
         | JsonProcessingException
         | WomtoolValueTypeNotFoundException
-        | URISyntaxException
-        | GitHubClient.GitHubClientException
         | RestClientException e) {
       String errorMsg =
           String.format(
@@ -262,7 +271,7 @@ public class MethodsApiController implements MethodsApi {
               postMethodRequest.getMethodUrl(), e.getMessage());
       log.warn(errorMsg);
       recordMethodCreationCompletion(
-          methodSource, HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
+          methodSource.toString(), HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
 
       return new ResponseEntity<>(
           new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
@@ -326,7 +335,8 @@ public class MethodsApiController implements MethodsApi {
             DateUtils.currentTimeInUTC(),
             null,
             postMethodRequest.getMethodSource().toString(),
-            cbasContextConfig.getWorkspaceId());
+            cbasContextConfig.getWorkspaceId(),
+            Optional.ofNullable(githubMethodDetails));
 
     MethodVersion methodVersion =
         new MethodVersion(
@@ -365,34 +375,8 @@ public class MethodsApiController implements MethodsApi {
             cbasContextConfig.getWorkspaceId());
 
     methodDao.createMethod(method);
-
-    if (githubMethodDetails != null) {
-      githubMethodDetailsDao.createGithubMethodSourceDetails(githubMethodDetails);
-    }
-
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(templateRunSet);
-  }
-
-  // helper method to verify that URL is valid and its host is supported
-  private String validateGithubUrl(String methodUrl) {
-    try {
-      URL url = new URI(methodUrl).toURL();
-      Pattern pattern =
-          Pattern.compile(
-              "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$");
-      boolean doesUrlMatchPattern = pattern.matcher(methodUrl).find();
-
-      if (!doesUrlMatchPattern) {
-        return "method_url is invalid. URL doesn't match pattern format";
-      } else if (!SUPPORTED_URL_HOSTS.contains(url.getHost())) {
-        return "method_url is invalid. Supported URI host(s): " + SUPPORTED_URL_HOSTS;
-      }
-    } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-      return "method_url is invalid. Reason: " + e.getMessage();
-    }
-
-    return null;
   }
 
   public List<String> validateMethod(PostMethodRequest methodRequest) {
@@ -421,7 +405,7 @@ public class MethodsApiController implements MethodsApi {
       // we only verify if URL is valid for GitHub source here. For Dockstore methods a workflow
       // path which is not completely a valid URL is sent as method url, and it's validity is
       // checked while fetching the raw GitHub url for the workflow path
-      if (methodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
+      if (methodRequest.getMethodSource() == GITHUB) {
         String urlError = validateGithubUrl(methodUrl);
         if (urlError != null) errors.add(urlError);
       }
@@ -532,10 +516,8 @@ public class MethodsApiController implements MethodsApi {
 
     Boolean isMethodPrivate = false;
 
-    if (Objects.equals(
-        method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      GithubMethodDetails details =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+    if (Objects.equals(method.methodSource(), GITHUB.toString())) {
+      GithubMethodDetails details = method.githubMethodDetails().orElse(null);
       if (details != null) {
         isMethodPrivate = details.isPrivate();
       }
@@ -576,10 +558,8 @@ public class MethodsApiController implements MethodsApi {
     Method method = methodVersion.method();
     Boolean isMethodPrivate = false;
 
-    if (Objects.equals(
-        method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      GithubMethodDetails details =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+    if (Objects.equals(method.methodSource(), GITHUB.toString())) {
+      GithubMethodDetails details = method.githubMethodDetails().orElse(null);
       if (details != null) {
         isMethodPrivate = details.isPrivate();
       }

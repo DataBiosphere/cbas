@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import static bio.terra.cbas.dao.MethodDao.METHOD_JOIN_GITHUB_METHOD_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_METHOD;
 
@@ -51,7 +52,7 @@ public class RunDao {
   public List<Run> getRuns(RunsFilters filters) {
     WhereClause whereClause = filters.buildWhereClause();
 
-    String sql = RUN_SELECT_SQL + whereClause;
+    String sql = RUN_SELECT_SQL + METHOD_JOIN_GITHUB_METHOD_DETAILS + whereClause;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(whereClause.params()), new RunMapper());
   }

@@ -1,51 +1,40 @@
 package bio.terra.cbas.common;
 
+import static bio.terra.cbas.dependencies.github.GitHubService.GITHUB_URL_HOST;
+import static bio.terra.cbas.dependencies.github.GitHubService.RAW_GITHUB_URL_HOST;
+
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
-import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
-import bio.terra.dockstore.model.ToolDescriptor;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.List;
 import org.apache.commons.lang3.EnumUtils;
 
 public final class MethodUtil {
-  private static final String GITHUB_URL_HOST = "github.com";
-  private static final String RAW_GITHUB_URL_HOST = "raw.githubusercontent.com";
-  public static final List<String> SUPPORTED_URL_HOSTS =
-      List.of(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST);
 
   private MethodUtil() {}
 
-  public static String convertGithubToRawUrl(String originalUrl)
+  public static String asRawMethodUrlGithub(String originalUrl)
       throws URISyntaxException, MalformedURLException {
-    URL url = new URI(originalUrl).toURL();
+
+    URI uri = new URI(originalUrl);
+    URL url;
+    if (uri.getScheme() == null) {
+      url = new URI("https://" + originalUrl).toURL();
+    } else {
+      url = uri.toURL();
+    }
+
     if (url.getHost().equals(RAW_GITHUB_URL_HOST)) {
       return originalUrl;
     } else {
       return originalUrl.replace(GITHUB_URL_HOST, RAW_GITHUB_URL_HOST).replace("/blob/", "/");
     }
-  }
-
-  public static String convertToRawUrl(
-      String originalUrl,
-      MethodSourceEnum methodSource,
-      String methodVersion,
-      DockstoreService dockstoreService)
-      throws URISyntaxException, MalformedURLException, bio.terra.dockstore.client.ApiException {
-    return switch (methodSource) {
-      case GITHUB -> convertGithubToRawUrl(originalUrl);
-      case DOCKSTORE -> {
-        ToolDescriptor toolDescriptor =
-            dockstoreService.descriptorGetV1(originalUrl, methodVersion);
-        yield toolDescriptor.getUrl();
-      }
-    };
   }
 
   public static MethodSourceEnum convertToMethodSourceEnum(String methodSource)
@@ -62,13 +51,17 @@ public final class MethodUtil {
     throw new UnknownMethodSourceException(methodSource);
   }
 
-  public static GithubUrlComponents extractGithubDetailsFromUrl(String url)
-      throws URISyntaxException {
+  public static GithubUrlComponents extractGithubUrlComponents(String url)
+      throws URISyntaxException, MalformedURLException, MethodProcessingException {
 
-    URI uri = new URI(url);
+    URI uri = new URI(asRawMethodUrlGithub(url));
     String[] parts = uri.getPath().split("/");
+    if (parts.length < 4) {
+      throw new MethodProcessingException(
+          "Github method URL %s is invalid; could not extract repo, org, branch, and/or WDL path."
+              .formatted(url));
+    }
     String[] gitHubPathParts = Arrays.stream(parts).skip(4).toArray(String[]::new);
-
     return new GithubUrlComponents(String.join("/", gitHubPathParts), parts[2], parts[1], parts[3]);
   }
 }

@@ -1,5 +1,6 @@
 package bio.terra.cbas.dependencies.github;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,6 +11,8 @@ import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.common.iam.BearerToken;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
 
@@ -64,5 +67,63 @@ class TestGithubService {
     assertThrows(
         RestClientException.class,
         () -> gitHubService.isRepoPrivate("broadinstitute", "foo", mockUserToken));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "https://github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+        "https://raw.githubusercontent.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+        "https://github.com/broadinstitute/cromwell/blob/develop/forkjoin.wdl",
+        "https://raw.githubusercontent.com/broadinstitute/cromwell/blob/develop/forkjoin.wdl",
+      })
+  void testValidateGithubUrlGood(String url) {
+    String expected = null; // ie, no error message
+    String actual = GitHubService.validateGithubUrl(url);
+
+    assertEquals(expected, actual);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "https://fake-github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+        "https://raw.githubusercontent.fake.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+        "https://www.github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+      })
+  void testValidateGithubUrlBadHost(String url) {
+    String expected =
+        "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]";
+    String actual = GitHubService.validateGithubUrl(url);
+
+    assertEquals(expected, actual);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+        "raw.githubusercontent.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
+      })
+  void testValidateGithubUrlNotAbsolute(String url) {
+    String expected = "method_url is invalid. Reason: URI is not absolute";
+    String actual = GitHubService.validateGithubUrl(url);
+
+    assertEquals(expected, actual);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "https://github.com/broadinstitute/cromwell/forkjoin.wdl",
+        "https://github.com/broadinstitute/",
+        "https://github.com/broadinstitute/cromwell/blob/forkjoin.wdl",
+      })
+  void testValidateGithubUrlBadFormat(String url) {
+    String expected =
+        "method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>";
+    String actual = GitHubService.validateGithubUrl(url);
+
+    assertEquals(expected, actual);
   }
 }
