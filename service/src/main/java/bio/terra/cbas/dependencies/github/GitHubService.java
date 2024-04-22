@@ -38,4 +38,17 @@ public class GitHubService {
 
     return commitInfo.getSha();
   }
+
+  public String getBaseUrl(String organization, String repo, String branch)
+      throws GitHubClient.GitHubClientException {
+    GitHubClient.CommitInfo commitInfo;
+    try {
+      commitInfo = client.getCommit(organization, repo, branch, "");
+    } catch (GitHubClient.GitHubClientException e) {
+      String githubToken = ecmService.getAccessToken();
+      commitInfo = client.getCommit(organization, repo, branch, githubToken);
+    }
+
+    return commitInfo.getHtmlUrl();
+  }
 }

@@ -4,6 +4,8 @@ import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
+import bio.terra.cbas.models.GithubMethodDetails;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -28,19 +30,36 @@ public class MethodDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
+  public static final String METHOD_JOIN_GITHUB_METHOD_DETAILS =
+      "LEFT JOIN github_method_details on method.%S = github_method_details.%S "
+          .formatted(
+              Method.METHOD_ID_COL,
+              GithubMethodDetails.METHOD_ID_COL);
+
   public Method getMethod(UUID methodId) {
-    String sql = "SELECT * FROM method WHERE method_id = :methodId";
+    String sql = "SELECT * FROM method "
+        + METHOD_JOIN_GITHUB_METHOD_DETAILS
+        + "WHERE method_id = :methodId";
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
         .get(0);
   }
 
   public List<Method> getMethods() {
-    String sql = "SELECT * FROM method ORDER BY created DESC";
+    String sql = "SELECT * FROM method "
+        + METHOD_JOIN_GITHUB_METHOD_DETAILS
+        + "ORDER BY created DESC";
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
   public int createMethod(Method method) {
+    method.githubMethodDetails().ifPresent(details ->
+        jdbcTemplate.update(
+            "insert into github_method_details (repository, organization, path, private, method_id) "
+                + "values (:repository, :organization, :path, :isPrivate, :methodId)",
+            new BeanPropertySqlParameterSource(details))
+    );
+
     return jdbcTemplate.update(
         "insert into method (method_id, name, description, created, last_run_set_id, method_source, method_original_workspace_id) "
             + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource, :originalWorkspaceId)",

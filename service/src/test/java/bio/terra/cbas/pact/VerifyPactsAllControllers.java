@@ -19,7 +19,6 @@ import bio.terra.cbas.controllers.GlobalExceptionHandler;
 import bio.terra.cbas.controllers.MethodsApiController;
 import bio.terra.cbas.controllers.RunSetsApiController;
 import bio.terra.cbas.controllers.RunsApiController;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -107,7 +106,6 @@ class VerifyPactsAllControllers {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private GitHubService gitHubService;
   @MockBean private EcmService ecmService;
 
@@ -128,7 +126,8 @@ class VerifyPactsAllControllers {
           OffsetDateTime.now(),
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-          workspaceId);
+          workspaceId,
+          Optional.empty());
 
   @PactBrokerConsumerVersionSelectors
   public static SelectorBuilder consumerVersionSelectors() {
@@ -256,7 +255,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             methodVersionUUID,
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-            workspaceId);
+            workspaceId,
+            Optional.empty());
 
     MethodVersion myMethodVersion =
         new MethodVersion(

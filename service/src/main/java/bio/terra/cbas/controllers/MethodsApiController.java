@@ -12,7 +12,6 @@ import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -71,7 +70,6 @@ public class MethodsApiController implements MethodsApi {
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
-  private final GithubMethodDetailsDao githubMethodDetailsDao;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -82,8 +80,7 @@ public class MethodsApiController implements MethodsApi {
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfig,
-      GithubMethodDetailsDao githubMethodDetailsDao) {
+      CbasContextConfiguration cbasContextConfig) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.gitHubService = gitHubService;
@@ -93,7 +90,6 @@ public class MethodsApiController implements MethodsApi {
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
-    this.githubMethodDetailsDao = githubMethodDetailsDao;
   }
 
   private final ObjectMapper objectMapper;
@@ -121,7 +117,7 @@ public class MethodsApiController implements MethodsApi {
     String rawMethodUrl;
     try {
       rawMethodUrl =
-          MethodUtil.convertToRawUrl(
+          MethodUtil.getRawUrl(
               postMethodRequest.getMethodUrl(),
               postMethodRequest.getMethodSource(),
               postMethodRequest.getMethodVersion(),
@@ -310,7 +306,8 @@ public class MethodsApiController implements MethodsApi {
             DateUtils.currentTimeInUTC(),
             null,
             postMethodRequest.getMethodSource().toString(),
-            cbasContextConfig.getWorkspaceId());
+            cbasContextConfig.getWorkspaceId(),
+            Optional.ofNullable(githubMethodDetails));
 
     MethodVersion methodVersion =
         new MethodVersion(
@@ -349,11 +346,6 @@ public class MethodsApiController implements MethodsApi {
             cbasContextConfig.getWorkspaceId());
 
     methodDao.createMethod(method);
-
-    if (githubMethodDetails != null) {
-      githubMethodDetailsDao.createGithubMethodSourceDetails(githubMethodDetails);
-    }
-
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(templateRunSet);
   }
@@ -518,8 +510,7 @@ public class MethodsApiController implements MethodsApi {
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      GithubMethodDetails details =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+      GithubMethodDetails details = method.githubMethodDetails().orElse(null);
       if (details != null) {
         isMethodPrivate = details.isPrivate();
       }
@@ -562,8 +553,7 @@ public class MethodsApiController implements MethodsApi {
 
     if (Objects.equals(
         method.methodSource(), PostMethodRequest.MethodSourceEnum.GITHUB.toString())) {
-      GithubMethodDetails details =
-          githubMethodDetailsDao.getMethodSourceDetails(method.methodId());
+      GithubMethodDetails details = method.githubMethodDetails().orElse(null);
       if (details != null) {
         isMethodPrivate = details.isPrivate();
       }

@@ -214,7 +214,7 @@ public class RunSetsApiController implements RunSetsApi {
           convertToMethodSourceEnum(methodVersion.method().methodSource());
 
       rawMethodUrl =
-          MethodUtil.convertToRawUrl(
+          MethodUtil.getRawUrl(
               methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
 
       // this could happen if there was no url or empty url received in the Dockstore workflow's
@@ -465,7 +465,7 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetRequest request,
       RunSet runSet,
       ArrayList<RecordResponse> recordResponses,
-      String rawMethodUrl) {
+      String calculatedWorkflowUrl) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
@@ -551,7 +551,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Submit the workflows and store the Runs to database
         List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
-                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson);
+                calculatedWorkflowUrl, requestedIdToWorkflowInput, workflowOptionsJson);
 
         runStateResponseList.addAll(
             submitWorkflowBatchResponse.stream()

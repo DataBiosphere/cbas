@@ -1,6 +1,7 @@
 package bio.terra.cbas.models;
 
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 public record Method(
@@ -10,7 +11,8 @@ public record Method(
     OffsetDateTime created,
     UUID lastRunSetId,
     String methodSource,
-    UUID originalWorkspaceId) {
+    UUID originalWorkspaceId,
+    Optional<GithubMethodDetails> githubMethodDetails) {
 
   // Corresponding table column names in database
   public static final String METHOD_ID_COL = "method_id";
@@ -23,5 +25,9 @@ public record Method(
 
   public UUID getOriginalWorkspaceId() {
     return originalWorkspaceId;
+  }
+
+  public Method withGithubMethodDetails(GithubMethodDetails githubMethodDetails) {
+    return new Method(methodId, name, description, created, lastRunSetId, methodSource, originalWorkspaceId, Optional.of(githubMethodDetails));
   }
 }

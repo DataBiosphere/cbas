@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -73,7 +72,6 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private EcmService ecmService;
 
   // This mockMVC is what we use to test API requests and responses:
@@ -97,17 +95,16 @@ class TestMethodsApiController {
   private void initMocks() {
     initSamMocks();
 
-    when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
-    when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
-    when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
-    when(githubMethodDetailsDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
-        .thenReturn(githubMethodDetails);
-    when(githubMethodDetailsDao.getMethodSourceDetails(neverRunMethod1.methodId()))
-        .thenReturn(githubMethodDetails);
+    Method neverRunMethod1WithGithub = neverRunMethod1.withGithubMethodDetails(githubMethodDetails);
+    Method previouslyRunMethod2WithGithub = previouslyRunMethod2.withGithubMethodDetails(githubMethodDetails);
 
-    when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
+    when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1WithGithub, previouslyRunMethod2WithGithub));
+    when(methodDao.getMethod(neverRunMethod1WithGithub.methodId())).thenReturn(neverRunMethod1WithGithub);
+    when(methodDao.getMethod(previouslyRunMethod2WithGithub.methodId())).thenReturn(previouslyRunMethod2WithGithub);
+
+    when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1WithGithub))
         .thenReturn(List.of(method1Version1, method1Version2));
-    when(methodVersionDao.getMethodVersionsForMethod(previouslyRunMethod2))
+    when(methodVersionDao.getMethodVersionsForMethod(previouslyRunMethod2WithGithub))
         .thenReturn(List.of(method2Version1, method2Version2));
 
     when(methodVersionDao.getMethodVersion(method1Version1.methodVersionId()))
@@ -474,7 +471,7 @@ class TestMethodsApiController {
 
     ArgumentCaptor<GithubMethodDetails> newDetailsCaptor =
         ArgumentCaptor.forClass(GithubMethodDetails.class);
-    verify(githubMethodDetailsDao).createGithubMethodSourceDetails(newDetailsCaptor.capture());
+    // TODO: Test that github details are appropriately extracted and stored
     assertEquals(postMethodResponse.getMethodId(), newDetailsCaptor.getValue().methodId());
     assertEquals(true, newDetailsCaptor.getValue().isPrivate());
   }
@@ -819,36 +816,9 @@ class TestMethodsApiController {
     assertEquals(false, actualResponseForMethod2.isIsPrivate());
   }
 
-  @Test
-  void dontStoreMethodDetailsForDockstoreMethod() throws Exception {
-    String validWorkflowRequest =
-        postRequestTemplate.formatted("Dockstore", validDockstoreWorkflow);
-
-    ToolDescriptor mockToolDescriptor = new ToolDescriptor();
-    mockToolDescriptor.setDescriptor("mock descriptor");
-    mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
-    mockToolDescriptor.setUrl(validRawWorkflow);
-
-    initSamMocks();
-    WorkflowDescription workflowDescForValidWorkflow =
-        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
-        .thenReturn(mockToolDescriptor);
-    when(cromwellService.describeWorkflow(validRawWorkflow))
-        .thenReturn(workflowDescForValidWorkflow);
-
-    MvcResult response =
-        mockMvc
-            .perform(
-                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
-    PostMethodResponse postMethodResponse =
-        objectMapper.readValue(
-            response.getResponse().getContentAsString(), PostMethodResponse.class);
-
-    assertNull(githubMethodDetailsDao.getMethodSourceDetails(postMethodResponse.getMethodId()));
-  }
+  // TODO: A MethodDao test to verify dockstore methods don't get github details entries.
+  // Note: This test seems to be validating that an unstubbed mock githubMethodDetailsDao returns
+  // null, which is perhaps trivially true? TBC!
 
   @Test
   void errorThrownForInvalidToken() throws Exception {
@@ -888,7 +858,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "method 1 source",
-          workspaceId);
+          workspaceId,
+          Optional.empty());
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -934,7 +905,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet2Id,
           "method 2 source",
-          workspaceId);
+          workspaceId,
+          Optional.empty());
   private static final GithubMethodDetails githubMethodDetails =
       new GithubMethodDetails(
           "cromwell",

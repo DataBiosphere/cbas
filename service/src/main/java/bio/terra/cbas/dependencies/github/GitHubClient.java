@@ -121,13 +121,20 @@ public class GitHubClient {
   // https://api.github.com/repos/{organization}/{repo}/commits/{branch}
   public static class CommitInfo {
     private String sha;
+    private String htmlUrl;
 
     public void sha(String sha) {
       this.sha = sha;
     }
+    public void htmlUrl(String htmlUrl) {
+      this.htmlUrl = htmlUrl;
+    }
 
     public String getSha() {
       return sha;
+    }
+    public String getHtmlUrl() {
+      return htmlUrl;
     }
   }
 

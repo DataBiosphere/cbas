@@ -29,7 +29,7 @@ class TestMethodUtil {
     String rawGithubUrl =
         "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl";
     String actualUrl =
-        MethodUtil.convertToRawUrl(
+        MethodUtil.getRawUrl(
             rawGithubUrl, PostMethodRequest.MethodSourceEnum.GITHUB, "master", dockstoreService);
 
     assertEquals(rawGithubUrl, actualUrl);
@@ -44,7 +44,7 @@ class TestMethodUtil {
         "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl";
 
     String actualUrl =
-        MethodUtil.convertToRawUrl(
+        MethodUtil.getRawUrl(
             originalGithubUrl,
             PostMethodRequest.MethodSourceEnum.GITHUB,
             "master",
@@ -61,7 +61,7 @@ class TestMethodUtil {
         assertThrows(
             MalformedURLException.class,
             () ->
-                MethodUtil.convertToRawUrl(
+                MethodUtil.getRawUrl(
                     invalidUrl,
                     PostMethodRequest.MethodSourceEnum.GITHUB,
                     "master",
@@ -83,7 +83,7 @@ class TestMethodUtil {
     when(dockstoreService.descriptorGetV1(any(), any())).thenReturn(toolDescriptor);
 
     String actualUrl =
-        MethodUtil.convertToRawUrl(
+        MethodUtil.getRawUrl(
             workflowPath, PostMethodRequest.MethodSourceEnum.DOCKSTORE, "master", dockstoreService);
 
     verify(dockstoreService).descriptorGetV1(workflowPath, "master");
@@ -102,7 +102,7 @@ class TestMethodUtil {
         assertThrows(
             ApiException.class,
             () ->
-                MethodUtil.convertToRawUrl(
+                MethodUtil.getRawUrl(
                     workflowPath,
                     PostMethodRequest.MethodSourceEnum.DOCKSTORE,
                     "master",
