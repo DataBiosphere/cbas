@@ -30,9 +30,6 @@ public class SamService implements HealthCheck {
   // Sam action name for write permission
   public static final String WRITE_ACTION = "write";
 
-  // Sam action name for compute  permission
-  public static final String COMPUTE_ACTION = "compute";
-
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
 
   public SamService(SamClient samClient) {
@@ -119,9 +116,5 @@ public class SamService implements HealthCheck {
 
   public boolean hasWritePermission(BearerToken userToken) {
     return hasPermission(WRITE_ACTION, getSamUser(userToken), userToken);
-  }
-
-  public boolean hasComputePermission(BearerToken userToken) {
-    return hasPermission(COMPUTE_ACTION, getSamUser(userToken), userToken);
   }
 }

@@ -53,6 +53,7 @@ public class SmartRunsPoller {
    * changed and if so, updating the database.
    *
    * @param runs The list of input runs to check for updates
+   * @param userToken Bearer token
    * @return A new list containing up-to-date run information for all runs in the input
    */
   public UpdateResult<Run> updateRuns(List<Run> runs, BearerToken userToken) {
@@ -64,6 +65,8 @@ public class SmartRunsPoller {
    * changed and if so, updating the database.
    *
    * @param runs The list of input runs to check for updates
+   * @param customEndTime end time
+   * @param userToken Bearer token
    * @return A new list containing up-to-date run information for all runs in the input
    */
   public UpdateResult<Run> updateRuns(

@@ -166,11 +166,6 @@ class VerifyPactsAllControllers {
     when(samService.hasWritePermission(any())).thenReturn(true);
   }
 
-  @State({"user has compute permission"})
-  public void setComputePermission() throws Exception {
-    when(samService.hasComputePermission(any())).thenReturn(true);
-  }
-
   @State({"ready to fetch recordId FOO1 from recordType FOO from wdsService"})
   public void initializeFooDataTable() throws Exception {
 
