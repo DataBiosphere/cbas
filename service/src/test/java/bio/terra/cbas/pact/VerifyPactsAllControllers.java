@@ -291,7 +291,7 @@ class VerifyPactsAllControllers {
             eq(UUID.fromString("00000000-0000-0000-0000-000000000009"))))
         .thenReturn(targetRunSet);
 
-    when(smartRunSetsPoller.updateRunSets(response, any()))
+    when(smartRunSetsPoller.updateRunSets(eq(response), any()))
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 1, 1, true));
   }
 
@@ -309,7 +309,7 @@ class VerifyPactsAllControllers {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
-    when(abortManager.abortRunSet(runSetId, any())).thenReturn(abortDetails);
+    when(abortManager.abortRunSet(eq(runSetId), any())).thenReturn(abortDetails);
   }
 
   @State({"post completed workflow results"})
