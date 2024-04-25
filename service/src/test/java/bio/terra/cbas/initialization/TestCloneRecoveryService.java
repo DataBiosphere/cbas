@@ -31,7 +31,6 @@ public class TestCloneRecoveryService {
   void setup() {
     cbasContextConfig = mock(CbasContextConfiguration.class);
     when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
-    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(currentWorkspaceCreatedDate);
   }
 
   @Test
