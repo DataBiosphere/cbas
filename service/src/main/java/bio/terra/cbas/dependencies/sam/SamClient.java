@@ -1,6 +1,7 @@
 package bio.terra.cbas.dependencies.sam;
 
 import bio.terra.cbas.config.SamServerConfiguration;
+import bio.terra.common.iam.BearerToken;
 import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -29,9 +30,9 @@ public class SamClient {
         .setDebugging(samServerConfiguration.debugApiLogging());
   }
 
-  public ApiClient getApiClient(String accessToken) {
+  public ApiClient getApiClient(BearerToken userToken) {
     ApiClient apiClient = getApiClient();
-    apiClient.setAccessToken(accessToken);
+    apiClient.setAccessToken(userToken.getToken());
     return apiClient;
   }
 

@@ -3,6 +3,7 @@ package bio.terra.cbas.dependencies.wes;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiClient;
 import cromwell.client.api.EngineApi;
 import cromwell.client.api.Ga4GhWorkflowExecutionServiceWesAlphaPreviewApi;
@@ -28,7 +29,7 @@ public class CromwellClient {
     singletonHttpClient = new ApiClient().getHttpClient();
   }
 
-  public ApiClient getWriteApiClient(String accessToken) throws DependencyNotAvailableException {
+  public ApiClient getWriteApiClient(BearerToken userToken) throws DependencyNotAvailableException {
     String uri;
 
     if (!cromwellServerConfiguration.fetchCromwellUrlFromLeo()) {
@@ -36,11 +37,11 @@ public class CromwellClient {
     } else {
       uri =
           dependencyUrlLoader.loadDependencyUrl(
-              DependencyUrlLoader.DependencyUrlType.CROMWELL_URL, accessToken);
+              DependencyUrlLoader.DependencyUrlType.CROMWELL_URL, userToken);
     }
     ApiClient apiClient = setupApiClient(new ApiClient());
     apiClient.setBasePath(uri);
-    apiClient.setAccessToken(accessToken);
+    apiClient.setAccessToken(userToken.getToken());
     return apiClient;
   }
 
@@ -50,11 +51,10 @@ public class CromwellClient {
     return apiClient;
   }
 
-  public ApiClient getAuthReadApiClient(String accessToken) {
-
+  public ApiClient getAuthReadApiClient(BearerToken userToken) {
     ApiClient apiClient = setupApiClient(new ApiClient());
     apiClient.setBasePath(cromwellServerConfiguration.baseUri());
-    apiClient.setAccessToken(accessToken);
+    apiClient.setAccessToken(userToken.getToken());
     return apiClient;
   }
 

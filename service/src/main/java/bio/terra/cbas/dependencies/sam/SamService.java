@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 public class SamService implements HealthCheck {
 
   private final SamClient samClient;
-  private final BearerToken bearerToken;
 
   // Sam resource type name for Workspaces
   public static final String RESOURCE_TYPE_WORKSPACE = "workspace";
@@ -31,21 +30,17 @@ public class SamService implements HealthCheck {
   // Sam action name for write permission
   public static final String WRITE_ACTION = "write";
 
-  // Sam action name for compute  permission
-  public static final String COMPUTE_ACTION = "compute";
-
   private static final Logger logger = LoggerFactory.getLogger(SamService.class);
 
-  public SamService(SamClient samClient, BearerToken bearerToken) {
+  public SamService(SamClient samClient) {
     this.samClient = samClient;
-    this.bearerToken = bearerToken;
   }
 
   private StatusApi getStatusApi() {
     return new StatusApi(samClient.getApiClient());
   }
 
-  public boolean hasPermission(String actionType, UserStatusInfo userInfo) {
+  public boolean hasPermission(String actionType, UserStatusInfo userInfo, BearerToken userToken) {
     // don't check auth access with Sam if "sam.checkAuthAccess" is false
     if (!samClient.checkAuthAccessWithSam()) return true;
 
@@ -63,7 +58,7 @@ public class SamService implements HealthCheck {
         samClient.getWorkspaceId());
 
     try {
-      ResourcesApi resourcesApi = getResourcesApi();
+      ResourcesApi resourcesApi = getResourcesApi(userToken);
       return SamRetry.retry(
           () ->
               resourcesApi.resourcePermissionV2(
@@ -80,24 +75,20 @@ public class SamService implements HealthCheck {
     }
   }
 
-  boolean hasPermission(String actionType) {
-    return hasPermission(actionType, getSamUser());
+  public UsersApi getUsersApi(BearerToken userToken) {
+    return new UsersApi(samClient.getApiClient(userToken));
   }
 
-  public UsersApi getUsersApi() {
-    return new UsersApi(samClient.getApiClient(bearerToken.getToken()));
-  }
-
-  public ResourcesApi getResourcesApi() {
-    return new ResourcesApi(samClient.getApiClient(bearerToken.getToken()));
+  public ResourcesApi getResourcesApi(BearerToken userToken) {
+    return new ResourcesApi(samClient.getApiClient(userToken));
   }
 
   // Borrowed from WDS
-  public UserStatusInfo getSamUser() throws ErrorReportException {
+  public UserStatusInfo getSamUser(BearerToken userToken) throws ErrorReportException {
     if (!samClient.checkAuthAccessWithSam()) {
       return new UserStatusInfo(); // Dummy user for local testing
     }
-    UsersApi usersApi = getUsersApi();
+    UsersApi usersApi = getUsersApi(userToken);
     try {
       return SamRetry.retry(usersApi::getUserStatusInfo);
     } catch (ApiException apiException) {
@@ -119,15 +110,11 @@ public class SamService implements HealthCheck {
     }
   }
 
-  public boolean hasReadPermission() {
-    return hasPermission(READ_ACTION);
+  public boolean hasReadPermission(BearerToken userToken) {
+    return hasPermission(READ_ACTION, getSamUser(userToken), userToken);
   }
 
-  public boolean hasWritePermission() {
-    return hasPermission(WRITE_ACTION);
-  }
-
-  public boolean hasComputePermission() {
-    return hasPermission(COMPUTE_ACTION);
+  public boolean hasWritePermission(BearerToken userToken) {
+    return hasPermission(WRITE_ACTION, getSamUser(userToken), userToken);
   }
 }

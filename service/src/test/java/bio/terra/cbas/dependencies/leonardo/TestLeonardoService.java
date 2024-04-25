@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.RetryConfig;
 import bio.terra.cbas.config.WdsServerConfiguration;
-import bio.terra.common.iam.BearerToken;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +32,7 @@ class TestLeonardoService {
   final RetryConfig retryConfig = new RetryConfig();
   RetryTemplate template = retryConfig.listenerResetRetryTemplate();
 
-  final BearerToken bearerToken = new BearerToken("");
+  final String userToken = "mock-token";
 
   final Answer<Object> errorAnswer =
       invocation -> {
@@ -58,11 +57,11 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template));
 
-    doReturn(appsApi).when(leonardoService).getAppsApi();
+    doReturn(appsApi).when(leonardoService).getAppsApi(userToken);
 
-    assertEquals(expectedResponse, leonardoService.getApps(false));
+    assertEquals(expectedResponse, leonardoService.getApps(userToken, false));
   }
 
   @Test
@@ -78,14 +77,14 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template));
 
-    doReturn(appsApi).when(leonardoService).getAppsApi();
+    doReturn(appsApi).when(leonardoService).getAppsApi(userToken);
 
     assertThrows(
         SocketTimeoutException.class,
         () -> {
-          leonardoService.getApps(false);
+          leonardoService.getApps(userToken, false);
         });
   }
 
@@ -102,15 +101,15 @@ class TestLeonardoService {
         .thenReturn(expectedResponse);
 
     LeonardoService leonardoService =
-        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template, bearerToken));
+        spy(new LeonardoService(leonardoClient, wdsServerConfiguration, template));
 
-    doReturn(appsApi).when(leonardoService).getAppsApi();
+    doReturn(appsApi).when(leonardoService).getAppsApi(userToken);
 
     LeonardoServiceApiException thrown =
         assertThrows(
             LeonardoServiceApiException.class,
             () -> {
-              leonardoService.getApps(false);
+              leonardoService.getApps(userToken, false);
             });
     assertEquals(expectedException, thrown.getCause());
   }

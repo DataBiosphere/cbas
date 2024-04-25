@@ -44,7 +44,7 @@ class SamPactTest {
     SamServerConfiguration samConfig =
         new SamServerConfiguration(mockServer.getUrl(), false, dummyWorkspaceId, true);
     SamClient samClient = new SamClient(samConfig);
-    samService = new SamService(samClient, new BearerToken("accessToken"));
+    samService = new SamService(samClient);
   }
 
   @Pact(consumer = "cbas", provider = "sam")
@@ -101,7 +101,9 @@ class SamPactTest {
   void testSamServiceWritePermissionPact(MockServer mockServer) {
     initSamService(mockServer);
     UserStatusInfo mockUserInfo = new UserStatusInfo().userSubjectId("testUser");
-    boolean hasWritePermission = samService.hasPermission(SamService.WRITE_ACTION, mockUserInfo);
+    boolean hasWritePermission =
+        samService.hasPermission(
+            SamService.WRITE_ACTION, mockUserInfo, new BearerToken("accessToken"));
     assertTrue(hasWritePermission);
   }
 
@@ -119,7 +121,8 @@ class SamPactTest {
     initSamService(mockServer);
     UserStatusInfo userInfo =
         assertDoesNotThrow(
-            () -> samService.getSamUser(), "get user info request should not throw an error");
+            () -> samService.getSamUser(new BearerToken("accessToken")),
+            "get user info request should not throw an error");
 
     assertNotNull(userInfo);
     assertNotNull(userInfo.getUserEmail());

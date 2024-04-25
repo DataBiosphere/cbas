@@ -31,7 +31,7 @@ public class EcmPactTest {
         new EcmServerConfiguration(mockServer.getUrl(), false);
 
     EcmClient ecmClient = new EcmClient(ecmServerConfiguration);
-    ecmService = new EcmService(ecmClient, new BearerToken("accessToken"));
+    ecmService = new EcmService(ecmClient);
   }
 
   @Pact(consumer = "cbas", provider = "externalcreds")
@@ -73,7 +73,7 @@ public class EcmPactTest {
   @PactTestFor(pactMethod = "getGithubAccessToken", pactVersion = PactSpecVersion.V3)
   void testEcmServiceGetAccessToken(MockServer mockServer) {
     initEcmService(mockServer);
-    var token = ecmService.getAccessToken();
+    var token = ecmService.getAccessToken(new BearerToken("accessToken"));
     assertEquals("GITHUB_TOKEN", token);
   }
 }

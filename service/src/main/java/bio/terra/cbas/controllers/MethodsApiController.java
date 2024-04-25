@@ -37,10 +37,13 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -70,6 +73,8 @@ public class MethodsApiController implements MethodsApi {
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
   private final GithubMethodDetailsDao githubMethodDetailsDao;
+  private final BearerTokenFactory bearerTokenFactory;
+  private final HttpServletRequest httpServletRequest;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -81,7 +86,9 @@ public class MethodsApiController implements MethodsApi {
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfig,
-      GithubMethodDetailsDao githubMethodDetailsDao) {
+      GithubMethodDetailsDao githubMethodDetailsDao,
+      BearerTokenFactory bearerTokenFactory,
+      HttpServletRequest httpServletRequest) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.gitHubService = gitHubService;
@@ -92,14 +99,19 @@ public class MethodsApiController implements MethodsApi {
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
     this.githubMethodDetailsDao = githubMethodDetailsDao;
+    this.bearerTokenFactory = bearerTokenFactory;
+    this.httpServletRequest = httpServletRequest;
   }
 
   private final ObjectMapper objectMapper;
 
   @Override
   public ResponseEntity<PostMethodResponse> postMethod(PostMethodRequest postMethodRequest) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
     // check if current user has write permissions on the workspace
-    if (!samService.hasWritePermission()) {
+    if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -152,7 +164,7 @@ public class MethodsApiController implements MethodsApi {
     // outputs
     WorkflowDescription workflowDescription;
     try {
-      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl);
+      workflowDescription = cromwellService.describeWorkflow(rawMethodUrl, userToken);
 
       // return 400 if method is invalid
       if (!workflowDescription.getValid()) {
@@ -202,7 +214,7 @@ public class MethodsApiController implements MethodsApi {
         String organization = githubUrlComponents.org();
         branchOrTagName = githubUrlComponents.branchOrTag();
 
-        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository);
+        Boolean isPrivate = gitHubService.isRepoPrivate(organization, repository, userToken);
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
@@ -248,8 +260,11 @@ public class MethodsApiController implements MethodsApi {
   @Override
   public ResponseEntity<MethodListResponse> getMethods(
       Boolean showVersions, UUID methodId, UUID methodVersionId) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
     // check if current user has read permissions on the workspace
-    if (!samService.hasReadPermission()) {
+    if (!samService.hasReadPermission(userToken)) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
