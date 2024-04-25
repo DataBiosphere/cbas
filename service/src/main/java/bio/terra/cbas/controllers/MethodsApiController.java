@@ -223,7 +223,8 @@ public class MethodsApiController implements MethodsApi {
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
 
-        String githash = gitHubService.getCurrentGithash(organization, repository, branchOrTagName);
+        String githash =
+            gitHubService.getCurrentGithash(organization, repository, branchOrTagName, userToken);
         githubMethodVersionDetails =
             Optional.of(new GithubMethodVersionDetails(githash, methodVersionId));
       } else {

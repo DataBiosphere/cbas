@@ -27,13 +27,14 @@ public class GitHubService {
     return repoInfo.getIsPrivate();
   }
 
-  public String getCurrentGithash(String organization, String repo, String branch)
+  public String getCurrentGithash(
+      String organization, String repo, String branch, BearerToken userToken)
       throws GitHubClient.GitHubClientException {
     GitHubClient.CommitInfo commitInfo;
     try {
       commitInfo = client.getCommit(organization, repo, branch, "");
     } catch (GitHubClient.GitHubClientException e) {
-      String githubToken = ecmService.getAccessToken();
+      String githubToken = ecmService.getAccessToken(userToken);
       commitInfo = client.getCommit(organization, repo, branch, githubToken);
     }
 

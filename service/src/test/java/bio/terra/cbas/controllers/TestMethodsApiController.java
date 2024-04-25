@@ -427,8 +427,8 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
-    when(gitHubService.isRepoPrivate(any(), any())).thenReturn(true);
-    when(gitHubService.getCurrentGithash(any(), any(), any())).thenReturn("abcd123");
+    when(gitHubService.isRepoPrivate(any(), any(), any())).thenReturn(true);
+    when(gitHubService.getCurrentGithash(any(), any(), any(), any())).thenReturn("abcd123");
 
     MvcResult response =
         mockMvc
