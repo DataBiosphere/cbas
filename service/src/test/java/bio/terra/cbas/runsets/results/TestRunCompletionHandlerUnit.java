@@ -27,6 +27,7 @@ import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import com.google.gson.Gson;
 import cromwell.client.model.RunLog;
 import java.time.OffsetDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Assertions;
@@ -91,7 +92,8 @@ class TestRunCompletionHandlerUnit {
               runSetId,
               "file:///method/source/url",
               workspaceId,
-              "develop"),
+              "develop",
+              Optional.empty()),
           "runSetName",
           "runSetDescription",
           true,
@@ -127,7 +129,8 @@ class TestRunCompletionHandlerUnit {
               runSetId,
               "file:///method/source/url",
               workspaceId,
-              "develop"),
+              "develop",
+              Optional.empty()),
           "runSetName",
           "runSetDescription",
           true,

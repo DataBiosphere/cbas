@@ -54,6 +54,7 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
@@ -195,7 +196,8 @@ class VerifyPactsAllControllers {
             fixedLastRunSetUUIDForMethod,
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
             workspaceId,
-            "develop");
+            "develop",
+            Optional.empty());
 
     // Arrange DAO responses
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
@@ -263,7 +265,8 @@ class VerifyPactsAllControllers {
             UUID.randomUUID(),
             "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
             workspaceId,
-            "develop");
+            "develop",
+            Optional.empty());
 
     RunSet targetRunSet =
         new RunSet(

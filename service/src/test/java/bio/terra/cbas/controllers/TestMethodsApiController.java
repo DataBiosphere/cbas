@@ -41,6 +41,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -908,7 +909,8 @@ class TestMethodsApiController {
           null,
           "file://method1/v1.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.empty());
 
   private static final MethodVersion method1Version2 =
       new MethodVersion(
@@ -920,7 +922,8 @@ class TestMethodsApiController {
           null,
           "file://method1/v2.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.empty());
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
@@ -960,7 +963,8 @@ class TestMethodsApiController {
           method2RunSet1Id,
           "file://method2/v1.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.empty());
 
   private static final UUID method2Version2VersionID = UUID.randomUUID();
   private static final MethodVersion method2Version2 =
@@ -973,7 +977,8 @@ class TestMethodsApiController {
           method2RunSet2Id,
           "file://method2/v2.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.empty());
 
   private static final RunSet method2Version1Runset =
       new RunSet(

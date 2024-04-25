@@ -82,6 +82,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -302,7 +303,8 @@ class TestRunSetsApiController {
                 null,
                 workflowUrl,
                 workspaceId,
-                "test_branch"));
+                "test_branch",
+                Optional.empty()));
 
     when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
         .thenReturn(
@@ -322,7 +324,8 @@ class TestRunSetsApiController {
                 null,
                 dockstoreWorkflowUrl,
                 workspaceId,
-                "develop"));
+                "develop",
+                Optional.empty()));
 
     // Set up API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
@@ -865,7 +868,8 @@ class TestRunSetsApiController {
                 UUID.randomUUID(),
                 "method url",
                 workspaceId,
-                "develop"),
+                "develop",
+                Optional.empty()),
             "",
             "",
             false,
@@ -901,7 +905,8 @@ class TestRunSetsApiController {
                 UUID.randomUUID(),
                 "method url",
                 workspaceId,
-                "develop"),
+                "develop",
+                Optional.empty()),
             "",
             "",
             false,
@@ -977,7 +982,8 @@ class TestRunSetsApiController {
                 UUID.randomUUID(),
                 "method url",
                 workspaceId,
-                "test_branch"),
+                "test_branch",
+                Optional.empty()),
             "",
             "",
             false,
@@ -1061,7 +1067,8 @@ class TestRunSetsApiController {
                 UUID.randomUUID(),
                 "method url",
                 workspaceId,
-                "0.0.15"),
+                "0.0.15",
+                Optional.empty()),
             "",
             "",
             false,

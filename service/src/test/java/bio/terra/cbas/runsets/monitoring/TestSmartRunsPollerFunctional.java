@@ -41,6 +41,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,8 @@ public class TestSmartRunsPollerFunctional {
               runSetId,
               "file:///method/source/url",
               workspaceId,
-              "develop"),
+              "develop",
+              Optional.empty()),
           "runSetName",
           "runSetDescription",
           true,
