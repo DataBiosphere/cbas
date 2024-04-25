@@ -19,16 +19,17 @@ class TestEcmService {
   @Test
   void ecmReturnsExpectedToken() {
     EcmClient ecmClient = mock(EcmClient.class);
-    BearerToken bearerToken = new BearerToken("foo");
-    String token = "token_here";
-    EcmService ecmService = new EcmService(ecmClient, bearerToken);
+    BearerToken userToken = new BearerToken("foo");
+    String githubToken = "token_here";
+    EcmService ecmService = new EcmService(ecmClient);
     ApiClient apiClient = mock(ApiClient.class);
     OauthApi oAuthApi = mock(OauthApi.class);
 
     when(ecmClient.oAuthApi(any())).thenReturn(oAuthApi);
-    when(ecmClient.ecmAuthClient(bearerToken.getToken())).thenReturn(apiClient);
-    when(ecmClient.oAuthApi(apiClient).getProviderAccessToken(Provider.GITHUB)).thenReturn(token);
+    when(ecmClient.ecmAuthClient(userToken)).thenReturn(apiClient);
+    when(ecmClient.oAuthApi(apiClient).getProviderAccessToken(Provider.GITHUB))
+        .thenReturn(githubToken);
 
-    assertEquals(token, ecmService.getAccessToken());
+    assertEquals(githubToken, ecmService.getAccessToken(userToken));
   }
 }

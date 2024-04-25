@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.leonardo;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
-import bio.terra.common.iam.BearerToken;
 import java.util.List;
 import org.broadinstitute.dsde.workbench.client.leonardo.ApiException;
 import org.broadinstitute.dsde.workbench.client.leonardo.api.AppsApi;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
 public class LeonardoService implements HealthCheck {
 
   private final LeonardoClient leonardoClient;
-  private final BearerToken bearerToken;
   private final RetryTemplate listenerResetRetryTemplate;
 
   private final WdsServerConfiguration wdsServerConfiguration;
@@ -24,28 +22,27 @@ public class LeonardoService implements HealthCheck {
   public LeonardoService(
       LeonardoClient leonardoClient,
       WdsServerConfiguration wdsServerConfiguration,
-      RetryTemplate listenerResetRetryTemplate,
-      BearerToken bearerToken) {
+      RetryTemplate listenerResetRetryTemplate) {
     this.leonardoClient = leonardoClient;
     this.wdsServerConfiguration = wdsServerConfiguration;
     this.listenerResetRetryTemplate = listenerResetRetryTemplate;
-    this.bearerToken = bearerToken;
   }
 
-  AppsApi getAppsApi() {
-    return new AppsApi(leonardoClient.getApiClient(bearerToken.getToken()));
+  AppsApi getAppsApi(String userToken) {
+    return new AppsApi(leonardoClient.getApiClient(userToken));
   }
 
   private ServiceInfoApi getServiceInfoApi() {
     return new ServiceInfoApi(leonardoClient.getUnauthorizedApiClient());
   }
 
-  public List<ListAppResponse> getApps(boolean creatorOnly) throws LeonardoServiceException {
+  public List<ListAppResponse> getApps(String userToken, boolean creatorOnly)
+      throws LeonardoServiceException {
     String creatorRoleSpecifier = creatorOnly ? "creator" : null;
     return executionWithRetryTemplate(
         listenerResetRetryTemplate,
         () ->
-            getAppsApi()
+            getAppsApi(userToken)
                 .listAppsV2(
                     wdsServerConfiguration.instanceId(), null, null, null, creatorRoleSpecifier));
   }

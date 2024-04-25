@@ -26,6 +26,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
@@ -51,6 +52,7 @@ class TestRunCompletionHandlerFunctional {
   private MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
   private final UUID workspaceId = UUID.randomUUID();
+  private final BearerToken mockToken = new BearerToken("mock-token");
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -118,7 +120,8 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, null, Collections.emptyList());
+        runCompletionHandler.updateResults(
+            run1Incomplete, COMPLETE, null, Collections.emptyList(), mockToken);
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
@@ -138,7 +141,9 @@ class TestRunCompletionHandlerFunctional {
     when(runDao.updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), any())).thenReturn(1);
 
     // Run the results update:
-    var result = runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, null, errorList);
+    var result =
+        runCompletionHandler.updateResults(
+            run1Incomplete, SYSTEM_ERROR, null, errorList, mockToken);
     ArgumentCaptor<String> errors = ArgumentCaptor.forClass(String.class);
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
@@ -160,7 +165,8 @@ class TestRunCompletionHandlerFunctional {
     when(runDao.updateLastPolledTimestamp(runId1)).thenReturn(0);
 
     // Run the results update:
-    var result = runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, null, null);
+    var result =
+        runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, null, null, mockToken);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
@@ -183,10 +189,10 @@ class TestRunCompletionHandlerFunctional {
     // Run the results update:
     var result =
         runCompletionHandler.updateResults(
-            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList());
+            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList(), mockToken);
 
     // Validate the results:
-    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(wdsService, times(0)).updateRecord(any(), any(), any(), any());
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(CANCELED), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
     assertEquals(RunCompletionResult.SUCCESS, result);
@@ -205,10 +211,10 @@ class TestRunCompletionHandlerFunctional {
     // Run the results update:
     var result =
         runCompletionHandler.updateResults(
-            run1Incomplete, CbasRunStatus.CANCELED, "[]", Collections.emptyList());
+            run1Incomplete, CbasRunStatus.CANCELED, "[]", Collections.emptyList(), mockToken);
 
     // Validate the results:
-    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(wdsService, times(0)).updateRecord(any(), any(), any(), any());
     verify(runDao, times(1)).updateLastPolledTimestamp(runId1);
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
@@ -229,7 +235,7 @@ class TestRunCompletionHandlerFunctional {
     // Run the results update:
     var result =
         runCompletionHandler.updateResults(
-            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList());
+            run1Incomplete, CbasRunStatus.CANCELED, null, Collections.emptyList(), mockToken);
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(CANCELED), any());
@@ -255,12 +261,13 @@ class TestRunCompletionHandlerFunctional {
         .thenReturn(1);
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, null);
+        runCompletionHandler.updateResults(
+            run1Incomplete, COMPLETE, cromwellOutputs, null, mockToken);
 
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), eq(COMPLETE), any());
     verify(runDao, times(0)).updateRunStatusWithError(eq(runId1), any(), any(), anyString());
-    verify(wdsService, times(1)).updateRecord(any(), any(), any());
+    verify(wdsService, times(1)).updateRecord(any(), any(), any(), any());
     assertEquals(RunCompletionResult.SUCCESS, result);
   }
 
@@ -282,12 +289,13 @@ class TestRunCompletionHandlerFunctional {
         .thenReturn(1);
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, null);
+        runCompletionHandler.updateResults(
+            run1Incomplete, COMPLETE, cromwellOutputs, null, mockToken);
     // Validate the results:
     verify(runDao, times(1)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(0))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
-    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(wdsService, times(0)).updateRecord(any(), any(), any(), any());
 
     assertEquals(RunCompletionResult.SUCCESS, result);
   }
@@ -311,10 +319,11 @@ class TestRunCompletionHandlerFunctional {
     // WDS throws
     doThrow(new WdsServiceApiException(new ApiException("Some API error")) {})
         .when(wdsService)
-        .updateRecord(any(), any(), any());
+        .updateRecord(any(), any(), any(), any());
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, failures);
+        runCompletionHandler.updateResults(
+            run1Incomplete, COMPLETE, cromwellOutputs, failures, mockToken);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
@@ -342,10 +351,11 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, COMPLETE, cromwellOutputs, failures);
+        runCompletionHandler.updateResults(
+            run1Incomplete, COMPLETE, cromwellOutputs, failures, mockToken);
 
     // Validate the results:
-    verify(wdsService, times(0)).updateRecord(any(), any(), any());
+    verify(wdsService, times(0)).updateRecord(any(), any(), any(), any());
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
     verify(runDao, times(0))
         .updateRunStatusWithError(eq(runId1), eq(SYSTEM_ERROR), any(), anyString());
@@ -370,7 +380,8 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, cromwellOutputs, null);
+        runCompletionHandler.updateResults(
+            run1Incomplete, SYSTEM_ERROR, cromwellOutputs, null, mockToken);
 
     // Validate the results:
     // Since error count is 0, only Status is going to be updated in DB.
@@ -398,7 +409,8 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, cromwellOutputs, errors);
+        runCompletionHandler.updateResults(
+            run1Incomplete, SYSTEM_ERROR, cromwellOutputs, errors, mockToken);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
@@ -426,7 +438,8 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, cromwellOutputs, errors);
+        runCompletionHandler.updateResults(
+            run1Incomplete, SYSTEM_ERROR, cromwellOutputs, errors, mockToken);
 
     // Validate the results:
     verify(runDao, times(0)).updateRunStatus(eq(runId1), any(), any());
@@ -453,7 +466,8 @@ class TestRunCompletionHandlerFunctional {
 
     // Run the results update:
     var result =
-        runCompletionHandler.updateResults(run1Incomplete, SYSTEM_ERROR, cromwellOutputs, failures);
+        runCompletionHandler.updateResults(
+            run1Incomplete, SYSTEM_ERROR, cromwellOutputs, failures, mockToken);
 
     // Validate the results:
     // Since error count is 0, only Status is going to be updated in DB.

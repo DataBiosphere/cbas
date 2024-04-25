@@ -52,10 +52,9 @@ class TestWdsService {
         .thenThrow(new ProcessingException("Processing exception"))
         .thenReturn(expectedResponse);
 
-    WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
-    assertEquals(expectedResponse, wdsService.getRecord("FOO", "foo1"));
+    assertEquals(expectedResponse, wdsService.getRecord("FOO", "foo1", bearerToken));
   }
 
   @Test
@@ -71,10 +70,9 @@ class TestWdsService {
         .thenThrow(new ProcessingException("Processing exception"))
         .thenThrow(new ProcessingException("Processing exception"));
 
-    WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
-    assertThrows(ProcessingException.class, () -> wdsService.getRecord("FOO", "foo1"));
+    assertThrows(ProcessingException.class, () -> wdsService.getRecord("FOO", "foo1", bearerToken));
   }
 
   @Test
@@ -86,9 +84,8 @@ class TestWdsService {
     when(recordsApi.getRecord(instanceId, apiV, "FOO", "foo1"))
         .thenThrow(new RuntimeException("Other exception"));
 
-    WdsService wdsService =
-        new WdsService(wdsClient, wdsServerConfiguration, template, bearerToken);
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
-    assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1"));
+    assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1", bearerToken));
   }
 }

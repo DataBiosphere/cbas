@@ -13,6 +13,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
+import bio.terra.common.iam.BearerToken;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,7 +46,7 @@ public class SmartRunSetsPoller {
     this.cbasApiConfiguration = cbasApiConfiguration;
   }
 
-  public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets) {
+  public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets, BearerToken userToken) {
     // For metrics:
     long startTimeNs = System.nanoTime();
     boolean successBoolean = false;
@@ -60,7 +61,7 @@ public class SmartRunSetsPoller {
               RunSet::runSetId,
               rs -> rs.status().nonTerminal(),
               Comparator.comparing(RunSet::lastPolledTimestamp),
-              rs -> updateRunSet(rs, limitedEndTime),
+              rs -> updateRunSet(rs, limitedEndTime, userToken),
               limitedEndTime);
 
       increaseEventCounter("run set updates required", runSetUpdateResult.totalEligible());
@@ -80,7 +81,7 @@ public class SmartRunSetsPoller {
     }
   }
 
-  private RunSet updateRunSet(RunSet rs, OffsetDateTime limitedEndTime) {
+  private RunSet updateRunSet(RunSet rs, OffsetDateTime limitedEndTime, BearerToken userToken) {
 
     // For metrics:
     long startTimeNs = System.nanoTime();
@@ -97,7 +98,7 @@ public class SmartRunSetsPoller {
               ? runPollerSpecificUpdateLimit
               : limitedEndTime;
 
-      smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime));
+      smartRunsPoller.updateRuns(updateableRuns, Optional.of(runPollUpdateEndTime), userToken);
 
       StatusAndCounts newStatusAndCounts = newStatusAndErrorCounts(rs);
 

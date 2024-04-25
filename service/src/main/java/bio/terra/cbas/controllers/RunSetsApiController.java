@@ -52,10 +52,13 @@ import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.iam.BearerToken;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
@@ -90,6 +93,8 @@ public class RunSetsApiController implements RunSetsApi {
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
+  private final BearerTokenFactory bearerTokenFactory;
+  private final HttpServletRequest httpServletRequest;
 
   private record WdsRecordResponseDetails(
       ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
@@ -108,7 +113,9 @@ public class RunSetsApiController implements RunSetsApi {
       CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
-      RunSetAbortManager abortManager) {
+      RunSetAbortManager abortManager,
+      BearerTokenFactory bearerTokenFactory,
+      HttpServletRequest httpServletRequest) {
     this.samService = samService;
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
@@ -123,6 +130,8 @@ public class RunSetsApiController implements RunSetsApi {
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;
     this.abortManager = abortManager;
+    this.bearerTokenFactory = bearerTokenFactory;
+    this.httpServletRequest = httpServletRequest;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -147,7 +156,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetListResponse> getRunSets(UUID methodId, Integer pageSize) {
-    if (!samService.hasReadPermission()) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    if (!samService.hasReadPermission(userToken)) {
       throw new ForbiddenException(SamService.READ_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -162,7 +174,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     TimeLimitedUpdater.UpdateResult<RunSet> runSetUpdateResult =
-        smartRunSetsPoller.updateRunSets(filteredRunSet);
+        smartRunSetsPoller.updateRunSets(filteredRunSet, userToken);
     List<RunSet> updatedRunSets = runSetUpdateResult.updatedList();
     List<RunSetDetailsResponse> filteredRunSetDetails =
         updatedRunSets.stream().map(this::convertToRunSetDetails).toList();
@@ -176,7 +188,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
-    if (!samService.hasWritePermission()) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -192,7 +207,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request);
+    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(request, userToken);
 
     if (wdsRecordResponses.recordIdsWithError.size() > 0) {
       String errorMsg =
@@ -239,7 +254,7 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    UserStatusInfo user = samService.getSamUser();
+    UserStatusInfo user = samService.getSamUser(userToken);
 
     // Create a new run_set
     UUID runSetId = this.uuidSource.generateUUID();
@@ -279,7 +294,7 @@ public class RunSetsApiController implements RunSetsApi {
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
         buildInputsAndSubmitRun(
-            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl);
+            request, runSet, wdsRecordResponses.recordResponseList, rawMethodUrl, userToken);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -311,7 +326,10 @@ public class RunSetsApiController implements RunSetsApi {
 
   @Override
   public ResponseEntity<AbortRunSetResponse> abortRunSet(UUID runSetId) {
-    if (!samService.hasWritePermission()) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
@@ -319,7 +337,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     aborted.runSetId(runSetId);
 
-    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId);
+    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId, userToken);
     List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
     List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
 
@@ -406,14 +424,14 @@ public class RunSetsApiController implements RunSetsApi {
     return errorList;
   }
 
-  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request) {
+  private WdsRecordResponseDetails fetchWdsRecords(RunSetRequest request, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId));
+        recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
       } catch (WdsServiceApiException e) {
         log.warn("Record lookup for Record ID {} failed.", recordId, e);
         recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
@@ -465,7 +483,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetRequest request,
       RunSet runSet,
       ArrayList<RecordResponse> recordResponses,
-      String rawMethodUrl) {
+      String rawMethodUrl,
+      BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
@@ -551,7 +570,7 @@ public class RunSetsApiController implements RunSetsApi {
         // Submit the workflows and store the Runs to database
         List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
-                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson);
+                rawMethodUrl, requestedIdToWorkflowInput, workflowOptionsJson, userToken);
 
         runStateResponseList.addAll(
             submitWorkflowBatchResponse.stream()
