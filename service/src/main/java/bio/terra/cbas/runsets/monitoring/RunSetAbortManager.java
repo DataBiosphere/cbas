@@ -9,6 +9,7 @@ import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.common.iam.BearerToken;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +29,7 @@ public class RunSetAbortManager {
     this.cromwellService = cromwellService;
   }
 
-  public AbortRequestDetails abortRunSet(UUID runSetId) {
+  public AbortRequestDetails abortRunSet(UUID runSetId, BearerToken userToken) {
     AbortRequestDetails abortDetails = new AbortRequestDetails();
 
     List<String> failedRunIds = new ArrayList<>();
@@ -54,7 +55,7 @@ public class RunSetAbortManager {
     for (Run run : runningWorkflows) {
       // Trying inside the for-loop in case a single run fails to be updated
       try {
-        cromwellService.cancelRun(run);
+        cromwellService.cancelRun(run, userToken);
         submittedAbortWorkflows.add(run.runId());
       } catch (cromwell.client.ApiException e) {
         String msg = "Unable to abort workflow %s.".formatted(run.runId());

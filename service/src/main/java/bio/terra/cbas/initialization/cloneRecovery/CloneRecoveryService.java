@@ -33,10 +33,7 @@ public class CloneRecoveryService {
   }
 
   public void cloneRecovery() {
-    logger.info(
-        "Starting clone recovery (workspaceId: {}, workspaceCreatedDate: {})",
-        cbasContextConfig.getWorkspaceId(),
-        cbasContextConfig.getWorkspaceCreatedDate());
+    logger.info("Starting clone recovery (workspaceId: {})", cbasContextConfig.getWorkspaceId());
 
     List<Method> clonedMethods =
         methodDao.getMethods().stream().filter(this::isMethodCloned).toList();

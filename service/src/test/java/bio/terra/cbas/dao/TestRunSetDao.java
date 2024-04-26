@@ -7,11 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,9 +45,11 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
           "Github",
           workspaceId);
 
+  UUID methodVersionId = UUID.fromString("80000000-0000-0000-0000-000000000008");
+  String methodVersionGithash = "1234abc";
   MethodVersion methodVersion =
       new MethodVersion(
-          UUID.fromString("80000000-0000-0000-0000-000000000008"),
+          methodVersionId,
           method,
           "1.0",
           "fetch_sra_to_bam sample submission",
@@ -52,7 +57,8 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
           null,
           "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.of(new GithubMethodVersionDetails(methodVersionGithash, methodVersionId)));
 
   RunSet runSet =
       new RunSet(
@@ -87,6 +93,9 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
     assertEquals(runSet.runCount(), actual.runCount());
     assertEquals(runSet.errorCount(), actual.errorCount());
     assertEquals(runSet.recordType(), actual.recordType());
+    // Make sure the deep linking with method version details is working:
+    assertEquals(
+        methodVersionGithash, runSet.methodVersion().methodVersionDetails().get().githash());
   }
 
   @Test
@@ -97,6 +106,15 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
 
     List<RunSet> templateRunSets = runSetDao.getRunSets(2, true);
     assertEquals(1, templateRunSets.size());
+
+    List<RunSet> combined = new ArrayList<>(List.copyOf(runSets));
+    combined.addAll(templateRunSets);
+
+    // Make sure the deep linking with method version details is working:
+    for (RunSet runSet : combined) {
+      assertEquals(
+          methodVersionGithash, runSet.methodVersion().methodVersionDetails().get().githash());
+    }
   }
 
   @Test
@@ -158,6 +176,9 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
         runSet.runSetId(), runSetDao.getRunSetsWithMethodId(method.methodId()).get(2).runSetId());
 
     assertEquals(3, runSetDao.getRunSetsWithMethodId(method.methodId()).size());
+
+    assertEquals(
+        methodVersionGithash, runSet.methodVersion().methodVersionDetails().get().githash());
   }
 
   @Test

@@ -109,7 +109,8 @@ jobs:
     needs: [ bump-check, init-github-context ]
     if: ${{ needs.bump-check.outputs.is-bump == 'no' }}
     outputs:
-      pact-b64: ${{ steps.encode-pact.outputs.pact-b64 }}
+      pact-b64-sam: ${{ steps.encode-pact.outputs.pact-b64-sam }}
+      pact-b64-externalcreds: ${{ steps.encode-pact.outputs.pact-b64-externalcreds }}
 
     steps:
       - uses: actions/checkout@v3
@@ -123,14 +124,16 @@ jobs:
       - name: Output consumer contract as non-breaking base64 string
         id: encode-pact
         run: |
-          NON_BREAKING_B64=$(cat service/build/pacts/cbas-sam.json | base64 -w 0)
-          echo "pact-b64=${NON_BREAKING_B64}" >> $GITHUB_OUTPUT
+          NON_BREAKING_B64_SAM=$(cat service/build/pacts/cbas-sam.json | base64 -w 0)
+          echo "pact-b64-sam=${NON_BREAKING_B64_SAM}" >> $GITHUB_OUTPUT
+          NON_BREAKING_B64_EXTERNALCREDS=$(cat service/build/pacts/cbas-externalcreds.json | base64 -w 0)
+          echo "pact-b64-externalcreds=${NON_BREAKING_B64_EXTERNALCREDS}" >> $GITHUB_OUTPUT
 
   publish-contracts:
     runs-on: ubuntu-latest
     needs: [ init-github-context, regulated-tag-job, cbas-contract-tests ]
     steps:
-      - name: Dispatch to terra-github-workflows
+      - name: Dispatch Sam publication to terra-github-workflows
         uses: broadinstitute/workflow-dispatch@v4.0.0
         with:
           run-name: "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}"
@@ -140,7 +143,23 @@ jobs:
           token: ${{ secrets.BROADBOT_TOKEN }} # GitHub token for access to kick off a job in the private repo
           inputs: '{
             "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}",
-            "pact-b64": "${{ needs.cbas-contract-tests.outputs.pact-b64 }}",
+            "pact-b64": "${{ needs.cbas-contract-tests.outputs.pact-b64-sam }}",
+            "repo-owner": "${{ github.repository_owner }}",
+            "repo-name": "${{ github.event.repository.name }}",
+            "repo-branch": "${{ needs.init-github-context.outputs.repo-branch }}",
+            "release-tag": "${{ needs.regulated-tag-job.outputs.new-tag }}"
+          }'
+      - name: Dispatch ECM publication to terra-github-workflows
+        uses: broadinstitute/workflow-dispatch@v4.0.0
+        with:
+          run-name: "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}"
+          workflow: .github/workflows/publish-contracts.yaml
+          repo: broadinstitute/terra-github-workflows
+          ref: refs/heads/main
+          token: ${{ secrets.BROADBOT_TOKEN }} # GitHub token for access to kick off a job in the private repo
+          inputs: '{
+            "run-name": "${{ env.PUBLISH_CONTRACTS_RUN_NAME }}",
+            "pact-b64": "${{ needs.cbas-contract-tests.outputs.pact-b64-externalcreds }}",
             "repo-owner": "${{ github.repository_owner }}",
             "repo-name": "${{ github.event.repository.name }}",
             "repo-branch": "${{ needs.init-github-context.outputs.repo-branch }}",

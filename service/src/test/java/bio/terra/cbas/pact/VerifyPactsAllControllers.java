@@ -46,6 +46,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.util.UuidSource;
+import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
 import cromwell.client.model.WorkflowIdAndStatus;
@@ -53,6 +54,7 @@ import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
@@ -109,6 +111,7 @@ class VerifyPactsAllControllers {
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private GitHubService gitHubService;
   @MockBean private EcmService ecmService;
+  @MockBean private BearerTokenFactory bearerTokenFactory;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -158,17 +161,12 @@ class VerifyPactsAllControllers {
 
   @State({"user has read permission"})
   public void setReadPermission() throws Exception {
-    when(samService.hasReadPermission()).thenReturn(true);
+    when(samService.hasReadPermission(any())).thenReturn(true);
   }
 
   @State({"user has write permission"})
   public void setWritePermission() throws Exception {
-    when(samService.hasWritePermission()).thenReturn(true);
-  }
-
-  @State({"user has compute permission"})
-  public void setComputePermission() throws Exception {
-    when(samService.hasComputePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
   }
 
   @State({"ready to fetch recordId FOO1 from recordType FOO from wdsService"})
@@ -182,7 +180,7 @@ class VerifyPactsAllControllers {
     myRecordAttributes.put("foo_rating", 10);
     myRecordAttributes.put("bar_string", "this is my bar_string");
     myRecordResponse.setAttributes(myRecordAttributes);
-    when(wdsService.getRecord(any(), any())).thenReturn(myRecordResponse);
+    when(wdsService.getRecord(any(), any(), any())).thenReturn(myRecordResponse);
   }
 
   @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
@@ -198,7 +196,8 @@ class VerifyPactsAllControllers {
             fixedLastRunSetUUIDForMethod,
             "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
             workspaceId,
-            "develop");
+            "develop",
+            Optional.empty());
 
     // Arrange DAO responses
     when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
@@ -217,7 +216,7 @@ class VerifyPactsAllControllers {
   public void initializeCromwell() throws Exception {
     WorkflowDescription workflowDescription = new WorkflowDescription();
     workflowDescription.valid(true);
-    when(cromwellService.describeWorkflow(any())).thenReturn(workflowDescription);
+    when(cromwellService.describeWorkflow(any(), any())).thenReturn(workflowDescription);
   }
 
   @State({"ready to receive exactly 1 call to POST run_sets"})
@@ -230,9 +229,9 @@ class VerifyPactsAllControllers {
         .thenReturn(UUID.fromString(fixedCromwellRunUUID))
         .thenReturn(UUID.fromString(fixedRunUUID));
 
-    when(cromwellService.submitWorkflowBatch(any(), any(), any()))
+    when(cromwellService.submitWorkflowBatch(any(), any(), any(), any()))
         .thenReturn(List.of(new WorkflowIdAndStatus().id(fixedCromwellRunUUID)));
-    when(samService.getSamUser())
+    when(samService.getSamUser(any()))
         .thenReturn(
             new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
 
@@ -266,7 +265,8 @@ class VerifyPactsAllControllers {
             UUID.randomUUID(),
             "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
             workspaceId,
-            "develop");
+            "develop",
+            Optional.empty());
 
     RunSet targetRunSet =
         new RunSet(
@@ -294,7 +294,7 @@ class VerifyPactsAllControllers {
             eq(UUID.fromString("00000000-0000-0000-0000-000000000009"))))
         .thenReturn(targetRunSet);
 
-    when(smartRunSetsPoller.updateRunSets(response))
+    when(smartRunSetsPoller.updateRunSets(eq(response), any()))
         .thenReturn(new TimeLimitedUpdater.UpdateResult<>(response, 1, 1, true));
   }
 
@@ -312,7 +312,7 @@ class VerifyPactsAllControllers {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
-    when(abortManager.abortRunSet(runSetId)).thenReturn(abortDetails);
+    when(abortManager.abortRunSet(eq(runSetId), any())).thenReturn(abortDetails);
   }
 
   @State({"post completed workflow results"})
@@ -328,15 +328,19 @@ class VerifyPactsAllControllers {
             UUID.fromString(fixedCromwellRunUUID));
     UserStatusInfo userStatusInfo =
         new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true);
-    when(samService.getSamUser()).thenReturn(userStatusInfo);
+    when(samService.getSamUser(any())).thenReturn(userStatusInfo);
 
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
-    when(samService.hasWritePermission()).thenReturn(true);
+    when(samService.hasWritePermission(any())).thenReturn(true);
 
     when(runDao.getRuns(new RunDao.RunsFilters(null, null, fixedCromwellRunUUID)))
         .thenReturn(Collections.singletonList(runToBeUpdated));
     when(runCompletionHandler.updateResults(
-            eq(runToBeUpdated), eq(CbasRunStatus.COMPLETE), any(), eq(Collections.EMPTY_LIST)))
+            eq(runToBeUpdated),
+            eq(CbasRunStatus.COMPLETE),
+            any(),
+            eq(Collections.EMPTY_LIST),
+            any()))
         .thenReturn(RunCompletionResult.SUCCESS);
   }
 

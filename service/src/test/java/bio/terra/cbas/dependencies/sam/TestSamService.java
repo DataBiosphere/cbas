@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -22,21 +21,17 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.broadinstitute.dsde.workbench.client.sam.ApiClient;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.ResourcesApi;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.stubbing.Answer;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -44,165 +39,50 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
 class TestSamService {
-  private SamClient samClient;
-  @SpyBean private SamService samService;
-  @MockBean private BearerToken bearerToken;
+  private final SamClient samClient = mock(SamClient.class);
+  private final UsersApi usersApi = mock(UsersApi.class);
+  private final ResourcesApi resourcesApi = mock(ResourcesApi.class);
+  @SpyBean private final SamService samService = spy(new SamService(samClient));
 
-  private final String tokenWithCorrectAccess = "foo-token";
-  private final String validTokenWithNoAccess = "foo-no-access-token";
-  private final String validTokenWithReadAccess = "foo-read-access-token";
-  private final String validTokenWithWriteAccess = "foo-write-access-token";
-  private final String validTokenWithComputeAccess = "foo-compute-access-token";
-  private final String validTokenCausingAccessInterrupt = "moo-access-token";
-  private final String expiredTokenValue = "expired-token";
-  private final String tokenCausingUserInterrupt = "interrupting-cow-moo";
-  private final String workspaceId = "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+  // TODO: maybe change these Strings to BearerToken
+  private final BearerToken tokenWithCorrectAccess = new BearerToken("foo-token");
+  private final BearerToken validTokenWithNoAccess = new BearerToken("foo-no-access-token");
+  private final BearerToken validTokenWithReadAccess = new BearerToken("foo-read-access-token");
+  private final BearerToken validTokenWithWriteAccess = new BearerToken("foo-write-access-token");
+  private final BearerToken validTokenCausingAccessInterrupt = new BearerToken("moo-access-token");
+  private final BearerToken expiredTokenValue = new BearerToken("expired-token");
+  private final BearerToken tokenCausingUserInterrupt = new BearerToken("interrupting-cow-moo");
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
           .userEmail("realuser@gmail.com")
           .userSubjectId("user-id-foo")
           .enabled(true);
 
-  @BeforeEach
-  void init() throws ApiException {
-    UsersApi usersApi = mock(UsersApi.class);
-    ResourcesApi resourcesApi = mock(ResourcesApi.class);
-    samClient = mock(SamClient.class);
-    ApiClient apiClient = mock(ApiClient.class);
-    samService = spy(new SamService(samClient, bearerToken));
-
-    // setup Sam client methods
-    when(samClient.getApiClient(any())).thenReturn(apiClient);
+  void initForHasPermission() throws ApiException {
     when(samClient.checkAuthAccessWithSam()).thenReturn(true);
-    when(samClient.getWorkspaceId()).thenReturn(workspaceId);
-
-    doReturn(usersApi).when(samService).getUsersApi();
-    when(usersApi.getUserStatusInfo())
-        .thenAnswer(
-            (Answer<UserStatusInfo>)
-                invocation -> {
-                  if (bearerToken == null || bearerToken.getToken() == null) {
-                    throw new BeanCreationException(
-                        "BearerToken bean throws error when no token is available.",
-                        new UnauthorizedException("Authorization header missing"));
-                  }
-                  switch (bearerToken.getToken()) {
-                    case tokenWithCorrectAccess:
-                    case validTokenWithNoAccess:
-                    case validTokenWithReadAccess:
-                    case validTokenWithWriteAccess:
-                    case validTokenWithComputeAccess:
-                    case validTokenCausingAccessInterrupt:
-                      return mockUser;
-                    case tokenCausingUserInterrupt:
-                      throw new InterruptedException();
-                    default:
-                      // expired or invalid
-                      throw new ApiException(401, "Unauthorized :(");
-                  }
-                });
-
-    doReturn(resourcesApi).when(samService).getResourcesApi();
-
-    // mock response for hasReadPermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
-        .thenAnswer(
-            (Answer<Boolean>)
-                invocation -> {
-                  if (bearerToken != null) {
-                    String token = bearerToken.getToken();
-                    if (token.equals(validTokenWithReadAccess)
-                        || token.equals(validTokenWithWriteAccess)
-                        || token.equals(validTokenWithComputeAccess)) return true;
-                    if (token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(validTokenCausingAccessInterrupt))
-                      throw new InterruptedException();
-
-                    throw new ApiException(
-                        401, "Unauthorized exception thrown for testing purposes");
-                  } else {
-                    throw new BeanCreationException(
-                        "BearerToken bean throws error when no token is available.",
-                        new UnauthorizedException("Authorization header missing"));
-                  }
-                });
-
-    // mock response for hasWritePermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.WRITE_ACTION)))
-        .thenAnswer(
-            (Answer<Boolean>)
-                invocation -> {
-                  if (bearerToken != null) {
-                    String token = bearerToken.getToken();
-                    if (token.equals(validTokenWithWriteAccess)
-                        || token.equals(validTokenWithComputeAccess)) return true;
-                    if (token.equals(validTokenWithReadAccess)
-                        || token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(validTokenCausingAccessInterrupt))
-                      throw new InterruptedException();
-
-                    throw new ApiException(
-                        401, "Unauthorized exception thrown for testing purposes");
-                  } else {
-                    throw new BeanCreationException(
-                        "BearerToken bean throws error when no token is available.",
-                        new UnauthorizedException("Authorization header missing"));
-                  }
-                });
-
-    // mock response for hasComputePermission()
-    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.COMPUTE_ACTION)))
-        .thenAnswer(
-            (Answer<Boolean>)
-                invocation -> {
-                  if (bearerToken != null) {
-                    String token = bearerToken.getToken();
-                    if (token.equals(validTokenWithComputeAccess)) return true;
-                    if (token.equals(validTokenWithReadAccess)
-                        || token.equals(validTokenWithWriteAccess)
-                        || token.equals(validTokenWithNoAccess)) return false;
-                    if (token.equals(validTokenCausingAccessInterrupt))
-                      throw new InterruptedException();
-
-                    throw new ApiException(
-                        401, "Unauthorized exception thrown for testing purposes");
-                  } else {
-                    throw new BeanCreationException(
-                        "BearerToken bean throws error when no token is available.",
-                        new UnauthorizedException("Authorization header missing"));
-                  }
-                });
-  }
-
-  void setTokenValue(String token) {
-    bearerToken = new BearerToken(token);
+    doReturn(usersApi).when(samService).getUsersApi(any());
+    when(usersApi.getUserStatusInfo()).thenReturn(mockUser);
   }
 
   @Test
-  void testGetSamUserValidToken() {
-    setTokenValue(tokenWithCorrectAccess);
-    UserStatusInfo user = samService.getSamUser();
+  void testGetSamUserValidToken() throws ApiException {
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    doReturn(usersApi).when(samService).getUsersApi(tokenWithCorrectAccess);
+    when(usersApi.getUserStatusInfo()).thenReturn(mockUser);
+
+    UserStatusInfo user = samService.getSamUser(tokenWithCorrectAccess);
     assertEquals(mockUser, user);
   }
 
   @Test
-  void testGetSamUserNoToken() {
-    BeanCreationException exception =
-        assertThrows(BeanCreationException.class, () -> samService.getSamUser());
+  void testGetSamUserExpiredToken() throws ApiException {
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    doReturn(usersApi).when(samService).getUsersApi(expiredTokenValue);
+    when(usersApi.getUserStatusInfo()).thenThrow(new ApiException(401, "Unauthorized :("));
 
-    assertTrue(
-        exception
-            .getMessage()
-            .contains("BearerToken bean throws error when no token is available."));
-    assertTrue(exception.getRootCause() instanceof UnauthorizedException);
-    assertEquals("Authorization header missing", exception.getRootCause().getMessage());
-  }
-
-  @Test
-  void testGetSamUserExpiredToken() {
-    setTokenValue(expiredTokenValue);
     SamUnauthorizedException e =
-        assertThrows(SamUnauthorizedException.class, () -> samService.getSamUser());
+        assertThrows(
+            SamUnauthorizedException.class, () -> samService.getSamUser(expiredTokenValue));
     assertThat(
         e.getMessage(),
         containsString("Error getting user status info from Sam: Message: Unauthorized :("));
@@ -210,129 +90,144 @@ class TestSamService {
   }
 
   @Test
-  void testGetSamUserInterruptingToken() {
-    setTokenValue(tokenCausingUserInterrupt);
+  void testGetSamUserInterruptingToken() throws ApiException {
+    when(samClient.checkAuthAccessWithSam()).thenReturn(true);
+    doReturn(usersApi).when(samService).getUsersApi(tokenCausingUserInterrupt);
+    when(usersApi.getUserStatusInfo())
+        .thenAnswer(
+            (Answer<UserStatusInfo>)
+                invocation -> {
+                  throw new InterruptedException();
+                });
+
     SamInterruptedException e =
-        assertThrows(SamInterruptedException.class, () -> samService.getSamUser());
+        assertThrows(
+            SamInterruptedException.class, () -> samService.getSamUser(tokenCausingUserInterrupt));
     assertEquals("Request interrupted while getting user status info from Sam", e.getMessage());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, e.getStatusCode());
   }
 
   @Test
   void testGetSamUserAuthDisabled() {
-    setTokenValue(tokenWithCorrectAccess);
     when(samClient.checkAuthAccessWithSam()).thenReturn(false);
-    UserStatusInfo user = samService.getSamUser();
+    UserStatusInfo user = samService.getSamUser(tokenWithCorrectAccess);
     assertEquals(new UserStatusInfo(), user);
     assertNull(user.getUserSubjectId());
     assertNull(user.getUserEmail());
     assertNull(user.getEnabled());
   }
 
-  // tests for checking read, write and compute access for a token with only read access
+  // tests for checking read and write access for a token with only read access
 
   @Test
-  void testHasReadPermissionForTokenWithReadAccess() {
-    setTokenValue(validTokenWithReadAccess);
-    assertTrue(samService.hasReadPermission());
+  void testHasReadPermissionForTokenWithReadAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithReadAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
+        .thenReturn(true);
+
+    assertTrue(samService.hasReadPermission(validTokenWithReadAccess));
   }
 
   @Test
-  void testHasWritePermissionForTokenWithReadAccess() {
-    setTokenValue(validTokenWithReadAccess);
-    assertFalse(samService.hasWritePermission());
+  void testHasWritePermissionForTokenWithReadAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithReadAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.WRITE_ACTION)))
+        .thenReturn(false);
+
+    assertFalse(samService.hasWritePermission(validTokenWithReadAccess));
+  }
+
+  // tests for checking read and write access for a token with write access
+
+  @Test
+  void testHasReadPermissionForTokenWithWriteAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithWriteAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
+        .thenReturn(true);
+
+    assertTrue(samService.hasReadPermission(validTokenWithWriteAccess));
   }
 
   @Test
-  void testHasComputePermissionForTokenWithReadAccess() {
-    setTokenValue(validTokenWithReadAccess);
-    assertFalse(samService.hasComputePermission());
+  void testHasWritePermissionForTokenWithWriteAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithWriteAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.WRITE_ACTION)))
+        .thenReturn(true);
+
+    assertTrue(samService.hasWritePermission(validTokenWithWriteAccess));
   }
 
-  // tests for checking read, write and compute access for a token with write access
-
-  @Test
-  void testHasReadPermissionForTokenWithWriteAccess() {
-    setTokenValue(validTokenWithWriteAccess);
-    assertTrue(samService.hasReadPermission());
-  }
-
-  @Test
-  void testHasWritePermissionForTokenWithWriteAccess() {
-    setTokenValue(validTokenWithWriteAccess);
-    assertTrue(samService.hasWritePermission());
-  }
-
-  @Test
-  void testHasComputePermissionForTokenWithWriteAccess() {
-    setTokenValue(validTokenWithWriteAccess);
-    assertFalse(samService.hasComputePermission());
-  }
-
-  // tests for checking read, write and compute access for a token with compute access
-
-  @Test
-  void testHasReadPermissionForTokenWithComputeAccess() {
-    setTokenValue(validTokenWithComputeAccess);
-    assertTrue(samService.hasReadPermission());
-  }
-
-  @Test
-  void testHasWritePermissionForTokenWithComputeAccess() {
-    setTokenValue(validTokenWithComputeAccess);
-    assertTrue(samService.hasWritePermission());
-  }
-
-  @Test
-  void testHasComputePermissionForTokenWithComputeAccess() {
-    setTokenValue(validTokenWithComputeAccess);
-    assertTrue(samService.hasComputePermission());
-  }
-
-  // tests for checking read, write and compute access for a valid token with no access to current
+  // tests for checking read and write access for a valid token with no access to current
   // workspace
 
   @Test
-  void testHasReadPermissionForTokenWithNoAccess() {
-    setTokenValue(validTokenWithNoAccess);
-    assertFalse(samService.hasReadPermission());
+  void testHasReadPermissionForTokenWithNoAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithNoAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
+        .thenReturn(false);
+
+    assertFalse(samService.hasReadPermission(validTokenWithNoAccess));
   }
 
   @Test
-  void testHasWritePermissionForTokenWithNoAccess() {
-    setTokenValue(validTokenWithNoAccess);
-    assertFalse(samService.hasWritePermission());
+  void testHasWritePermissionForTokenWithNoAccess() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenWithNoAccess);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.WRITE_ACTION)))
+        .thenReturn(false);
+
+    assertFalse(samService.hasWritePermission(validTokenWithNoAccess));
   }
 
   @Test
-  void testHasComputePermissionForTokenWithNoAccess() {
-    setTokenValue(validTokenWithNoAccess);
-    assertFalse(samService.hasComputePermission());
-  }
+  void testHasPermissionForInterruptingToken() throws ApiException {
+    initForHasPermission();
 
-  @Test
-  void testHasPermissionForRequestWithNoToken() {
-    // no token set
-    BeanCreationException exception =
-        assertThrows(BeanCreationException.class, () -> samService.hasReadPermission());
+    doReturn(resourcesApi).when(samService).getResourcesApi(validTokenCausingAccessInterrupt);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
+        .thenAnswer(
+            (Answer<Boolean>)
+                invocation -> {
+                  throw new InterruptedException();
+                });
 
-    assertTrue(
-        exception
-            .getMessage()
-            .contains("BearerToken bean throws error when no token is available."));
-    assertTrue(exception.getRootCause() instanceof UnauthorizedException);
-    assertEquals("Authorization header missing", exception.getRootCause().getMessage());
-  }
-
-  @Test
-  void testHasPermissionForInterruptingToken() {
-    setTokenValue(validTokenCausingAccessInterrupt);
     SamInterruptedException exception =
-        assertThrows(SamInterruptedException.class, () -> samService.hasComputePermission());
+        assertThrows(
+            SamInterruptedException.class,
+            () -> samService.hasReadPermission(validTokenCausingAccessInterrupt));
     assertEquals(
-        "Request interrupted while checking compute permissions on workspace from Sam",
+        "Request interrupted while checking read permissions on workspace from Sam",
         exception.getMessage());
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+  }
+
+  @Test
+  void testHasPermissionForUnauthorizedToken() throws ApiException {
+    initForHasPermission();
+
+    doReturn(resourcesApi).when(samService).getResourcesApi(expiredTokenValue);
+    when(resourcesApi.resourcePermissionV2(any(), any(), eq(SamService.READ_ACTION)))
+        .thenThrow(new ApiException(401, "Unauthorized :("));
+
+    SamUnauthorizedException e =
+        assertThrows(
+            SamUnauthorizedException.class, () -> samService.hasReadPermission(expiredTokenValue));
+    assertThat(
+        e.getMessage(),
+        containsString(
+            "Error checking read permissions on workspace from Sam: Message: Unauthorized :("));
+    assertEquals(HttpStatus.UNAUTHORIZED, e.getStatusCode());
   }
 
   // Tests for including user IDs in logs once permissions have been checked
@@ -350,8 +245,7 @@ class TestSamService {
       appender.setContext(logger.getLoggerContext());
       logger.setLevel(Level.DEBUG);
       logger.addAppender(appender);
-      setTokenValue(validTokenWithNoAccess);
-      samService.hasReadPermission();
+      samService.hasReadPermission(validTokenWithNoAccess);
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
       assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
     }
@@ -363,8 +257,7 @@ class TestSamService {
       appender.setContext(logger.getLoggerContext());
       logger.setLevel(Level.DEBUG);
       logger.addAppender(appender);
-      setTokenValue(validTokenWithComputeAccess);
-      samService.hasReadPermission();
+      samService.hasReadPermission(validTokenWithWriteAccess);
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
       assertTrue(output.getOut().contains("user=" + mockUser.getUserSubjectId()));
     }
@@ -383,8 +276,7 @@ class TestSamService {
       appender.setContext(logger.getLoggerContext());
       logger.setLevel(Level.DEBUG);
       logger.addAppender(appender);
-      setTokenValue(validTokenWithNoAccess);
-      samService.hasReadPermission();
+      samService.hasReadPermission(validTokenWithNoAccess);
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
       assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
     }
@@ -396,8 +288,7 @@ class TestSamService {
       appender.setContext(logger.getLoggerContext());
       logger.setLevel(Level.DEBUG);
       logger.addAppender(appender);
-      setTokenValue(validTokenWithComputeAccess);
-      samService.hasReadPermission();
+      samService.hasReadPermission(validTokenWithWriteAccess);
       assertEquals(mockUser.getUserSubjectId(), MDC.get("user"));
       assertTrue(output.getOut().contains("\"user\":\"" + mockUser.getUserSubjectId() + "\""));
     }

@@ -42,9 +42,6 @@ cbas:
   context:
     # Should match wds.instanceId and sam.workspaceId:
     workspaceId: "00000000-0000-0000-0000-000000000000"
-    # workspaceCreatedDate is supplied by Leo.
-    # When testing locally, manually fill in this value, e.g. "2024-02-16T14:13:02.500743Z".
-    workspaceCreatedDate:
   cbas-database:
     uri: jdbc:postgresql://${DATABASE_HOSTNAME:localhost}:5432/${DATABASE_NAME:cbas_db}
     password: ${DATABASE_USER_PASSWORD:cbas_password}

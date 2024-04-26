@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -15,6 +16,7 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +40,11 @@ class TestRunDao extends ContainerizedDatabaseTest {
           "Github",
           workspaceId);
 
+  String methodVersionGithash = "abcd123";
+  UUID methodVersionId = UUID.randomUUID();
   MethodVersion methodVersion =
       new MethodVersion(
-          UUID.randomUUID(),
+          methodVersionId,
           method,
           "1.0",
           "fetch_sra_to_bam sample submission",
@@ -48,7 +52,8 @@ class TestRunDao extends ContainerizedDatabaseTest {
           null,
           "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
           workspaceId,
-          "develop");
+          "develop",
+          Optional.of(new GithubMethodVersionDetails(methodVersionGithash, methodVersionId)));
 
   RunSet runSet =
       new RunSet(
@@ -106,6 +111,12 @@ class TestRunDao extends ContainerizedDatabaseTest {
       assertEquals(run.engineId(), actual.engineId());
       assertEquals(run.errorMessages(), actual.errorMessages());
       assertEquals(run.status(), actual.status());
+
+      // Make sure the deep linking with method version details is working:
+      assertEquals(
+          methodVersionGithash,
+          run.runSet().methodVersion().methodVersionDetails().get().githash());
+
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
@@ -138,6 +149,10 @@ class TestRunDao extends ContainerizedDatabaseTest {
       assertEquals(run.engineId(), actual.engineId());
       assertEquals(run.errorMessages(), actual.errorMessages());
       assertEquals(run.status(), actual.status());
+      // Make sure the deep linking with method version details is working:
+      assertEquals(
+          methodVersionGithash,
+          run.runSet().methodVersion().methodVersionDetails().get().githash());
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());
@@ -160,6 +175,10 @@ class TestRunDao extends ContainerizedDatabaseTest {
       List<Run> result =
           runDao.getRuns(new RunDao.RunsFilters(null, null, UUID.randomUUID().toString()));
       assertEquals(Collections.emptyList(), result);
+      // Make sure the deep linking with method version details is working:
+      assertEquals(
+          methodVersionGithash,
+          run.runSet().methodVersion().methodVersionDetails().get().githash());
     } finally {
       try {
         int runsDeleted = runDao.deleteRun(run.runId());

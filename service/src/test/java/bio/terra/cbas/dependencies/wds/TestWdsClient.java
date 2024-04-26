@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
+import bio.terra.common.iam.BearerToken;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +25,8 @@ class TestWdsClient {
         new WdsServerConfiguration("http://localhost:8001/wds", "instanceId", "apiV", false);
 
     RecordsApi recordsApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader).recordsApi("TOKEN");
+        new WdsClient(wdsServerConfiguration, dependencyUrlLoader)
+            .recordsApi(new BearerToken("TOKEN"));
 
     assertEquals("http://localhost:8001/wds", recordsApi.getApiClient().getBasePath());
   }
@@ -38,7 +40,8 @@ class TestWdsClient {
         .thenReturn("https://my-wds-service:10101/wds");
 
     RecordsApi recordsApi =
-        new WdsClient(wdsServerConfiguration, dependencyUrlLoader).recordsApi("TOKEN");
+        new WdsClient(wdsServerConfiguration, dependencyUrlLoader)
+            .recordsApi(new BearerToken("TOKEN"));
 
     assertEquals("https://my-wds-service:10101/wds", recordsApi.getApiClient().getBasePath());
   }

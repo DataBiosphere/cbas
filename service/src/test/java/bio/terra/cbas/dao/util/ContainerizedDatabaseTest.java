@@ -51,6 +51,11 @@ public abstract class ContainerizedDatabaseTest {
             postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
         .createStatement()
         .execute(
-            "TRUNCATE TABLE run CASCADE; TRUNCATE TABLE method_version CASCADE; TRUNCATE TABLE run_set CASCADE; TRUNCATE TABLE method CASCADE; TRUNCATE TABLE github_method_details CASCADE");
+            "TRUNCATE TABLE run CASCADE; "
+                + "TRUNCATE TABLE method_version CASCADE; "
+                + "TRUNCATE TABLE run_set CASCADE; "
+                + "TRUNCATE TABLE method CASCADE; "
+                + "TRUNCATE TABLE github_method_details CASCADE; "
+                + "TRUNCATE TABLE github_method_version_details CASCADE; ");
   }
 }

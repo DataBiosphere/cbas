@@ -15,7 +15,7 @@ import bio.terra.cbas.config.EcmServerConfiguration;
 import bio.terra.cbas.dependencies.ecm.EcmClient;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.common.iam.BearerToken;
-// import bio.terra.externalcreds.pact.ProviderStates;
+import bio.terra.externalcreds.pact.ProviderStates;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,14 +31,13 @@ public class EcmPactTest {
         new EcmServerConfiguration(mockServer.getUrl(), false);
 
     EcmClient ecmClient = new EcmClient(ecmServerConfiguration);
-    ecmService = new EcmService(ecmClient, new BearerToken("accessToken"));
+    ecmService = new EcmService(ecmClient);
   }
 
-  @Pact(consumer = "cbas", provider = "ecm")
+  @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getStatus(PactDslWithProvider builder) {
     return builder
-        // .given(ProviderStates.ECM_IS_OK)
-        .given("ECM is ok")
+        .given(ProviderStates.ECM_IS_OK)
         .uponReceiving("a status request")
         .path("/status")
         .method("GET")
@@ -56,11 +55,10 @@ public class EcmPactTest {
     assertTrue(system.isOk());
   }
 
-  @Pact(consumer = "cbas", provider = "ecm")
+  @Pact(consumer = "cbas", provider = "externalcreds")
   RequestResponsePact getGithubAccessToken(PactDslWithProvider builder) {
     return builder
-        // .given(ProviderStates.USER_IS_REGISTERED)
-        .given("test_user@test.com is registered with ECM")
+        .given(ProviderStates.USER_IS_REGISTERED)
         .uponReceiving("a github token request")
         .path("/api/oauth/v1/github/access-token")
         .headers("Authorization", "Bearer accessToken")
@@ -75,7 +73,7 @@ public class EcmPactTest {
   @PactTestFor(pactMethod = "getGithubAccessToken", pactVersion = PactSpecVersion.V3)
   void testEcmServiceGetAccessToken(MockServer mockServer) {
     initEcmService(mockServer);
-    var token = ecmService.getAccessToken();
+    var token = ecmService.getAccessToken(new BearerToken("accessToken"));
     assertEquals("GITHUB_TOKEN", token);
   }
 }

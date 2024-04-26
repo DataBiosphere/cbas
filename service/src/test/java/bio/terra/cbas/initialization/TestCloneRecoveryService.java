@@ -16,6 +16,7 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,6 @@ public class TestCloneRecoveryService {
   void setup() {
     cbasContextConfig = mock(CbasContextConfiguration.class);
     when(cbasContextConfig.getWorkspaceId()).thenReturn(currentWorkspaceId);
-    when(cbasContextConfig.getWorkspaceCreatedDate()).thenReturn(currentWorkspaceCreatedDate);
   }
 
   @Test
@@ -82,7 +82,8 @@ public class TestCloneRecoveryService {
           null,
           "",
           originalWorkspaceId,
-          "");
+          "",
+          Optional.empty());
 
   RunSet clonedTemplate =
       new RunSet(

@@ -24,6 +24,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
@@ -40,6 +41,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +74,7 @@ public class TestSmartRunsPollerFunctional {
   private static final OffsetDateTime completedRunStatusUpdateTime = OffsetDateTime.now();
   private static final String errorMessages = null;
   private static final UUID workspaceId = UUID.randomUUID();
+  private static final BearerToken mockToken = new BearerToken("mock-token");
 
   public ObjectMapper objectMapper =
       new ObjectMapper()
@@ -117,7 +120,8 @@ public class TestSmartRunsPollerFunctional {
               runSetId,
               "file:///method/source/url",
               workspaceId,
-              "develop"),
+              "develop",
+              Optional.empty()),
           "runSetName",
           "runSetDescription",
           true,
@@ -197,10 +201,10 @@ public class TestSmartRunsPollerFunctional {
   void pollRunningRuns() throws Exception {
     when(cromwellService.runSummary(runningRunEngineId1))
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId1).status("Running"));
-    when(runCompletionHandler.updateResults(eq(runToUpdate1), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(runToUpdate1), any(), any(), any(), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted), mockToken);
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     verify(cromwellService, never()).runSummary(completedRunEngineId);
@@ -210,9 +214,9 @@ public class TestSmartRunsPollerFunctional {
     verify(cromwellService, never()).getRunErrors(runAlreadyCompleted);
 
     verify(runCompletionHandler, never())
-        .updateResults(eq(runAlreadyCompleted), any(), any(), any(), any());
+        .updateResults(eq(runAlreadyCompleted), any(), any(), any(), any(), any());
     verify(runCompletionHandler, times(1))
-        .updateResults(eq(runToUpdate1), any(), any(), any(), any());
+        .updateResults(eq(runToUpdate1), any(), any(), any(), any(), any());
     assertEquals(2, actual.updatedList().size());
   }
 
@@ -266,19 +270,20 @@ public class TestSmartRunsPollerFunctional {
             eq(COMPLETE),
             eq(workflowOutputs),
             eq(Collections.emptyList()),
+            any(),
             any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted), mockToken);
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     verify(cromwellService).getOutputs(runningRunEngineId1);
     verify(runCompletionHandler, times(1))
-        .updateResults(eq(runToUpdate1), eq(COMPLETE), any(), any(), any());
+        .updateResults(eq(runToUpdate1), eq(COMPLETE), any(), any(), any(), any());
 
     // Make sure the already-completed workflow isn't re-updated:
     verify(runCompletionHandler, never())
-        .updateResults(eq(runAlreadyCompleted), eq(COMPLETE), any(), any(), any());
+        .updateResults(eq(runAlreadyCompleted), eq(COMPLETE), any(), any(), any(), any());
     verify(cromwellService, never()).getOutputs(runAlreadyCompleted.engineId());
 
     assertEquals(2, actual.updatedList().size());
@@ -299,19 +304,19 @@ public class TestSmartRunsPollerFunctional {
         runToUpdate3.withLastPolled(OffsetDateTime.now().minusSeconds(100)).withStatus(RUNNING);
 
     ArrayList<UUID> pollOrder = new ArrayList<>();
-    when(runCompletionHandler.updateResults(eq(run1), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(run1), any(), any(), any(), any(), any()))
         .thenAnswer(
             i -> {
               pollOrder.add(run1.runId());
               return RunCompletionResult.SUCCESS;
             });
-    when(runCompletionHandler.updateResults(eq(run2), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(run2), any(), any(), any(), any(), any()))
         .thenAnswer(
             i -> {
               pollOrder.add(run2.runId());
               return RunCompletionResult.SUCCESS;
             });
-    when(runCompletionHandler.updateResults(eq(run3), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(run3), any(), any(), any(), any(), any()))
         .thenAnswer(
             i -> {
               pollOrder.add(run3.runId());
@@ -319,17 +324,20 @@ public class TestSmartRunsPollerFunctional {
             });
 
     // Note: the runs are out of last-polled-order here:
-    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2));
+    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2), mockToken);
     verify(cromwellService).runSummary(runningRunEngineId1);
     verify(cromwellService).runSummary(runningRunEngineId2);
     verify(cromwellService).runSummary(runningRunEngineId3);
 
     verify(cromwellService, never()).runSummary(completedRunEngineId);
     verify(runCompletionHandler, never())
-        .updateResults(eq(runAlreadyCompleted), any(), any(), any(), any());
-    verify(runCompletionHandler, times(1)).updateResults(eq(run1), any(), any(), any(), any());
-    verify(runCompletionHandler, times(1)).updateResults(eq(run2), any(), any(), any(), any());
-    verify(runCompletionHandler, times(1)).updateResults(eq(run3), any(), any(), any(), any());
+        .updateResults(eq(runAlreadyCompleted), any(), any(), any(), any(), any());
+    verify(runCompletionHandler, times(1))
+        .updateResults(eq(run1), any(), any(), any(), any(), any());
+    verify(runCompletionHandler, times(1))
+        .updateResults(eq(run2), any(), any(), any(), any(), any());
+    verify(runCompletionHandler, times(1))
+        .updateResults(eq(run3), any(), any(), any(), any(), any());
     assertEquals(
         List.of(RUNNING, RUNNING, RUNNING),
         actual.updatedList().stream().map(Run::status).toList());
@@ -358,13 +366,13 @@ public class TestSmartRunsPollerFunctional {
 
     ArrayList<UUID> pollOrder = new ArrayList<>();
 
-    when(runCompletionHandler.updateResults(eq(run1), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(run1), any(), any(), any(), any(), any()))
         .thenAnswer(
             i -> {
               pollOrder.add(run1.runId());
               return 1;
             });
-    when(runCompletionHandler.updateResults(eq(run2), any(), any(), any(), any()))
+    when(runCompletionHandler.updateResults(eq(run2), any(), any(), any(), any(), any()))
         .thenAnswer(
             i -> {
               pollOrder.add(run2.runId());
@@ -372,16 +380,17 @@ public class TestSmartRunsPollerFunctional {
             });
 
     // Note: the runs are out of last-polled-order here:
-    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2));
+    var actual = smartRunsPoller.updateRuns(List.of(run3, run1, run2), mockToken);
 
     // We poll for the first two summaries, but not the third:
     verify(cromwellService).runSummary(runningRunEngineId1);
     verify(cromwellService).runSummary(runningRunEngineId2);
     verify(cromwellService, never()).runSummary(runningRunEngineId3);
     // We update the first two polled timestamps, but not the third:
-    verify(runCompletionHandler).updateResults(eq(run1), any(), any(), any(), any());
-    verify(runCompletionHandler).updateResults(eq(run2), any(), any(), any(), any());
-    verify(runCompletionHandler, never()).updateResults(eq(run3), any(), any(), any(), any());
+    verify(runCompletionHandler).updateResults(eq(run1), any(), any(), any(), any(), any());
+    verify(runCompletionHandler).updateResults(eq(run2), any(), any(), any(), any(), any());
+    verify(runCompletionHandler, never())
+        .updateResults(eq(run3), any(), any(), any(), any(), any());
 
     // Run 3 is in the result set, and keeps its previous status:
     assertEquals(
@@ -422,16 +431,16 @@ public class TestSmartRunsPollerFunctional {
         .thenReturn(new WorkflowQueryResult().id(runningRunEngineId3).status("Failed"));
     when(cromwellService.getRunErrors(runToUpdate3)).thenReturn(cromwellErrorMessage);
     when(runCompletionHandler.updateResults(
-            eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), any(), any()))
+            eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), any(), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3), mockToken);
 
     verify(cromwellService).runSummary(runningRunEngineId3);
     verify(cromwellService).getRunErrors(runToUpdate3);
     verify(cromwellService, never()).getOutputs(any());
     verify(runCompletionHandler)
-        .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any());
+        .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any(), any());
 
     assertEquals(
         "Workflow input processing failed (Required workflow input 'wf_hello.hello.addressee' not specified)",
@@ -450,16 +459,16 @@ public class TestSmartRunsPollerFunctional {
     when(cromwellService.getRunErrors(runToUpdate3))
         .thenThrow(new ApiException("Cromwell client exception"));
     when(runCompletionHandler.updateResults(
-            eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), any(), any()))
+            eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), any(), any(), any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate3), mockToken);
 
     verify(cromwellService).runSummary(runningRunEngineId3);
     verify(cromwellService).getRunErrors(runToUpdate3);
     verify(cromwellService, never()).getOutputs(any());
     verify(runCompletionHandler)
-        .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any());
+        .updateResults(eq(runToUpdate3), eq(EXECUTOR_ERROR), any(), captor.capture(), any(), any());
 
     assertEquals(
         "Error fetching Cromwell-level error. Details: %s"
@@ -479,14 +488,20 @@ public class TestSmartRunsPollerFunctional {
         .thenThrow(new ApiException("Cannot connect to Cromwell"));
 
     when(runCompletionHandler.updateResults(
-            eq(runToUpdate1), eq(SYSTEM_ERROR), eq(null), eq(Collections.emptyList()), any()))
+            eq(runToUpdate1),
+            eq(SYSTEM_ERROR),
+            eq(null),
+            eq(Collections.emptyList()),
+            any(),
+            any()))
         .thenReturn(RunCompletionResult.SUCCESS);
 
-    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted));
+    var actual = smartRunsPoller.updateRuns(List.of(runToUpdate1, runAlreadyCompleted), mockToken);
 
     verify(cromwellService).runSummary(runningRunEngineId1);
     verify(runCompletionHandler, times(1))
-        .updateResults(eq(runToUpdate1), eq(SYSTEM_ERROR), eq(null), captor.capture(), any());
+        .updateResults(
+            eq(runToUpdate1), eq(SYSTEM_ERROR), eq(null), captor.capture(), any(), any());
 
     assertEquals(
         "Error while retrieving workflow outputs for record %s from run %s (engine workflow ID %s): %s"

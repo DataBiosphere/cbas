@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.dependencies.ecm.EcmService;
+import bio.terra.common.iam.BearerToken;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,6 +15,7 @@ import org.springframework.web.client.RestClientException;
 
 @ExtendWith(MockitoExtension.class)
 class TestGithubService {
+  private final BearerToken mockUserToken = new BearerToken("mock-token");
 
   @Test
   void returnCorrectBooleanValueNoToken() throws GitHubClient.GitHubClientException {
@@ -27,7 +29,7 @@ class TestGithubService {
     repoInfo.isPrivate(false);
 
     when(githubClient.getRepo("broadinstitute", "foo", "")).thenReturn(repoInfo);
-    assertFalse(gitHubService.isRepoPrivate("broadinstitute", "foo"));
+    assertFalse(gitHubService.isRepoPrivate("broadinstitute", "foo", mockUserToken));
   }
 
   @Test
@@ -43,10 +45,10 @@ class TestGithubService {
 
     when(githubClient.getRepo("broadinstitute", "foo", ""))
         .thenThrow(GitHubClient.GitHubClientException.class);
-    when(ecmService.getAccessToken()).thenReturn("token");
+    when(ecmService.getAccessToken(mockUserToken)).thenReturn("token");
     when(githubClient.getRepo("broadinstitute", "foo", "token")).thenReturn(repoInfo);
 
-    assertTrue(gitHubService.isRepoPrivate("broadinstitute", "foo"));
+    assertTrue(gitHubService.isRepoPrivate("broadinstitute", "foo", mockUserToken));
   }
 
   @Test
@@ -57,9 +59,10 @@ class TestGithubService {
 
     when(githubClient.getRepo("broadinstitute", "foo", ""))
         .thenThrow(GitHubClient.GitHubClientException.class);
-    when(ecmService.getAccessToken()).thenThrow(new RestClientException("exception"));
+    when(ecmService.getAccessToken(mockUserToken)).thenThrow(new RestClientException("exception"));
 
     assertThrows(
-        RestClientException.class, () -> gitHubService.isRepoPrivate("broadinstitute", "foo"));
+        RestClientException.class,
+        () -> gitHubService.isRepoPrivate("broadinstitute", "foo", mockUserToken));
   }
 }
