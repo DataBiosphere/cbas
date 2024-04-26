@@ -45,6 +45,31 @@ public class GitHubClient {
     }
   }
 
+  public CommitInfo getCommit(String organization, String repo, String branch, String token)
+      throws GitHubClientException {
+
+    WebTarget target =
+        client
+            .target(BASE_URL)
+            .path("repos")
+            .path(organization)
+            .path(repo)
+            .path("commits")
+            .path(branch);
+    Response response;
+
+    MultivaluedMap<String, Object> requestHeaders = getHeaders(token);
+
+    response = target.request(MediaType.APPLICATION_JSON_TYPE).headers(requestHeaders).get();
+
+    if (response.getStatus() == 200) {
+      return gson.fromJson(response.readEntity(String.class), CommitInfo.class);
+    } else {
+      RepoError error = gson.fromJson(response.readEntity(String.class), RepoError.class);
+      throw new GitHubClientException("GitHub Service getCommit failed: " + error.getMessage());
+    }
+  }
+
   public MultivaluedMap<String, Object> getHeaders(String token) {
     MultivaluedMap<String, Object> headersMap = new MultivaluedHashMap<>();
 
@@ -89,6 +114,20 @@ public class GitHubClient {
 
     public String getId() {
       return this.id;
+    }
+  }
+
+  // Representing the response from a call to
+  // https://api.github.com/repos/{organization}/{repo}/commits/{branch}
+  public static class CommitInfo {
+    private String sha;
+
+    public void sha(String sha) {
+      this.sha = sha;
+    }
+
+    public String getSha() {
+      return sha;
     }
   }
 

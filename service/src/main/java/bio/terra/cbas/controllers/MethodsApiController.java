@@ -33,6 +33,7 @@ import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
+import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -201,10 +202,12 @@ public class MethodsApiController implements MethodsApi {
 
       // store method in database along with input and output definitions
       UUID methodId = UUID.randomUUID();
+      UUID methodVersionId = UUID.randomUUID();
       UUID runSetId = UUID.randomUUID();
 
       GithubUrlComponents githubUrlComponents;
       GithubMethodDetails githubMethodDetails;
+      Optional<GithubMethodVersionDetails> githubMethodVersionDetails;
       String branchOrTagName;
 
       if (postMethodRequest.getMethodSource() == PostMethodRequest.MethodSourceEnum.GITHUB) {
@@ -219,19 +222,27 @@ public class MethodsApiController implements MethodsApi {
 
         githubMethodDetails =
             new GithubMethodDetails(repository, organization, path, isPrivate, methodId);
+
+        String githash =
+            gitHubService.getCurrentGithash(organization, repository, branchOrTagName, userToken);
+        githubMethodVersionDetails =
+            Optional.of(new GithubMethodVersionDetails(githash, methodVersionId));
       } else {
         githubMethodDetails = null;
         branchOrTagName = null;
+        githubMethodVersionDetails = Optional.empty();
       }
 
       createNewMethod(
           methodId,
+          methodVersionId,
           runSetId,
           postMethodRequest,
           workflowDescription,
           methodInputMappings,
           methodOutputMappings,
           githubMethodDetails,
+          githubMethodVersionDetails,
           branchOrTagName);
 
       recordMethodCreationCompletion(methodSource, HttpStatus.OK.value(), requestStartNanos);
@@ -288,15 +299,16 @@ public class MethodsApiController implements MethodsApi {
 
   private void createNewMethod(
       UUID methodId,
+      UUID methodVersionId,
       UUID runSetId,
       PostMethodRequest postMethodRequest,
       WorkflowDescription workflowDescription,
       List<MethodInputMapping> methodInputMappings,
       List<MethodOutputMapping> methodOutputMappings,
       GithubMethodDetails githubMethodDetails,
+      Optional<GithubMethodVersionDetails> githubMethodVersionDetails,
       String branchOrTagName)
       throws WomtoolValueTypeNotFoundException, JsonProcessingException {
-    UUID methodVersionId = UUID.randomUUID();
 
     // convert WomTool inputs and outputs schema to CBAS input and output definition
     List<WorkflowInputDefinition> inputs =
@@ -327,7 +339,7 @@ public class MethodsApiController implements MethodsApi {
             postMethodRequest.getMethodUrl(),
             cbasContextConfig.getWorkspaceId(),
             branchOrTagName,
-            Optional.empty());
+            githubMethodVersionDetails);
 
     String templateRunSetName =
         String.format("%s/%s workflow", method.name(), methodVersion.name());
