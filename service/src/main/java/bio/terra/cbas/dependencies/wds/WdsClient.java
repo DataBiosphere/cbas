@@ -8,6 +8,8 @@ import java.util.Optional;
 import okhttp3.OkHttpClient;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,6 +19,8 @@ public class WdsClient {
   private final DependencyUrlLoader dependencyUrlLoader;
 
   private final OkHttpClient singletonHttpClient;
+
+  private final Logger logger = LoggerFactory.getLogger(WdsClient.class);
 
   public WdsClient(
       WdsServerConfiguration wdsServerConfiguration, DependencyUrlLoader dependencyUrlLoader) {
@@ -37,6 +41,8 @@ public class WdsClient {
           dependencyUrlLoader.loadDependencyUrl(
               DependencyUrlLoader.DependencyUrlType.WDS_URL, userToken);
     }
+
+    logger.info("### FIND ME - setting WDS client using URL %s".formatted(uri));
 
     ApiClient apiClient = new ApiClient().setBasePath(uri);
     apiClient.setHttpClient(singletonHttpClient);
