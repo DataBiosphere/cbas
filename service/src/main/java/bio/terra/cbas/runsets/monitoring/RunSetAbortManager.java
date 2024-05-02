@@ -39,7 +39,7 @@ public class RunSetAbortManager {
 
     // Update the run set to have a canceling state if not canceling
     if (runSet.status() != CbasRunSetStatus.CANCELING && runSet.status().nonTerminal()) {
-      runSetDao.updateStateAndRunDetails(
+      runSetDao.updateStateAndRunSetDetails(
           runSetId,
           CbasRunSetStatus.CANCELING,
           runSet.runCount(),

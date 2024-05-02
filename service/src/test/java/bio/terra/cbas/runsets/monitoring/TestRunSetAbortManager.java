@@ -101,7 +101,7 @@ class TestRunSetAbortManager {
 
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
 
-    when(runSetDao.updateStateAndRunDetails(
+    when(runSetDao.updateStateAndRunSetDetails(
             eq(runSetId), eq(CbasRunSetStatus.CANCELING), eq(2), eq(0), any()))
         .thenReturn(1);
 
@@ -191,7 +191,7 @@ class TestRunSetAbortManager {
 
     when(runSetDao.getRunSet(runSetId)).thenReturn(runSetToBeCancelled);
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES))).thenReturn(runs);
-    when(runSetDao.updateStateAndRunDetails(
+    when(runSetDao.updateStateAndRunSetDetails(
             eq(runSetId), eq(CbasRunSetStatus.CANCELING), eq(2), eq(0), any()))
         .thenReturn(1);
 

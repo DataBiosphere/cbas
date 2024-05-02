@@ -8,8 +8,7 @@ public class DatabaseConnectivityException extends Exception {
     super(message);
   }
 
-  public static class RunSetCreationException extends  DatabaseConnectivityException {
-
+  public static class RunSetCreationException extends DatabaseConnectivityException {
 
     public RunSetCreationException(String runSetName) {
       super("Failed to create new RunSet for '%s'.".formatted(runSetName));
@@ -19,7 +18,9 @@ public class DatabaseConnectivityException extends Exception {
   public static class RunCreationException extends DatabaseConnectivityException {
 
     public RunCreationException(UUID runSetId, UUID runId, String recordId) {
-      super("Failed to create new Run with ID %s for WDS record %s in RunSet %s.".formatted(runId, recordId, runSetId));
+      super(
+          "Failed to create new Run with ID %s for WDS record %s in RunSet %s."
+              .formatted(runId, recordId, runSetId));
     }
   }
 }

@@ -204,7 +204,7 @@ class VerifyPactsAllControllers {
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
-    when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
+    when(runSetDao.updateStateAndRunSetDetails(any(), any(), any(), any(), any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
 
     // for POST /method endpoint
