@@ -76,7 +76,7 @@ public class RunSetsHelper {
 
   private record RunAndRecordDetails(UUID runId, RecordResponse recordResponse) {}
 
-  @Async("runSetExecutor")
+  @Async
   public void triggerWorkflowSubmission(
       RunSetRequest request,
       RunSet runSet,
