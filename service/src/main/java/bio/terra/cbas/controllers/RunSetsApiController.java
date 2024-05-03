@@ -304,13 +304,28 @@ public class RunSetsApiController implements RunSetsApi {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
-    // TODO: only allow aborting RunSet if it's not in Queued state for first iteration ???
+    // Get the run set associated with runSetId
+    RunSet runSet = runSetDao.getRunSet(runSetId);
+
+    // If RunSet is in Queued state, it means that CBAS is still processing the POST request in the
+    // async method. In this case, if the RunSet is set to Cancelling, it might leave the RunSet in
+    // weird state as it's possible that the background thread could still be processing Runs
+    // when the abort request came in and as a result some Runs that had been submitted to
+    // Cromwell got cancelled but some Runs that were still in process of being submitted do in
+    // fact get submitted to Cromwell and are started by Cromwell. And hence the RunSet might have
+    // some aborted Runs and some Runs in Running state.
+    if (runSet.status() == CbasRunSetStatus.QUEUED) {
+      String errorMessage =
+          "Run Set can't be aborted when it is Queued state as system might still be processing the request.";
+      return new ResponseEntity<>(
+          new AbortRunSetResponse().runSetId(runSetId).errors(errorMessage), HttpStatus.OK);
+    }
 
     AbortRunSetResponse aborted = new AbortRunSetResponse();
 
     aborted.runSetId(runSetId);
 
-    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSetId, userToken);
+    AbortRequestDetails abortDetails = abortManager.abortRunSet(runSet, userToken);
     List<String> failedRunIds = abortDetails.getAbortRequestFailedIds();
     List<UUID> submittedAbortWorkflows = abortDetails.getAbortRequestSubmittedIds();
 

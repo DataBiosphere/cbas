@@ -29,18 +29,15 @@ public class RunSetAbortManager {
     this.cromwellService = cromwellService;
   }
 
-  public AbortRequestDetails abortRunSet(UUID runSetId, BearerToken userToken) {
+  public AbortRequestDetails abortRunSet(RunSet runSet, BearerToken userToken) {
     AbortRequestDetails abortDetails = new AbortRequestDetails();
 
     List<String> failedRunIds = new ArrayList<>();
 
-    // Get the run set associated with runSetId
-    RunSet runSet = runSetDao.getRunSet(runSetId);
-
     // Update the run set to have a canceling state if not canceling
     if (runSet.status() != CbasRunSetStatus.CANCELING && runSet.status().nonTerminal()) {
       runSetDao.updateStateAndRunSetDetails(
-          runSetId,
+          runSet.runSetId(),
           CbasRunSetStatus.CANCELING,
           runSet.runCount(),
           runSet.errorCount(),
@@ -49,7 +46,7 @@ public class RunSetAbortManager {
 
     // Get a list of workflows able to be canceled
     List<Run> runningWorkflows =
-        runDao.getRuns(new RunDao.RunsFilters(runSetId, NON_TERMINAL_STATES));
+        runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), NON_TERMINAL_STATES));
     List<UUID> submittedAbortWorkflows = new ArrayList<>();
 
     for (Run run : runningWorkflows) {

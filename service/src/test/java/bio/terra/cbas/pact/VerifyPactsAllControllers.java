@@ -312,7 +312,7 @@ class VerifyPactsAllControllers {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
-    when(abortManager.abortRunSet(eq(runSetId), any())).thenReturn(abortDetails);
+    when(abortManager.abortRunSet(eq(runToBeCancelled.runSet()), any())).thenReturn(abortDetails);
   }
 
   @State({"post completed workflow results"})

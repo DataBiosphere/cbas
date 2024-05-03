@@ -109,7 +109,7 @@ class TestRunSetAbortManager {
 
     when(runDao.getRuns(any())).thenReturn(runs);
 
-    var result = runSetAbortManager.abortRunSet(runSetId, mockToken);
+    var result = runSetAbortManager.abortRunSet(runSetToBeCancelled, mockToken);
 
     ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
     verify(cromwellService, times(2)).cancelRun(newRunCaptor.capture(), any());
@@ -199,7 +199,7 @@ class TestRunSetAbortManager {
         .when(cromwellService)
         .cancelRun(eq(run2Running), any());
 
-    var result = runSetAbortManager.abortRunSet(runSetId, mockToken);
+    var result = runSetAbortManager.abortRunSet(runSetToBeCancelled, mockToken);
 
     assertEquals(1, result.getAbortRequestFailedIds().size());
     assertEquals(1, result.getAbortRequestSubmittedIds().size());

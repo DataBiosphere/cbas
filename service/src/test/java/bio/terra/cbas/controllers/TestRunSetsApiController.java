@@ -1026,8 +1026,7 @@ class TestRunSetsApiController {
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of());
     abortResults.setSubmittedIds(List.of(run1.runId(), run2.runId()));
-    when(abortManager.abortRunSet(eq(returnedRunSet1Running.runSetId()), any()))
-        .thenReturn(abortResults);
+    when(abortManager.abortRunSet(eq(returnedRunSet1Running), any())).thenReturn(abortResults);
 
     MvcResult result =
         mockMvc
@@ -1111,8 +1110,7 @@ class TestRunSetsApiController {
     AbortRequestDetails abortResults = new AbortRequestDetails();
     abortResults.setFailedIds(List.of(run2.runId().toString()));
     abortResults.setSubmittedIds(List.of(run1.runId()));
-    when(abortManager.abortRunSet(eq(returnedRunSet1Running.runSetId()), any()))
-        .thenReturn(abortResults);
+    when(abortManager.abortRunSet(eq(returnedRunSet1Running), any())).thenReturn(abortResults);
 
     doThrow(
             new cromwell.client.ApiException(
