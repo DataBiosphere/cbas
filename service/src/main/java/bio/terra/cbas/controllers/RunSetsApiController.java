@@ -320,7 +320,8 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMessage =
           "Run Set can't be aborted when it is Queued state as system might still be processing the request.";
       return new ResponseEntity<>(
-          new AbortRunSetResponse().runSetId(runSetId).errors(errorMessage), HttpStatus.OK);
+          new AbortRunSetResponse().runSetId(runSetId).errors(errorMessage),
+          HttpStatus.BAD_REQUEST);
     }
 
     AbortRunSetResponse aborted = new AbortRunSetResponse();

@@ -1129,6 +1129,46 @@ class TestRunSetsApiController {
   }
 
   @Test
+  void abortRunSetInQueuedState() throws Exception {
+    UUID runSetId = UUID.randomUUID();
+    RunSet runSet =
+        new RunSet(
+            runSetId,
+            null,
+            "",
+            "",
+            false,
+            false,
+            CbasRunSetStatus.QUEUED,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            2,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO",
+            mockUser.getUserSubjectId(),
+            workspaceId);
+
+    when(runSetDao.getRunSet(runSetId)).thenReturn(runSet);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API_ABORT).param("run_set_id", runSetId.toString()))
+            .andExpect(status().is4xxClientError())
+            .andReturn();
+
+    AbortRunSetResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), AbortRunSetResponse.class);
+
+    assertEquals(
+        "Run Set can't be aborted when it is Queued state as system might still be processing the request.",
+        response.getErrors());
+  }
+
+  @Test
   void oneFailedOneSucceededRun() throws Exception {
     RunSet returnedRunSet1Running =
         new RunSet(
