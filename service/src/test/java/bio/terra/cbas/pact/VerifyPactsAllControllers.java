@@ -19,6 +19,7 @@ import bio.terra.cbas.controllers.GlobalExceptionHandler;
 import bio.terra.cbas.controllers.MethodsApiController;
 import bio.terra.cbas.controllers.RunSetsApiController;
 import bio.terra.cbas.controllers.RunsApiController;
+import bio.terra.cbas.controllers.util.RunSetsHelper;
 import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -112,6 +113,7 @@ class VerifyPactsAllControllers {
   @MockBean private GitHubService gitHubService;
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
+  @MockBean private RunSetsHelper runSetsHelper;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;

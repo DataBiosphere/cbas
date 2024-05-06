@@ -13,7 +13,9 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
   public void handleUncaughtException(Throwable ex, Method method, Object... params) {
     // handle exception
     logger.error(
-        "Exception thrown in Thread '%s' while executing method '%s'. Error message: %s"
-            .formatted(Thread.currentThread().getName(), method.getName(), ex.getMessage()));
+        "Exception thrown in Thread '{}' while executing method '{}'. Error message: {}",
+        Thread.currentThread().getName(),
+        method.getName(),
+        ex.getMessage());
   }
 }

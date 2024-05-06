@@ -25,8 +25,6 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
-import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.PostMethodRequest;
@@ -45,7 +43,6 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
-import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -85,8 +82,6 @@ public class RunSetsApiController implements RunSetsApi {
 
   public RunSetsApiController(
       SamService samService,
-      CromwellService cromwellService,
-      WdsService wdsService,
       DockstoreService dockstoreService,
       ObjectMapper objectMapper,
       MethodDao methodDao,
@@ -96,7 +91,6 @@ public class RunSetsApiController implements RunSetsApi {
       CbasApiConfiguration cbasApiConfiguration,
       CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
-      UuidSource uuidSource,
       RunSetAbortManager abortManager,
       BearerTokenFactory bearerTokenFactory,
       HttpServletRequest httpServletRequest,
