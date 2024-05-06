@@ -83,11 +83,6 @@ public class RunSetsHelper {
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
       String rawMethodUrl) {
-
-    logger.info(
-        "### FIND ME - starting triggerWorkflowSubmission for RunSet %s in thread %s"
-            .formatted(runSet.runSetId(), Thread.currentThread().getName()));
-
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
 
@@ -197,14 +192,6 @@ public class RunSetsHelper {
         cromwellService.buildWorkflowOptionsJson(
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
-    String mapAsStr =
-        recordIdToRunIdMapping.keySet().stream()
-            .map(key -> key + "->" + recordIdToRunIdMapping.get(key))
-            .collect(Collectors.joining(", ", "{", "}"));
-    logger.info(
-        "### FIND ME - current recordIdToRunIdMapping for RunSet %s: \n %s"
-            .formatted(runSet.runSetId(), mapAsStr));
-
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
@@ -217,20 +204,6 @@ public class RunSetsHelper {
                           new RunAndRecordDetails(
                               recordIdToRunIdMapping.get(singleRecord.getId()), singleRecord)))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-      String mapWithEngineIdAsStr =
-          engineIdToRunAndRecordMapping.keySet().stream()
-              .map(
-                  key ->
-                      "%s -> [%s, %s]"
-                          .formatted(
-                              key,
-                              engineIdToRunAndRecordMapping.get(key).runId,
-                              engineIdToRunAndRecordMapping.get(key).recordResponse))
-              .collect(Collectors.joining(", ", "{", "}"));
-      logger.info(
-          "### FIND ME - current engineIdToRunAndRecordMapping for RunSet %s: \n %s"
-              .formatted(runSet.runSetId(), mapWithEngineIdAsStr));
 
       // Build the inputs set from workflow parameter definitions and the fetched record
       Map<UUID, String> engineIdToWorkflowInput =
