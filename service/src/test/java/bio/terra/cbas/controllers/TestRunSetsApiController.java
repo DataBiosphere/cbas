@@ -450,9 +450,8 @@ class TestRunSetsApiController {
     assertEquals(3, capturedRuns.size());
 
     // with introduction of async submissions, RunSetsApiController will only register the RunSet
-    // and Run in database and not do any input generation. Input generation and submitting to
-    // Cromwell will happen in async method. As a result, here RunSetsApiController will
-    // successfully return all 3 Runs in Queued state
+    // and Run in database and submit workflow to Cromwell asynchronously. As a result, here
+    // RunSetsApiController will successfully return all 3 Runs in Queued state
     assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(0).status());
     assertNull(capturedRuns.get(0).engineId());
     assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(1).status());

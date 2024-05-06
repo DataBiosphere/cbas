@@ -375,36 +375,4 @@ public class TestRunSetHelper {
         .updateStateAndRunSetDetails(
             eq(runSetId), eq(CbasRunSetStatus.RUNNING), eq(2), eq(1), any());
   }
-
-  @Test
-  void asyncSubmissionThrowsException() throws Exception {
-    WdsRecordSet wdsRecordSet =
-        new WdsRecordSet().recordType(recordType).recordIds(List.of(recordId1, recordId2));
-
-    RunSetRequest runSetRequest =
-        new RunSetRequest()
-            .runSetName("mock-run-set")
-            .methodVersionId(methodVersionId)
-            .workflowInputDefinitions(List.of(input1, input2))
-            .wdsRecords(wdsRecordSet);
-
-    Map<String, UUID> recordIdToRunIdMapping = new HashMap<>();
-    recordIdToRunIdMapping.put(recordId1, runId1);
-    recordIdToRunIdMapping.put(recordId2, runId2);
-
-    // throw InterruptedException
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
-        .thenThrow(new RuntimeException("thrown for testing purpose"));
-
-    Exception exception =
-        assertThrows(
-            RuntimeException.class,
-            () ->
-                mockRunSetHelper.triggerWorkflowSubmission(
-                    runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl));
-
-    assertEquals("thrown for testing purpose", exception.getMessage());
-
-    //    verify(asyncExceptionHandler, times(1)).handleUncaughtException(any(), any(), any());
-  }
 }
