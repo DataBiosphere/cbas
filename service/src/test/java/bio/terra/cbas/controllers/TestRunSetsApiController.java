@@ -406,7 +406,7 @@ class TestRunSetsApiController {
   }
 
   @Test
-  void runSetReturnsQueuedState() throws Exception {
+  void postRunSetVerifyDAOArguments() throws Exception {
     final String optionalInputSourceString =
         "{ \"type\" : \"record_lookup\", \"record_attribute\" : \"%s\" }"
             .formatted(recordAttribute2);
@@ -459,6 +459,44 @@ class TestRunSetsApiController {
     assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(2).status());
     assertNull(capturedRuns.get(2).engineId());
 
+    // verify that async submission method was called
+    verify(runSetsHelper, times(1)).triggerWorkflowSubmission(any(), any(), any(), any(), any());
+
+    // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
+    assertThat(
+        newRunCaptor.getValue().submissionTimestamp(),
+        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+  }
+
+  @Test
+  void postRunSetVerifyAsyncMethodArguments() throws Exception {
+    final String optionalInputSourceString =
+        "{ \"type\" : \"record_lookup\", \"record_attribute\" : \"%s\" }"
+            .formatted(recordAttribute2);
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNotNull(response);
+
     ArgumentCaptor<RunSetRequest> runSetRequestArgumentCaptor =
         ArgumentCaptor.forClass(RunSetRequest.class);
     ArgumentCaptor<RunSet> runSetArgumentCaptor = ArgumentCaptor.forClass(RunSet.class);
@@ -476,7 +514,7 @@ class TestRunSetsApiController {
     assertEquals("mock-run-set", runSetRequestArgumentCaptor.getValue().getRunSetName());
     assertEquals(3, runSetRequestArgumentCaptor.getValue().getWdsRecords().getRecordIds().size());
 
-    assertEquals(newRunSetCaptor.getValue().runSetId(), runSetArgumentCaptor.getValue().runSetId());
+    assertEquals(response.getRunSetId(), runSetArgumentCaptor.getValue().runSetId());
     assertEquals(CbasRunSetStatus.QUEUED, runSetArgumentCaptor.getValue().status());
     assertEquals(3, runSetArgumentCaptor.getValue().runCount());
     assertEquals(recordType, runSetArgumentCaptor.getValue().recordType());
@@ -489,11 +527,6 @@ class TestRunSetsApiController {
     assertEquals(mockUser.getUserSubjectId(), runSetArgumentCaptor.getValue().userId());
 
     assertEquals(3, recordIdMappingArgumentCaptor.getValue().size());
-
-    // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
-    assertThat(
-        newRunCaptor.getValue().submissionTimestamp(),
-        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
   }
 
   @Test
@@ -792,7 +825,7 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             resultOptionalNone.getResponse().getContentAsString(), RunSetStateResponse.class);
     assertNotNull(responseOptionalNone);
-    assertEquals(responseOptionalNone.getState(), RunSetState.QUEUED);
+    assertEquals(RunSetState.QUEUED, responseOptionalNone.getState());
 
     List<RunStateResponse> actualRuns = responseOptionalNone.getRuns();
     assertEquals(3, actualRuns.size());
@@ -867,7 +900,7 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             resultOptionalLiteral.getResponse().getContentAsString(), RunSetStateResponse.class);
     assertNotNull(responseOptionalLiteral);
-    assertEquals(responseOptionalLiteral.getState(), RunSetState.QUEUED);
+    assertEquals(RunSetState.QUEUED, responseOptionalLiteral.getState());
 
     List<RunStateResponse> actualRuns = responseOptionalLiteral.getRuns();
     assertEquals(3, actualRuns.size());

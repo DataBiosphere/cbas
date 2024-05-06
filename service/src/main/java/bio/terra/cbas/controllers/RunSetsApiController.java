@@ -69,8 +69,6 @@ import org.springframework.stereotype.Controller;
 public class RunSetsApiController implements RunSetsApi {
 
   private final SamService samService;
-  private final CromwellService cromwellService;
-  private final WdsService wdsService;
   private final DockstoreService dockstoreService;
   private final MethodVersionDao methodVersionDao;
   private final MethodDao methodDao;
@@ -80,7 +78,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final CbasApiConfiguration cbasApiConfiguration;
   private final CbasContextConfiguration cbasContextConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
-  private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
@@ -105,8 +102,6 @@ public class RunSetsApiController implements RunSetsApi {
       HttpServletRequest httpServletRequest,
       RunSetsHelper runSetsHelper) {
     this.samService = samService;
-    this.cromwellService = cromwellService;
-    this.wdsService = wdsService;
     this.dockstoreService = dockstoreService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
@@ -116,7 +111,6 @@ public class RunSetsApiController implements RunSetsApi {
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
-    this.uuidSource = uuidSource;
     this.abortManager = abortManager;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;

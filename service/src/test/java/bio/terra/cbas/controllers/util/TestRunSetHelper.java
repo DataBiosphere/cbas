@@ -45,7 +45,6 @@ import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,9 +54,7 @@ import org.springframework.test.context.ContextConfiguration;
       GlobalExceptionHandler.class,
       AsyncExceptionHandler.class
     })
-public class TestRunSetHelper {
-
-  @SpyBean AsyncExceptionHandler asyncExceptionHandler;
+class TestRunSetHelper {
 
   private final RunDao runDao = mock(RunDao.class);
   private final RunSetDao runSetDao = mock(RunSetDao.class);
