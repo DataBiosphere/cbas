@@ -195,6 +195,7 @@ public class RunSetsHelper {
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
+      // create a mapping from Engine ID -> class RunAndRecordDetails[Run ID, Record Response]
       Map<UUID, RunAndRecordDetails> engineIdToRunAndRecordMapping =
           batch.stream()
               .map(

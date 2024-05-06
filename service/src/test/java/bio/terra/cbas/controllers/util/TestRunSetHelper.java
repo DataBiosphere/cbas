@@ -84,6 +84,19 @@ public class TestRunSetHelper {
   private final String recordType = "FOO";
   private final String recordAttribute1 = "MY_RECORD_ATTRIBUTE";
 
+  private final RecordAttributes recordAttributes1 =
+      new RecordAttributes() {
+        {
+          put(recordAttribute1, "hello");
+        }
+      };
+  private final RecordAttributes recordAttributes2 =
+      new RecordAttributes() {
+        {
+          put(recordAttribute1, "world");
+        }
+      };
+
   private final UserStatusInfo mockUser =
       new UserStatusInfo()
           .userEmail("realuser@gmail.com")
@@ -194,13 +207,6 @@ public class TestRunSetHelper {
 
   @Test
   void submissionLaunchesSuccessfully() throws Exception {
-    final String recordAttributeValue1 = "hello";
-    final String recordAttributeValue2 = "world";
-    RecordAttributes recordAttributes1 = new RecordAttributes();
-    recordAttributes1.put(recordAttribute1, recordAttributeValue1);
-    RecordAttributes recordAttributes2 = new RecordAttributes();
-    recordAttributes2.put(recordAttribute1, recordAttributeValue2);
-
     // Set up WDS API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
         .thenReturn(
@@ -237,10 +243,6 @@ public class TestRunSetHelper {
 
   @Test
   void wdsErrorDuringSubmission() throws Exception {
-    final int recordAttributeValue1 = 100;
-    RecordAttributes recordAttributes1 = new RecordAttributes();
-    recordAttributes1.put(recordAttribute1, recordAttributeValue1);
-
     // Set up WDS API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
         .thenReturn(
@@ -281,20 +283,26 @@ public class TestRunSetHelper {
 
   @Test
   void inputCoercionErrorDuringSubmission() throws Exception {
-    final int recordAttributeValue1 = 100;
-    final int recordAttributeValue2 = 200;
-    RecordAttributes recordAttributes1 = new RecordAttributes();
-    recordAttributes1.put(recordAttribute1, recordAttributeValue1);
-    RecordAttributes recordAttributes2 = new RecordAttributes();
-    recordAttributes2.put(recordAttribute1, recordAttributeValue2);
+    final int recordAttributeValueInt1 = 100;
+    final int recordAttributeValueInt2 = 200;
+    RecordAttributes incorrectRecordAttributes1 = new RecordAttributes();
+    incorrectRecordAttributes1.put(recordAttribute1, recordAttributeValueInt1);
+    RecordAttributes incorrectRecordAttributes2 = new RecordAttributes();
+    incorrectRecordAttributes2.put(recordAttribute1, recordAttributeValueInt2);
 
     // Set up WDS API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
         .thenReturn(
-            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
+            new RecordResponse()
+                .type(recordType)
+                .id(recordId1)
+                .attributes(incorrectRecordAttributes1));
     when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
         .thenReturn(
-            new RecordResponse().type(recordType).id(recordId2).attributes(recordAttributes2));
+            new RecordResponse()
+                .type(recordType)
+                .id(recordId2)
+                .attributes(incorrectRecordAttributes2));
 
     when(cbasApiConfiguration.getMaxWorkflowsInBatch()).thenReturn(10);
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
@@ -325,13 +333,6 @@ public class TestRunSetHelper {
 
   @Test
   void cromwellApiErrorDuringSubmission() throws Exception {
-    final String recordAttributeValue1 = "hello";
-    final String recordAttributeValue2 = "world";
-    RecordAttributes recordAttributes1 = new RecordAttributes();
-    recordAttributes1.put(recordAttribute1, recordAttributeValue1);
-    RecordAttributes recordAttributes2 = new RecordAttributes();
-    recordAttributes2.put(recordAttribute1, recordAttributeValue2);
-
     // Set up WDS API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
         .thenReturn(
