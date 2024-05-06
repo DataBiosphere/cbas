@@ -241,7 +241,7 @@ public class RunSetsApiController implements RunSetsApi {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(
           new RunSetStateResponse()
-              .errors("Failed to record run set to database. Error(s): " + e.getMessage()),
+              .errors("Failed to register submission request. Error(s): " + e.getMessage()),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -276,7 +276,7 @@ public class RunSetsApiController implements RunSetsApi {
 
       return new ResponseEntity<>(
           new RunSetStateResponse()
-              .errors("Failed to record runs to database. Error(s): " + e.getMessage()),
+              .errors("Failed to register submission request. Error(s): " + e.getMessage()),
           HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -285,6 +285,8 @@ public class RunSetsApiController implements RunSetsApi {
             .runSetId(runSet.runSetId())
             .runs(runStateResponseList)
             .state(toCbasRunSetApiState(runSet.status()));
+
+    runSet = runSet.withUpdatedRunCount(runStateResponseList.size());
 
     // trigger workflow submission
     runSetsHelper.triggerWorkflowSubmission(

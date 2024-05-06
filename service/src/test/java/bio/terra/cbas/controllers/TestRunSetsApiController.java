@@ -1,13 +1,12 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.models.CbasRunStatus.CANCELING;
-import static bio.terra.cbas.models.CbasRunStatus.INITIALIZING;
+import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,6 +32,7 @@ import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
+import bio.terra.cbas.controllers.util.RunSetsHelper;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -44,7 +44,6 @@ import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.sam.SamClient;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellClient;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.AbortRunSetResponse;
@@ -53,11 +52,15 @@ import bio.terra.cbas.model.OutputDestination;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
+import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunSetStateResponse;
+import bio.terra.cbas.model.RunState;
+import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -83,9 +86,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.ApiException;
 import org.broadinstitute.dsde.workbench.client.sam.api.UsersApi;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -145,6 +146,7 @@ class TestRunSetsApiController {
   private final String requestTemplate =
       """
         {
+          "run_set_name": "mock-run-set",
           "method_version_id" : "%s",
           "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ {
@@ -241,6 +243,7 @@ class TestRunSetsApiController {
   @MockBean private RunSetAbortManager abortManager;
   @Mock private LeonardoService leonardoService;
   @Mock private AppUtils appUtils;
+  @MockBean private RunSetsHelper runSetsHelper;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -403,7 +406,7 @@ class TestRunSetsApiController {
   }
 
   @Test
-  void runSetWith1FailedRunTest() throws Exception {
+  void runSetReturnsQueuedState() throws Exception {
     final String optionalInputSourceString =
         "{ \"type\" : \"record_lookup\", \"record_attribute\" : \"%s\" }"
             .formatted(recordAttribute2);
@@ -416,6 +419,9 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+
     MvcResult result =
         mockMvc
             .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -442,30 +448,48 @@ class TestRunSetsApiController {
     when(runDao.createRun(any())).thenReturn(1);
     List<Run> capturedRuns = newRunCaptor.getAllValues();
     assertEquals(3, capturedRuns.size());
-    // check Run 2 is in failed state (will be captured first)
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
-    assertNull(capturedRuns.get(0).engineId());
-    assertEquals(SYSTEM_ERROR, capturedRuns.get(0).status());
-    assertEquals(recordId2, capturedRuns.get(0).recordId());
-    assertThat(
-        capturedRuns.get(0).errorMessages(),
-        containsString("Input generation failed for record MY_RECORD_ID_2. Coercion error: "));
-    // check Runs 1 & 3 were successfully submitted
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
-    assertEquals(INITIALIZING, capturedRuns.get(1).status());
-    assertEquals(INITIALIZING, capturedRuns.get(2).status());
 
-    // Run storage order is currently not guaranteed
-    if (capturedRuns.get(1).engineId().equals(cromwellWorkflowId1)) {
-      assertEquals(recordId1, capturedRuns.get(1).recordId());
-      assertEquals(cromwellWorkflowId3, capturedRuns.get(2).engineId());
-      assertEquals(recordId3, capturedRuns.get(2).recordId());
-    } else {
-      assertEquals(recordId1, capturedRuns.get(2).recordId());
-      assertEquals(cromwellWorkflowId3, capturedRuns.get(1).engineId());
-      assertEquals(recordId3, capturedRuns.get(1).recordId());
-    }
+    // with introduction of async submissions, RunSetsApiController will only register the RunSet
+    // and Run in database and not do any input generation. Input generation and submitting to
+    // Cromwell will happen in async method. As a result, here RunSetsApiController will
+    // successfully return all 3 Runs in Queued state
+    assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(0).status());
+    assertNull(capturedRuns.get(0).engineId());
+    assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(1).status());
+    assertNull(capturedRuns.get(1).engineId());
+    assertEquals(CbasRunStatus.QUEUED, capturedRuns.get(2).status());
+    assertNull(capturedRuns.get(2).engineId());
+
+    ArgumentCaptor<RunSetRequest> runSetRequestArgumentCaptor =
+        ArgumentCaptor.forClass(RunSetRequest.class);
+    ArgumentCaptor<RunSet> runSetArgumentCaptor = ArgumentCaptor.forClass(RunSet.class);
+    ArgumentCaptor<Map<String, UUID>> recordIdMappingArgumentCaptor =
+        ArgumentCaptor.forClass(Map.class);
+
+    // verify that async submission method was called with right parameters
+    verify(runSetsHelper)
+        .triggerWorkflowSubmission(
+            runSetRequestArgumentCaptor.capture(),
+            runSetArgumentCaptor.capture(),
+            recordIdMappingArgumentCaptor.capture(),
+            any(),
+            any());
+    assertEquals("mock-run-set", runSetRequestArgumentCaptor.getValue().getRunSetName());
+    assertEquals(3, runSetRequestArgumentCaptor.getValue().getWdsRecords().getRecordIds().size());
+
+    assertEquals(newRunSetCaptor.getValue().runSetId(), runSetArgumentCaptor.getValue().runSetId());
+    assertEquals(CbasRunSetStatus.QUEUED, runSetArgumentCaptor.getValue().status());
+    assertEquals(3, runSetArgumentCaptor.getValue().runCount());
+    assertEquals(recordType, runSetArgumentCaptor.getValue().recordType());
+    assertEquals(
+        methodVersionId, runSetArgumentCaptor.getValue().methodVersion().methodVersionId());
+    assertEquals(methodId, runSetArgumentCaptor.getValue().methodVersion().method().methodId());
+    assertEquals(recordType, runSetArgumentCaptor.getValue().recordType());
+    assertEquals(outputDefinitionAsString, runSetArgumentCaptor.getValue().outputDefinition());
+    assertEquals(isCallCachingEnabled, runSetArgumentCaptor.getValue().callCachingEnabled());
+    assertEquals(mockUser.getUserSubjectId(), runSetArgumentCaptor.getValue().userId());
+
+    assertEquals(3, recordIdMappingArgumentCaptor.getValue().size());
 
     // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
     assertThat(
@@ -474,7 +498,7 @@ class TestRunSetsApiController {
   }
 
   @Test
-  void runSetWithFailedCromwellCall() throws Exception {
+  void failureToRegisterRunSet() throws Exception {
     final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null}";
     String request =
         requestTemplate.formatted(
@@ -485,67 +509,134 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
-    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any(), any()))
-        .thenThrow(
-            new cromwell.client.ApiException(
-                "ApiException thrown on purpose for testing purposes."));
+    when(runSetDao.createRunSet(any())).thenReturn(0);
 
     MvcResult result =
         mockMvc
             .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
+            .andExpect(status().is5xxServerError())
             .andReturn();
 
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
         objectMapper.readValue(
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    // verify that async method wasn't triggered
+    verifyNoInteractions(runSetsHelper);
+
     assertNotNull(response);
+    assertEquals(
+        "Failed to register submission request. Error(s): Failed to create new RunSet for 'mock-run-set'.",
+        response.getErrors());
+  }
 
-    ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
-    verify(runSetDao).createRunSet(newRunSetCaptor.capture());
-    assertEquals(methodVersionId, newRunSetCaptor.getValue().methodVersion().methodVersionId());
-    assertEquals(methodId, newRunSetCaptor.getValue().methodVersion().method().methodId());
-    assertEquals(recordType, newRunSetCaptor.getValue().recordType());
-    assertEquals(outputDefinitionAsString, newRunSetCaptor.getValue().outputDefinition());
-    assertEquals(isCallCachingEnabled, newRunSetCaptor.getValue().callCachingEnabled());
-    assertEquals(mockUser.getUserSubjectId(), newRunSetCaptor.getValue().userId());
+  @Test
+  void failureToRegisterRuns() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null}";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
-    ArgumentCaptor<Run> newRunCaptor = ArgumentCaptor.forClass(Run.class);
-    verify(runDao, times(3)).createRun(newRunCaptor.capture());
-    when(runDao.createRun(any())).thenReturn(1);
-    List<Run> capturedRuns = newRunCaptor.getAllValues();
-    assertEquals(3, capturedRuns.size());
+    RunSet returnedRunSet =
+        new RunSet(
+            UUID.randomUUID(),
+            new MethodVersion(
+                UUID.randomUUID(),
+                new Method(
+                    UUID.randomUUID(),
+                    "methodName",
+                    "methodDescription",
+                    OffsetDateTime.now(),
+                    UUID.randomUUID(),
+                    "method source",
+                    workspaceId),
+                "version name",
+                "version description",
+                OffsetDateTime.now(),
+                UUID.randomUUID(),
+                "method url",
+                workspaceId,
+                "test_branch",
+                Optional.empty()),
+            "",
+            "",
+            false,
+            false,
+            CbasRunSetStatus.QUEUED,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            2,
+            0,
+            "inputdefinition",
+            "outputDefinition",
+            "FOO",
+            mockUser.getUserSubjectId(),
+            workspaceId);
 
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(0).getRunSetId());
-    assertNull(capturedRuns.get(0).engineId());
-    assertEquals(SYSTEM_ERROR, capturedRuns.get(0).status());
+    Run run1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet,
+            recordId1,
+            OffsetDateTime.now(),
+            QUEUED,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
+    Run run2 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            returnedRunSet,
+            recordId2,
+            OffsetDateTime.now(),
+            QUEUED,
+            OffsetDateTime.now(),
+            OffsetDateTime.now(),
+            null);
 
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(1).getRunSetId());
-    assertNull(capturedRuns.get(1).engineId());
-    assertEquals(SYSTEM_ERROR, capturedRuns.get(1).status());
+    when(runSetDao.createRunSet(any())).thenReturn(1);
 
-    assertEquals(newRunSetCaptor.getValue().runSetId(), capturedRuns.get(2).getRunSetId());
-    assertNull(capturedRuns.get(2).engineId());
-    assertEquals(SYSTEM_ERROR, capturedRuns.get(2).status());
+    // throw error when registering third Run
+    when(runDao.createRun(any())).thenReturn(1).thenReturn(1).thenReturn(0);
 
-    Set<String> recordIds = Set.of(recordId1, recordId2, recordId3);
-    assertEquals(recordIds, capturedRuns.stream().map(Run::recordId).collect(Collectors.toSet()));
-    assertAll(
-        capturedRuns.stream()
-            .map(
-                run ->
-                    () ->
-                        assertThat(
-                            run.errorMessages(),
-                            containsString(
-                                "Cromwell submission failed for batch in RunSet %s. ApiException: "
-                                    .formatted(runSetUUID)))));
+    when(runDao.getRuns(any())).thenReturn(List.of(run1, run2));
 
-    // Assert that the submission timestamp of last Run in set is more recent than 60 seconds ago
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is5xxServerError())
+            .andReturn();
+
+    // verify that 2 Runs that were registered in DB are set to Error state
+    verify(runDao).updateRunStatusWithError(eq(run1.runId()), eq(SYSTEM_ERROR), any(), any());
+    verify(runDao).updateRunStatusWithError(eq(run2.runId()), eq(SYSTEM_ERROR), any(), any());
+
+    // verify that RunSet is marked in Error state
+    verify(runSetDao)
+        .updateStateAndRunSetDetails(any(), eq(CbasRunSetStatus.ERROR), eq(2), eq(2), any());
+
+    // verify that async method wasn't triggered
+    verifyNoInteractions(runSetsHelper);
+
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+
+    assertNotNull(response);
     assertThat(
-        newRunCaptor.getValue().submissionTimestamp(),
-        greaterThan(OffsetDateTime.now().minus(Duration.ofSeconds(60))));
+        response.getErrors(),
+        containsString(
+            "Failed to register submission request. Error(s): Failed to create new Run"));
   }
 
   @Test
@@ -565,6 +656,7 @@ class TestRunSetsApiController {
     when(uuidSource.generateUUID())
         .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
 
+    when(runSetDao.createRunSet(any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
 
     MvcResult result =
@@ -578,11 +670,12 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
 
-    // verify dockstoreService and cromwellService methods were called with expected params
+    // verify dockstoreService was called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
 
     assertNull(response.getErrors());
+    assertEquals(RunSetState.QUEUED, response.getState());
+    assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
   }
 
   @Test
@@ -686,6 +779,9 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+
     MvcResult resultOptionalNone =
         mockMvc
             .perform(post(API).content(requestOptionalNone).contentType(MediaType.APPLICATION_JSON))
@@ -697,6 +793,13 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             resultOptionalNone.getResponse().getContentAsString(), RunSetStateResponse.class);
     assertNotNull(responseOptionalNone);
+    assertEquals(responseOptionalNone.getState(), RunSetState.QUEUED);
+
+    List<RunStateResponse> actualRuns = responseOptionalNone.getRuns();
+    assertEquals(3, actualRuns.size());
+    assertEquals(RunState.QUEUED, actualRuns.get(0).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(1).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(2).getState());
   }
 
   @Test
@@ -710,6 +813,9 @@ class TestRunSetsApiController {
             outputDefinitionAsString,
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
+
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
 
     MvcResult resultOptionalRecordLookup =
         mockMvc
@@ -726,6 +832,13 @@ class TestRunSetsApiController {
             resultOptionalRecordLookup.getResponse().getContentAsString(),
             RunSetStateResponse.class);
     assertNotNull(responseOptionalRecordLookup);
+    assertEquals(RunSetState.QUEUED, responseOptionalRecordLookup.getState());
+
+    List<RunStateResponse> actualRuns = responseOptionalRecordLookup.getRuns();
+    assertEquals(3, actualRuns.size());
+    assertEquals(RunState.QUEUED, actualRuns.get(0).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(1).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(2).getState());
   }
 
   @Test
@@ -740,6 +853,9 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\", \"%s\", \"%s\" ]".formatted(recordId1, recordId2, recordId3));
 
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+    when(runDao.createRun(any())).thenReturn(1);
+
     MvcResult resultOptionalLiteral =
         mockMvc
             .perform(
@@ -752,6 +868,13 @@ class TestRunSetsApiController {
         objectMapper.readValue(
             resultOptionalLiteral.getResponse().getContentAsString(), RunSetStateResponse.class);
     assertNotNull(responseOptionalLiteral);
+    assertEquals(responseOptionalLiteral.getState(), RunSetState.QUEUED);
+
+    List<RunStateResponse> actualRuns = responseOptionalLiteral.getRuns();
+    assertEquals(3, actualRuns.size());
+    assertEquals(RunState.QUEUED, actualRuns.get(0).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(1).getState());
+    assertEquals(RunState.QUEUED, actualRuns.get(2).getState());
   }
 
   @Test
@@ -773,47 +896,6 @@ class TestRunSetsApiController {
 
     verifyNoInteractions(wdsService);
     verifyNoInteractions(cromwellService);
-  }
-
-  @Test
-  void wdsRecordIdNotFoundTest() throws Exception {
-    final String recordId1 = "MY_RECORD_ID_1";
-    final String recordId2 = "MY_RECORD_ID_2";
-    final int recordAttributeValue1 = 100;
-    RecordAttributes recordAttributes1 = new RecordAttributes();
-    recordAttributes1.put(recordAttribute, recordAttributeValue1);
-
-    String inputSourceAsString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
-    String request =
-        requestTemplate.formatted(
-            methodVersionId,
-            isCallCachingEnabled,
-            inputSourceAsString,
-            outputDefinitionAsString,
-            recordType,
-            "[ \"%s\", \"%s\" ]".formatted(recordId1, recordId2));
-
-    // Set up API responses
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
-        .thenReturn(
-            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
-    when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
-        .thenThrow(
-            new WdsServiceApiException(
-                new org.databiosphere.workspacedata.client.ApiException(
-                    400, "ApiException thrown for testing purposes.")));
-
-    MvcResult result =
-        mockMvc
-            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().is4xxClientError())
-            .andReturn();
-
-    verifyNoInteractions(cromwellService);
-    assertThat(
-        result.getResponse().getContentAsString(),
-        containsString(
-            "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
   }
 
   @Test
@@ -1028,6 +1110,8 @@ class TestRunSetsApiController {
     abortResults.setSubmittedIds(List.of(run1.runId(), run2.runId()));
     when(abortManager.abortRunSet(eq(returnedRunSet1Running), any())).thenReturn(abortResults);
 
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
+
     MvcResult result =
         mockMvc
             .perform(
@@ -1111,6 +1195,8 @@ class TestRunSetsApiController {
     abortResults.setFailedIds(List.of(run2.runId().toString()));
     abortResults.setSubmittedIds(List.of(run1.runId()));
     when(abortManager.abortRunSet(eq(returnedRunSet1Running), any())).thenReturn(abortResults);
+
+    when(runSetDao.getRunSet(returnedRunSet1Running.runSetId())).thenReturn(returnedRunSet1Running);
 
     doThrow(
             new cromwell.client.ApiException(
