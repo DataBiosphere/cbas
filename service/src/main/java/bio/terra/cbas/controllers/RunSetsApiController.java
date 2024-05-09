@@ -303,7 +303,7 @@ public class RunSetsApiController implements RunSetsApi {
     // when the abort request came in and as a result some Runs that had been submitted to
     // Cromwell got cancelled but some Runs that were still in process of being submitted do in
     // fact get submitted to Cromwell and are started by Cromwell. And hence the RunSet might have
-    // some aborted Runs and some Runs in Running state.
+    // Runs both in Aborted and Running state. Instead, don't abort RunSet when in Queued state.
     if (runSet.status() == CbasRunSetStatus.QUEUED) {
       String errorMessage =
           "Run Set can't be aborted when it is Queued state as system might still be processing the request.";
@@ -463,7 +463,8 @@ public class RunSetsApiController implements RunSetsApi {
       runStateResponseList.add(
           new RunStateResponse()
               .runId(entry.getValue())
-              .state(CbasRunStatus.toCbasApiState(QUEUED)));
+              .state(CbasRunStatus.toCbasApiState(QUEUED))
+              .errors(""));
     }
 
     return runStateResponseList;
