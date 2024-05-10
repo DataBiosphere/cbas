@@ -280,7 +280,6 @@ public class RunSetsApiController implements RunSetsApi {
     runSetsHelper.triggerWorkflowSubmission(
         request, runSet, recordIdToRunIdMapping, userToken, rawMethodUrl);
 
-    // return response
     captureResponseMetrics(response);
 
     // Return the result
