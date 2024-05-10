@@ -174,7 +174,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     captureRequestMetrics(request);
 
-    // Request validation
+    // request validation
     List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);
     if (!requestErrors.isEmpty()) {
       String errorMsg = "Bad user request. Error(s): " + requestErrors;
@@ -183,13 +183,11 @@ public class RunSetsApiController implements RunSetsApi {
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
-    UserStatusInfo user = samService.getSamUser(userToken);
-
-    // Fetch existing method
+    // Fetch existing method:
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
-    // Convert method url to raw url and return errors if any. Use the raw url while calling
-    // Cromwell's submit workflow endpoint
+    // convert method url to raw url and use that while calling Cromwell's submit workflow
+    // endpoint
     String rawMethodUrl;
     try {
       PostMethodRequest.MethodSourceEnum methodSourceEnum =
@@ -220,6 +218,8 @@ public class RunSetsApiController implements RunSetsApi {
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    UserStatusInfo user = samService.getSamUser(userToken);
 
     // register RunSet
     RunSet runSet;
@@ -282,6 +282,8 @@ public class RunSetsApiController implements RunSetsApi {
 
     // return response
     captureResponseMetrics(response);
+
+    // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
