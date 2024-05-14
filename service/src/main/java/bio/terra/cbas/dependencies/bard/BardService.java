@@ -9,11 +9,15 @@ import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.common.iam.BearerToken;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 
 @Component
 public class BardService implements HealthCheck {
+
+  Logger log = LoggerFactory.getLogger(BardService.class);
 
   private final BardClient bardClient;
   private final String appId = "cbas";
@@ -38,7 +42,11 @@ public class BardService implements HealthCheck {
 
   public void logEvent(String eventName, Map properties, BearerToken userToken) {
     EventsEventLogRequest request = new EventsEventLogRequest().properties(properties);
-    getDefaultApi(userToken).eventsEventLog(eventName, appId, request);
+    try {
+      getDefaultApi(userToken).eventsEventLog(eventName, appId, request);
+    } catch (RestClientException e) {
+      log.warn("Error logging event {} ", eventName, e);
+    }
   }
 
   @Override
