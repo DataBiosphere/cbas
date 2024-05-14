@@ -131,3 +131,7 @@ sam:
 ecm:
   baseUri: "https://externalcreds.dsde-dev.broadinstitute.org/"
   debugApiLogging: false
+
+bard:
+  baseUri: "https://terra-bard-dev.appspot.com"
+  debugApiLogging: false

@@ -23,6 +23,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsClientUtils;
@@ -83,6 +84,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final CromwellService cromwellService;
   private final WdsService wdsService;
   private final DockstoreService dockstoreService;
+  private final BardService bardService;
   private final MethodVersionDao methodVersionDao;
   private final MethodDao methodDao;
   private final RunSetDao runSetDao;
@@ -104,6 +106,7 @@ public class RunSetsApiController implements RunSetsApi {
       CromwellService cromwellService,
       WdsService wdsService,
       DockstoreService dockstoreService,
+      BardService bardService,
       ObjectMapper objectMapper,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
@@ -120,6 +123,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.cromwellService = cromwellService;
     this.wdsService = wdsService;
     this.dockstoreService = dockstoreService;
+    this.bardService = bardService;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
@@ -319,6 +323,7 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
+    bardService.logRunSetEvent(request, userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
