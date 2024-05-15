@@ -21,3 +21,4 @@ databaseChangeLog:
           ALTER TABLE run OWNER TO ${dbRole};
           ALTER TABLE run_set OWNER TO ${dbRole};
           ALTER TABLE github_method_details OWNER TO ${dbRole};
+          ALTER TABLE github_method_version_details OWNER TO ${dbRole};
