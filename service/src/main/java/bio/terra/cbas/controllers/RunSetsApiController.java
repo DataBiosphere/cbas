@@ -340,7 +340,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   public static void captureResponseMetrics(RunSetStateResponse response) {
     long successfulRuns =
-        response.getRuns().stream().filter(r -> r.getState() == RunState.UNKNOWN).count();
+        response.getRuns().stream().filter(r -> r.getState() == RunState.QUEUED).count();
     recordRunsSubmittedPerRunSet(successfulRuns);
   }
 
