@@ -61,8 +61,8 @@ public enum CbasRunSetStatus {
         List.of(
             new Pair<>(CbasRunStatus.UNKNOWN, CbasRunSetStatus.UNKNOWN),
             new Pair<>(CbasRunStatus.CANCELING, CbasRunSetStatus.CANCELING),
+            new Pair<>(CbasRunStatus.QUEUED, CbasRunSetStatus.QUEUED),
             new Pair<>(CbasRunStatus.RUNNING, CbasRunSetStatus.RUNNING),
-            new Pair<>(CbasRunStatus.QUEUED, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.PAUSED, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.INITIALIZING, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.CANCELED, CbasRunSetStatus.CANCELED),
