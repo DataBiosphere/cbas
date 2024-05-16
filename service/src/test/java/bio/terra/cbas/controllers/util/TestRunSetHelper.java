@@ -338,7 +338,6 @@ class TestRunSetHelper {
         .thenReturn(
             new RecordResponse().type(recordType).id(recordId2).attributes(recordAttributes2));
 
-    UUID engineId2 = UUID.randomUUID();
     // throw error when submitting first workflow batch
     when(cromwellService.submitWorkflowBatch(eq(mockWorkflowUrl), any(), any(), any()))
         .thenThrow(
