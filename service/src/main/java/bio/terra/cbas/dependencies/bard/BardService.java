@@ -45,8 +45,7 @@ public class BardService implements HealthCheck {
     properties.put("methodVersionId", request.getMethodVersionId().toString());
     properties.put("methodVersionName", methodVersion.name());
     properties.put("methodVersionUrl", methodVersion.url());
-    properties.put(
-        "workflowsStartedCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
     properties.put("workflowIds", workflowIds.toString());
     logEvent(eventName, properties, userToken);
   }

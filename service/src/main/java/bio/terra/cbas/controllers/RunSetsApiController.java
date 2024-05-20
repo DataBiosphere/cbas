@@ -324,7 +324,10 @@ public class RunSetsApiController implements RunSetsApi {
 
     captureResponseMetrics(response);
     List<String> workflowIds =
-        runStateResponseList.stream().map(RunStateResponse::getEngineId).toList();
+        runStateResponseList.stream()
+            .map(RunStateResponse::getEngineId)
+            .filter(Objects::nonNull)
+            .toList();
     bardService.logRunSetEvent(request, methodVersion, workflowIds, userToken);
 
     // Return the result

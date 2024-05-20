@@ -95,8 +95,7 @@ class TestBardService {
     properties.put("methodVersionId", request.getMethodVersionId().toString());
     properties.put("methodVersionName", methodVersion.name());
     properties.put("methodVersionUrl", methodVersion.url());
-    properties.put(
-        "workflowsStartedCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
     properties.put("workflowIds", cromwellWorkflowIds.toString());
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
     verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
