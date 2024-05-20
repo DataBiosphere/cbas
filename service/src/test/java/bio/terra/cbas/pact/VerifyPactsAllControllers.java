@@ -137,7 +137,7 @@ class VerifyPactsAllControllers {
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
           workspaceId);
 
-  MethodVersion myMethodVersion =
+  MethodVersion fixedMethodVersion =
       new MethodVersion(
           fixedMethodVersionUUID,
           fixedMethod,
@@ -204,7 +204,7 @@ class VerifyPactsAllControllers {
   @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
   public void initializeDAO() throws Exception {
     // Arrange DAO responses
-    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
+    when(methodVersionDao.getMethodVersion(any())).thenReturn(fixedMethodVersion);
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
@@ -231,7 +231,7 @@ class VerifyPactsAllControllers {
     RunSet fixedRunSet =
         new RunSet(
             UUID.fromString(fixedRunSetUUID),
-            myMethodVersion,
+            fixedMethodVersion,
             "myRunSet",
             "myRunSet description",
             true,
