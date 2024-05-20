@@ -228,24 +228,25 @@ class VerifyPactsAllControllers {
     String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
     String fixedCromwellRunUUID = "33333333-3333-3333-3333-333333333333";
 
-    RunSet fixedRunSet = new RunSet(
-        UUID.fromString(fixedRunSetUUID),
-        myMethodVersion,
-        "myRunSet",
-        "myRunSet description",
-        true,
-        false,
-        CbasRunSetStatus.QUEUED,
-        DateUtils.currentTimeInUTC(),
-        DateUtils.currentTimeInUTC(),
-        DateUtils.currentTimeInUTC(),
-        0,
-        0,
-        "my input definition string",
-        "my output definition string",
-        "FOO",
-        "bar-id",
-        workspaceId);
+    RunSet fixedRunSet =
+        new RunSet(
+            UUID.fromString(fixedRunSetUUID),
+            myMethodVersion,
+            "myRunSet",
+            "myRunSet description",
+            true,
+            false,
+            CbasRunSetStatus.QUEUED,
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            0,
+            0,
+            "my input definition string",
+            "my output definition string",
+            "FOO",
+            "bar-id",
+            workspaceId);
     RunStateResponse fixedRunStateResponse =
         new RunStateResponse()
             .runId(UUID.fromString(fixedRunUUID))
@@ -263,7 +264,8 @@ class VerifyPactsAllControllers {
         .thenReturn(
             new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
     when(runSetsService.registerRunSet(any(), any(), any())).thenReturn(fixedRunSet);
-    when(runSetsService.registerRunsInRunSet(any(), any())).thenReturn(List.of(fixedRunStateResponse));
+    when(runSetsService.registerRunsInRunSet(any(), any()))
+        .thenReturn(List.of(fixedRunStateResponse));
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
