@@ -33,6 +33,7 @@ import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -237,6 +238,7 @@ class TestRunSetsApiController {
   @MockBean private BardService bardService;
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
+  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
