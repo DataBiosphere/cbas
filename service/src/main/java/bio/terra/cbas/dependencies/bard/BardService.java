@@ -9,6 +9,7 @@ import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.common.iam.BearerToken;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,10 @@ public class BardService implements HealthCheck {
   }
 
   public void logRunSetEvent(
-      RunSetRequest request, MethodVersion methodVersion, BearerToken userToken) {
+      RunSetRequest request,
+      MethodVersion methodVersion,
+      List<String> workflowIds,
+      BearerToken userToken) {
     String eventName = "workflow-submission";
     HashMap<String, String> properties = new HashMap<>();
     properties.put("runSetName", request.getRunSetName());
@@ -43,6 +47,7 @@ public class BardService implements HealthCheck {
     properties.put("methodVersionUrl", methodVersion.url());
     properties.put(
         "workflowsStartedCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", workflowIds.toString());
     logEvent(eventName, properties, userToken);
   }
 

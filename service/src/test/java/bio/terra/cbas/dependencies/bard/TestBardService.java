@@ -85,7 +85,9 @@ class TestBardService {
             .methodVersionId(methodVersionId)
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
 
-    bardService.logRunSetEvent(request, methodVersion, userToken);
+    List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+
+    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
     HashMap<String, String> properties = new HashMap<>();
     properties.put("runSetName", request.getRunSetName());
     properties.put("methodName", methodVersion.method().name());
@@ -95,6 +97,7 @@ class TestBardService {
     properties.put("methodVersionUrl", methodVersion.url());
     properties.put(
         "workflowsStartedCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", cromwellWorkflowIds.toString());
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
     verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
   }

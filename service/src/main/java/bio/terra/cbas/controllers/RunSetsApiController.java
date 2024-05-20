@@ -323,7 +323,9 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
-    bardService.logRunSetEvent(request, methodVersion, userToken);
+    List<String> workflowIds =
+        runStateResponseList.stream().map(RunStateResponse::getEngineId).toList();
+    bardService.logRunSetEvent(request, methodVersion, workflowIds, userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
@@ -480,6 +482,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     return new RunStateResponse()
         .runId(runId)
+        .engineId(externalId)
         .state(CbasRunStatus.toCbasApiState(runState))
         .errors(errors + additionalErrorMsg);
   }

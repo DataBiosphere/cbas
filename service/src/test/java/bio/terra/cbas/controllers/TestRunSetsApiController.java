@@ -589,7 +589,8 @@ class TestRunSetsApiController {
     // verify BardService method was called with expected params
     RunSetRequest runSetRequest = objectMapper.readValue(request, RunSetRequest.class);
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(dockstoreMethodVersionId);
-    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, mockUserToken);
+    verify(bardService)
+        .logRunSetEvent(runSetRequest, methodVersion, List.of(cromwellWorkflowId1), mockUserToken);
     assertNull(response.getErrors());
   }
 

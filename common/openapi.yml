@@ -759,6 +759,9 @@ components:
             string
           format: uuid
           example: 00000000-0000-0000-0000-000000000000
+        engine_id:
+          type:
+            string
         state:
           $ref: '#/components/schemas/RunState'
         errors:
