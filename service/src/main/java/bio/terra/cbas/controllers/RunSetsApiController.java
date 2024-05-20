@@ -18,7 +18,6 @@ import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.controllers.util.RunSetsHelper;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -43,6 +42,7 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.service.RunSetsService;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -68,17 +68,14 @@ public class RunSetsApiController implements RunSetsApi {
   private final SamService samService;
   private final DockstoreService dockstoreService;
   private final MethodVersionDao methodVersionDao;
-  private final MethodDao methodDao;
   private final RunSetDao runSetDao;
   private final RunDao runDao;
-  private final ObjectMapper objectMapper;
   private final CbasApiConfiguration cbasApiConfiguration;
-  private final CbasContextConfiguration cbasContextConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final RunSetAbortManager abortManager;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
-  private final RunSetsHelper runSetsHelper;
+  private final RunSetsService runSetsService;
 
   public RunSetsApiController(
       SamService samService,
@@ -94,21 +91,18 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetAbortManager abortManager,
       BearerTokenFactory bearerTokenFactory,
       HttpServletRequest httpServletRequest,
-      RunSetsHelper runSetsHelper) {
+      RunSetsService runSetsService) {
     this.samService = samService;
     this.dockstoreService = dockstoreService;
-    this.objectMapper = objectMapper;
-    this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
-    this.cbasContextConfiguration = cbasContextConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.abortManager = abortManager;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
-    this.runSetsHelper = runSetsHelper;
+    this.runSetsService = runSetsService;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -224,7 +218,7 @@ public class RunSetsApiController implements RunSetsApi {
     // register RunSet
     RunSet runSet;
     try {
-      runSet = registerRunSet(request, user, methodVersion);
+      runSet = runSetsService.registerRunSet(request, user, methodVersion);
     } catch (JsonProcessingException | RunSetCreationException e) {
       log.warn("Failed to record run set to database", e);
       return new ResponseEntity<>(
@@ -242,7 +236,7 @@ public class RunSetsApiController implements RunSetsApi {
     // register Runs
     List<RunStateResponse> runStateResponseList;
     try {
-      runStateResponseList = registerRunsInRunSet(runSet, recordIdToRunIdMapping);
+      runStateResponseList = runSetsService.registerRunsInRunSet(runSet, recordIdToRunIdMapping);
     } catch (RunCreationException e) {
       String errorMsg =
           "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
@@ -277,7 +271,7 @@ public class RunSetsApiController implements RunSetsApi {
     runSet = runSet.withUpdatedRunCount(runStateResponseList.size());
 
     // trigger workflow submission
-    runSetsHelper.triggerWorkflowSubmission(
+    runSetsService.triggerWorkflowSubmission(
         request, runSet, recordIdToRunIdMapping, userToken, rawMethodUrl);
 
     captureResponseMetrics(response);
@@ -306,8 +300,7 @@ public class RunSetsApiController implements RunSetsApi {
     // fact get submitted to Cromwell and are started by Cromwell. And hence the RunSet might have
     // Runs both in Aborted and Running state. Instead, don't abort RunSet when in Queued state.
     if (runSet.status() == CbasRunSetStatus.QUEUED) {
-      String errorMessage =
-          "Run Set can't be aborted when it is Queued state as system might still be processing the request.";
+      String errorMessage = "Run Set can't be aborted when it is in Queued state.";
       return new ResponseEntity<>(
           new AbortRunSetResponse().runSetId(runSetId).errors(errorMessage),
           HttpStatus.BAD_REQUEST);
@@ -402,72 +395,5 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     return errorList;
-  }
-
-  private RunSet registerRunSet(
-      RunSetRequest runSetRequest, UserStatusInfo user, MethodVersion methodVersion)
-      throws JsonProcessingException, RunSetCreationException {
-    UUID runSetId = UUID.randomUUID();
-
-    RunSet newRunSet =
-        new RunSet(
-            runSetId,
-            methodVersion,
-            runSetRequest.getRunSetName(),
-            runSetRequest.getRunSetDescription(),
-            runSetRequest.isCallCachingEnabled(),
-            false,
-            CbasRunSetStatus.QUEUED,
-            DateUtils.currentTimeInUTC(),
-            DateUtils.currentTimeInUTC(),
-            DateUtils.currentTimeInUTC(),
-            0,
-            0,
-            objectMapper.writeValueAsString(runSetRequest.getWorkflowInputDefinitions()),
-            objectMapper.writeValueAsString(runSetRequest.getWorkflowOutputDefinitions()),
-            runSetRequest.getWdsRecords().getRecordType(),
-            user.getUserSubjectId(),
-            cbasContextConfiguration.getWorkspaceId());
-
-    int created = runSetDao.createRunSet(newRunSet);
-
-    if (created != 1) {
-      throw new RunSetCreationException(runSetRequest.getRunSetName());
-    }
-
-    methodDao.updateLastRunWithRunSet(newRunSet);
-    methodVersionDao.updateLastRunWithRunSet(newRunSet);
-
-    return newRunSet;
-  }
-
-  private List<RunStateResponse> registerRunsInRunSet(
-      RunSet runSet, Map<String, UUID> recordIdToRunIdMapping) throws RunCreationException {
-    List<RunStateResponse> runStateResponseList = new ArrayList<>();
-
-    for (Map.Entry<String, UUID> entry : recordIdToRunIdMapping.entrySet()) {
-      int created =
-          runDao.createRun(
-              new Run(
-                  entry.getValue(),
-                  null,
-                  runSet,
-                  entry.getKey(),
-                  DateUtils.currentTimeInUTC(),
-                  QUEUED,
-                  DateUtils.currentTimeInUTC(),
-                  DateUtils.currentTimeInUTC(),
-                  null));
-      if (created != 1) {
-        throw new RunCreationException(runSet.runSetId(), entry.getValue(), entry.getKey());
-      }
-      runStateResponseList.add(
-          new RunStateResponse()
-              .runId(entry.getValue())
-              .state(CbasRunStatus.toCbasApiState(QUEUED))
-              .errors(""));
-    }
-
-    return runStateResponseList;
   }
 }

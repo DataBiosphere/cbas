@@ -1,4 +1,4 @@
-package bio.terra.cbas.controllers.util;
+package bio.terra.cbas.service;
 
 import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,7 +9,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.config.CbasApiConfiguration;
+import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.controllers.GlobalExceptionHandler;
+import bio.terra.cbas.controllers.util.AsyncExceptionHandler;
+import bio.terra.cbas.dao.MethodDao;
+import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
@@ -32,6 +36,7 @@ import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
@@ -54,18 +59,32 @@ import org.springframework.test.context.ContextConfiguration;
       GlobalExceptionHandler.class,
       AsyncExceptionHandler.class
     })
-class TestRunSetHelper {
+class TestRunSetsService {
 
   private final RunDao runDao = mock(RunDao.class);
   private final RunSetDao runSetDao = mock(RunSetDao.class);
+  private final MethodDao methodDao = mock(MethodDao.class);
+  private final MethodVersionDao methodVersionDao = mock(MethodVersionDao.class);
   private final CromwellService cromwellService = mock(CromwellService.class);
   private final WdsService wdsService = mock(WdsService.class);
   private final CbasApiConfiguration cbasApiConfiguration = mock(CbasApiConfiguration.class);
   private final UuidSource uuidSource = mock(UuidSource.class);
+  private final ObjectMapper objectMapper = mock(ObjectMapper.class);
+  private final CbasContextConfiguration cbasContextConfiguration =
+      mock(CbasContextConfiguration.class);
 
-  private final RunSetsHelper mockRunSetHelper =
-      new RunSetsHelper(
-          runDao, runSetDao, cromwellService, wdsService, cbasApiConfiguration, uuidSource);
+  private final RunSetsService mockRunSetsService =
+      new RunSetsService(
+          runDao,
+          runSetDao,
+          methodDao,
+          methodVersionDao,
+          cromwellService,
+          wdsService,
+          cbasApiConfiguration,
+          uuidSource,
+          objectMapper,
+          cbasContextConfiguration);
 
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
@@ -221,7 +240,7 @@ class TestRunSetHelper {
     when(cbasApiConfiguration.getMaxWorkflowsInBatch()).thenReturn(10);
     when(uuidSource.generateUUID()).thenReturn(engineId1).thenReturn(engineId2);
 
-    mockRunSetHelper.triggerWorkflowSubmission(
+    mockRunSetsService.triggerWorkflowSubmission(
         runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
 
     // verify that Runs were set to Initializing state
@@ -254,7 +273,7 @@ class TestRunSetHelper {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, List.of(QUEUED))))
         .thenReturn(List.of(run1, run2));
 
-    mockRunSetHelper.triggerWorkflowSubmission(
+    mockRunSetsService.triggerWorkflowSubmission(
         runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
 
     // verify that both Runs were set to Error state with correct error message
@@ -304,7 +323,7 @@ class TestRunSetHelper {
     when(cbasApiConfiguration.getMaxWorkflowsInBatch()).thenReturn(10);
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
 
-    mockRunSetHelper.triggerWorkflowSubmission(
+    mockRunSetsService.triggerWorkflowSubmission(
         runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
 
     // verify Runs were set to Error state
@@ -348,7 +367,7 @@ class TestRunSetHelper {
     when(cbasApiConfiguration.getMaxWorkflowsInBatch()).thenReturn(1);
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(engineId2);
 
-    mockRunSetHelper.triggerWorkflowSubmission(
+    mockRunSetsService.triggerWorkflowSubmission(
         runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
 
     // verify that Run 1 was set to Error state
