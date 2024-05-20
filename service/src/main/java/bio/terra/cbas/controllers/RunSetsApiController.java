@@ -16,7 +16,6 @@ import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCrea
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
-import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
@@ -77,7 +76,6 @@ public class RunSetsApiController implements RunSetsApi {
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
-      CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
       UuidSource uuidSource,
       RunSetAbortManager abortManager,
