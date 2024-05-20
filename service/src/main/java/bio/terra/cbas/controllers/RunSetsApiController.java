@@ -17,9 +17,7 @@ import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
-import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
@@ -44,7 +42,6 @@ import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -66,7 +63,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final DockstoreService dockstoreService;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
-  private final RunDao runDao;
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
   private final UuidSource uuidSource;
@@ -78,10 +74,7 @@ public class RunSetsApiController implements RunSetsApi {
   public RunSetsApiController(
       SamService samService,
       DockstoreService dockstoreService,
-      ObjectMapper objectMapper,
-      MethodDao methodDao,
       MethodVersionDao methodVersionDao,
-      RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
       CbasContextConfiguration cbasContextConfiguration,
@@ -95,7 +88,6 @@ public class RunSetsApiController implements RunSetsApi {
     this.dockstoreService = dockstoreService;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
-    this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
     this.uuidSource = uuidSource;

@@ -423,8 +423,6 @@ class TestRunSetsService {
 
   @Test
   void registerRunSetSuccess() throws Exception {
-    UUID runSetId = UUID.randomUUID();
-
     when(uuidSource.generateUUID()).thenReturn(runSetId);
     when(runSetDao.createRunSet(any())).thenReturn(1);
 

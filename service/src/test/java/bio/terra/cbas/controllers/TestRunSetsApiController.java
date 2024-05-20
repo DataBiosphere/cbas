@@ -33,7 +33,6 @@ import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
-import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
@@ -295,7 +294,6 @@ class TestRunSetsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
-  @MockBean private RunDao runDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
   @MockBean private RunSetAbortManager abortManager;

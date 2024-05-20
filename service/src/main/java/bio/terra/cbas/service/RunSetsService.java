@@ -153,23 +153,7 @@ public class RunSetsService {
       if (created != 1) {
         String errorMsg =
             "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
-
-        // before marking RunSet in Error state, ensure that any Runs that were registered in
-        // database also get marked as in Error state
-        List<Run> runsInRunSet =
-            runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), List.of(QUEUED)));
-        runsInRunSet.forEach(
-            run ->
-                runDao.updateRunStatusWithError(
-                    run.runId(),
-                    CbasRunStatus.SYSTEM_ERROR,
-                    DateUtils.currentTimeInUTC(),
-                    errorMsg));
-
-        // mark RunSet in Error state
-        int runsCount = runsInRunSet.size();
-        runSetDao.updateStateAndRunSetDetails(
-            runSet.runSetId(), CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
+        recordRunsAndRunSetInErrorState(runSet.runSetId(), errorMsg);
 
         throw new RunCreationException(runSet.runSetId(), entry.getValue(), entry.getKey());
       }
@@ -200,18 +184,7 @@ public class RunSetsService {
               + wdsRecordResponses.recordIdsWithError;
       logger.warn(errorMsg);
 
-      // before marking RunSet in Error state, ensure that any Runs that were registered in database
-      // also get marked as in Error state
-      List<Run> runsInRunSet =
-          runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), List.of(QUEUED)));
-      runsInRunSet.forEach(
-          run ->
-              runDao.updateRunStatusWithError(
-                  run.runId(), CbasRunStatus.SYSTEM_ERROR, DateUtils.currentTimeInUTC(), errorMsg));
-
-      int runsCount = runsInRunSet.size();
-      runSetDao.updateStateAndRunSetDetails(
-          runSet.runSetId(), CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
+      recordRunsAndRunSetInErrorState(runSet.runSetId(), errorMsg);
 
       return;
     }
@@ -282,6 +255,21 @@ public class RunSetsService {
         .runId(runId)
         .state(CbasRunStatus.toCbasApiState(INITIALIZING))
         .errors(null);
+  }
+
+  private void recordRunsAndRunSetInErrorState(UUID runSetId, String errorMsg) {
+    // before marking RunSet in Error state, ensure that any Runs that were created in
+    // database also get marked as in Error state
+    List<Run> runsInRunSet = runDao.getRuns(new RunDao.RunsFilters(runSetId, List.of(QUEUED)));
+    runsInRunSet.forEach(
+        run ->
+            runDao.updateRunStatusWithError(
+                run.runId(), CbasRunStatus.SYSTEM_ERROR, DateUtils.currentTimeInUTC(), errorMsg));
+
+    // mark RunSet in Error state
+    int runsCount = runsInRunSet.size();
+    runSetDao.updateStateAndRunSetDetails(
+        runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
   private List<RunStateResponse> buildInputsAndSubmitRun(
