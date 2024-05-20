@@ -7,7 +7,6 @@ import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
-import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
@@ -34,15 +33,14 @@ import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.MethodVersion;
-import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.service.RunSetsService;
+import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,7 +48,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -72,6 +69,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final RunDao runDao;
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
+  private final UuidSource uuidSource;
   private final RunSetAbortManager abortManager;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
@@ -88,6 +86,7 @@ public class RunSetsApiController implements RunSetsApi {
       CbasApiConfiguration cbasApiConfiguration,
       CbasContextConfiguration cbasContextConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
+      UuidSource uuidSource,
       RunSetAbortManager abortManager,
       BearerTokenFactory bearerTokenFactory,
       HttpServletRequest httpServletRequest,
@@ -99,6 +98,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
+    this.uuidSource = uuidSource;
     this.abortManager = abortManager;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
@@ -230,7 +230,7 @@ public class RunSetsApiController implements RunSetsApi {
     // create mapping between Record IDs to Run IDs to register runs in database
     Map<String, UUID> recordIdToRunIdMapping =
         request.getWdsRecords().getRecordIds().stream()
-            .map(recordId -> Map.entry(recordId, UUID.randomUUID()))
+            .map(recordId -> Map.entry(recordId, uuidSource.generateUUID()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     // register Runs
@@ -241,20 +241,6 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg =
           "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
       log.error(errorMsg, e);
-
-      // before marking RunSet in Error state, ensure that any Runs that were registered in database
-      // also get marked as in Error state
-      List<Run> runsInRunSet =
-          runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), List.of(QUEUED)));
-      runsInRunSet.forEach(
-          run ->
-              runDao.updateRunStatusWithError(
-                  run.runId(), CbasRunStatus.SYSTEM_ERROR, DateUtils.currentTimeInUTC(), errorMsg));
-
-      // mark RunSet in Error state
-      int runsCount = runsInRunSet.size();
-      runSetDao.updateStateAndRunSetDetails(
-          runSet.runSetId(), CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
 
       return new ResponseEntity<>(
           new RunSetStateResponse()

@@ -60,8 +60,8 @@ public enum CbasRunSetStatus {
     List<Pair<CbasRunStatus, CbasRunSetStatus>> statusMapping =
         List.of(
             new Pair<>(CbasRunStatus.UNKNOWN, CbasRunSetStatus.UNKNOWN),
-            new Pair<>(CbasRunStatus.CANCELING, CbasRunSetStatus.CANCELING),
             new Pair<>(CbasRunStatus.QUEUED, CbasRunSetStatus.QUEUED),
+            new Pair<>(CbasRunStatus.CANCELING, CbasRunSetStatus.CANCELING),
             new Pair<>(CbasRunStatus.RUNNING, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.PAUSED, CbasRunSetStatus.RUNNING),
             new Pair<>(CbasRunStatus.INITIALIZING, CbasRunSetStatus.RUNNING),

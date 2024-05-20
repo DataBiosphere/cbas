@@ -1,13 +1,22 @@
 package bio.terra.cbas.service;
 
 import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
+import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
+import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.controllers.GlobalExceptionHandler;
@@ -26,6 +35,8 @@ import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
 import bio.terra.cbas.model.RunSetRequest;
+import bio.terra.cbas.model.RunState;
+import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
@@ -221,6 +232,26 @@ class TestRunSetsService {
         }
       };
 
+  private final MethodVersion methodVersion =
+      new MethodVersion(
+          methodVersionId,
+          new Method(
+              methodId,
+              "methodname",
+              "methoddescription",
+              OffsetDateTime.now(),
+              UUID.randomUUID(),
+              "GitHub",
+              workspaceId),
+          "version name",
+          "version description",
+          OffsetDateTime.now(),
+          null,
+          "https://abc.com/path-to-wdl",
+          workspaceId,
+          "test_branch",
+          Optional.empty());
+
   @Test
   void submissionLaunchesSuccessfully() throws Exception {
     // Set up WDS API responses
@@ -280,14 +311,14 @@ class TestRunSetsService {
     verify(runDao)
         .updateRunStatusWithError(
             eq(runId1),
-            eq(CbasRunStatus.SYSTEM_ERROR),
+            eq(SYSTEM_ERROR),
             any(),
             eq(
                 "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
     verify(runDao)
         .updateRunStatusWithError(
             eq(runId2),
-            eq(CbasRunStatus.SYSTEM_ERROR),
+            eq(SYSTEM_ERROR),
             any(),
             eq(
                 "Error while fetching WDS Records for Record ID(s): {MY_RECORD_ID_2=ApiException thrown for testing purposes.}"));
@@ -330,14 +361,14 @@ class TestRunSetsService {
     verify(runDao)
         .updateRunStatusWithError(
             eq(runId1),
-            eq(CbasRunStatus.SYSTEM_ERROR),
+            eq(SYSTEM_ERROR),
             any(),
             eq(
                 "Input generation failed for record MY_RECORD_ID_1. Coercion error: Coercion from Integer to String failed for parameter myworkflow.mycall.inputname2. Coercion not supported between these types."));
     verify(runDao)
         .updateRunStatusWithError(
             eq(runId2),
-            eq(CbasRunStatus.SYSTEM_ERROR),
+            eq(SYSTEM_ERROR),
             any(),
             eq(
                 "Input generation failed for record MY_RECORD_ID_2. Coercion error: Coercion from Integer to String failed for parameter myworkflow.mycall.inputname2. Coercion not supported between these types."));
@@ -374,7 +405,7 @@ class TestRunSetsService {
     verify(runDao)
         .updateRunStatusWithError(
             eq(runId1),
-            eq(CbasRunStatus.SYSTEM_ERROR),
+            eq(SYSTEM_ERROR),
             any(),
             startsWith(
                 "Cromwell submission failed for batch in RunSet %s. ApiException: Message: ApiException thrown on purpose for testing purposes."
@@ -388,5 +419,74 @@ class TestRunSetsService {
     verify(runSetDao)
         .updateStateAndRunSetDetails(
             eq(runSetId), eq(CbasRunSetStatus.RUNNING), eq(2), eq(1), any());
+  }
+
+  @Test
+  void registerRunSetSuccess() throws Exception {
+    UUID runSetId = UUID.randomUUID();
+
+    when(uuidSource.generateUUID()).thenReturn(runSetId);
+    when(runSetDao.createRunSet(any())).thenReturn(1);
+
+    RunSet actualRunSet = mockRunSetsService.registerRunSet(runSetRequest, mockUser, methodVersion);
+
+    // verify run set values
+    assertEquals(runSetId, actualRunSet.runSetId());
+    assertEquals(CbasRunSetStatus.QUEUED, actualRunSet.status());
+    assertEquals(0, actualRunSet.runCount());
+
+    // verify method DAO and methodVersion DAO methods were called as expected
+    verify(methodDao, atMostOnce()).updateLastRunWithRunSet(actualRunSet);
+    verify(methodVersionDao, atMostOnce()).updateLastRunWithRunSet(actualRunSet);
+  }
+
+  @Test
+  void registerRunSetFailure() {
+    when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID());
+    when(runSetDao.createRunSet(any())).thenReturn(0);
+
+    RunSetCreationException exception =
+        assertThrows(
+            RunSetCreationException.class,
+            () -> mockRunSetsService.registerRunSet(runSetRequest, mockUser, methodVersion));
+
+    assertEquals("Failed to create new RunSet for 'mock-run-set'.", exception.getMessage());
+
+    // verify method DAO and methodVersion DAO methods weren't called
+    verify(methodDao, never()).updateLastRunWithRunSet(any());
+    verify(methodVersionDao, never()).updateLastRunWithRunSet(any());
+  }
+
+  @Test
+  void registerRunsInRunSetSuccess() throws Exception {
+    when(runDao.createRun(any())).thenReturn(1).thenReturn(1);
+
+    List<RunStateResponse> actualResponse =
+        mockRunSetsService.registerRunsInRunSet(runSet, recordIdToRunIdMapping);
+
+    assertEquals(2, actualResponse.size());
+    assertEquals(RunState.QUEUED, actualResponse.get(0).getState());
+    assertEquals(RunState.QUEUED, actualResponse.get(1).getState());
+  }
+
+  @Test
+  void registerRunsInRunSetFailure() {
+    when(runDao.createRun(any())).thenReturn(1).thenReturn(0);
+
+    when(runDao.getRuns(any())).thenReturn(List.of(run1));
+
+    RunCreationException exception =
+        assertThrows(
+            RunCreationException.class,
+            () -> mockRunSetsService.registerRunsInRunSet(runSet, recordIdToRunIdMapping));
+
+    assertThat(exception.getMessage(), containsString("Failed to create new Run"));
+
+    // verify that 1 Run that were registered in DB are set to Error state
+    verify(runDao).updateRunStatusWithError(eq(run1.runId()), eq(SYSTEM_ERROR), any(), any());
+
+    // verify that RunSet is marked in Error state
+    verify(runSetDao)
+        .updateStateAndRunSetDetails(any(), eq(CbasRunSetStatus.ERROR), eq(1), eq(1), any());
   }
 }

@@ -7,7 +7,8 @@ import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.common.exceptions.DatabaseConnectivityException;
+import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
+import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
@@ -97,8 +98,8 @@ public class RunSetsService {
 
   public RunSet registerRunSet(
       RunSetRequest runSetRequest, UserStatusInfo user, MethodVersion methodVersion)
-      throws JsonProcessingException, DatabaseConnectivityException.RunSetCreationException {
-    UUID runSetId = UUID.randomUUID();
+      throws JsonProcessingException, RunSetCreationException {
+    UUID runSetId = uuidSource.generateUUID();
 
     RunSet newRunSet =
         new RunSet(
@@ -123,8 +124,7 @@ public class RunSetsService {
     int created = runSetDao.createRunSet(newRunSet);
 
     if (created != 1) {
-      throw new DatabaseConnectivityException.RunSetCreationException(
-          runSetRequest.getRunSetName());
+      throw new RunSetCreationException(runSetRequest.getRunSetName());
     }
 
     methodDao.updateLastRunWithRunSet(newRunSet);
@@ -134,8 +134,7 @@ public class RunSetsService {
   }
 
   public List<RunStateResponse> registerRunsInRunSet(
-      RunSet runSet, Map<String, UUID> recordIdToRunIdMapping)
-      throws DatabaseConnectivityException.RunCreationException {
+      RunSet runSet, Map<String, UUID> recordIdToRunIdMapping) throws RunCreationException {
     List<RunStateResponse> runStateResponseList = new ArrayList<>();
 
     for (Map.Entry<String, UUID> entry : recordIdToRunIdMapping.entrySet()) {
@@ -152,9 +151,29 @@ public class RunSetsService {
                   DateUtils.currentTimeInUTC(),
                   null));
       if (created != 1) {
-        throw new DatabaseConnectivityException.RunCreationException(
-            runSet.runSetId(), entry.getValue(), entry.getKey());
+        String errorMsg =
+            "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
+
+        // before marking RunSet in Error state, ensure that any Runs that were registered in
+        // database also get marked as in Error state
+        List<Run> runsInRunSet =
+            runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), List.of(QUEUED)));
+        runsInRunSet.forEach(
+            run ->
+                runDao.updateRunStatusWithError(
+                    run.runId(),
+                    CbasRunStatus.SYSTEM_ERROR,
+                    DateUtils.currentTimeInUTC(),
+                    errorMsg));
+
+        // mark RunSet in Error state
+        int runsCount = runsInRunSet.size();
+        runSetDao.updateStateAndRunSetDetails(
+            runSet.runSetId(), CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
+
+        throw new RunCreationException(runSet.runSetId(), entry.getValue(), entry.getKey());
       }
+
       runStateResponseList.add(
           new RunStateResponse()
               .runId(entry.getValue())
