@@ -37,6 +37,7 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
@@ -145,6 +146,7 @@ class TestRunSetsApiController {
   private final String requestTemplate =
       """
         {
+          "run_set_name" : "my_runset",
           "method_version_id" : "%s",
           "call_caching_enabled": "%s",
           "workflow_input_definitions" : [ {
@@ -232,6 +234,7 @@ class TestRunSetsApiController {
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
+  @MockBean private BardService bardService;
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
@@ -567,6 +570,7 @@ class TestRunSetsApiController {
 
     when(runDao.createRun(any())).thenReturn(1);
 
+    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
     MvcResult result =
         mockMvc
             .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
@@ -582,6 +586,10 @@ class TestRunSetsApiController {
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
     verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
 
+    // verify BardService method was called with expected params
+    RunSetRequest runSetRequest = objectMapper.readValue(request, RunSetRequest.class);
+    MethodVersion methodVersion = methodVersionDao.getMethodVersion(dockstoreMethodVersionId);
+    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, mockUserToken);
     assertNull(response.getErrors());
   }
 
