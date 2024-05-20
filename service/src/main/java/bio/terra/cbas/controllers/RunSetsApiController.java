@@ -323,7 +323,7 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
-    bardService.logRunSetEvent(request, userToken);
+    bardService.logRunSetEvent(request, methodVersion, userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);

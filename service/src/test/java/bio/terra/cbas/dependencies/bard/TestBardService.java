@@ -8,12 +8,17 @@ import static org.mockito.Mockito.when;
 import bio.terra.bard.api.DefaultApi;
 import bio.terra.bard.client.ApiClient;
 import bio.terra.bard.model.EventsEventLogRequest;
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.WdsRecordSet;
+import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.common.iam.BearerToken;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,16 +46,48 @@ class TestBardService {
 
   @Test
   void testBardLogRunSetEvent() {
+    UUID methodVersionId = UUID.randomUUID();
+    UUID workspaceId = UUID.randomUUID();
+    String methodName = "test method";
+    Method method =
+        new Method(
+            UUID.randomUUID(),
+            methodName,
+            "method description ",
+            DateUtils.currentTimeInUTC(),
+            null,
+            "GitHub",
+            workspaceId);
+
+    MethodVersion methodVersion =
+        new MethodVersion(
+            methodVersionId,
+            method,
+            "1.0",
+            "method version description",
+            OffsetDateTime.now(),
+            null,
+            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
+            workspaceId,
+            "develop",
+            Optional.empty());
+
     RunSetRequest request =
         new RunSetRequest()
             .runSetName("testRun")
-            .methodVersionId(UUID.randomUUID())
+            .methodVersionId(methodVersionId)
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
-    bardService.logRunSetEvent(request, userToken);
+
+    bardService.logRunSetEvent(request, methodVersion, userToken);
     HashMap<String, String> properties = new HashMap<>();
     properties.put("runSetName", request.getRunSetName());
+    properties.put("methodName", methodVersion.method().name());
+    properties.put("methodSource", methodVersion.method().methodSource());
     properties.put("methodVersionId", request.getMethodVersionId().toString());
-    properties.put("wdsRecords", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("methodVersionName", methodVersion.name());
+    properties.put("methodVersionUrl", methodVersion.url());
+    properties.put(
+        "workflowsStartedCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
     verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
   }
