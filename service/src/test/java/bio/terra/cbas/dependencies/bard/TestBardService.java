@@ -1,14 +1,20 @@
 package bio.terra.cbas.dependencies.bard;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import bio.terra.bard.api.DefaultApi;
 import bio.terra.bard.client.ApiClient;
+import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.models.Method;
@@ -40,7 +46,8 @@ class TestBardService {
     ApiClient apiClient = mock(ApiClient.class);
     defaultApi = mock(DefaultApi.class);
     userToken = new BearerToken("foo");
-    when(bardClient.bardAuthClient(any())).thenReturn(apiClient);
+    lenient().when(bardClient.apiClient()).thenReturn(apiClient);
+    lenient().when(bardClient.bardAuthClient(any())).thenReturn(apiClient);
     when(bardClient.defaultApi(apiClient)).thenReturn(defaultApi);
   }
 
@@ -106,5 +113,22 @@ class TestBardService {
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(Map.of());
     bardService.logEvent("testEvent", Map.of(), userToken);
     verify(defaultApi).eventsEventLog("testEvent", appId, eventLogRequest);
+  }
+
+  @Test
+  void testBardStatusSuccess() {
+    when(defaultApi.systemStatus()).thenReturn(new EventsEvent200Response());
+    HealthCheck.Result result = bardService.checkHealth();
+    assertTrue(result.isOk());
+    assertEquals(result.message(), "Ok");
+  }
+
+  @Test
+  void testBardStatusFailure() {
+    String errorMessage = "API error";
+    when(defaultApi.systemStatus()).thenThrow(new RestClientException(errorMessage));
+    HealthCheck.Result result = bardService.checkHealth();
+    assertFalse(result.isOk());
+    assertEquals(result.message(), errorMessage);
   }
 }

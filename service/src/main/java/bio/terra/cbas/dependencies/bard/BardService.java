@@ -61,7 +61,7 @@ public class BardService implements HealthCheck {
       ApiClient client = bardClient.apiClient();
       DefaultApi defaultApi = bardClient.defaultApi(client);
       EventsEvent200Response status = defaultApi.systemStatus();
-      return new Result(true, status.toString());
+      return new Result(true, "Ok");
     } catch (Exception e) {
       return new Result(false, e.getMessage());
     }
