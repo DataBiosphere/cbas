@@ -19,6 +19,7 @@ import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -43,6 +44,7 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -87,6 +89,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final BardService bardService;
   private final MethodVersionDao methodVersionDao;
   private final MethodDao methodDao;
+  private final GithubMethodDetailsDao githubMethodDetailsDao;
   private final RunSetDao runSetDao;
   private final RunDao runDao;
   private final ObjectMapper objectMapper;
@@ -110,6 +113,7 @@ public class RunSetsApiController implements RunSetsApi {
       ObjectMapper objectMapper,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
+      GithubMethodDetailsDao githubMethodDetailsDao,
       RunDao runDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
@@ -127,6 +131,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
+    this.githubMethodDetailsDao = githubMethodDetailsDao;
     this.runSetDao = runSetDao;
     this.runDao = runDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
@@ -228,9 +233,9 @@ public class RunSetsApiController implements RunSetsApi {
     // convert method url to raw url and use that while calling Cromwell's submit workflow
     // endpoint
     String rawMethodUrl;
+    PostMethodRequest.MethodSourceEnum methodSourceEnum;
     try {
-      PostMethodRequest.MethodSourceEnum methodSourceEnum =
-          convertToMethodSourceEnum(methodVersion.method().methodSource());
+      methodSourceEnum = convertToMethodSourceEnum(methodVersion.method().methodSource());
 
       rawMethodUrl =
           MethodUtil.convertToRawUrl(
@@ -323,12 +328,18 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
+
     List<String> workflowIds =
         runStateResponseList.stream()
             .map(RunStateResponse::getEngineId)
             .filter(Objects::nonNull)
             .toList();
-    bardService.logRunSetEvent(request, methodVersion, workflowIds, userToken);
+    GithubMethodDetails githubMethodDetails = null;
+    if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
+      githubMethodDetails =
+          githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
+    }
+    bardService.logRunSetEvent(request, methodVersion, githubMethodDetails, workflowIds, userToken);
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);

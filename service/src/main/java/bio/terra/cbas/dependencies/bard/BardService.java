@@ -6,11 +6,13 @@ import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.model.RunSetRequest;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.common.iam.BearerToken;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,7 @@ public class BardService implements HealthCheck {
   public void logRunSetEvent(
       RunSetRequest request,
       MethodVersion methodVersion,
+      GithubMethodDetails githubMethodDetails,
       List<String> workflowIds,
       BearerToken userToken) {
     String eventName = "workflow-submission";
@@ -47,6 +50,13 @@ public class BardService implements HealthCheck {
     properties.put("methodVersionUrl", methodVersion.url());
     properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
     properties.put("workflowIds", workflowIds.toString());
+
+    if (Objects.nonNull(githubMethodDetails)) {
+      properties.put("githubOrganization", githubMethodDetails.organization());
+      properties.put("githubRepository", githubMethodDetails.repository());
+      properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
+    }
+
     logEvent(eventName, properties, userToken);
   }
 

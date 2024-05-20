@@ -17,6 +17,7 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.WdsRecordSet;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.common.iam.BearerToken;
@@ -53,50 +54,42 @@ class TestBardService {
 
   @Test
   void testBardLogRunSetEvent() {
-    UUID methodVersionId = UUID.randomUUID();
-    UUID workspaceId = UUID.randomUUID();
-    String methodName = "test method";
-    Method method =
-        new Method(
-            UUID.randomUUID(),
-            methodName,
-            "method description ",
-            DateUtils.currentTimeInUTC(),
-            null,
-            "GitHub",
-            workspaceId);
-
-    MethodVersion methodVersion =
-        new MethodVersion(
-            methodVersionId,
-            method,
-            "1.0",
-            "method version description",
-            OffsetDateTime.now(),
-            null,
-            "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
-            workspaceId,
-            "develop",
-            Optional.empty());
-
+    Method method = getTestMethod("Dockstore");
+    MethodVersion methodVersion = getTestMethodVersion(method);
     RunSetRequest request =
         new RunSetRequest()
             .runSetName("testRun")
-            .methodVersionId(methodVersionId)
+            .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
-
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+    bardService.logRunSetEvent(request, methodVersion, null, cromwellWorkflowIds, userToken);
 
-    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
-    HashMap<String, String> properties = new HashMap<>();
-    properties.put("runSetName", request.getRunSetName());
-    properties.put("methodName", methodVersion.method().name());
-    properties.put("methodSource", methodVersion.method().methodSource());
-    properties.put("methodVersionId", request.getMethodVersionId().toString());
-    properties.put("methodVersionName", methodVersion.name());
-    properties.put("methodVersionUrl", methodVersion.url());
-    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
-    properties.put("workflowIds", cromwellWorkflowIds.toString());
+    Map<String, String> properties =
+        getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
+    EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
+    verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
+  }
+
+  @Test
+  void testBardLogGithubRunSetEvent() {
+    Method method = getTestMethod("Github");
+    MethodVersion methodVersion = getTestMethodVersion(method);
+    RunSetRequest request =
+        new RunSetRequest()
+            .runSetName("testRun")
+            .methodVersionId(methodVersion.methodVersionId())
+            .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
+    GithubMethodDetails githubMethodDetails =
+        new GithubMethodDetails("repo", "organization", "path", true, method.methodId());
+    List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+    bardService.logRunSetEvent(
+        request, methodVersion, githubMethodDetails, cromwellWorkflowIds, userToken);
+
+    Map<String, String> properties =
+        getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
+    properties.put("githubOrganization", githubMethodDetails.organization());
+    properties.put("githubRepository", githubMethodDetails.repository());
+    properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
     verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
   }
@@ -132,5 +125,44 @@ class TestBardService {
     HealthCheck.Result result = bardService.checkHealth();
     assertFalse(result.isOk());
     assertEquals(result.message(), errorMessage);
+  }
+
+  private Method getTestMethod(String source) {
+    return new Method(
+        UUID.randomUUID(),
+        "test method",
+        "method description ",
+        DateUtils.currentTimeInUTC(),
+        null,
+        source,
+        UUID.randomUUID());
+  }
+
+  private MethodVersion getTestMethodVersion(Method method) {
+    return new MethodVersion(
+        UUID.randomUUID(),
+        method,
+        "1.0",
+        "method version description",
+        OffsetDateTime.now(),
+        null,
+        "https://raw.githubusercontent.com/broadinstitute/viral-pipelines/master/pipes/WDL/workflows/fetch_sra_to_bam.wdl",
+        method.getOriginalWorkspaceId(),
+        "develop",
+        Optional.empty());
+  }
+
+  private HashMap<String, String> getDefaultProperties(
+      RunSetRequest request, MethodVersion methodVersion, List<String> cromwellWorkflowIds) {
+    HashMap<String, String> properties = new HashMap<>();
+    properties.put("runSetName", request.getRunSetName());
+    properties.put("methodName", methodVersion.method().name());
+    properties.put("methodSource", methodVersion.method().methodSource());
+    properties.put("methodVersionId", request.getMethodVersionId().toString());
+    properties.put("methodVersionName", methodVersion.name());
+    properties.put("methodVersionUrl", methodVersion.url());
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", cromwellWorkflowIds.toString());
+    return properties;
   }
 }
