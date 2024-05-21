@@ -1,8 +1,11 @@
 package bio.terra.cbas.config;
 
 import bio.terra.cbas.controllers.util.AsyncExceptionHandler;
+import bio.terra.cbas.dao.RunDao;
+import bio.terra.cbas.dao.RunSetDao;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.context.annotation.Bean;
@@ -12,16 +15,26 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @EnableAsync
 @ConfigurationProperties(prefix = "cbas.async.submission")
-public class AsyncConfig implements AsyncConfigurer {
+public class AsyncConfiguration implements AsyncConfigurer {
   private final int coreThreadPoolSize;
   private final int maxThreadPoolSize;
   private final int queueCapacity;
 
+  @Autowired private final RunDao runDao;
+  @Autowired private final RunSetDao runSetDao;
+
   @ConstructorBinding
-  public AsyncConfig(int coreThreadPoolSize, int maxThreadPoolSize, int queueCapacity) {
+  public AsyncConfiguration(
+      int coreThreadPoolSize,
+      int maxThreadPoolSize,
+      int queueCapacity,
+      RunDao runDao,
+      RunSetDao runSetDao) {
     this.coreThreadPoolSize = coreThreadPoolSize;
     this.maxThreadPoolSize = maxThreadPoolSize;
     this.queueCapacity = queueCapacity;
+    this.runDao = runDao;
+    this.runSetDao = runSetDao;
   }
 
   @Bean
@@ -39,6 +52,6 @@ public class AsyncConfig implements AsyncConfigurer {
 
   @Override
   public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-    return new AsyncExceptionHandler();
+    return new AsyncExceptionHandler(runDao, runSetDao);
   }
 }

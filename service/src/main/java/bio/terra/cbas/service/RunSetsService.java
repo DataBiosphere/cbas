@@ -264,10 +264,7 @@ public class RunSetsService {
     runsInRunSet.forEach(
         run ->
             runDao.updateRunStatusWithError(
-                run.runId(),
-                CbasRunStatus.SYSTEM_ERROR,
-                DateUtils.currentTimeInUTC(),
-                errorMsg.substring(0, 1000)));
+                run.runId(), CbasRunStatus.SYSTEM_ERROR, DateUtils.currentTimeInUTC(), errorMsg));
 
     // mark RunSet in Error state
     int runsCount = runsInRunSet.size();

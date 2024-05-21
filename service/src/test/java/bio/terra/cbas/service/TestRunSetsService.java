@@ -19,8 +19,6 @@ import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreatio
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.controllers.GlobalExceptionHandler;
-import bio.terra.cbas.controllers.util.AsyncExceptionHandler;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -59,17 +57,7 @@ import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.context.ContextConfiguration;
 
-@ExtendWith(MockitoExtension.class)
-@ContextConfiguration(
-    classes = {
-      CbasApiConfiguration.class,
-      GlobalExceptionHandler.class,
-      AsyncExceptionHandler.class
-    })
 class TestRunSetsService {
 
   private final RunDao runDao = mock(RunDao.class);
