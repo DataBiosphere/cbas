@@ -44,6 +44,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           methodSource,
           workspaceId,
           false);
+
   Method method2 =
       new Method(
           methodId2,
@@ -135,5 +136,23 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     methodDao.unsetLastRunSetId(retrievedMethod.methodId());
     Method updatedMethod = methodDao.getMethod(retrievedMethod.methodId());
     assertNull(updatedMethod.lastRunSetId());
+  }
+
+  @Test
+  void deleteMethod() {
+    List<Method> allMethods = methodDao.getMethods();
+    assertEquals(2, allMethods.size());
+
+    methodDao.deleteMethod(method1.methodId());
+    List<Method> remainingMethods = methodDao.getMethods();
+    assertEquals(1, remainingMethods.size());
+
+    methodDao.deleteMethod(method2.methodId());
+    List<Method> remainingMethods2 = methodDao.getMethods();
+    assertEquals(0, remainingMethods2.size());
+
+    // TODO: assert a "method doesn't exist" exception
+    //    Method deletedMethod = methodDao.getMethod(method1.methodId());
+    //    assert deletedMethod.isDeleted();
   }
 }

@@ -48,9 +48,10 @@ public class MethodDao {
   }
 
   public int deleteMethod(UUID methodId) {
-    return jdbcTemplate.update(
-        "DELETE FROM method WHERE method_id = :methodId",
-        new MapSqlParameterSource("methodId", methodId));
+    String sql =
+        "UPDATE method SET %s = true WHERE %s = :method_id"
+            .formatted(Method.IS_DELETED_COL, Method.METHOD_ID_COL);
+    return jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
   }
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(
