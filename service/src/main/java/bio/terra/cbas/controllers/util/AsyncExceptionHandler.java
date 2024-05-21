@@ -50,13 +50,7 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
         STANDARD_LOG_MESSAGE.formatted(
             Thread.currentThread().getName(), methodName, ex.getMessage());
 
-    // extract method request parameters
-    RunSetRequest runSetRequest =
-        params[0] instanceof RunSetRequest ? (RunSetRequest) params[0] : null;
-    RunSet runSet = params[1] instanceof RunSet ? (RunSet) params[1] : null;
-
-    // mark Runs and Run Set as needed in Error state
-    if (runSet != null) {
+    if (params[1] instanceof RunSet runSet) {
       logMsg =
           "Exception thrown in Thread '%s' while executing method '%s' for Run Set '%s'. Error message: %s"
               .formatted(
@@ -73,7 +67,7 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
               runDao.updateRunStatusWithError(
                   run.runId(), CbasRunStatus.SYSTEM_ERROR, DateUtils.currentTimeInUTC(), errorMsg));
 
-      if (runSetRequest != null) {
+      if (params[0] instanceof RunSetRequest runSetRequest) {
         int runsCount = runsInRunSet.size();
 
         // if all the Runs in the Run Set are in Error state, mark the Run Set as in Error state

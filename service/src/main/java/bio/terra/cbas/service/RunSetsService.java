@@ -168,6 +168,8 @@ public class RunSetsService {
     return runStateResponseList;
   }
 
+  // Note: the order of params is important for async exception handler. If they are changed please
+  // update handleExceptionFromAsyncSubmission() in AsyncExceptionHandler accordingly
   @Async
   public void triggerWorkflowSubmission(
       RunSetRequest request,
