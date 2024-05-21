@@ -17,6 +17,7 @@ import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.GithubMethodDetailsDao;
@@ -87,6 +88,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final WdsService wdsService;
   private final DockstoreService dockstoreService;
   private final BardService bardService;
+  private final BardServerConfiguration bardServerConfiguration;
   private final MethodVersionDao methodVersionDao;
   private final MethodDao methodDao;
   private final GithubMethodDetailsDao githubMethodDetailsDao;
@@ -110,6 +112,7 @@ public class RunSetsApiController implements RunSetsApi {
       WdsService wdsService,
       DockstoreService dockstoreService,
       BardService bardService,
+      BardServerConfiguration bardServerConfiguration,
       ObjectMapper objectMapper,
       MethodDao methodDao,
       MethodVersionDao methodVersionDao,
@@ -128,6 +131,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.wdsService = wdsService;
     this.dockstoreService = dockstoreService;
     this.bardService = bardService;
+    this.bardServerConfiguration = bardServerConfiguration;
     this.objectMapper = objectMapper;
     this.methodDao = methodDao;
     this.methodVersionDao = methodVersionDao;
@@ -328,19 +332,20 @@ public class RunSetsApiController implements RunSetsApi {
         new RunSetStateResponse().runSetId(runSetId).runs(runStateResponseList).state(runSetState);
 
     captureResponseMetrics(response);
-
-    List<String> workflowIds =
-        runStateResponseList.stream()
-            .map(RunStateResponse::getEngineId)
-            .filter(Objects::nonNull)
-            .toList();
-    GithubMethodDetails githubMethodDetails = null;
-    if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
-      githubMethodDetails =
-          githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
+    if (bardServerConfiguration.enabled()) {
+      List<String> workflowIds =
+          runStateResponseList.stream()
+              .map(RunStateResponse::getEngineId)
+              .filter(Objects::nonNull)
+              .toList();
+      GithubMethodDetails githubMethodDetails = null;
+      if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
+        githubMethodDetails =
+            githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
+      }
+      bardService.logRunSetEvent(
+          request, methodVersion, githubMethodDetails, workflowIds, userToken);
     }
-    bardService.logRunSetEvent(request, methodVersion, githubMethodDetails, workflowIds, userToken);
-
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

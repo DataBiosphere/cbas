@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.exceptions.ForbiddenException;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.config.CbasNetworkConfiguration;
@@ -60,6 +61,7 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -236,6 +238,7 @@ class TestRunSetsApiController {
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
   @MockBean private BardService bardService;
+  @MockBean private BardServerConfiguration bardServerConfiguration;
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
@@ -565,20 +568,8 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
-    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any(), any()))
-        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1)));
-    when(uuidSource.generateUUID())
-        .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
-
-    when(runDao.createRun(any())).thenReturn(1);
-
-    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
-    MvcResult result =
-        mockMvc
-            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
-
+    when(bardServerConfiguration.enabled()).thenReturn(true);
+    MvcResult result = mockSingleWorkflowRun(request);
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
         objectMapper.readValue(
@@ -595,6 +586,86 @@ class TestRunSetsApiController {
         .logRunSetEvent(
             runSetRequest, methodVersion, null, List.of(cromwellWorkflowId1), mockUserToken);
     assertNull(response.getErrors());
+  }
+
+  @Test
+  void postRunSetRequestForGithubWorkflow() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            methodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\" ]".formatted(recordId1));
+
+    GithubMethodDetails githubMethodDetails =
+        new GithubMethodDetails("repo", "organization", "path", true, methodId);
+    when(githubMethodDetailsDao.getMethodSourceDetails(methodId)).thenReturn(githubMethodDetails);
+    when(bardServerConfiguration.enabled()).thenReturn(true);
+    MvcResult result = mockSingleWorkflowRun(request);
+    // Validate that the response can be parsed as a valid RunSetStateResponse:
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNull(response.getErrors());
+
+    // verify cromwellService method was called with expected params
+    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
+
+    // verify BardService method was called with expected params
+    RunSetRequest runSetRequest = objectMapper.readValue(request, RunSetRequest.class);
+    MethodVersion methodVersion = methodVersionDao.getMethodVersion(methodVersionId);
+    verify(bardService)
+        .logRunSetEvent(
+            runSetRequest,
+            methodVersion,
+            githubMethodDetails,
+            List.of(cromwellWorkflowId1),
+            mockUserToken);
+  }
+
+  @Test
+  void postRunSetRequestBardDisabled() throws Exception {
+    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
+    String request =
+        requestTemplate.formatted(
+            dockstoreMethodVersionId,
+            isCallCachingEnabled,
+            optionalInputSourceString,
+            outputDefinitionAsString,
+            recordType,
+            "[ \"%s\" ]".formatted(recordId1));
+
+    when(bardServerConfiguration.enabled()).thenReturn(false);
+    MvcResult result = mockSingleWorkflowRun(request);
+    RunSetStateResponse response =
+        objectMapper.readValue(
+            result.getResponse().getContentAsString(), RunSetStateResponse.class);
+    assertNull(response.getErrors());
+
+    // verify dockstoreService and cromwellService methods were called with expected params
+    verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
+    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
+
+    // verify BardService was not called
+    verifyNoInteractions(bardService);
+  }
+
+  private MvcResult mockSingleWorkflowRun(String request) throws Exception {
+    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any(), any()))
+        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1)));
+    when(uuidSource.generateUUID())
+        .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
+
+    when(runDao.createRun(any())).thenReturn(1);
+
+    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
+    return mockMvc
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andReturn();
   }
 
   @Test

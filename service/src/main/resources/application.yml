@@ -135,3 +135,4 @@ ecm:
 bard:
   baseUri: "https://terra-bard-dev.appspot.com"
   debugApiLogging: false
+  enabled: false
