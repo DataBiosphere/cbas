@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
-public class TestAsyncExceptionHandler {
+class TestAsyncExceptionHandler {
 
   private final RunDao runDao = mock(RunDao.class);
   private final RunSetDao runSetDao = mock(RunSetDao.class);

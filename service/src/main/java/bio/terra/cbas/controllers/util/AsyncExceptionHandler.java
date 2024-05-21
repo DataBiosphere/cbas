@@ -22,7 +22,7 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
   private final RunSetDao runSetDao;
 
   private final Logger logger = LoggerFactory.getLogger(AsyncExceptionHandler.class);
-  private final String standardLogMsg =
+  private static final String standardLogMsg =
       "Exception thrown in Thread '%s' while executing method '%s'. Error message: %s";
 
   public AsyncExceptionHandler(RunDao runDao, RunSetDao runSetDao) {
@@ -36,9 +36,10 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
     if (methodName.equals("triggerWorkflowSubmission")) {
       handleExceptionFromAsyncSubmission(ex, methodName, params);
     } else {
-      logger.error(
+      String logMsg =
           standardLogMsg.formatted(
-              Thread.currentThread().getName(), method.getName(), ex.getMessage()));
+              Thread.currentThread().getName(), method.getName(), ex.getMessage());
+      logger.error(logMsg);
     }
   }
 
