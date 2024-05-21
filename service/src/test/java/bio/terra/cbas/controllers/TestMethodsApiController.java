@@ -900,7 +900,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "method 1 source",
-          workspaceId);
+          workspaceId,
+          false);
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -946,7 +947,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet2Id,
           "method 2 source",
-          workspaceId);
+          workspaceId,
+          false);
   private static final GithubMethodDetails githubMethodDetails =
       new GithubMethodDetails(
           "cromwell",

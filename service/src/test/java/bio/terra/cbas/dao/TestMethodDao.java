@@ -42,7 +42,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           DateUtils.currentTimeInUTC(),
           null,
           methodSource,
-          workspaceId);
+          workspaceId,
+          false);
   Method method2 =
       new Method(
           methodId2,
@@ -51,7 +52,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           DateUtils.currentTimeInUTC(),
           null,
           methodSource,
-          workspaceId);
+          workspaceId,
+          false);
 
   MethodVersion methodVersion =
       new MethodVersion(

@@ -130,7 +130,8 @@ class VerifyPactsAllControllers {
           OffsetDateTime.now(),
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-          workspaceId);
+          workspaceId,
+          false);
 
   @PactBrokerConsumerVersionSelectors
   public static SelectorBuilder consumerVersionSelectors() {
@@ -253,7 +254,8 @@ class VerifyPactsAllControllers {
             OffsetDateTime.now(),
             methodVersionUUID,
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-            workspaceId);
+            workspaceId,
+            false);
 
     MethodVersion myMethodVersion =
         new MethodVersion(
