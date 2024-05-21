@@ -56,34 +56,10 @@ import java.util.UUID;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TestRunSetsService {
-
-  private final RunDao runDao = mock(RunDao.class);
-  private final RunSetDao runSetDao = mock(RunSetDao.class);
-  private final MethodDao methodDao = mock(MethodDao.class);
-  private final MethodVersionDao methodVersionDao = mock(MethodVersionDao.class);
-  private final CromwellService cromwellService = mock(CromwellService.class);
-  private final WdsService wdsService = mock(WdsService.class);
-  private final CbasApiConfiguration cbasApiConfiguration = mock(CbasApiConfiguration.class);
-  private final UuidSource uuidSource = mock(UuidSource.class);
-  private final ObjectMapper objectMapper = mock(ObjectMapper.class);
-  private final CbasContextConfiguration cbasContextConfiguration =
-      mock(CbasContextConfiguration.class);
-
-  private final RunSetsService mockRunSetsService =
-      new RunSetsService(
-          runDao,
-          runSetDao,
-          methodDao,
-          methodVersionDao,
-          cromwellService,
-          wdsService,
-          cbasApiConfiguration,
-          uuidSource,
-          objectMapper,
-          cbasContextConfiguration);
 
   private final UUID methodId = UUID.randomUUID();
   private final UUID methodVersionId = UUID.randomUUID();
@@ -239,6 +215,46 @@ class TestRunSetsService {
           workspaceId,
           "test_branch",
           Optional.empty());
+
+  private RunDao runDao;
+  private RunSetDao runSetDao;
+  private MethodDao methodDao;
+  private MethodVersionDao methodVersionDao;
+  private CromwellService cromwellService;
+  private WdsService wdsService;
+  private CbasApiConfiguration cbasApiConfiguration;
+  private UuidSource uuidSource;
+  private ObjectMapper objectMapper;
+  private CbasContextConfiguration cbasContextConfiguration;
+
+  private RunSetsService mockRunSetsService;
+
+  @BeforeEach
+  void init() {
+    runDao = mock(RunDao.class);
+    runSetDao = mock(RunSetDao.class);
+    methodDao = mock(MethodDao.class);
+    methodVersionDao = mock(MethodVersionDao.class);
+    cromwellService = mock(CromwellService.class);
+    wdsService = mock(WdsService.class);
+    cbasApiConfiguration = mock(CbasApiConfiguration.class);
+    uuidSource = mock(UuidSource.class);
+    objectMapper = mock(ObjectMapper.class);
+    cbasContextConfiguration = mock(CbasContextConfiguration.class);
+
+    mockRunSetsService =
+        new RunSetsService(
+            runDao,
+            runSetDao,
+            methodDao,
+            methodVersionDao,
+            cromwellService,
+            wdsService,
+            cbasApiConfiguration,
+            uuidSource,
+            objectMapper,
+            cbasContextConfiguration);
+  }
 
   @Test
   void submissionLaunchesSuccessfully() throws Exception {

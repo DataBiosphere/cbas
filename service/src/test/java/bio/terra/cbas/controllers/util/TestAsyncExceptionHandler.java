@@ -19,15 +19,10 @@ import bio.terra.cbas.models.RunSet;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TestAsyncExceptionHandler {
-
-  private final RunDao runDao = mock(RunDao.class);
-  private final RunSetDao runSetDao = mock(RunSetDao.class);
-
-  private final AsyncExceptionHandler mockAsyncExceptionHandler =
-      new AsyncExceptionHandler(runDao, runSetDao);
 
   private final UUID runSetId = UUID.randomUUID();
   private final UUID runId1 = UUID.randomUUID();
@@ -67,6 +62,19 @@ class TestAsyncExceptionHandler {
   private Run createQueuedRun(UUID runId) {
     return new Run(
         runId, UUID.randomUUID().toString(), runSet, null, null, QUEUED, null, null, null);
+  }
+
+  private RunDao runDao;
+  private RunSetDao runSetDao;
+
+  private AsyncExceptionHandler mockAsyncExceptionHandler;
+
+  @BeforeEach
+  void init() {
+    runDao = mock(RunDao.class);
+    runSetDao = mock(RunSetDao.class);
+
+    mockAsyncExceptionHandler = new AsyncExceptionHandler(runDao, runSetDao);
   }
 
   @Test
