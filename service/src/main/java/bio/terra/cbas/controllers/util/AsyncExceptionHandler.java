@@ -46,34 +46,22 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
 
   public void handleExceptionFromAsyncSubmission(
       Throwable ex, String methodName, Object... params) {
-    RunSet runSet = null;
-    RunSetRequest runSetRequest = null;
     var logMsg =
         STANDARD_LOG_MESSAGE.formatted(
             Thread.currentThread().getName(), methodName, ex.getMessage());
 
     // extract method request parameters
-    for (Object o : params) {
-      if (o instanceof RunSetRequest) {
-        runSetRequest = (RunSetRequest) o;
-      }
-
-      if (o instanceof RunSet) {
-        runSet = (RunSet) o;
-        logMsg =
-            "Exception thrown in Thread '%s' while executing method '%s' for Run Set '%s'. Error message: %s"
-                .formatted(
-                    Thread.currentThread().getName(),
-                    methodName,
-                    runSet.runSetId(),
-                    ex.getMessage());
-      }
-    }
-
-    logger.error(logMsg);
+    RunSetRequest runSetRequest =
+        params[0] instanceof RunSetRequest ? (RunSetRequest) params[0] : null;
+    RunSet runSet = params[1] instanceof RunSet ? (RunSet) params[1] : null;
 
     // mark Runs and Run Set as needed in Error state
     if (runSet != null) {
+      logMsg =
+          "Exception thrown in Thread '%s' while executing method '%s' for Run Set '%s'. Error message: %s"
+              .formatted(
+                  Thread.currentThread().getName(), methodName, runSet.runSetId(), ex.getMessage());
+
       String errorMsg =
           "Something went wrong while submitting workflows. Error: " + ex.getMessage();
 
@@ -100,5 +88,7 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
         }
       }
     }
+
+    logger.error(logMsg);
   }
 }
