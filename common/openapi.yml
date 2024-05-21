@@ -73,6 +73,28 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+    delete:
+      tags: [ methods ]
+      summary: Delete a method
+      operationId: deleteMethod
+      parameters:
+        - in: query
+          name: method_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            Deletes the method with the provided method_id.
+          required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteMethodResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+
   "/api/batch/v1/runs":
     get:
       tags: [ runs ]
@@ -213,6 +235,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MethodListResponse'
+    DeleteMethodResponse:
+      description: Response from deleting a method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DeleteMethodResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -630,6 +658,15 @@ components:
           example: 00000000-0000-0000-0000-000000000000
         error:
           type: string
+
+    DeleteMethodResponse:
+      type: object
+      properties:
+        method_id:
+          type:
+            string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
 
     MethodDetails:
       type: object
