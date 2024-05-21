@@ -22,7 +22,8 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
   private final RunSetDao runSetDao;
 
   private final Logger logger = LoggerFactory.getLogger(AsyncExceptionHandler.class);
-  private static final String standardLogMsg =
+
+  private static final String STANDARD_LOG_MESSAGE =
       "Exception thrown in Thread '%s' while executing method '%s'. Error message: %s";
 
   public AsyncExceptionHandler(RunDao runDao, RunSetDao runSetDao) {
@@ -37,7 +38,7 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
       handleExceptionFromAsyncSubmission(ex, methodName, params);
     } else {
       String logMsg =
-          standardLogMsg.formatted(
+          STANDARD_LOG_MESSAGE.formatted(
               Thread.currentThread().getName(), method.getName(), ex.getMessage());
       logger.error(logMsg);
     }
@@ -48,7 +49,8 @@ public class AsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
     RunSet runSet = null;
     RunSetRequest runSetRequest = null;
     var logMsg =
-        standardLogMsg.formatted(Thread.currentThread().getName(), methodName, ex.getMessage());
+        STANDARD_LOG_MESSAGE.formatted(
+            Thread.currentThread().getName(), methodName, ex.getMessage());
 
     // extract method request parameters
     for (Object o : params) {
