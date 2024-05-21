@@ -17,6 +17,7 @@ import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -50,6 +51,7 @@ class TestMethodsApiControllerUnits {
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
   @MockBean private MethodDao methodDao;
+  @MockBean private MethodService methodService;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
@@ -174,6 +176,7 @@ class TestMethodsApiControllerUnits {
             gitHubService,
             samService,
             methodDao,
+            methodService,
             methodVersionDao,
             runSetDao,
             objectMapper,

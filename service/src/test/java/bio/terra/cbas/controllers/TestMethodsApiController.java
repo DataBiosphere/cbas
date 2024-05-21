@@ -29,6 +29,7 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -72,6 +73,7 @@ class TestMethodsApiController {
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):
   @MockBean private MethodDao methodDao;
+  @MockBean private MethodService methodService;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;

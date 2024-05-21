@@ -21,6 +21,7 @@ import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.DeleteMethodResponse;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -37,6 +38,7 @@ import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -71,6 +73,7 @@ public class MethodsApiController implements MethodsApi {
   private final GitHubService gitHubService;
   private final SamService samService;
   private final MethodDao methodDao;
+  private final MethodService methodService;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
@@ -84,6 +87,7 @@ public class MethodsApiController implements MethodsApi {
       GitHubService gitHubService,
       SamService samService,
       MethodDao methodDao,
+      MethodService methodService,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
@@ -96,6 +100,7 @@ public class MethodsApiController implements MethodsApi {
     this.gitHubService = gitHubService;
     this.samService = samService;
     this.methodDao = methodDao;
+    this.methodService = methodService;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
@@ -295,6 +300,18 @@ public class MethodsApiController implements MethodsApi {
 
     addLastRunDetails(methodDetails);
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
+  }
+
+  public ResponseEntity<DeleteMethodResponse> deleteMethod(UUID methodId) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    // check if current user has write permissions on the workspace
+    if (!samService.hasWritePermission(userToken)) {
+      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
+    methodService.deleteMethod(methodId);
+    return ResponseEntity.ok(new DeleteMethodResponse().methodId(methodId));
   }
 
   private void createNewMethod(
