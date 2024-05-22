@@ -165,6 +165,10 @@ public class RunSetsService {
               .errors(""));
     }
 
+    // update number of Runs in Run Set
+    runSetDao.updateStateAndRunSetDetails(
+        runSet.runSetId(), runSet.status(), runStateResponseList.size(), 0, OffsetDateTime.now());
+
     return runStateResponseList;
   }
 

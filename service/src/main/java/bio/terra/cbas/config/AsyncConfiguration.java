@@ -7,7 +7,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -20,21 +19,13 @@ public class AsyncConfiguration implements AsyncConfigurer {
   private final int maxThreadPoolSize;
   private final int queueCapacity;
 
-  @Autowired private final RunDao runDao;
-  @Autowired private final RunSetDao runSetDao;
+  @Autowired private RunDao runDao;
+  @Autowired private RunSetDao runSetDao;
 
-  @ConstructorBinding
-  public AsyncConfiguration(
-      int coreThreadPoolSize,
-      int maxThreadPoolSize,
-      int queueCapacity,
-      RunDao runDao,
-      RunSetDao runSetDao) {
+  public AsyncConfiguration(int coreThreadPoolSize, int maxThreadPoolSize, int queueCapacity) {
     this.coreThreadPoolSize = coreThreadPoolSize;
     this.maxThreadPoolSize = maxThreadPoolSize;
     this.queueCapacity = queueCapacity;
-    this.runDao = runDao;
-    this.runSetDao = runSetDao;
   }
 
   @Bean

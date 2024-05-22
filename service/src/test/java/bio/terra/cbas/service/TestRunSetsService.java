@@ -466,6 +466,11 @@ class TestRunSetsService {
     List<RunStateResponse> actualResponse =
         mockRunSetsService.registerRunsInRunSet(runSet, recordIdToRunIdMapping);
 
+    // verify that Run Set was updated with correct Runs count
+    verify(runSetDao)
+        .updateStateAndRunSetDetails(
+            eq(runSetId), eq(CbasRunSetStatus.QUEUED), eq(2), eq(0), any());
+
     assertEquals(2, actualResponse.size());
     assertEquals(RunState.QUEUED, actualResponse.get(0).getState());
     assertEquals(RunState.QUEUED, actualResponse.get(1).getState());
