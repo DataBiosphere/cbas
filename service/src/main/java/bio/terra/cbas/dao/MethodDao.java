@@ -29,14 +29,18 @@ public class MethodDao {
   }
 
   public Method getMethod(UUID methodId) {
-    String sql = "SELECT * FROM method WHERE method_id = :methodId";
+    String sql =
+        "SELECT * FROM method WHERE %s = :methodId AND %s = false"
+            .formatted(Method.METHOD_ID_COL, Method.IS_DELETED_COL);
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
         .get(0);
   }
 
   public List<Method> getMethods() {
-    String sql = "SELECT * FROM method ORDER BY created DESC";
+    String sql =
+        "SELECT * FROM method WHERE %s = false ORDER BY created DESC"
+            .formatted(Method.IS_DELETED_COL);
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
