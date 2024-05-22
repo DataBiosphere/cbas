@@ -302,6 +302,7 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
+  @Override
   public ResponseEntity<DeleteMethodResponse> deleteMethod(UUID methodId) {
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
@@ -310,7 +311,7 @@ public class MethodsApiController implements MethodsApi {
     if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
-    methodService.deleteMethod(methodId);
+    methodService.archiveMethod(methodId);
     return ResponseEntity.ok(new DeleteMethodResponse().methodId(methodId));
   }
 

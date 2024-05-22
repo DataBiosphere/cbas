@@ -139,15 +139,15 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   }
 
   @Test
-  void deleteMethod() {
+  void archiveMethod() {
     List<Method> allMethods = methodDao.getMethods();
     assertEquals(2, allMethods.size());
 
-    methodDao.deleteMethod(method1.methodId());
+    methodDao.archiveMethod(method1.methodId());
     List<Method> remainingMethods = methodDao.getMethods();
     assertEquals(1, remainingMethods.size());
 
-    methodDao.deleteMethod(method2.methodId());
+    methodDao.archiveMethod(method2.methodId());
     List<Method> remainingMethods2 = methodDao.getMethods();
     assertEquals(0, remainingMethods2.size());
 

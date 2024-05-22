@@ -31,7 +31,7 @@ public class MethodDao {
   public Method getMethod(UUID methodId) {
     String sql =
         "SELECT * FROM method WHERE %s = :methodId AND %s = false"
-            .formatted(Method.METHOD_ID_COL, Method.IS_DELETED_COL);
+            .formatted(Method.METHOD_ID_COL, Method.ARCHIVED_COL);
     return jdbcTemplate
         .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
         .get(0);
@@ -40,7 +40,7 @@ public class MethodDao {
   public List<Method> getMethods() {
     String sql =
         "SELECT * FROM method WHERE %s = false ORDER BY created DESC"
-            .formatted(Method.IS_DELETED_COL);
+            .formatted(Method.ARCHIVED_COL);
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
@@ -51,10 +51,10 @@ public class MethodDao {
         new BeanPropertySqlParameterSource(method));
   }
 
-  public int deleteMethod(UUID methodId) {
+  public int archiveMethod(UUID methodId) {
     String sql =
         "UPDATE method SET %s = true WHERE %s = :method_id"
-            .formatted(Method.IS_DELETED_COL, Method.METHOD_ID_COL);
+            .formatted(Method.ARCHIVED_COL, Method.METHOD_ID_COL);
     return jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
   }
 

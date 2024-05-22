@@ -19,6 +19,6 @@ public class MethodMapper implements RowMapper<Method> {
         rs.getObject(Method.LAST_RUN_SET_ID_COL, UUID.class),
         rs.getString(Method.METHOD_SOURCE_COL),
         rs.getObject(Method.ORIGINAL_WORKSPACE_ID_COL, UUID.class),
-        rs.getBoolean(Method.IS_DELETED_COL));
+        rs.getBoolean(Method.ARCHIVED_COL));
   }
 }

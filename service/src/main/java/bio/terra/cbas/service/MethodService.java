@@ -5,10 +5,6 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.models.Method;
-import bio.terra.cbas.models.MethodVersion;
-import bio.terra.cbas.models.Run;
-import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -33,30 +29,7 @@ public class MethodService {
     this.githubMethodDetailsDao = githubMethodDetailsDao;
   }
 
-  public void deleteMethod(UUID methodId) {
-    Method methodToDelete = methodDao.getMethod(methodId);
-    methodDao.unsetLastRunSetId(methodId);
-
-    List<MethodVersion> methodVersions =
-        methodVersionDao.getMethodVersionsForMethod(methodToDelete);
-    methodVersions.forEach(
-        methodVersion -> methodVersionDao.unsetLastRunSetId(methodVersion.methodVersionId()));
-
-    // TODO: put this in RunSetService
-    runSetDao
-        .getRunSetsWithMethodId(methodId)
-        .forEach(
-            runSet -> {
-              List<Run> runSetRuns =
-                  runDao.getRuns(new RunDao.RunsFilters(runSet.runSetId(), null));
-              runSetRuns.forEach(run -> runDao.deleteRun(run.runId()));
-              runSetDao.deleteRunSet(runSet.runSetId());
-            });
-    methodVersions.forEach(
-        methodVersion -> methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId()));
-
-    githubMethodDetailsDao.deleteMethodSourceDetails(methodId);
-
-    methodDao.deleteMethod(methodId);
+  public void archiveMethod(UUID methodId) {
+    methodDao.archiveMethod(methodId);
   }
 }
