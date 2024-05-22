@@ -343,8 +343,7 @@ public class MethodsApiController implements MethodsApi {
             DateUtils.currentTimeInUTC(),
             null,
             postMethodRequest.getMethodSource().toString(),
-            cbasContextConfig.getWorkspaceId(),
-            false);
+            cbasContextConfig.getWorkspaceId());
 
     MethodVersion methodVersion =
         new MethodVersion(

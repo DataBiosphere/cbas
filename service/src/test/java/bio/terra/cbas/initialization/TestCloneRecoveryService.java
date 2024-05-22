@@ -70,8 +70,7 @@ public class TestCloneRecoveryService {
           currentWorkspaceCreatedDate.minusMinutes(5),
           null,
           "",
-          originalWorkspaceId,
-          false);
+          originalWorkspaceId);
 
   MethodVersion clonedMethodVersion =
       new MethodVersion(
