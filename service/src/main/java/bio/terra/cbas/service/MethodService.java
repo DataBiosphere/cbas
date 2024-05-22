@@ -6,6 +6,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.models.Method;
+import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import java.util.List;
 import java.util.UUID;
@@ -33,6 +34,13 @@ public class MethodService {
   }
 
   public void deleteMethod(UUID methodId) {
+    Method methodToDelete = methodDao.getMethod(methodId);
+    methodDao.unsetLastRunSetId(methodId);
+
+    List<MethodVersion> methodVersions =
+        methodVersionDao.getMethodVersionsForMethod(methodToDelete);
+    methodVersions.forEach(
+        methodVersion -> methodVersionDao.unsetLastRunSetId(methodVersion.methodVersionId()));
 
     // TODO: put this in RunSetService
     runSetDao
@@ -44,12 +52,8 @@ public class MethodService {
               runSetRuns.forEach(run -> runDao.deleteRun(run.runId()));
               runSetDao.deleteRunSet(runSet.runSetId());
             });
-
-    Method methodToDelete = methodDao.getMethod(methodId);
-    methodVersionDao
-        .getMethodVersionsForMethod(methodToDelete)
-        .forEach(
-            methodVersion -> methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId()));
+    methodVersions.forEach(
+        methodVersion -> methodVersionDao.deleteMethodVersion(methodVersion.methodVersionId()));
 
     githubMethodDetailsDao.deleteMethodSourceDetails(methodId);
 
