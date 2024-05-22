@@ -134,8 +134,16 @@ public class MethodVersionDao {
   }
 
   public int deleteMethodVersion(UUID methodVersionId) {
+    MapSqlParameterSource methodVersionIdParamSource =
+        new MapSqlParameterSource("methodVersionId", methodVersionId);
+
+    String deleteMethodVersionSql = "DELETE FROM %s WHERE method_version_id = :methodVersionId";
+
+    jdbcTemplate.update(
+        deleteMethodVersionSql.formatted("github_method_version_details"),
+        methodVersionIdParamSource);
+
     return jdbcTemplate.update(
-        "DELETE FROM method_version WHERE method_version_id = :methodVersionId",
-        new MapSqlParameterSource("methodVersionId", methodVersionId));
+        deleteMethodVersionSql.formatted("method_version"), methodVersionIdParamSource);
   }
 }
