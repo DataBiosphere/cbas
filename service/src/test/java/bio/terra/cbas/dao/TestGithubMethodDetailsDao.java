@@ -30,7 +30,8 @@ class TestGithubMethodDetailsDao extends ContainerizedDatabaseTest {
           DateUtils.currentTimeInUTC(),
           null,
           methodSource,
-          workspaceId);
+          workspaceId,
+          false);
   GithubMethodDetails details =
       new GithubMethodDetails("cromwell", "broadinstitute", "cbas/dao/test.py", true, methodId1);
 

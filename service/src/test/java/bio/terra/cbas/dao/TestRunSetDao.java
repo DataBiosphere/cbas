@@ -43,7 +43,8 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
           OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
           null,
           "Github",
-          workspaceId);
+          workspaceId,
+          false);
 
   UUID methodVersionId = UUID.fromString("80000000-0000-0000-0000-000000000008");
   String methodVersionGithash = "1234abc";
