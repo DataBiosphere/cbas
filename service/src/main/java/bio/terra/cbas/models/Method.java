@@ -11,7 +11,7 @@ public record Method(
     UUID lastRunSetId,
     String methodSource,
     UUID originalWorkspaceId,
-    Boolean isDeleted) {
+    Boolean isArchived) {
 
   // Corresponding table column names in database
   public static final String METHOD_ID_COL = "method_id";
