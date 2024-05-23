@@ -23,26 +23,38 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 public abstract class ContainerizedDatabaseTest {
 
+  public static final String TEST_DB_NAME = "test_db";
+  public static final String TEST_USER = "test_user";
+  public static final String TEST_PASSWORD = "test_password";
+  public static final String TEST_ROLE = "test_role";
+
   @Container
   protected static final JdbcDatabaseContainer postgres =
       new PostgreSQLContainer("postgres:14")
-          .withDatabaseName("test_db")
-          .withUsername("test_user")
-          .withPassword("test_password");
+          .withDatabaseName(TEST_DB_NAME)
+          .withUsername(TEST_USER)
+          .withPassword(TEST_PASSWORD);
 
   @DynamicPropertySource
   static void postgresProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.jdbc-url", postgres::getJdbcUrl);
     registry.add("spring.datasource.username", postgres::getUsername);
     registry.add("spring.datasource.password", postgres::getPassword);
+    registry.add("spring.liquibase.parameters.dbRole", () -> TEST_ROLE);
     registry.add("cbas.cbas-database.uri", postgres::getJdbcUrl);
     registry.add("cbas.cbas-database.username", postgres::getUsername);
     registry.add("cbas.cbas-database.password", postgres::getPassword);
   }
 
   @BeforeAll
-  public static void setup() {
+  public static void setup() throws SQLException {
     postgres.start();
+    DriverManager.getConnection(
+            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        .createStatement()
+        .execute(
+            "CREATE ROLE %s;".formatted(TEST_ROLE)
+                + "GRANT %s TO %s;".formatted(TEST_ROLE, TEST_USER));
   }
 
   @AfterEach

@@ -87,6 +87,7 @@ public class SmartRunsPoller {
               Run::runId,
               r ->
                   r.status().nonTerminal()
+                      && r.engineId() != null
                       && r.lastPolledTimestamp()
                           .isBefore(
                               OffsetDateTime.now()
