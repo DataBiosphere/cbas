@@ -2,6 +2,7 @@ package bio.terra.cbas.runsets.monitoring;
 
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.EXECUTOR_ERROR;
+import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 import static bio.terra.cbas.models.CbasRunStatus.UNKNOWN;
@@ -12,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.common.MicrometerMetrics;
@@ -67,6 +69,9 @@ public class TestSmartRunsPollerFunctional {
   private static final UUID runningRunId3 = UUID.randomUUID();
   private static final String runningRunEngineId3 = UUID.randomUUID().toString();
   private static final String runningRunEntityId3 = UUID.randomUUID().toString();
+
+  private static final UUID queuedRunId = UUID.randomUUID();
+  private static final String queuedRunEntityId = UUID.randomUUID().toString();
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
@@ -184,6 +189,17 @@ public class TestSmartRunsPollerFunctional {
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
           errorMessages);
+  final Run queuedRun =
+      new Run(
+          queuedRunId,
+          null,
+          runSet,
+          queuedRunEntityId,
+          runSubmittedTime,
+          QUEUED,
+          runningRunStatusUpdateTime,
+          runningRunStatusUpdateTime,
+          errorMessages);
 
   @BeforeEach
   public void init() {
@@ -218,6 +234,17 @@ public class TestSmartRunsPollerFunctional {
     verify(runCompletionHandler, times(1))
         .updateResults(eq(runToUpdate1), any(), any(), any(), any(), any());
     assertEquals(2, actual.updatedList().size());
+  }
+
+  @Test
+  void shouldNotUpdateRunsNotSubmittedToCromwell() {
+    var actual = smartRunsPoller.updateRuns(List.of(queuedRun), mockToken);
+
+    verifyNoInteractions(cromwellService);
+
+    verify(runCompletionHandler, never())
+        .updateResults(eq(queuedRun), any(), any(), any(), any(), any());
+    assertEquals(1, actual.updatedList().size());
   }
 
   @Test
