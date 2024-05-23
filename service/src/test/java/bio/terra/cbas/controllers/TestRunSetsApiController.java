@@ -693,9 +693,9 @@ class TestRunSetsApiController {
         .thenReturn(List.of(mockRunStateResponse1));
 
     return mockMvc
-            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
+        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andReturn();
   }
 
   @Test
