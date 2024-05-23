@@ -44,7 +44,6 @@ class TestSamService {
   private final ResourcesApi resourcesApi = mock(ResourcesApi.class);
   @SpyBean private final SamService samService = spy(new SamService(samClient));
 
-  // TODO: maybe change these Strings to BearerToken
   private final BearerToken tokenWithCorrectAccess = new BearerToken("foo-token");
   private final BearerToken validTokenWithNoAccess = new BearerToken("foo-no-access-token");
   private final BearerToken validTokenWithReadAccess = new BearerToken("foo-read-access-token");

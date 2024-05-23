@@ -101,7 +101,7 @@ public class RunSetDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(params));
   }
 
-  public int updateStateAndRunDetails(
+  public int updateStateAndRunSetDetails(
       UUID runSetId,
       CbasRunSetStatus newStatus,
       Integer runCount,

@@ -205,7 +205,7 @@ public class TestSmartRunSetsPoller {
         .thenReturn(Map.of(COMPLETE, new RunDao.StatusCountRecord(COMPLETE, 2, lastModified)));
 
     // Updating the run set with the new information:
-    when(runSetDao.updateStateAndRunDetails(
+    when(runSetDao.updateStateAndRunSetDetails(
             runSetId, CbasRunSetStatus.COMPLETE, 2, 0, lastModified))
         .thenReturn(1);
 
@@ -227,7 +227,7 @@ public class TestSmartRunSetsPoller {
     assertNull(runsFiltersForGetRunStatusCounts.getValue().statuses());
 
     verify(runSetDao)
-        .updateStateAndRunDetails(runSetId, CbasRunSetStatus.COMPLETE, 2, 0, lastModified);
+        .updateStateAndRunSetDetails(runSetId, CbasRunSetStatus.COMPLETE, 2, 0, lastModified);
     verify(runSetDao).getRunSet(runSetId);
 
     assertEquals(List.of(runSetUpdated), result.updatedList());

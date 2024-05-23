@@ -1,5 +1,6 @@
 package bio.terra.cbas.pact;
 
+import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -12,6 +13,7 @@ import au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSe
 import au.com.dius.pact.provider.junitsupport.loader.SelectorBuilder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
+import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
@@ -32,6 +34,7 @@ import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
+import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -45,6 +48,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -112,6 +116,7 @@ class VerifyPactsAllControllers {
   @MockBean private GitHubService gitHubService;
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
+  @MockBean private RunSetsService runSetsService;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
@@ -131,6 +136,19 @@ class VerifyPactsAllControllers {
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
           workspaceId);
+
+  MethodVersion fixedMethodVersion =
+      new MethodVersion(
+          fixedMethodVersionUUID,
+          fixedMethod,
+          "imported-version-4",
+          "imported-version-4 description",
+          OffsetDateTime.now(),
+          fixedLastRunSetUUIDForMethod,
+          "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
+          workspaceId,
+          "develop",
+          Optional.empty());
 
   @PactBrokerConsumerVersionSelectors
   public static SelectorBuilder consumerVersionSelectors() {
@@ -185,26 +203,11 @@ class VerifyPactsAllControllers {
 
   @State({"ready to fetch myMethodVersion with UUID 90000000-0000-0000-0000-000000000009"})
   public void initializeDAO() throws Exception {
-    // Arrange methodVersion
-    MethodVersion myMethodVersion =
-        new MethodVersion(
-            fixedMethodVersionUUID,
-            fixedMethod,
-            "imported-version-4",
-            "imported-version-4 description",
-            OffsetDateTime.now(),
-            fixedLastRunSetUUIDForMethod,
-            "https://github.com/broadinstitute/warp/blob/develop/pipelines/skylab/scATAC/scATAC.wdl",
-            workspaceId,
-            "develop",
-            Optional.empty());
-
     // Arrange DAO responses
-    when(methodVersionDao.getMethodVersion(any())).thenReturn(myMethodVersion);
+    when(methodVersionDao.getMethodVersion(any())).thenReturn(fixedMethodVersion);
     when(runSetDao.createRunSet(any())).thenReturn(1);
     when(methodDao.updateLastRunWithRunSet(any())).thenReturn(1);
     when(methodVersionDao.updateLastRunWithRunSet(any())).thenReturn(1);
-    when(runSetDao.updateStateAndRunDetails(any(), any(), any(), any(), any())).thenReturn(1);
     when(runDao.createRun(any())).thenReturn(1);
 
     // for POST /method endpoint
@@ -224,6 +227,32 @@ class VerifyPactsAllControllers {
     String fixedRunSetUUID = "11111111-1111-1111-1111-111111111111";
     String fixedRunUUID = "22222222-2222-2222-2222-222222222222";
     String fixedCromwellRunUUID = "33333333-3333-3333-3333-333333333333";
+
+    RunSet fixedRunSet =
+        new RunSet(
+            UUID.fromString(fixedRunSetUUID),
+            fixedMethodVersion,
+            "myRunSet",
+            "myRunSet description",
+            true,
+            false,
+            CbasRunSetStatus.QUEUED,
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            DateUtils.currentTimeInUTC(),
+            0,
+            0,
+            "my input definition string",
+            "my output definition string",
+            "FOO",
+            "bar-id",
+            workspaceId);
+    RunStateResponse fixedRunStateResponse =
+        new RunStateResponse()
+            .runId(UUID.fromString(fixedRunUUID))
+            .state(CbasRunStatus.toCbasApiState(QUEUED))
+            .errors("");
+
     when(uuidSource.generateUUID())
         .thenReturn(UUID.fromString(fixedRunSetUUID))
         .thenReturn(UUID.fromString(fixedCromwellRunUUID))
@@ -234,6 +263,9 @@ class VerifyPactsAllControllers {
     when(samService.getSamUser(any()))
         .thenReturn(
             new UserStatusInfo().userEmail("foo-email").userSubjectId("bar-id").enabled(true));
+    when(runSetsService.registerRunSet(any(), any(), any())).thenReturn(fixedRunSet);
+    when(runSetsService.registerRunsInRunSet(any(), any()))
+        .thenReturn(List.of(fixedRunStateResponse));
 
     // These values are returned so that they can be injected into variables in the Pact(s)
     HashMap<String, String> providerStateValues = new HashMap<>();
@@ -312,7 +344,7 @@ class VerifyPactsAllControllers {
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, any())))
         .thenReturn(Collections.singletonList(runToBeCancelled));
 
-    when(abortManager.abortRunSet(eq(runSetId), any())).thenReturn(abortDetails);
+    when(abortManager.abortRunSet(eq(runToBeCancelled.runSet()), any())).thenReturn(abortDetails);
   }
 
   @State({"post completed workflow results"})

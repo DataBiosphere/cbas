@@ -58,6 +58,11 @@ cbas:
   scheduler:
     # How often to check downstream services for health:
     healthCheckIntervalSeconds: 300
+  async:
+    submission:
+      coreThreadPoolSize: 5
+      maxThreadPoolSize: 10
+      queueCapacity: 500
 
 management:
   endpoints:
