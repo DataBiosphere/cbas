@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.validation.CbasValidVoid;
+import bio.terra.cbas.common.validation.CbasValidationError;
+import bio.terra.cbas.common.validation.CbasVoidValidation;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.common.iam.BearerToken;
 import org.junit.jupiter.api.Test;
@@ -78,8 +81,8 @@ class TestGithubService {
         "https://raw.githubusercontent.com/broadinstitute/cromwell/blob/develop/forkjoin.wdl",
       })
   void testValidateGithubUrlGood(String url) {
-    String expected = null; // ie, no error message
-    String actual = GitHubService.validateGithubUrl(url);
+    CbasValidVoid expected = CbasValidVoid.INSTANCE;
+    CbasVoidValidation actual = GitHubService.validateGithubUrl(url);
 
     assertEquals(expected, actual);
   }
@@ -92,9 +95,10 @@ class TestGithubService {
         "https://www.github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
       })
   void testValidateGithubUrlBadHost(String url) {
-    String expected =
-        "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]";
-    String actual = GitHubService.validateGithubUrl(url);
+    CbasVoidValidation expected =
+        CbasValidationError.of(
+            "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]");
+    CbasVoidValidation actual = GitHubService.validateGithubUrl(url);
 
     assertEquals(expected, actual);
   }
@@ -106,8 +110,9 @@ class TestGithubService {
         "raw.githubusercontent.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/forkjoin/forkjoin.wdl",
       })
   void testValidateGithubUrlNotAbsolute(String url) {
-    String expected = "method_url is invalid. Reason: URI is not absolute";
-    String actual = GitHubService.validateGithubUrl(url);
+    CbasVoidValidation expected =
+        CbasValidationError.of("method_url is invalid. Reason: URI is not absolute");
+    CbasVoidValidation actual = GitHubService.validateGithubUrl(url);
 
     assertEquals(expected, actual);
   }
@@ -120,9 +125,10 @@ class TestGithubService {
         "https://github.com/broadinstitute/cromwell/blob/forkjoin.wdl",
       })
   void testValidateGithubUrlBadFormat(String url) {
-    String expected =
-        "method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>";
-    String actual = GitHubService.validateGithubUrl(url);
+    CbasVoidValidation expected =
+        CbasValidationError.of(
+            "method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>");
+    CbasVoidValidation actual = GitHubService.validateGithubUrl(url);
 
     assertEquals(expected, actual);
   }

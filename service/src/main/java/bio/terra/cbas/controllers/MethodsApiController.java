@@ -61,7 +61,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -410,7 +409,8 @@ public class MethodsApiController implements MethodsApi {
       // checked while fetching the raw GitHub url for the workflow path
       if (methodRequest.getMethodSource() == GITHUB) {
         CbasVoidValidation urlValidation = validateGithubUrl(methodUrl);
-        if (urlValidation instanceof CbasValidationError urlErrors) errors.addAll(urlErrors.errors());
+        if (urlValidation instanceof CbasValidationError urlErrors)
+          errors.addAll(urlErrors.errors());
       }
     }
 

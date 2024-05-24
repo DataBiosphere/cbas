@@ -2,8 +2,8 @@ package bio.terra.cbas.dependencies.github;
 
 import static bio.terra.cbas.common.MethodUtil.asRawMethodUrlGithub;
 
-import bio.terra.cbas.common.validation.CbasValidationError;
 import bio.terra.cbas.common.validation.CbasValidVoid;
+import bio.terra.cbas.common.validation.CbasValidationError;
 import bio.terra.cbas.common.validation.CbasVoidValidation;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -96,12 +96,14 @@ public class GitHubService {
           Arrays.stream(url.getPath().split("/")).filter(Predicate.not(String::isEmpty)).toList();
 
       if (!SUPPORTED_GITHUB_HOSTS.contains(url.getHost())) {
-        return new CbasValidationError("method_url is invalid. Supported URI host(s): " + SUPPORTED_GITHUB_HOSTS);
+        return CbasValidationError.of(
+            "method_url is invalid. Supported URI host(s): " + SUPPORTED_GITHUB_HOSTS);
       } else if (pathElements.size() < 5) {
-        return new CbasValidationError("method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>");
+        return CbasValidationError.of(
+            "method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>");
       }
     } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
-      return new CbasValidationError("method_url is invalid. Reason: " + e.getMessage());
+      return CbasValidationError.of("method_url is invalid. Reason: " + e.getMessage());
     }
 
     return CbasValidVoid.INSTANCE;
