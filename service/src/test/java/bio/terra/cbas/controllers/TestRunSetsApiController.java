@@ -60,9 +60,9 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
-import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -256,12 +256,13 @@ class TestRunSetsApiController {
               OffsetDateTime.now(),
               UUID.randomUUID(),
               "GitHub",
-              workspaceId),
+              workspaceId,
+              Optional.of(githubMethodDetails)),
           "version name",
           "version description",
           OffsetDateTime.now(),
           null,
-          workflowUrl,
+          gitHubWorkflowRawUrl,
           workspaceId,
           "test_branch",
           Optional.empty());

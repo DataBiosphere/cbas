@@ -11,7 +11,6 @@ import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
@@ -234,7 +233,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
-        request, runSet, recordIdToRunIdMapping, userToken, rawMethodUrl);
+        request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl);
 
     captureResponseMetrics(response);
 
@@ -340,7 +339,7 @@ public class RunSetsApiController implements RunSetsApi {
     List<String> recordIds = request.getWdsRecords().getRecordIds();
     List<String> duplicateRecordIds =
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();
-    if (duplicateRecordIds.size() > 0) {
+    if (!duplicateRecordIds.isEmpty()) {
       errorList.add("Duplicate Record ID(s) %s present in request.".formatted(duplicateRecordIds));
     }
     return errorList;
