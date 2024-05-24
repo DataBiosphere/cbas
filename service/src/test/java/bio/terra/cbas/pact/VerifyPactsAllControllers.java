@@ -48,6 +48,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -117,6 +118,7 @@ class VerifyPactsAllControllers {
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private RunSetsService runSetsService;
+  @MockBean private MethodService methodService;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
