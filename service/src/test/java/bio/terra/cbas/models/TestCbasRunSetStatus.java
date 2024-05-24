@@ -99,4 +99,45 @@ public class TestCbasRunSetStatus {
 
     assertEquals(CbasRunSetStatus.CANCELING, CbasRunSetStatus.fromRunStatuses(runStatuses));
   }
+
+  @Test
+  void queuedAndRunningRuns() {
+    var runStatuses =
+        Map.of(
+            CbasRunStatus.RUNNING, 7,
+            CbasRunStatus.QUEUED, 3);
+
+    assertEquals(CbasRunSetStatus.QUEUED, CbasRunSetStatus.fromRunStatuses(runStatuses));
+  }
+
+  @Test
+  void queuedAndRunningAndErrorRuns() {
+    var runStatuses =
+        Map.of(
+            CbasRunStatus.RUNNING, 3,
+            CbasRunStatus.EXECUTOR_ERROR, 1,
+            CbasRunStatus.QUEUED, 6);
+
+    assertEquals(CbasRunSetStatus.QUEUED, CbasRunSetStatus.fromRunStatuses(runStatuses));
+  }
+
+  @Test
+  void queuedAndInitializingRuns() {
+    var runStatuses =
+        Map.of(
+            CbasRunStatus.INITIALIZING, 7,
+            CbasRunStatus.QUEUED, 3);
+
+    assertEquals(CbasRunSetStatus.QUEUED, CbasRunSetStatus.fromRunStatuses(runStatuses));
+  }
+
+  @Test
+  void queuedAndUnknownRuns() {
+    var runStatuses =
+        Map.of(
+            CbasRunStatus.QUEUED, 7,
+            CbasRunStatus.UNKNOWN, 3);
+
+    assertEquals(CbasRunSetStatus.UNKNOWN, CbasRunSetStatus.fromRunStatuses(runStatuses));
+  }
 }

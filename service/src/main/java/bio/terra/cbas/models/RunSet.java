@@ -48,4 +48,25 @@ public record RunSet(
   public UUID getOriginalWorkspaceId() {
     return originalWorkspaceId;
   }
+
+  public RunSet withUpdatedRunCount(int updatedRunCount) {
+    return new RunSet(
+        runSetId,
+        methodVersion,
+        name,
+        description,
+        callCachingEnabled,
+        isTemplate,
+        status,
+        submissionTimestamp,
+        lastModifiedTimestamp,
+        lastPolledTimestamp,
+        updatedRunCount,
+        errorCount,
+        inputDefinition,
+        outputDefinition,
+        recordType,
+        userId,
+        originalWorkspaceId);
+  }
 }

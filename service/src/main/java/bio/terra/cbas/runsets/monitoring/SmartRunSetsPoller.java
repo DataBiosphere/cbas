@@ -112,7 +112,7 @@ public class SmartRunSetsPoller {
         // If the total number of canceled runs is the same as the number of runs in the run set,
         // then the entire run set is canceled.
         if (canceledRunSetRuns.values().size() == rs.runCount()) {
-          runSetDao.updateStateAndRunDetails(
+          runSetDao.updateStateAndRunSetDetails(
               rs.runSetId(),
               CbasRunSetStatus.CANCELED,
               rs.runCount(),
@@ -129,7 +129,7 @@ public class SmartRunSetsPoller {
           || !Objects.equals(newStatusAndCounts.runErrors, rs.errorCount())
           || !Objects.equals(newStatusAndCounts.totalRuns, rs.runCount())) {
         // Update and re-fetch:
-        runSetDao.updateStateAndRunDetails(
+        runSetDao.updateStateAndRunSetDetails(
             rs.runSetId(),
             newStatusAndCounts.status(),
             newStatusAndCounts.totalRuns(),
