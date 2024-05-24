@@ -14,6 +14,8 @@ import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
+import bio.terra.cbas.common.validation.CbasValidationError;
+import bio.terra.cbas.common.validation.CbasVoidValidation;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -59,6 +61,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -392,7 +395,7 @@ public class MethodsApiController implements MethodsApi {
     if (methodRequest.getMethodSource() == null) {
       errors.add(
           "method_source is required and should be one of: "
-              + Arrays.toString(PostMethodRequest.MethodSourceEnum.values()));
+              + Arrays.toString(MethodSourceEnum.values()));
     }
 
     if (methodVersion == null || methodVersion.trim().isEmpty()) {
@@ -406,8 +409,8 @@ public class MethodsApiController implements MethodsApi {
       // path which is not completely a valid URL is sent as method url, and it's validity is
       // checked while fetching the raw GitHub url for the workflow path
       if (methodRequest.getMethodSource() == GITHUB) {
-        String urlError = validateGithubUrl(methodUrl);
-        if (urlError != null) errors.add(urlError);
+        CbasVoidValidation urlValidation = validateGithubUrl(methodUrl);
+        if (urlValidation instanceof CbasValidationError urlErrors) errors.addAll(urlErrors.errors());
       }
     }
 
