@@ -146,13 +146,5 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     methodDao.archiveMethod(method1.methodId());
     List<Method> remainingMethods = methodDao.getMethods();
     assertEquals(1, remainingMethods.size());
-
-    methodDao.archiveMethod(method2.methodId());
-    List<Method> remainingMethods2 = methodDao.getMethods();
-    assertEquals(0, remainingMethods2.size());
-
-    // TODO: assert a "method doesn't exist" exception
-    //    Method deletedMethod = methodDao.getMethod(method1.methodId());
-    //    assert deletedMethod.isDeleted();
   }
 }

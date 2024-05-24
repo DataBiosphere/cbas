@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao;
 
+import bio.terra.cbas.common.exceptions.MethodNotFoundException;
 import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
@@ -32,9 +33,15 @@ public class MethodDao {
     String sql =
         "SELECT * FROM method WHERE %s = :methodId AND %s = false"
             .formatted(Method.METHOD_ID_COL, Method.ARCHIVED_COL);
-    return jdbcTemplate
-        .query(sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper())
-        .get(0);
+    List<Method> queryResult =
+        jdbcTemplate.query(
+            sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper());
+
+    if (queryResult.isEmpty()) {
+      throw new MethodNotFoundException(methodId);
+    } else {
+      return queryResult.get(0);
+    }
   }
 
   public List<Method> getMethods() {
@@ -55,7 +62,12 @@ public class MethodDao {
     String sql =
         "UPDATE method SET %s = true WHERE %s = :method_id"
             .formatted(Method.ARCHIVED_COL, Method.METHOD_ID_COL);
-    return jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
+    int result = jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
+    if (result == 0) {
+      throw new MethodNotFoundException(methodId);
+    } else {
+      return result;
+    }
   }
 
   public Map<UUID, MethodLastRunDetails> methodLastRunDetailsFromRunSetIds(
