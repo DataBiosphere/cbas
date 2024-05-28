@@ -15,12 +15,9 @@ import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreatio
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
-import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.AbortRunSetResponse;
@@ -33,7 +30,6 @@ import bio.terra.cbas.model.RunSetStateResponse;
 import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
-import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
@@ -52,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -65,10 +60,7 @@ public class RunSetsApiController implements RunSetsApi {
 
   private final SamService samService;
   private final DockstoreService dockstoreService;
-  private final BardService bardService;
-  private final BardServerConfiguration bardServerConfiguration;
   private final MethodVersionDao methodVersionDao;
-  private final GithubMethodDetailsDao githubMethodDetailsDao;
   private final RunSetDao runSetDao;
   private final CbasApiConfiguration cbasApiConfiguration;
   private final SmartRunSetsPoller smartRunSetsPoller;
@@ -81,10 +73,7 @@ public class RunSetsApiController implements RunSetsApi {
   public RunSetsApiController(
       SamService samService,
       DockstoreService dockstoreService,
-      BardService bardService,
-      BardServerConfiguration bardServerConfiguration,
       MethodVersionDao methodVersionDao,
-      GithubMethodDetailsDao githubMethodDetailsDao,
       RunSetDao runSetDao,
       CbasApiConfiguration cbasApiConfiguration,
       SmartRunSetsPoller smartRunSetsPoller,
@@ -95,10 +84,7 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetsService runSetsService) {
     this.samService = samService;
     this.dockstoreService = dockstoreService;
-    this.bardService = bardService;
-    this.bardServerConfiguration = bardServerConfiguration;
     this.methodVersionDao = methodVersionDao;
-    this.githubMethodDetailsDao = githubMethodDetailsDao;
     this.runSetDao = runSetDao;
     this.cbasApiConfiguration = cbasApiConfiguration;
     this.smartRunSetsPoller = smartRunSetsPoller;
@@ -262,23 +248,15 @@ public class RunSetsApiController implements RunSetsApi {
 
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
-        request, runSet, recordIdToRunIdMapping, userToken, rawMethodUrl);
+        request,
+        runSet,
+        recordIdToRunIdMapping,
+        userToken,
+        rawMethodUrl,
+        methodVersion,
+        methodSourceEnum);
 
     captureResponseMetrics(response);
-    if (bardServerConfiguration.enabled()) {
-      List<String> workflowIds =
-          runStateResponseList.stream()
-              .map(RunStateResponse::getEngineId)
-              .filter(Objects::nonNull)
-              .toList();
-      GithubMethodDetails githubMethodDetails = null;
-      if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
-        githubMethodDetails =
-            githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
-      }
-      bardService.logRunSetEvent(
-          request, methodVersion, githubMethodDetails, workflowIds, userToken);
-    }
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }

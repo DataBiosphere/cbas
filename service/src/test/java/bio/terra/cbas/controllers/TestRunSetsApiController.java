@@ -26,16 +26,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasNetworkConfiguration;
 import bio.terra.cbas.config.CromwellServerConfiguration;
 import bio.terra.cbas.config.LeonardoServerConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.leonardo.AppUtils;
@@ -60,7 +57,6 @@ import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -294,11 +290,8 @@ class TestRunSetsApiController {
   @MockBean private CromwellService cromwellService;
   @MockBean private WdsService wdsService;
   @MockBean private DockstoreService dockstoreService;
-  @MockBean private BardService bardService;
-  @MockBean private BardServerConfiguration bardServerConfiguration;
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private SmartRunSetsPoller smartRunSetsPoller;
   @MockBean private UuidSource uuidSource;
@@ -488,6 +481,8 @@ class TestRunSetsApiController {
             runSetArgumentCaptor.capture(),
             recordIdMappingArgumentCaptor.capture(),
             any(),
+            any(),
+            any(),
             any());
     assertEquals("mock-run-set", runSetRequestArgumentCaptor.getValue().getRunSetName());
     assertEquals(3, runSetRequestArgumentCaptor.getValue().getWdsRecords().getRecordIds().size());
@@ -533,7 +528,8 @@ class TestRunSetsApiController {
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
 
     // verify that async method wasn't triggered
-    verify(runSetsService, never()).triggerWorkflowSubmission(any(), any(), any(), any(), any());
+    verify(runSetsService, never())
+        .triggerWorkflowSubmission(any(), any(), any(), any(), any(), any(), any());
 
     assertNotNull(response);
     assertEquals(
@@ -566,7 +562,8 @@ class TestRunSetsApiController {
             .andReturn();
 
     // verify that async method wasn't triggered
-    verify(runSetsService, never()).triggerWorkflowSubmission(any(), any(), any(), any(), any());
+    verify(runSetsService, never())
+        .triggerWorkflowSubmission(any(), any(), any(), any(), any(), any(), any());
 
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
@@ -592,7 +589,6 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
-    when(bardServerConfiguration.enabled()).thenReturn(true);
     MvcResult result = mockSingleWorkflowRun(request);
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
@@ -602,12 +598,6 @@ class TestRunSetsApiController {
     // verify dockstoreService was called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
 
-    // verify BardService method was called with expected params
-    RunSetRequest runSetRequest = objectMapper.readValue(request, RunSetRequest.class);
-    MethodVersion methodVersion = methodVersionDao.getMethodVersion(dockstoreMethodVersionId);
-    verify(bardService)
-        .logRunSetEvent(
-            runSetRequest, methodVersion, null, List.of(cromwellWorkflowId1), mockUserToken);
     assertNull(response.getErrors());
     assertEquals(RunSetState.QUEUED, response.getState());
     assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
@@ -625,10 +615,6 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
-    GithubMethodDetails githubMethodDetails =
-        new GithubMethodDetails("repo", "organization", "path", true, methodId);
-    when(githubMethodDetailsDao.getMethodSourceDetails(methodId)).thenReturn(githubMethodDetails);
-    when(bardServerConfiguration.enabled()).thenReturn(true);
     MvcResult result = mockSingleWorkflowRun(request);
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
@@ -637,20 +623,6 @@ class TestRunSetsApiController {
     assertNull(response.getErrors());
     assertEquals(RunSetState.QUEUED, response.getState());
     assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
-
-    // verify cromwellService method was called with expected params
-    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
-
-    // verify BardService method was called with expected params
-    RunSetRequest runSetRequest = objectMapper.readValue(request, RunSetRequest.class);
-    MethodVersion methodVersion = methodVersionDao.getMethodVersion(methodVersionId);
-    verify(bardService)
-        .logRunSetEvent(
-            runSetRequest,
-            methodVersion,
-            githubMethodDetails,
-            List.of(cromwellWorkflowId1),
-            mockUserToken);
   }
 
   @Test
@@ -665,7 +637,6 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
-    when(bardServerConfiguration.enabled()).thenReturn(false);
     MvcResult result = mockSingleWorkflowRun(request);
     RunSetStateResponse response =
         objectMapper.readValue(
@@ -676,10 +647,6 @@ class TestRunSetsApiController {
 
     // verify dockstoreService and cromwellService methods were called with expected params
     verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-    verify(cromwellService).submitWorkflowBatch(eq(workflowUrl), any(), any(), any());
-
-    // verify BardService was not called
-    verifyNoInteractions(bardService);
   }
 
   private MvcResult mockSingleWorkflowRun(String request) throws Exception {
@@ -692,6 +659,7 @@ class TestRunSetsApiController {
     when(runSetsService.registerRunsInRunSet(any(), any()))
         .thenReturn(List.of(mockRunStateResponse1));
 
+    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
     return mockMvc
         .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())

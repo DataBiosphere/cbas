@@ -10,22 +10,27 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
+import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -45,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.slf4j.Logger;
@@ -65,6 +71,10 @@ public class RunSetsService {
   private final UuidSource uuidSource;
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
+  private final BardService bardService;
+  private final BardServerConfiguration bardServerConfiguration;
+
+  private final GithubMethodDetailsDao githubMethodDetailsDao;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -78,7 +88,10 @@ public class RunSetsService {
       CbasApiConfiguration cbasApiConfiguration,
       UuidSource uuidSource,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfiguration) {
+      CbasContextConfiguration cbasContextConfiguration,
+      BardService bardService,
+      BardServerConfiguration bardServerConfiguration,
+      GithubMethodDetailsDao githubMethodDetailsDao) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -89,6 +102,9 @@ public class RunSetsService {
     this.uuidSource = uuidSource;
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
+    this.bardService = bardService;
+    this.bardServerConfiguration = bardServerConfiguration;
+    this.githubMethodDetailsDao = githubMethodDetailsDao;
   }
 
   private record WdsRecordResponseDetails(
@@ -180,7 +196,9 @@ public class RunSetsService {
       RunSet runSet,
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
-      String rawMethodUrl) {
+      String rawMethodUrl,
+      MethodVersion methodVersion,
+      PostMethodRequest.MethodSourceEnum methodSourceEnum) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
 
@@ -196,7 +214,7 @@ public class RunSetsService {
     }
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
-    List<RunStateResponse> runStateResponseList =
+    ImmutablePair<List<RunStateResponse>, List<String>> runStateResponse =
         buildInputsAndSubmitRun(
             cromwellService,
             request,
@@ -205,6 +223,7 @@ public class RunSetsService {
             rawMethodUrl,
             recordIdToRunIdMapping,
             userToken);
+    List<RunStateResponse> runStateResponseList = runStateResponse.getLeft();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -224,6 +243,25 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
+    logRunSetEvent(
+        request, methodVersion, methodSourceEnum, runStateResponse.getRight(), userToken);
+  }
+
+  public void logRunSetEvent(
+      RunSetRequest request,
+      MethodVersion methodVersion,
+      PostMethodRequest.MethodSourceEnum methodSourceEnum,
+      List<String> workflowIds,
+      BearerToken userToken) {
+    if (bardServerConfiguration.enabled()) {
+      GithubMethodDetails githubMethodDetails = null;
+      if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
+        githubMethodDetails =
+            githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
+      }
+      bardService.logRunSetEvent(
+          request, methodVersion, githubMethodDetails, workflowIds, userToken);
+    }
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
@@ -259,7 +297,6 @@ public class RunSetsService {
     runDao.updateEngineIdAndRunStatus(runId, engineId, INITIALIZING, DateUtils.currentTimeInUTC());
     return new RunStateResponse()
         .runId(runId)
-        .engineId(String.valueOf(engineId))
         .state(CbasRunStatus.toCbasApiState(INITIALIZING))
         .errors(null);
   }
@@ -279,7 +316,7 @@ public class RunSetsService {
         runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
-  private List<RunStateResponse> buildInputsAndSubmitRun(
+  private ImmutablePair<List<RunStateResponse>, List<String>> buildInputsAndSubmitRun(
       CromwellService cromwellService,
       RunSetRequest request,
       RunSet runSet,
@@ -288,7 +325,7 @@ public class RunSetsService {
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
-
+    ArrayList<String> successfullyInitializedWorkflowIds = new ArrayList<>();
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
     // options will be used for all workflows submitted as part of this run set.
     String workflowOptionsJson =
@@ -349,7 +386,7 @@ public class RunSetsService {
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       if (engineIdToWorkflowInput.isEmpty()) {
-        return runStateResponseList;
+        return new ImmutablePair<>(runStateResponseList, List.of());
       }
 
       try {
@@ -363,6 +400,7 @@ public class RunSetsService {
                 .map(
                     idAndStatus -> {
                       UUID engineId = UUID.fromString(idAndStatus.getId());
+                      successfullyInitializedWorkflowIds.add(engineId.toString());
                       return recordSuccessInitializingRun(
                           engineIdToRunAndRecordMapping.get(engineId).runId, engineId);
                     })
@@ -383,7 +421,6 @@ public class RunSetsService {
                 .toList());
       }
     }
-
-    return runStateResponseList;
+    return new ImmutablePair<>(runStateResponseList, successfullyInitializedWorkflowIds);
   }
 }
