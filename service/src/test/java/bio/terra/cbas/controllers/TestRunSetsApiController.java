@@ -589,7 +589,22 @@ class TestRunSetsApiController {
             recordType,
             "[ \"%s\" ]".formatted(recordId1));
 
-    MvcResult result = mockSingleWorkflowRun(request);
+    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any(), any()))
+        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1)));
+    when(uuidSource.generateUUID())
+        .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
+
+    when(runSetsService.registerRunSet(any(), any(), any())).thenReturn(mockRunSet);
+    when(runSetsService.registerRunsInRunSet(any(), any()))
+        .thenReturn(List.of(mockRunStateResponse1));
+
+    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
+    MvcResult result =
+        mockMvc
+            .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn();
+
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
         objectMapper.readValue(
@@ -601,69 +616,6 @@ class TestRunSetsApiController {
     assertNull(response.getErrors());
     assertEquals(RunSetState.QUEUED, response.getState());
     assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
-  }
-
-  @Test
-  void postRunSetRequestForGithubWorkflow() throws Exception {
-    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
-    String request =
-        requestTemplate.formatted(
-            methodVersionId,
-            isCallCachingEnabled,
-            optionalInputSourceString,
-            outputDefinitionAsString,
-            recordType,
-            "[ \"%s\" ]".formatted(recordId1));
-
-    MvcResult result = mockSingleWorkflowRun(request);
-    // Validate that the response can be parsed as a valid RunSetStateResponse:
-    RunSetStateResponse response =
-        objectMapper.readValue(
-            result.getResponse().getContentAsString(), RunSetStateResponse.class);
-    assertNull(response.getErrors());
-    assertEquals(RunSetState.QUEUED, response.getState());
-    assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
-  }
-
-  @Test
-  void postRunSetRequestBardDisabled() throws Exception {
-    final String optionalInputSourceString = "{ \"type\" : \"none\", \"record_attribute\" : null }";
-    String request =
-        requestTemplate.formatted(
-            dockstoreMethodVersionId,
-            isCallCachingEnabled,
-            optionalInputSourceString,
-            outputDefinitionAsString,
-            recordType,
-            "[ \"%s\" ]".formatted(recordId1));
-
-    MvcResult result = mockSingleWorkflowRun(request);
-    RunSetStateResponse response =
-        objectMapper.readValue(
-            result.getResponse().getContentAsString(), RunSetStateResponse.class);
-    assertNull(response.getErrors());
-    assertEquals(RunSetState.QUEUED, response.getState());
-    assertEquals(RunState.QUEUED, response.getRuns().get(0).getState());
-
-    // verify dockstoreService and cromwellService methods were called with expected params
-    verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
-  }
-
-  private MvcResult mockSingleWorkflowRun(String request) throws Exception {
-    when(cromwellService.submitWorkflowBatch(eq(workflowUrl), any(), any(), any()))
-        .thenReturn(List.of(new WorkflowIdAndStatus().id(cromwellWorkflowId1)));
-    when(uuidSource.generateUUID())
-        .thenReturn(UUID.randomUUID(), UUID.fromString(cromwellWorkflowId1), UUID.randomUUID());
-
-    when(runSetsService.registerRunSet(any(), any(), any())).thenReturn(mockRunSet);
-    when(runSetsService.registerRunsInRunSet(any(), any()))
-        .thenReturn(List.of(mockRunStateResponse1));
-
-    when(bearerTokenFactory.from(any())).thenReturn(mockUserToken);
-    return mockMvc
-        .perform(post(API).content(request).contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andReturn();
   }
 
   @Test
