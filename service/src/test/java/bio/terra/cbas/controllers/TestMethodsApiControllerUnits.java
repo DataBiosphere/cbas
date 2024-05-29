@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -53,7 +52,6 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private HttpServletRequest httpServletRequest;
 
@@ -178,7 +176,6 @@ class TestMethodsApiControllerUnits {
             runSetDao,
             objectMapper,
             cbasContextConfiguration,
-            githubMethodDetailsDao,
             bearerTokenFactory,
             httpServletRequest);
   }
@@ -238,6 +235,7 @@ class TestMethodsApiControllerUnits {
 
   @Test
   void requestValidationWithIncorrectUrlFormat() {
+
     PostMethodRequest invalidPostRequest = new PostMethodRequest();
     invalidPostRequest.setMethodName("hello");
     invalidPostRequest.setMethodDescription("method description");
@@ -245,7 +243,9 @@ class TestMethodsApiControllerUnits {
     invalidPostRequest.setMethodVersion("develop");
     invalidPostRequest.setMethodUrl("https://raw.githubusercontent/WDL/workflows/hello.wdl");
     List<String> expectedErrors =
-        new ArrayList<>(List.of("method_url is invalid. URL doesn't match pattern format"));
+        new ArrayList<>(
+            List.of(
+                "method_url is invalid. Supported URI host(s): [github.com, raw.githubusercontent.com]"));
 
     List<String> actualErrors = methodsApiController.validateMethod(invalidPostRequest);
     assertEquals(expectedErrors.size(), actualErrors.size());

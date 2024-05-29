@@ -31,10 +31,6 @@ public record MethodVersion(
     return method.methodId();
   }
 
-  public UUID getOriginalWorkspaceId() {
-    return originalWorkspaceId;
-  }
-
   public MethodVersion withMethodVersionId(UUID methodVersionId) {
     return new MethodVersion(
         methodVersionId,
@@ -44,6 +40,46 @@ public record MethodVersion(
         created,
         lastRunSetId,
         url,
+        originalWorkspaceId,
+        branchOrTagName,
+        methodVersionDetails);
+  }
+
+  /**
+   * Primarily for testing, to create a MethodVersion with an updated method.
+   *
+   * @param method the new method
+   * @return a new MethodVersion with the updated method
+   */
+  public MethodVersion withMethod(Method method) {
+    return new MethodVersion(
+        methodVersionId,
+        method,
+        name,
+        description,
+        created,
+        lastRunSetId,
+        url,
+        originalWorkspaceId,
+        branchOrTagName,
+        methodVersionDetails);
+  }
+
+  /**
+   * Primarily for testing, to create a MethodVersion with an updated URL.
+   *
+   * @param newUrl
+   * @return a new MethodVersion with the updated url
+   */
+  public MethodVersion withUrl(String newUrl) {
+    return new MethodVersion(
+        methodVersionId,
+        method,
+        name,
+        description,
+        created,
+        lastRunSetId,
+        newUrl,
         originalWorkspaceId,
         branchOrTagName,
         methodVersionDetails);

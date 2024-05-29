@@ -5,16 +5,16 @@ import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
+import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
-import bio.terra.cbas.common.MethodUtil;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.common.exceptions.MethodProcessingException.UnknownMethodSourceException;
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -22,7 +22,6 @@ import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -40,6 +39,7 @@ import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
+import bio.terra.dockstore.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -170,32 +170,17 @@ public class RunSetsApiController implements RunSetsApi {
     // Fetch existing method:
     MethodVersion methodVersion = methodVersionDao.getMethodVersion(request.getMethodVersionId());
 
-    // convert method url to raw url and use that while calling Cromwell's submit workflow
-    // endpoint
-    String rawMethodUrl;
+    // retrieve the stored method url and use that while calling Cromwell's submit workflow endpoint
+    String resolvedMethodUrl;
     try {
-      PostMethodRequest.MethodSourceEnum methodSourceEnum =
-          convertToMethodSourceEnum(methodVersion.method().methodSource());
-
-      rawMethodUrl =
-          MethodUtil.convertToRawUrl(
-              methodVersion.url(), methodSourceEnum, methodVersion.name(), dockstoreService);
-
-      // this could happen if there was no url or empty url received in the Dockstore workflow's
-      // descriptor response
-      if (rawMethodUrl == null || rawMethodUrl.isEmpty()) {
-        String errorMsg =
-            "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.";
-        log.warn(errorMsg);
-        return new ResponseEntity<>(
-            new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
-      }
-    } catch (URISyntaxException
+      resolvedMethodUrl = getSubmissionUrl(methodVersion, dockstoreService);
+    } catch (MethodProcessingException
+        | bio.terra.dockstore.client.ApiException
         | MalformedURLException
-        | UnknownMethodSourceException
-        | bio.terra.dockstore.client.ApiException e) {
-      // the flow shouldn't reach here since if it was invalid URL or invalid method source it
-      // should have been caught when method was imported
+        | URISyntaxException e) {
+      // If it was invalid URL or invalid method source it should have been caught when method was
+      // imported,
+      // so this is relatively unexpected:
       String errorMsg =
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
@@ -248,7 +233,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
-        request, runSet, recordIdToRunIdMapping, userToken, rawMethodUrl);
+        request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl);
 
     captureResponseMetrics(response);
 
@@ -301,6 +286,23 @@ public class RunSetsApiController implements RunSetsApi {
     return new ResponseEntity<>(aborted, HttpStatus.OK);
   }
 
+  public static String getSubmissionUrl(
+      MethodVersion methodVersion, DockstoreService dockstoreService)
+      throws MethodProcessingException, ApiException, MalformedURLException, URISyntaxException {
+    return switch (convertToMethodSourceEnum(methodVersion.method().methodSource())) {
+      case DOCKSTORE -> {
+        String resolvedMethodUrl =
+            dockstoreService.descriptorGetV1(methodVersion.url(), methodVersion.name()).getUrl();
+        if (resolvedMethodUrl == null || resolvedMethodUrl.isEmpty()) {
+          throw new MethodProcessingException(
+              "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.");
+        }
+        yield resolvedMethodUrl;
+      }
+      case GITHUB -> getOrRebuildGithubUrl(methodVersion);
+    };
+  }
+
   public static void captureRequestMetrics(RunSetRequest request) {
     recordInputsInRequest(request.getWorkflowInputDefinitions().size());
     recordOutputsInRequest(request.getWorkflowOutputDefinitions().size());
@@ -337,7 +339,7 @@ public class RunSetsApiController implements RunSetsApi {
     List<String> recordIds = request.getWdsRecords().getRecordIds();
     List<String> duplicateRecordIds =
         recordIds.stream().filter(e -> Collections.frequency(recordIds, e) > 1).distinct().toList();
-    if (duplicateRecordIds.size() > 0) {
+    if (!duplicateRecordIds.isEmpty()) {
       errorList.add("Duplicate Record ID(s) %s present in request.".formatted(duplicateRecordIds));
     }
     return errorList;

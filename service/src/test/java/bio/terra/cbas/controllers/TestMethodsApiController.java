@@ -14,12 +14,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.ecm.EcmService;
+import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
@@ -55,7 +55,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.client.RestClientException;
 
 @WebMvcTest
 @ExtendWith({MockitoExtension.class})
@@ -74,7 +73,6 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodVersionDao methodVersionDao;
   @MockBean private RunSetDao runSetDao;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
 
@@ -99,17 +97,20 @@ class TestMethodsApiController {
   private void initMocks() {
     initSamMocks();
 
-    when(methodDao.getMethods()).thenReturn(List.of(neverRunMethod1, previouslyRunMethod2));
-    when(methodDao.getMethod(neverRunMethod1.methodId())).thenReturn(neverRunMethod1);
-    when(methodDao.getMethod(previouslyRunMethod2.methodId())).thenReturn(previouslyRunMethod2);
-    when(githubMethodDetailsDao.getMethodSourceDetails(previouslyRunMethod2.methodId()))
-        .thenReturn(githubMethodDetails);
-    when(githubMethodDetailsDao.getMethodSourceDetails(neverRunMethod1.methodId()))
-        .thenReturn(githubMethodDetails);
+    Method neverRunMethod1WithGithub = neverRunMethod1.withGithubMethodDetails(githubMethodDetails);
+    Method previouslyRunMethod2WithGithub =
+        previouslyRunMethod2.withGithubMethodDetails(githubMethodDetails);
 
-    when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1))
+    when(methodDao.getMethods())
+        .thenReturn(List.of(neverRunMethod1WithGithub, previouslyRunMethod2WithGithub));
+    when(methodDao.getMethod(neverRunMethod1WithGithub.methodId()))
+        .thenReturn(neverRunMethod1WithGithub);
+    when(methodDao.getMethod(previouslyRunMethod2WithGithub.methodId()))
+        .thenReturn(previouslyRunMethod2WithGithub);
+
+    when(methodVersionDao.getMethodVersionsForMethod(neverRunMethod1WithGithub))
         .thenReturn(List.of(method1Version1, method1Version2));
-    when(methodVersionDao.getMethodVersionsForMethod(previouslyRunMethod2))
+    when(methodVersionDao.getMethodVersionsForMethod(previouslyRunMethod2WithGithub))
         .thenReturn(List.of(method2Version1, method2Version2));
 
     when(methodVersionDao.getMethodVersion(method1Version1.methodVersionId()))
@@ -315,10 +316,12 @@ class TestMethodsApiController {
     initMocks();
     String invalidWorkflowRequest = postRequestTemplate.formatted("GitHub", invalidWorkflow);
     String expectedError =
-        "Bad user request. Method 'https://raw.githubusercontent.com/abc/invalidWorkflow.wdl' in invalid. Error(s): Workflow invalid for test purposes";
+        "Bad user request. Error(s): method_url is invalid. Github URL should be formatted like: <hostname> / <org> / <repo> / blob / <branch/tag/commit> / <path-to-file>";
 
-    when(cromwellService.describeWorkflow(eq(invalidWorkflow), any()))
+    when(cromwellService.describeWorkflow(eq(invalidWorkflowWithCommit), any()))
         .thenReturn(workflowDescForInvalidWorkflow);
+    when(gitHubService.getCurrentGithash(eq("org"), eq("repo"), eq("abc"), any()))
+        .thenReturn(dummyHash);
 
     MvcResult response =
         mockMvc
@@ -370,8 +373,11 @@ class TestMethodsApiController {
 
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
+    when(cromwellService.describeWorkflow(eq(validRawWorkflowWithCommit), any()))
         .thenReturn(workflowDescForValidWorkflow);
+    when(gitHubService.getCurrentGithash(
+            eq("broadinstitute"), eq("cromwell"), eq("develop"), any()))
+        .thenReturn(dummyHash);
 
     MvcResult response =
         mockMvc
@@ -425,10 +431,12 @@ class TestMethodsApiController {
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
+    when(gitHubService.getCurrentGithash(
+            eq("broadinstitute"), eq("cromwell"), eq("develop"), any()))
+        .thenReturn(dummyHash);
+    when(cromwellService.describeWorkflow(eq(validRawWorkflowWithCommit), any()))
         .thenReturn(workflowDescForValidWorkflow);
     when(gitHubService.isRepoPrivate(any(), any(), any())).thenReturn(true);
-    when(gitHubService.getCurrentGithash(any(), any(), any(), any())).thenReturn("abcd123");
 
     MvcResult response =
         mockMvc
@@ -459,7 +467,7 @@ class TestMethodsApiController {
     assertNull(newMethodVersionCaptor.getValue().lastRunSetId());
     assertEquals("develop", newMethodVersionCaptor.getValue().branchOrTagName());
     assertEquals(
-        "abcd123", newMethodVersionCaptor.getValue().methodVersionDetails().get().githash());
+        dummyHash, newMethodVersionCaptor.getValue().methodVersionDetails().get().githash());
 
     UUID methodVersionId = newMethodVersionCaptor.getValue().methodVersionId();
     ArgumentCaptor<RunSet> newRunSetCaptor = ArgumentCaptor.forClass(RunSet.class);
@@ -474,11 +482,10 @@ class TestMethodsApiController {
     assertEquals(expectedOutput, newRunSetCaptor.getValue().outputDefinition());
     assertTrue(newRunSetCaptor.getValue().isTemplate());
 
-    ArgumentCaptor<GithubMethodDetails> newDetailsCaptor =
-        ArgumentCaptor.forClass(GithubMethodDetails.class);
-    verify(githubMethodDetailsDao).createGithubMethodSourceDetails(newDetailsCaptor.capture());
-    assertEquals(postMethodResponse.getMethodId(), newDetailsCaptor.getValue().methodId());
-    assertEquals(true, newDetailsCaptor.getValue().isPrivate());
+    assertEquals(
+        postMethodResponse.getMethodId(),
+        newMethodCaptor.getValue().githubMethodDetails().get().methodId());
+    assertEquals(true, newMethodCaptor.getValue().githubMethodDetails().get().isPrivate());
   }
 
   @Test
@@ -488,7 +495,10 @@ class TestMethodsApiController {
     initSamMocks();
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
+    when(gitHubService.getCurrentGithash(
+            eq("broadinstitute"), eq("cromwell"), eq("develop"), any()))
+        .thenReturn(dummyHash);
+    when(cromwellService.describeWorkflow(eq(validRawWorkflowWithCommit), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -533,6 +543,12 @@ class TestMethodsApiController {
     PostMethodResponse postMethodResponse =
         objectMapper.readValue(
             response.getResponse().getContentAsString(), PostMethodResponse.class);
+
+    ArgumentCaptor<Method> createMethodCaptor = ArgumentCaptor.forClass(Method.class);
+    verify(methodDao).createMethod(createMethodCaptor.capture());
+
+    assertEquals(postMethodResponse.getMethodId(), createMethodCaptor.getValue().methodId());
+    assertEquals(Optional.empty(), createMethodCaptor.getValue().githubMethodDetails());
 
     assertNotNull(postMethodResponse.getMethodId());
     assertNotNull(postMethodResponse.getRunSetId());
@@ -600,7 +616,10 @@ class TestMethodsApiController {
 
     WorkflowDescription workflowDescForValidWorkflow =
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
+    when(gitHubService.getCurrentGithash(
+            eq("broadinstitute"), eq("cromwell"), eq("develop"), any()))
+        .thenReturn(dummyHash);
+    when(cromwellService.describeWorkflow(eq(validRawWorkflowWithCommit), any()))
         .thenReturn(workflowDescForValidWorkflow);
 
     MvcResult response =
@@ -832,43 +851,12 @@ class TestMethodsApiController {
   }
 
   @Test
-  void dontStoreMethodDetailsForDockstoreMethod() throws Exception {
-    String validWorkflowRequest =
-        postRequestTemplate.formatted("Dockstore", validDockstoreWorkflow);
-
-    ToolDescriptor mockToolDescriptor = new ToolDescriptor();
-    mockToolDescriptor.setDescriptor("mock descriptor");
-    mockToolDescriptor.setType(ToolDescriptor.TypeEnum.WDL);
-    mockToolDescriptor.setUrl(validRawWorkflow);
-
-    initSamMocks();
-    WorkflowDescription workflowDescForValidWorkflow =
-        objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
-    when(dockstoreService.descriptorGetV1(validDockstoreWorkflow, "develop"))
-        .thenReturn(mockToolDescriptor);
-    when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
-        .thenReturn(workflowDescForValidWorkflow);
-
-    MvcResult response =
-        mockMvc
-            .perform(
-                post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
-    PostMethodResponse postMethodResponse =
-        objectMapper.readValue(
-            response.getResponse().getContentAsString(), PostMethodResponse.class);
-
-    assertNull(githubMethodDetailsDao.getMethodSourceDetails(postMethodResponse.getMethodId()));
-  }
-
-  @Test
   void errorThrownForInvalidToken() throws Exception {
     String validWorkflowRequest = postRequestTemplate.formatted("GitHub", validRawWorkflow);
     String errorResponse =
         """
         {
-          "error" : "Something went wrong while importing the method 'https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl'. Error(s): exception thrown"
+          "error" : "Error while importing GitHub workflow. Error: exception thrown"
         }
         """
             .trim();
@@ -877,15 +865,14 @@ class TestMethodsApiController {
         objectMapper.readValue(validWorkflowDescriptionJson, WorkflowDescription.class);
     when(cromwellService.describeWorkflow(eq(validRawWorkflow), any()))
         .thenReturn(workflowDescForValidWorkflow);
-
     when(gitHubService.isRepoPrivate(any(), any(), any()))
-        .thenThrow(new RestClientException("exception thrown"));
+        .thenThrow(new GitHubClient.GitHubClientException("exception thrown"));
 
     MvcResult response =
         mockMvc
             .perform(
                 post(API).content(validWorkflowRequest).contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isInternalServerError())
+            .andExpect(status().isBadRequest())
             .andExpect(content().string(errorResponse))
             .andReturn();
 
@@ -900,7 +887,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           null,
           "method 1 source",
-          workspaceId);
+          workspaceId,
+          Optional.empty());
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -930,10 +918,16 @@ class TestMethodsApiController {
 
   private static final UUID method2RunSet1Id = UUID.randomUUID();
   private static final UUID method2RunSet2Id = UUID.randomUUID();
+  private static final String dummyHash = "dummy_hash";
   private static final String invalidWorkflow =
-      "https://raw.githubusercontent.com/abc/invalidWorkflow.wdl";
+      "https://raw.githubusercontent.com/org/repo/abc/invalidWorkflow.wdl";
+  private static final String invalidWorkflowWithCommit =
+      "https://raw.githubusercontent.com/org/repo/%s/invalidWorkflow.wdl".formatted(dummyHash);
   private static final String validRawWorkflow =
       "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
+  private static final String validRawWorkflowWithCommit =
+      "https://raw.githubusercontent.com/broadinstitute/cromwell/%s/centaur/src/main/resources/standardTestCases/hello/hello.wdl"
+          .formatted(dummyHash);
   private static final String validGithubWorkflow =
       "https://github.com/broadinstitute/cromwell/blob/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
   private static final String validDockstoreWorkflow =
@@ -946,7 +940,8 @@ class TestMethodsApiController {
           OffsetDateTime.now(),
           method2RunSet2Id,
           "method 2 source",
-          workspaceId);
+          workspaceId,
+          Optional.empty());
   private static final GithubMethodDetails githubMethodDetails =
       new GithubMethodDetails(
           "cromwell",

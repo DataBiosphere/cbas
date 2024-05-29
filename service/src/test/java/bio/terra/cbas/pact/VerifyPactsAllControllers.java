@@ -21,7 +21,6 @@ import bio.terra.cbas.controllers.GlobalExceptionHandler;
 import bio.terra.cbas.controllers.MethodsApiController;
 import bio.terra.cbas.controllers.RunSetsApiController;
 import bio.terra.cbas.controllers.RunsApiController;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -37,6 +36,7 @@ import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -112,7 +112,6 @@ class VerifyPactsAllControllers {
   @Autowired private ObjectMapper objectMapper;
   @MockBean private MicrometerMetrics micrometerMetrics;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
-  @MockBean private GithubMethodDetailsDao githubMethodDetailsDao;
   @MockBean private GitHubService gitHubService;
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
@@ -127,15 +126,30 @@ class VerifyPactsAllControllers {
   UUID fixedLastRunSetUUIDForMethod = UUID.fromString("0e811493-6013-4fe7-b0eb-f275acdd3c92");
   UUID workspaceId = UUID.randomUUID();
 
+  String methodOrganization = "broadinstitute";
+  String methodRepository = "warp";
+  String methodBranch = "develop";
+  String methodPath = "pipelines/skylab/scATAC/scATAC.wdl";
+
+  String methodUrl =
+      "https://github.com/%s/%s/blob/%s/%s"
+          .formatted(methodOrganization, methodRepository, methodBranch, methodPath);
+  String methodName = "scATAC-imported-4";
+  String methodDescription = "scATAC-imported-4 description";
+
+  GithubMethodDetails fixedGithubMethodDetails =
+      new GithubMethodDetails(
+          methodRepository, methodOrganization, methodPath, false, fixedMethodUUID);
   Method fixedMethod =
       new Method(
           fixedMethodUUID,
-          "scATAC-imported-4",
-          "scATAC-imported-4 description",
+          methodName,
+          methodDescription,
           OffsetDateTime.now(),
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-          workspaceId);
+          workspaceId,
+          Optional.of(fixedGithubMethodDetails));
 
   MethodVersion fixedMethodVersion =
       new MethodVersion(
@@ -277,15 +291,20 @@ class VerifyPactsAllControllers {
   @State({"at least one run set exists with method_id 00000000-0000-0000-0000-000000000009"})
   public void runSetsData() throws Exception {
     UUID methodVersionUUID = UUID.fromString("90000000-0000-0000-0000-000000000009");
+    UUID methodUUID = UUID.fromString("00000000-0000-0000-0000-000000000009");
+    GithubMethodDetails myMethodGithubMethodDetails =
+        new GithubMethodDetails(
+            methodRepository, methodOrganization, methodPath, false, methodUUID);
     Method myMethod =
         new Method(
-            UUID.fromString("00000000-0000-0000-0000-000000000009"),
+            methodUUID,
             "myMethod name",
             "myMethod description",
             OffsetDateTime.now(),
             methodVersionUUID,
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
-            workspaceId);
+            workspaceId,
+            Optional.of(myMethodGithubMethodDetails));
 
     MethodVersion myMethodVersion =
         new MethodVersion(
@@ -295,7 +314,7 @@ class VerifyPactsAllControllers {
             "myMethodVersion description",
             OffsetDateTime.now(),
             UUID.randomUUID(),
-            "https://raw.githubusercontent.com/broadinstitute/warp/develop/pipelines/skylab/scATAC/scATAC.wdl",
+            methodUrl,
             workspaceId,
             "develop",
             Optional.empty());
