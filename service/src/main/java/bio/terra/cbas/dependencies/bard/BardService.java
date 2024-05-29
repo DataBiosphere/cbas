@@ -12,7 +12,7 @@ import bio.terra.common.iam.BearerToken;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,6 @@ public class BardService implements HealthCheck {
   public void logRunSetEvent(
       RunSetRequest request,
       MethodVersion methodVersion,
-      GithubMethodDetails githubMethodDetails,
       List<String> workflowIds,
       BearerToken userToken) {
     String eventName = "workflow-submission";
@@ -50,7 +49,10 @@ public class BardService implements HealthCheck {
     properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
     properties.put("workflowIds", workflowIds.toString());
 
-    if (Objects.nonNull(githubMethodDetails)) {
+    Optional<GithubMethodDetails> maybeGitHubMethodDetails =
+        methodVersion.method().githubMethodDetails();
+    if (maybeGitHubMethodDetails.isPresent()) {
+      GithubMethodDetails githubMethodDetails = maybeGitHubMethodDetails.get();
       properties.put("githubOrganization", githubMethodDetails.organization());
       properties.put("githubRepository", githubMethodDetails.repository());
       properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());

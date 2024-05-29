@@ -22,7 +22,6 @@ import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.model.AbortRunSetResponse;
 import bio.terra.cbas.model.OutputDestination;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
@@ -173,7 +172,6 @@ public class RunSetsApiController implements RunSetsApi {
 
     // retrieve the stored method url and use that while calling Cromwell's submit workflow endpoint
     String resolvedMethodUrl;
-    PostMethodRequest.MethodSourceEnum methodSourceEnum = convertToMethodSourceEnum(methodVersion.method().methodSource());
     try {
       resolvedMethodUrl = getSubmissionUrl(methodVersion, dockstoreService);
     } catch (MethodProcessingException
@@ -235,13 +233,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
-        request,
-        runSet,
-        recordIdToRunIdMapping,
-        userToken,
-        resolvedMethodUrl,
-        methodVersion,
-        methodSourceEnum);
+        request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl, methodVersion);
 
     captureResponseMetrics(response);
     // Return the result

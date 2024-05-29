@@ -13,7 +13,6 @@ import bio.terra.cbas.common.exceptions.InputProcessingException;
 import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -24,13 +23,11 @@ import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -74,8 +71,6 @@ public class RunSetsService {
   private final BardService bardService;
   private final BardServerConfiguration bardServerConfiguration;
 
-  private final GithubMethodDetailsDao githubMethodDetailsDao;
-
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
   public RunSetsService(
@@ -90,8 +85,7 @@ public class RunSetsService {
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfiguration,
       BardService bardService,
-      BardServerConfiguration bardServerConfiguration,
-      GithubMethodDetailsDao githubMethodDetailsDao) {
+      BardServerConfiguration bardServerConfiguration) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -104,7 +98,6 @@ public class RunSetsService {
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.bardService = bardService;
     this.bardServerConfiguration = bardServerConfiguration;
-    this.githubMethodDetailsDao = githubMethodDetailsDao;
   }
 
   private record WdsRecordResponseDetails(
@@ -197,8 +190,7 @@ public class RunSetsService {
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
       String rawMethodUrl,
-      MethodVersion methodVersion,
-      PostMethodRequest.MethodSourceEnum methodSourceEnum) {
+      MethodVersion methodVersion) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
 
@@ -243,19 +235,16 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
-    logRunSetEvent(
-        request, methodVersion, methodSourceEnum, runStateResponse.getRight(), userToken);
+    logRunSetEvent(request, methodVersion, runStateResponse.getRight(), userToken);
   }
 
   public void logRunSetEvent(
       RunSetRequest request,
       MethodVersion methodVersion,
-      PostMethodRequest.MethodSourceEnum methodSourceEnum,
       List<String> workflowIds,
       BearerToken userToken) {
     if (bardServerConfiguration.enabled()) {
-      bardService.logRunSetEvent(
-          request, methodVersion, githubMethodDetails, workflowIds, userToken);
+      bardService.logRunSetEvent(request, methodVersion, workflowIds, userToken);
     }
   }
 

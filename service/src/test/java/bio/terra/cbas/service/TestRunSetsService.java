@@ -21,7 +21,6 @@ import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCrea
 import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
-import bio.terra.cbas.dao.GithubMethodDetailsDao;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
@@ -35,7 +34,6 @@ import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
-import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunState;
@@ -44,7 +42,6 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
-import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -103,8 +100,6 @@ class TestRunSetsService {
 
   private final String mockWorkflowUrl = "https://path-to-wdl.com";
 
-  private final PostMethodRequest.MethodSourceEnum workflowSource =
-      PostMethodRequest.MethodSourceEnum.GITHUB;
   WorkflowInputDefinition input1 =
       new WorkflowInputDefinition()
           .inputName("myworkflow.mycall.inputname1")
@@ -226,8 +221,6 @@ class TestRunSetsService {
           workspaceId,
           "test_branch",
           Optional.empty());
-  private GithubMethodDetails githubMethodDetails =
-      new GithubMethodDetails("repo", "organization", "path", true, methodId);
   private RunDao runDao;
   private RunSetDao runSetDao;
   private MethodDao methodDao;
@@ -240,9 +233,6 @@ class TestRunSetsService {
   private CbasContextConfiguration cbasContextConfiguration;
   private BardService bardService;
   private BardServerConfiguration bardServerConfiguration;
-
-  private GithubMethodDetailsDao githubMethodDetailsDao;
-
   private RunSetsService mockRunSetsService;
 
   @BeforeEach
@@ -260,8 +250,6 @@ class TestRunSetsService {
     bardService = mock(BardService.class);
     bardServerConfiguration = mock(BardServerConfiguration.class);
     when(bardServerConfiguration.enabled()).thenReturn(true);
-    githubMethodDetailsDao = mock(GithubMethodDetailsDao.class);
-    when(githubMethodDetailsDao.getMethodSourceDetails(methodId)).thenReturn(githubMethodDetails);
 
     mockRunSetsService =
         new RunSetsService(
@@ -276,8 +264,7 @@ class TestRunSetsService {
             objectMapper,
             cbasContextConfiguration,
             bardService,
-            bardServerConfiguration,
-            githubMethodDetailsDao);
+            bardServerConfiguration);
   }
 
   @Test
@@ -300,13 +287,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(engineId1).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest,
-        runSet,
-        recordIdToRunIdMapping,
-        mockToken,
-        mockWorkflowUrl,
-        methodVersion,
-        workflowSource);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
 
     // verify that Runs were set to Initializing state
     verify(runDao)
@@ -325,7 +306,6 @@ class TestRunSetsService {
         .logRunSetEvent(
             runSetRequest,
             methodVersion,
-            githubMethodDetails,
             List.of(engineId1.toString(), engineId2.toString()),
             mockToken);
   }
@@ -347,13 +327,7 @@ class TestRunSetsService {
         .thenReturn(List.of(run1, run2));
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest,
-        runSet,
-        recordIdToRunIdMapping,
-        mockToken,
-        mockWorkflowUrl,
-        methodVersion,
-        workflowSource);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
 
     // verify that both Runs were set to Error state with correct error message
     verify(runDao)
@@ -404,13 +378,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest,
-        runSet,
-        recordIdToRunIdMapping,
-        mockToken,
-        mockWorkflowUrl,
-        methodVersion,
-        workflowSource);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
 
     // verify Runs were set to Error state
     verify(runDao)
@@ -454,13 +422,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest,
-        runSet,
-        recordIdToRunIdMapping,
-        mockToken,
-        mockWorkflowUrl,
-        methodVersion,
-        workflowSource);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
 
     // verify that Run 1 was set to Error state
     verify(runDao)
@@ -557,38 +519,22 @@ class TestRunSetsService {
   @Test
   void logRunSetEventGithubMethod() {
     List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(
-        runSetRequest,
-        methodVersion,
-        PostMethodRequest.MethodSourceEnum.GITHUB,
-        workflowIds,
-        mockToken);
-    verify(bardService)
-        .logRunSetEvent(runSetRequest, methodVersion, githubMethodDetails, workflowIds, mockToken);
+    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
+    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
   }
 
   @Test
   void logRunSetEventDockstoreMethod() {
     List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(
-        runSetRequest,
-        methodVersion,
-        PostMethodRequest.MethodSourceEnum.DOCKSTORE,
-        workflowIds,
-        mockToken);
-    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, null, workflowIds, mockToken);
+    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
+    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
   }
 
   @Test
   void logRunSetEventDisabled() {
     when(bardServerConfiguration.enabled()).thenReturn(false);
     List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(
-        runSetRequest,
-        methodVersion,
-        PostMethodRequest.MethodSourceEnum.GITHUB,
-        workflowIds,
-        mockToken);
+    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
     verifyNoInteractions(bardService);
   }
 }

@@ -15,6 +15,7 @@ import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dependencies.common.HealthCheck;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -54,7 +55,7 @@ class TestBardService {
 
   @Test
   void testBardLogRunSetEvent() {
-    Method method = getTestMethod("Dockstore");
+    Method method = getTestMethod(PostMethodRequest.MethodSourceEnum.DOCKSTORE);
     MethodVersion methodVersion = getTestMethodVersion(method);
     RunSetRequest request =
         new RunSetRequest()
@@ -62,7 +63,7 @@ class TestBardService {
             .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
-    bardService.logRunSetEvent(request, methodVersion, null, cromwellWorkflowIds, userToken);
+    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
 
     Map<String, String> properties =
         getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
@@ -72,19 +73,17 @@ class TestBardService {
 
   @Test
   void testBardLogGithubRunSetEvent() {
-    Method method = getTestMethod("Github");
+    Method method = getTestMethod(PostMethodRequest.MethodSourceEnum.GITHUB);
     MethodVersion methodVersion = getTestMethodVersion(method);
     RunSetRequest request =
         new RunSetRequest()
             .runSetName("testRun")
             .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
-    GithubMethodDetails githubMethodDetails =
-        new GithubMethodDetails("repo", "organization", "path", true, method.methodId());
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
-    bardService.logRunSetEvent(
-        request, methodVersion, githubMethodDetails, cromwellWorkflowIds, userToken);
+    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
 
+    GithubMethodDetails githubMethodDetails = method.githubMethodDetails().get();
     Map<String, String> properties =
         getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
     properties.put("githubOrganization", githubMethodDetails.organization());
@@ -127,15 +126,22 @@ class TestBardService {
     assertEquals(result.message(), errorMessage);
   }
 
-  private Method getTestMethod(String source) {
+  private Method getTestMethod(PostMethodRequest.MethodSourceEnum source) {
+    UUID methodId = UUID.randomUUID();
+    Optional<GithubMethodDetails> githubMethodDetails = Optional.empty();
+    if (source == PostMethodRequest.MethodSourceEnum.GITHUB) {
+      githubMethodDetails =
+          Optional.of(new GithubMethodDetails("repo", "org", "path", false, methodId));
+    }
     return new Method(
         UUID.randomUUID(),
         "test method",
         "method description ",
         DateUtils.currentTimeInUTC(),
         null,
-        source,
-        UUID.randomUUID());
+        source.toString(),
+        UUID.randomUUID(),
+        githubMethodDetails);
   }
 
   private MethodVersion getTestMethodVersion(Method method) {
