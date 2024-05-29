@@ -1,9 +1,11 @@
 package bio.terra.cbas.util.methods;
 
-import static bio.terra.cbas.common.MethodUtil.extractGithubDetailsFromUrl;
+import static bio.terra.cbas.common.MethodUtil.extractGithubUrlComponents;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
@@ -12,15 +14,16 @@ import org.junit.jupiter.api.TestFactory;
 class TestGithubUrlComponents {
   record TestCase(String org, String repo, String branchOrTag, String path, String url) {
 
-    public void check() throws URISyntaxException {
-      assertEquals(extractGithubDetailsFromUrl(url).org(), org);
-      assertEquals(extractGithubDetailsFromUrl(url).path(), path);
-      assertEquals(extractGithubDetailsFromUrl(url).branchOrTag(), branchOrTag);
-      assertEquals(extractGithubDetailsFromUrl(url).repo(), repo);
+    public void check()
+        throws URISyntaxException, MalformedURLException, MethodProcessingException {
+      assertEquals(extractGithubUrlComponents(url).org(), org);
+      assertEquals(extractGithubUrlComponents(url).path(), path);
+      assertEquals(extractGithubUrlComponents(url).branchOrTag(), branchOrTag);
+      assertEquals(extractGithubUrlComponents(url).repo(), repo);
     }
 
     public void UriExceptionCheck() {
-      assertThrows(URISyntaxException.class, () -> extractGithubDetailsFromUrl(url));
+      assertThrows(URISyntaxException.class, () -> extractGithubUrlComponents(url));
     }
   }
 

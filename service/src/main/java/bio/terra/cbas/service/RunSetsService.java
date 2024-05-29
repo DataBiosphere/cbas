@@ -254,11 +254,6 @@ public class RunSetsService {
       List<String> workflowIds,
       BearerToken userToken) {
     if (bardServerConfiguration.enabled()) {
-      GithubMethodDetails githubMethodDetails = null;
-      if (methodSourceEnum.equals(PostMethodRequest.MethodSourceEnum.GITHUB)) {
-        githubMethodDetails =
-            githubMethodDetailsDao.getMethodSourceDetails(methodVersion.getMethodId());
-      }
       bardService.logRunSetEvent(
           request, methodVersion, githubMethodDetails, workflowIds, userToken);
     }

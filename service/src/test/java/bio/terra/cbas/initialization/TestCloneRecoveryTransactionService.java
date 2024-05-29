@@ -65,7 +65,7 @@ public class TestCloneRecoveryTransactionService {
     verify(methodVersionDao).unsetLastRunSetId(methodVersion.methodVersionId());
   }
 
-  Method method = new Method(UUID.randomUUID(), "", "", null, null, "", null);
+  Method method = new Method(UUID.randomUUID(), "", "", null, null, "", null, Optional.empty());
   MethodVersion methodVersion =
       new MethodVersion(
           UUID.randomUUID(), method, "", "", null, null, "", null, "", Optional.empty());

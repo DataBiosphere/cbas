@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
@@ -30,12 +31,20 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
   String methodDesc = "test method description";
   String methodSource = "GitHub";
   String methodVersionName = "develop";
-  String methodUrl =
-      "https://raw.githubusercontent.com/broadinstitute/cromwell/develop/centaur/src/main/resources/standardTestCases/hello/hello.wdl";
 
   UUID workspaceId = UUID.randomUUID();
   String branch = "develop";
 
+  String gitHubRepository = "cromwell";
+  String gitHubOrganization = "broadinstitute";
+  String gitHubPath = "centaur/src/main/resources/standardTestCases/hello/hello.wdl";
+
+  String rawMethodUrl =
+      "https://raw.githubusercontent.com/%s/%s/%s/%s"
+          .formatted(gitHubOrganization, gitHubRepository, branch, gitHubPath);
+
+  GithubMethodDetails githubMethodDetails =
+      new GithubMethodDetails(gitHubRepository, gitHubOrganization, gitHubPath, false, methodId);
   Method method =
       new Method(
           methodId,
@@ -44,7 +53,8 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
           DateUtils.currentTimeInUTC(),
           null,
           methodSource,
-          workspaceId);
+          workspaceId,
+          Optional.empty());
   MethodVersion methodVersion =
       new MethodVersion(
           methodVersionId,
@@ -53,7 +63,7 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
           methodDesc,
           DateUtils.currentTimeInUTC(),
           null,
-          methodUrl,
+          rawMethodUrl,
           workspaceId,
           branch,
           Optional.empty());
@@ -94,7 +104,7 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
     assertEquals(methodVersionId, actual.methodVersionId());
     assertEquals(methodVersionName, actual.name());
     assertEquals(methodDesc, actual.description());
-    assertEquals(methodUrl, actual.url());
+    assertEquals(rawMethodUrl, actual.url());
     assertEquals(branch, actual.branchOrTagName());
     assertNull(actual.lastRunSetId());
     assertEquals(actual.methodVersionDetails(), Optional.empty());
@@ -111,7 +121,7 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
     assertEquals(methodId, actual.get(0).method().methodId());
     assertEquals(methodVersionName, actual.get(0).name());
     assertEquals(methodDesc, actual.get(0).description());
-    assertEquals(methodUrl, actual.get(0).url());
+    assertEquals(rawMethodUrl, actual.get(0).url());
     assertEquals(branch, actual.get(0).branchOrTagName());
     assertNull(actual.get(0).lastRunSetId());
     assertEquals(actual.get(0).methodVersionDetails(), Optional.empty());

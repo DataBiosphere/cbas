@@ -1,5 +1,7 @@
 package bio.terra.cbas.dao;
 
+import static bio.terra.cbas.dao.MethodDao.METHOD_JOIN_GITHUB_METHOD_DETAILS;
+
 import bio.terra.cbas.dao.mappers.MethodVersionMappers;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
@@ -58,6 +60,7 @@ public class MethodVersionDao {
     String sql =
         "SELECT * FROM method_version "
             + METHOD_VERSION_JOIN_METHOD
+            + METHOD_JOIN_GITHUB_METHOD_DETAILS
             + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS
             + "WHERE method_version.%S = :method_version_id"
                 .formatted(MethodVersion.METHOD_VERSION_ID_COL);
@@ -73,6 +76,7 @@ public class MethodVersionDao {
     String sql =
         "SELECT * FROM method_version "
             + METHOD_VERSION_JOIN_METHOD
+            + METHOD_JOIN_GITHUB_METHOD_DETAILS
             + METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS;
     return jdbcTemplate.query(
         sql, new MapSqlParameterSource(), new MethodVersionMappers.DeepMethodVersionMapper());

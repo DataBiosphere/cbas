@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties(prefix = "cbas.context")
-public class CbasContextConfiguration extends BaseDatabaseConfiguration {
+public class CbasContextConfiguration {
   private String workspaceId;
 
   public UUID getWorkspaceId() {
