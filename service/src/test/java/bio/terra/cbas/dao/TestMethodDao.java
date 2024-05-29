@@ -8,6 +8,7 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -28,6 +29,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   @Autowired RunSetDao runSetDao;
   UUID methodId1 = UUID.randomUUID();
   UUID methodId2 = UUID.randomUUID();
+  UUID methodWithGithubDetailsId = UUID.randomUUID();
   String methodName = "test method";
   String methodDesc = "test method description";
   String methodSource = "GitHub";
@@ -43,8 +45,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           null,
           methodSource,
           workspaceId,
+          Optional.empty(),
           false);
-
   Method method2 =
       new Method(
           methodId2,
@@ -54,6 +56,20 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           null,
           methodSource,
           workspaceId,
+          Optional.empty(),
+          false);
+
+  Method methodWithGithubDetails =
+      new Method(
+          methodWithGithubDetailsId,
+          "test method with github details",
+          methodDesc,
+          DateUtils.currentTimeInUTC(),
+          null,
+          methodSource,
+          workspaceId,
+          Optional.of(
+              new GithubMethodDetails("repo", "org", "path", false, methodWithGithubDetailsId)),
           false);
 
   MethodVersion methodVersion =
@@ -136,6 +152,24 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     methodDao.unsetLastRunSetId(retrievedMethod.methodId());
     Method updatedMethod = methodDao.getMethod(retrievedMethod.methodId());
     assertNull(updatedMethod.lastRunSetId());
+  }
+
+  @Test
+  void createsMethodWithGithubDetails() {
+    // Create:
+    int recordsCreated = methodDao.createMethod(methodWithGithubDetails);
+    assertEquals(1, recordsCreated);
+
+    // Check fields:
+    Method actual = methodDao.getMethod(methodWithGithubDetailsId);
+    assertEquals(methodWithGithubDetailsId, actual.methodId());
+    assertEquals("test method with github details", actual.name());
+    assertEquals("test method description", actual.description());
+    assertEquals("GitHub", actual.methodSource());
+    assertEquals("repo", actual.githubMethodDetails().get().repository());
+    assertEquals("org", actual.githubMethodDetails().get().organization());
+    assertEquals("path", actual.githubMethodDetails().get().path());
+    assertEquals(false, actual.githubMethodDetails().get().isPrivate());
   }
 
   @Test

@@ -71,6 +71,7 @@ public class TestCloneRecoveryService {
           null,
           "",
           originalWorkspaceId,
+          Optional.empty(),
           false);
 
   MethodVersion clonedMethodVersion =

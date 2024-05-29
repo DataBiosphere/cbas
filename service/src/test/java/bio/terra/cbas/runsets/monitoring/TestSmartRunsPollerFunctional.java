@@ -119,6 +119,7 @@ public class TestSmartRunsPollerFunctional {
                   runSetId,
                   "method source",
                   workspaceId,
+                  Optional.empty(),
                   false),
               "version name",
               "version description",

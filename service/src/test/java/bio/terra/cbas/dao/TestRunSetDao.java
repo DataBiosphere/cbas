@@ -44,6 +44,7 @@ class TestRunSetDao extends ContainerizedDatabaseTest {
           null,
           "Github",
           workspaceId,
+          Optional.empty(),
           false);
 
   UUID methodVersionId = UUID.fromString("80000000-0000-0000-0000-000000000008");

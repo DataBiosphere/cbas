@@ -5,6 +5,7 @@ import bio.terra.cbas.dao.mappers.MethodLastRunDetailsMapper;
 import bio.terra.cbas.dao.mappers.MethodMapper;
 import bio.terra.cbas.dao.util.SqlPlaceholderMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
@@ -29,10 +30,15 @@ public class MethodDao {
     this.jdbcTemplate = jdbcTemplate;
   }
 
+  public static final String METHOD_JOIN_GITHUB_METHOD_DETAILS =
+      "LEFT JOIN github_method_details on method.%s = github_method_details.%s "
+          .formatted(Method.METHOD_ID_COL, GithubMethodDetails.METHOD_ID_COL);
+
   public Method getMethod(UUID methodId) {
     String sql =
-        "SELECT * FROM method WHERE %s = :methodId AND %s = false"
-            .formatted(Method.METHOD_ID_COL, Method.ARCHIVED_COL);
+        "SELECT * FROM method %s WHERE %s = :methodId AND %s = false"
+            .formatted(
+                METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.METHOD_ID_COL, Method.ARCHIVED_COL);
     List<Method> queryResult =
         jdbcTemplate.query(
             sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper());
@@ -46,16 +52,30 @@ public class MethodDao {
 
   public List<Method> getMethods() {
     String sql =
-        "SELECT * FROM method WHERE %s = false ORDER BY created DESC"
-            .formatted(Method.ARCHIVED_COL);
+        "SELECT * FROM method %s WHERE %s = false ORDER BY created DESC"
+            .formatted(METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.ARCHIVED_COL);
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
   public int createMethod(Method method) {
-    return jdbcTemplate.update(
-        "insert into method (method_id, name, description, created, last_run_set_id, method_source, method_original_workspace_id) "
-            + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource, :originalWorkspaceId)",
-        new BeanPropertySqlParameterSource(method));
+    int createdMethod =
+        jdbcTemplate.update(
+            "insert into method (method_id, name, description, created, last_run_set_id, method_source, method_original_workspace_id) "
+                + "values (:methodId, :name, :description, :created, :lastRunSetId, :methodSource, :originalWorkspaceId)",
+            new BeanPropertySqlParameterSource(method));
+
+    if (createdMethod == 1) {
+      method
+          .githubMethodDetails()
+          .ifPresent(
+              details ->
+                  jdbcTemplate.update(
+                      "insert into github_method_details (repository, organization, path, private, method_id) "
+                          + "values (:repository, :organization, :path, :isPrivate, :methodId)",
+                      new BeanPropertySqlParameterSource(details)));
+    }
+
+    return createdMethod;
   }
 
   public int archiveMethod(UUID methodId) {

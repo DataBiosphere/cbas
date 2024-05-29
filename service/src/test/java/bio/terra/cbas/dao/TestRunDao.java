@@ -39,6 +39,7 @@ class TestRunDao extends ContainerizedDatabaseTest {
           null,
           "Github",
           workspaceId,
+          Optional.empty(),
           false);
 
   String methodVersionGithash = "abcd123";
