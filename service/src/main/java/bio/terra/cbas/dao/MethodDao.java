@@ -36,7 +36,7 @@ public class MethodDao {
 
   public Method getMethod(UUID methodId) {
     String sql =
-        "SELECT * FROM method %s WHERE %s = :methodId AND %s = false"
+        "SELECT * FROM method %s WHERE method.%s = :methodId AND %s = false"
             .formatted(
                 METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.METHOD_ID_COL, Method.ARCHIVED_COL);
     List<Method> queryResult =
