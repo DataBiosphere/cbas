@@ -30,6 +30,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   UUID methodId1 = UUID.randomUUID();
   UUID methodId2 = UUID.randomUUID();
   UUID methodWithGithubDetailsId = UUID.randomUUID();
+  UUID methodToArchiveId = UUID.randomUUID();
   String methodName = "test method";
   String methodDesc = "test method description";
   String methodSource = "GitHub";
@@ -58,6 +59,17 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           workspaceId,
           Optional.empty(),
           false);
+  Method methodToArchive =
+      new Method(
+          methodToArchiveId,
+          "method to archive",
+          methodDesc,
+          DateUtils.currentTimeInUTC(),
+          null,
+          methodSource,
+          workspaceId,
+          Optional.empty(),
+          false); // starts un-archived
 
   Method methodWithGithubDetails =
       new Method(
@@ -108,9 +120,14 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int recordsCreated2 = methodDao.createMethod(method2);
+    int recordsCreated3 = methodDao.createMethod(methodToArchive);
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, recordsCreated2);
+    assertEquals(1, recordsCreated3);
+
+    int recordArchived = methodDao.archiveMethod(methodToArchiveId);
+    assertEquals(1, recordArchived);
   }
 
   @Test
