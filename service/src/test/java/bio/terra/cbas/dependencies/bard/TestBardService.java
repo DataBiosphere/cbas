@@ -142,7 +142,7 @@ class TestBardService {
     when(defaultApi.systemStatus()).thenReturn(new EventsEvent200Response());
     HealthCheck.Result result = bardService.checkHealth();
     assertTrue(result.isOk());
-    assertEquals(result.message(), "Ok");
+    assertEquals("Ok", result.message());
   }
 
   @Test
@@ -151,7 +151,7 @@ class TestBardService {
     when(defaultApi.systemStatus()).thenThrow(new RestClientException(errorMessage));
     HealthCheck.Result result = bardService.checkHealth();
     assertFalse(result.isOk());
-    assertEquals(result.message(), errorMessage);
+    assertEquals(errorMessage, result.message());
   }
 
   private Method getTestMethod(PostMethodRequest.MethodSourceEnum source) {

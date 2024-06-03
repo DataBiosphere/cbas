@@ -44,7 +44,7 @@ public class ScheduledHealthChecker {
                 "sam", samService,
                 "cromwell", cromwellService,
                 "ecm", ecmService));
-    if (bardServerConfiguration.enabled()) {
+    if (bardServerConfiguration.enabled().equals(Boolean.TRUE)) {
       this.healthCheckSystems.put("bard", bardService);
     }
   }

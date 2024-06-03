@@ -2,7 +2,6 @@ package bio.terra.cbas.dependencies.bard;
 
 import bio.terra.bard.api.DefaultApi;
 import bio.terra.bard.client.ApiClient;
-import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
@@ -22,10 +21,9 @@ import org.springframework.stereotype.Component;
 public class BardService implements HealthCheck {
 
   Logger log = LoggerFactory.getLogger(BardService.class);
-
+  private static final String appId = "cbas";
   private final BardClient bardClient;
   private final BardServerConfiguration bardServerConfiguration;
-  private final String appId = "cbas";
 
   public BardService(BardClient bardClient, BardServerConfiguration bardServerConfiguration) {
     this.bardClient = bardClient;
@@ -80,7 +78,7 @@ public class BardService implements HealthCheck {
     try {
       ApiClient client = bardClient.apiClient();
       DefaultApi defaultApi = bardClient.defaultApi(client);
-      EventsEvent200Response status = defaultApi.systemStatus();
+      defaultApi.systemStatus();
       return new Result(true, "Ok");
     } catch (Exception e) {
       return new Result(false, e.getMessage());
