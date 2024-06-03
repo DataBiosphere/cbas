@@ -63,7 +63,10 @@ cbas:
       coreThreadPoolSize: 5
       maxThreadPoolSize: 10
       queueCapacity: 500
-
+    bard:
+      coreThreadPoolSize: 5
+      maxThreadPoolSize: 10
+      queueCapacity: 500
 management:
   endpoints:
     web:

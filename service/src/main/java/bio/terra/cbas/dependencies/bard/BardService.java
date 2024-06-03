@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -62,6 +63,7 @@ public class BardService implements HealthCheck {
     logEvent(eventName, properties, userToken);
   }
 
+  @Async
   public void logEvent(String eventName, Map<String, String> properties, BearerToken userToken) {
     if (bardServerConfiguration.enabled()) {
       EventsEventLogRequest request = new EventsEventLogRequest().properties(properties);
