@@ -32,7 +32,7 @@ public class BardService implements HealthCheck {
     this.bardServerConfiguration = bardServerConfiguration;
   }
 
-  private DefaultApi getDefaultApi(BearerToken userToken) {
+  private DefaultApi getDefaultAuthApi(BearerToken userToken) {
     ApiClient client = bardClient.bardAuthClient(userToken);
     return bardClient.defaultApi(client);
   }
@@ -68,7 +68,7 @@ public class BardService implements HealthCheck {
     if (bardServerConfiguration.enabled()) {
       EventsEventLogRequest request = new EventsEventLogRequest().properties(properties);
       try {
-        getDefaultApi(userToken).eventsEventLog(eventName, appId, request);
+        getDefaultAuthApi(userToken).eventsEventLog(eventName, appId, request);
       } catch (Exception e) {
         log.warn("Error logging event {} ", eventName, e);
       }

@@ -41,21 +41,29 @@ class TestBardService {
   private BardServerConfiguration bardServerConfiguration;
   private BardService bardService;
   private DefaultApi defaultApi;
+  private DefaultApi defaultAuthApi;
   private BearerToken userToken;
   private final String appId = "cbas";
 
   @BeforeEach
   void setup() {
-    BardClient bardClient = mock(BardClient.class);
     bardServerConfiguration = mock(BardServerConfiguration.class);
-    bardService = new BardService(bardClient, bardServerConfiguration);
-    ApiClient apiClient = mock(ApiClient.class);
-    defaultApi = mock(DefaultApi.class);
-    userToken = new BearerToken("foo");
-    lenient().when(bardClient.apiClient()).thenReturn(apiClient);
-    lenient().when(bardClient.bardAuthClient(any())).thenReturn(apiClient);
-    lenient().when(bardClient.defaultApi(apiClient)).thenReturn(defaultApi);
     lenient().when(bardServerConfiguration.enabled()).thenReturn(true);
+    BardClient bardClient = mock(BardClient.class);
+    bardService = new BardService(bardClient, bardServerConfiguration);
+
+    // Mock unauthenticated Bard API
+    ApiClient apiClient = mock(ApiClient.class);
+    lenient().when(bardClient.apiClient()).thenReturn(apiClient);
+    defaultApi = mock(DefaultApi.class);
+    lenient().when(bardClient.defaultApi(apiClient)).thenReturn(defaultApi);
+
+    // Mock authenticated Bard API
+    ApiClient authApiClient = mock(ApiClient.class);
+    lenient().when(bardClient.bardAuthClient(any())).thenReturn(authApiClient);
+    defaultAuthApi = mock(DefaultApi.class);
+    lenient().when(bardClient.defaultApi(authApiClient)).thenReturn(defaultAuthApi);
+    userToken = new BearerToken("foo");
   }
 
   @Test
@@ -73,7 +81,7 @@ class TestBardService {
     Map<String, String> properties =
         getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
-    verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
+    verify(defaultAuthApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
   }
 
   @Test
@@ -95,7 +103,7 @@ class TestBardService {
     properties.put("githubRepository", githubMethodDetails.repository());
     properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
-    verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
+    verify(defaultAuthApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
   }
 
   @Test
@@ -110,23 +118,23 @@ class TestBardService {
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
     bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
-    verifyNoInteractions(defaultApi);
+    verifyNoInteractions(defaultAuthApi);
   }
 
   @Test
   void testBardLogEventSuccess() {
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(Map.of());
     bardService.logEvent("testEvent", Map.of(), userToken);
-    verify(defaultApi).eventsEventLog("testEvent", appId, eventLogRequest);
+    verify(defaultAuthApi).eventsEventLog("testEvent", appId, eventLogRequest);
   }
 
   @Test
   void testBardLogEventErrorDoesNotThrow() {
-    when(defaultApi.eventsEventLog(any(), any(), any()))
+    when(defaultAuthApi.eventsEventLog(any(), any(), any()))
         .thenThrow(new RestClientException("API error"));
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(Map.of());
     bardService.logEvent("testEvent", Map.of(), userToken);
-    verify(defaultApi).eventsEventLog("testEvent", appId, eventLogRequest);
+    verify(defaultAuthApi).eventsEventLog("testEvent", appId, eventLogRequest);
   }
 
   @Test
