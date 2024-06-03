@@ -30,6 +30,7 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.models.SubmitRunResponse;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -46,7 +47,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.slf4j.Logger;
@@ -201,7 +201,7 @@ public class RunSetsService {
     }
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
-    ImmutablePair<List<RunStateResponse>, List<String>> runStateResponse =
+    SubmitRunResponse runStateResponse =
         buildInputsAndSubmitRun(
             cromwellService,
             request,
@@ -210,7 +210,7 @@ public class RunSetsService {
             rawMethodUrl,
             recordIdToRunIdMapping,
             userToken);
-    List<RunStateResponse> runStateResponseList = runStateResponse.getLeft();
+    List<RunStateResponse> runStateResponseList = runStateResponse.runStateResponseList();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -230,7 +230,8 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
-    bardService.logRunSetEvent(request, methodVersion, runStateResponse.getRight(), userToken);
+    bardService.logRunSetEvent(
+        request, methodVersion, runStateResponse.successfullyInitializedWorkflowIds(), userToken);
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
@@ -285,7 +286,7 @@ public class RunSetsService {
         runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
-  private ImmutablePair<List<RunStateResponse>, List<String>> buildInputsAndSubmitRun(
+  private SubmitRunResponse buildInputsAndSubmitRun(
       CromwellService cromwellService,
       RunSetRequest request,
       RunSet runSet,
@@ -355,7 +356,7 @@ public class RunSetsService {
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       if (engineIdToWorkflowInput.isEmpty()) {
-        return new ImmutablePair<>(runStateResponseList, List.of());
+        return new SubmitRunResponse(runStateResponseList, List.of());
       }
 
       try {
@@ -390,6 +391,6 @@ public class RunSetsService {
                 .toList());
       }
     }
-    return new ImmutablePair<>(runStateResponseList, successfullyInitializedWorkflowIds);
+    return new SubmitRunResponse(runStateResponseList, successfullyInitializedWorkflowIds);
   }
 }
