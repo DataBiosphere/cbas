@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import bio.terra.bard.api.DefaultApi;
@@ -14,6 +15,7 @@ import bio.terra.bard.client.ApiClient;
 import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunSetRequest;
@@ -36,6 +38,7 @@ import org.springframework.web.client.RestClientException;
 
 @ExtendWith(MockitoExtension.class)
 class TestBardService {
+  private BardServerConfiguration bardServerConfiguration;
   private BardService bardService;
   private DefaultApi defaultApi;
   private BearerToken userToken;
@@ -44,13 +47,15 @@ class TestBardService {
   @BeforeEach
   void setup() {
     BardClient bardClient = mock(BardClient.class);
-    bardService = new BardService(bardClient);
+    bardServerConfiguration = mock(BardServerConfiguration.class);
+    bardService = new BardService(bardClient, bardServerConfiguration);
     ApiClient apiClient = mock(ApiClient.class);
     defaultApi = mock(DefaultApi.class);
     userToken = new BearerToken("foo");
     lenient().when(bardClient.apiClient()).thenReturn(apiClient);
     lenient().when(bardClient.bardAuthClient(any())).thenReturn(apiClient);
-    when(bardClient.defaultApi(apiClient)).thenReturn(defaultApi);
+    lenient().when(bardClient.defaultApi(apiClient)).thenReturn(defaultApi);
+    lenient().when(bardServerConfiguration.enabled()).thenReturn(true);
   }
 
   @Test
@@ -91,6 +96,21 @@ class TestBardService {
     properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(properties);
     verify(defaultApi).eventsEventLog("workflow-submission", appId, eventLogRequest);
+  }
+
+  @Test
+  void logRunSetEventDisabled() {
+    when(bardServerConfiguration.enabled()).thenReturn(false);
+    Method method = getTestMethod(PostMethodRequest.MethodSourceEnum.DOCKSTORE);
+    MethodVersion methodVersion = getTestMethodVersion(method);
+    RunSetRequest request =
+        new RunSetRequest()
+            .runSetName("testRun")
+            .methodVersionId(methodVersion.methodVersionId())
+            .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
+    List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
+    verifyNoInteractions(defaultApi);
   }
 
   @Test

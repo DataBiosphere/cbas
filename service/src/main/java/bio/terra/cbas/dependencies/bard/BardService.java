@@ -4,6 +4,7 @@ import bio.terra.bard.api.DefaultApi;
 import bio.terra.bard.client.ApiClient;
 import bio.terra.bard.model.EventsEvent200Response;
 import bio.terra.bard.model.EventsEventLogRequest;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -23,10 +24,12 @@ public class BardService implements HealthCheck {
   Logger log = LoggerFactory.getLogger(BardService.class);
 
   private final BardClient bardClient;
+  private final BardServerConfiguration bardServerConfiguration;
   private final String appId = "cbas";
 
-  public BardService(BardClient bardClient) {
+  public BardService(BardClient bardClient, BardServerConfiguration bardServerConfiguration) {
     this.bardClient = bardClient;
+    this.bardServerConfiguration = bardServerConfiguration;
   }
 
   private DefaultApi getDefaultApi(BearerToken userToken) {
@@ -62,11 +65,13 @@ public class BardService implements HealthCheck {
   }
 
   public void logEvent(String eventName, Map<String, String> properties, BearerToken userToken) {
-    EventsEventLogRequest request = new EventsEventLogRequest().properties(properties);
-    try {
-      getDefaultApi(userToken).eventsEventLog(eventName, appId, request);
-    } catch (Exception e) {
-      log.warn("Error logging event {} ", eventName, e);
+    if (bardServerConfiguration.enabled()) {
+      EventsEventLogRequest request = new EventsEventLogRequest().properties(properties);
+      try {
+        getDefaultApi(userToken).eventsEventLog(eventName, appId, request);
+      } catch (Exception e) {
+        log.warn("Error logging event {} ", eventName, e);
+      }
     }
   }
 

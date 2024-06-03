@@ -10,7 +10,6 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
-import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -69,8 +68,6 @@ public class RunSetsService {
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
   private final BardService bardService;
-  private final BardServerConfiguration bardServerConfiguration;
-
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
   public RunSetsService(
@@ -84,8 +81,7 @@ public class RunSetsService {
       UuidSource uuidSource,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfiguration,
-      BardService bardService,
-      BardServerConfiguration bardServerConfiguration) {
+      BardService bardService) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -97,7 +93,6 @@ public class RunSetsService {
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.bardService = bardService;
-    this.bardServerConfiguration = bardServerConfiguration;
   }
 
   private record WdsRecordResponseDetails(
@@ -235,17 +230,7 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
-    logRunSetEvent(request, methodVersion, runStateResponse.getRight(), userToken);
-  }
-
-  public void logRunSetEvent(
-      RunSetRequest request,
-      MethodVersion methodVersion,
-      List<String> workflowIds,
-      BearerToken userToken) {
-    if (bardServerConfiguration.enabled()) {
-      bardService.logRunSetEvent(request, methodVersion, workflowIds, userToken);
-    }
+    bardService.logRunSetEvent(request, methodVersion, runStateResponse.getRight(), userToken);
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(

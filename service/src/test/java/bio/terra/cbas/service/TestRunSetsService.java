@@ -18,7 +18,6 @@ import static org.mockito.Mockito.when;
 
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
-import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -232,7 +231,6 @@ class TestRunSetsService {
   private ObjectMapper objectMapper;
   private CbasContextConfiguration cbasContextConfiguration;
   private BardService bardService;
-  private BardServerConfiguration bardServerConfiguration;
   private RunSetsService mockRunSetsService;
 
   @BeforeEach
@@ -248,8 +246,6 @@ class TestRunSetsService {
     objectMapper = mock(ObjectMapper.class);
     cbasContextConfiguration = mock(CbasContextConfiguration.class);
     bardService = mock(BardService.class);
-    bardServerConfiguration = mock(BardServerConfiguration.class);
-    when(bardServerConfiguration.enabled()).thenReturn(true);
 
     mockRunSetsService =
         new RunSetsService(
@@ -263,8 +259,7 @@ class TestRunSetsService {
             uuidSource,
             objectMapper,
             cbasContextConfiguration,
-            bardService,
-            bardServerConfiguration);
+            bardService);
   }
 
   @Test
@@ -514,27 +509,5 @@ class TestRunSetsService {
     // verify that RunSet is marked in Error state
     verify(runSetDao)
         .updateStateAndRunSetDetails(any(), eq(CbasRunSetStatus.ERROR), eq(1), eq(1), any());
-  }
-
-  @Test
-  void logRunSetEventGithubMethod() {
-    List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
-    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
-  }
-
-  @Test
-  void logRunSetEventDockstoreMethod() {
-    List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
-    verify(bardService).logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
-  }
-
-  @Test
-  void logRunSetEventDisabled() {
-    when(bardServerConfiguration.enabled()).thenReturn(false);
-    List<String> workflowIds = List.of(UUID.randomUUID().toString());
-    mockRunSetsService.logRunSetEvent(runSetRequest, methodVersion, workflowIds, mockToken);
-    verifyNoInteractions(bardService);
   }
 }
