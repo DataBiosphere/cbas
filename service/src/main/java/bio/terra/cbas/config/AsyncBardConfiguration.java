@@ -5,13 +5,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @EnableAsync()
 @ConfigurationProperties(prefix = "cbas.async.bard")
-public class AsyncBardConfiguration implements AsyncConfigurer {
+public class AsyncBardConfiguration {
   private final int coreThreadPoolSize;
   private final int maxThreadPoolSize;
   private final int queueCapacity;
@@ -23,7 +22,6 @@ public class AsyncBardConfiguration implements AsyncConfigurer {
   }
 
   @Bean("bardAsyncExecutor")
-  @Override
   public ThreadPoolTaskExecutor getAsyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(coreThreadPoolSize);
@@ -35,7 +33,6 @@ public class AsyncBardConfiguration implements AsyncConfigurer {
     return executor;
   }
 
-  @Override
   public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
     return new AsyncBardExceptionHandler();
   }
