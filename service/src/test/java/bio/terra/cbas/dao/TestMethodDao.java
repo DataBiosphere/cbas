@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
@@ -24,6 +25,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 class TestMethodDao extends ContainerizedDatabaseTest {
 
   @MockBean MicrometerMetrics micrometerMetrics;
+  @MockBean BardService bardService;
   @Autowired MethodDao methodDao;
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired RunSetDao runSetDao;

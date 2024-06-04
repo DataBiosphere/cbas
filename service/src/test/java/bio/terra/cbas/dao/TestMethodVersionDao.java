@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
@@ -18,9 +19,10 @@ import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 class TestMethodVersionDao extends ContainerizedDatabaseTest {
-
+  @MockBean BardService bardService;
   @Autowired MethodVersionDao methodVersionDao;
   @Autowired MethodDao methodDao;
   @Autowired RunSetDao runSetDao;
