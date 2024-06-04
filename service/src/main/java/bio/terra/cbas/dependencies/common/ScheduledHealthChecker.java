@@ -1,7 +1,6 @@
 package bio.terra.cbas.dependencies.common;
 
 import bio.terra.cbas.config.BardServerConfiguration;
-import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.sam.SamService;
@@ -12,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +34,7 @@ public class ScheduledHealthChecker {
       LeonardoService leonardoService,
       SamService samService,
       EcmService ecmService,
-      BardService bardService,
+      @Qualifier("bardServiceImpl") HealthCheck bardService,
       BardServerConfiguration bardServerConfiguration) {
     this.healthCheckStatuses = new ConcurrentHashMap<>();
     this.healthCheckSystems =

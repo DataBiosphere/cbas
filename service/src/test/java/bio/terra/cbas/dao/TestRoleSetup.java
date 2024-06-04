@@ -3,20 +3,17 @@ package bio.terra.cbas.dao;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
-import bio.terra.cbas.dependencies.bard.BardService;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 class TestRoleSetup extends ContainerizedDatabaseTest {
 
-  @MockBean BardService bardService;
   @Autowired private NamedParameterJdbcTemplate jdbcTemplate;
 
   static class PgTableMapper implements RowMapper<PgTable> {

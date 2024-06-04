@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-@EnableAsync
+@EnableAsync()
 @ConfigurationProperties(prefix = "cbas.async.bard")
 public class AsyncBardConfiguration implements AsyncConfigurer {
   private final int coreThreadPoolSize;
@@ -22,7 +22,7 @@ public class AsyncBardConfiguration implements AsyncConfigurer {
     this.queueCapacity = queueCapacity;
   }
 
-  @Bean
+  @Bean("bardAsyncExecutor")
   @Override
   public ThreadPoolTaskExecutor getAsyncExecutor() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

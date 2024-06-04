@@ -14,7 +14,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
@@ -33,7 +32,6 @@ import org.mockito.stubbing.Answer;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
@@ -41,7 +39,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 
 class TestSamService {
-  @MockBean BardService bardService;
   private final SamClient samClient = mock(SamClient.class);
   private final UsersApi usersApi = mock(UsersApi.class);
   private final ResourcesApi resourcesApi = mock(ResourcesApi.class);

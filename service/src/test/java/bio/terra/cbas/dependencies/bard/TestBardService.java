@@ -39,7 +39,7 @@ import org.springframework.web.client.RestClientException;
 @ExtendWith(MockitoExtension.class)
 class TestBardService {
   private BardServerConfiguration bardServerConfiguration;
-  private BardService bardService;
+  private BardServiceImpl bardServiceImpl;
   private DefaultApi defaultApi;
   private DefaultApi defaultAuthApi;
   private BearerToken userToken;
@@ -50,7 +50,7 @@ class TestBardService {
     bardServerConfiguration = mock(BardServerConfiguration.class);
     lenient().when(bardServerConfiguration.enabled()).thenReturn(true);
     BardClient bardClient = mock(BardClient.class);
-    bardService = new BardService(bardClient, bardServerConfiguration);
+    bardServiceImpl = new BardServiceImpl(bardClient, bardServerConfiguration);
 
     // Mock unauthenticated Bard API
     ApiClient apiClient = mock(ApiClient.class);
@@ -76,7 +76,7 @@ class TestBardService {
             .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
-    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
+    bardServiceImpl.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
 
     Map<String, String> properties =
         getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
@@ -94,7 +94,7 @@ class TestBardService {
             .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
-    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
+    bardServiceImpl.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
 
     GithubMethodDetails githubMethodDetails = method.githubMethodDetails().get();
     Map<String, String> properties =
@@ -117,14 +117,14 @@ class TestBardService {
             .methodVersionId(methodVersion.methodVersionId())
             .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
     List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
-    bardService.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
+    bardServiceImpl.logRunSetEvent(request, methodVersion, cromwellWorkflowIds, userToken);
     verifyNoInteractions(defaultAuthApi);
   }
 
   @Test
   void testBardLogEventSuccess() {
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(Map.of());
-    bardService.logEvent("testEvent", Map.of(), userToken);
+    bardServiceImpl.logEvent("testEvent", Map.of(), userToken);
     verify(defaultAuthApi).eventsEventLog("testEvent", appId, eventLogRequest);
   }
 
@@ -133,14 +133,14 @@ class TestBardService {
     when(defaultAuthApi.eventsEventLog(any(), any(), any()))
         .thenThrow(new RestClientException("API error"));
     EventsEventLogRequest eventLogRequest = new EventsEventLogRequest().properties(Map.of());
-    bardService.logEvent("testEvent", Map.of(), userToken);
+    bardServiceImpl.logEvent("testEvent", Map.of(), userToken);
     verify(defaultAuthApi).eventsEventLog("testEvent", appId, eventLogRequest);
   }
 
   @Test
   void testBardStatusSuccess() {
     when(defaultApi.systemStatus()).thenReturn(new EventsEvent200Response());
-    HealthCheck.Result result = bardService.checkHealth();
+    HealthCheck.Result result = bardServiceImpl.checkHealth();
     assertTrue(result.isOk());
     assertEquals("Ok", result.message());
   }
@@ -149,7 +149,7 @@ class TestBardService {
   void testBardStatusFailure() {
     String errorMessage = "API error";
     when(defaultApi.systemStatus()).thenThrow(new RestClientException(errorMessage));
-    HealthCheck.Result result = bardService.checkHealth();
+    HealthCheck.Result result = bardServiceImpl.checkHealth();
     assertFalse(result.isOk());
     assertEquals(errorMessage, result.message());
   }
