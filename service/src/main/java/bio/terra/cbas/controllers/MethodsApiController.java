@@ -25,7 +25,7 @@ import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.DeleteMethodResponse;
+import bio.terra.cbas.model.ArchiveMethodResponse;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
@@ -313,8 +313,7 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
-  @Override
-  public ResponseEntity<DeleteMethodResponse> deleteMethod(UUID methodId) {
+  public ResponseEntity<ArchiveMethodResponse> archiveMethod(UUID methodId) {
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
 
@@ -323,7 +322,7 @@ public class MethodsApiController implements MethodsApi {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
     methodService.archiveMethod(methodId);
-    return ResponseEntity.ok(new DeleteMethodResponse().methodId(methodId));
+    return ResponseEntity.ok(new ArchiveMethodResponse().methodId(methodId));
   }
 
   private void createNewMethod(

@@ -73,10 +73,10 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
-    delete:
+    patch:
       tags: [ methods ]
-      summary: Delete a method
-      operationId: deleteMethod
+      summary: Archive a method
+      operationId: archiveMethod
       parameters:
         - in: query
           name: method_id
@@ -84,11 +84,11 @@ paths:
             type: string
             format: uuid
           description: >
-            Deletes the method with the provided method_id.
+            Archives the method with the provided method_id.
           required: true
       responses:
         '200':
-          $ref: '#/components/responses/DeleteMethodResponse'
+          $ref: '#/components/responses/ArchiveMethodResponse'
         '400':
           $ref: '#/components/responses/UserError'
         '500':
@@ -235,12 +235,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MethodListResponse'
-    DeleteMethodResponse:
+    ArchiveMethodResponse:
       description: Response from deleting a method
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/DeleteMethodResponse'
+            $ref: '#/components/schemas/ArchiveMethodResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -659,7 +659,7 @@ components:
         error:
           type: string
 
-    DeleteMethodResponse:
+    ArchiveMethodResponse:
       type: object
       properties:
         method_id:
