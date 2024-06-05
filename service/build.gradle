@@ -12,6 +12,10 @@ plugins {
 apply from: 'generators.gradle'
 apply from: 'publishing.gradle'
 
+springBoot {
+    buildInfo()
+}
+
 dependencies {
     implementation 'com.google.guava:guava:31.1-jre'
     implementation "io.prometheus:simpleclient_httpserver"
