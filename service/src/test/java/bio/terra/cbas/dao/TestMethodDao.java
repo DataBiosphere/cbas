@@ -18,7 +18,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -108,17 +107,10 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           "user-foo",
           workspaceId);
 
-  @BeforeEach
-  void init() {
-    int recordsCreated1 = methodDao.createMethod(method1);
-    int recordsCreated2 = methodDao.createMethod(method2);
-
-    assertEquals(1, recordsCreated1);
-    assertEquals(1, recordsCreated2);
-  }
-
   @Test
   void retrievesSingleMethod() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
     Method actual = methodDao.getMethod(methodId1);
 
     /*
@@ -135,6 +127,12 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void retrievesAllMethods() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    int recordsCreated2 = methodDao.createMethod(method2);
+
+    assertEquals(1, recordsCreated1);
+    assertEquals(1, recordsCreated2);
+
     List<Method> allMethods = methodDao.getMethods();
     assertEquals(2, allMethods.size());
 
@@ -148,6 +146,9 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void unsetLastRunSetId() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(runSet);
     methodDao.updateLastRunWithRunSet(runSet);
@@ -178,16 +179,21 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void archiveMethod() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+
     List<Method> allMethods = methodDao.getMethods();
-    assertEquals(2, allMethods.size());
+    assertEquals(1, allMethods.size());
 
     methodDao.archiveMethod(method1.methodId());
     List<Method> remainingMethods = methodDao.getMethods();
-    assertEquals(1, remainingMethods.size());
+    assertEquals(0, remainingMethods.size());
   }
 
   @Test
   void getArchivedMethodFails() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
     int recordArchived = methodDao.archiveMethod(method1.methodId());
     assertEquals(1, recordArchived);
     assertThrows(MethodNotFoundException.class, () -> methodDao.getMethod(method1.methodId()));
@@ -195,6 +201,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void recreateArchivedMethodWithIdenticalIdFails() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
     int recordArchived = methodDao.archiveMethod(method1.methodId());
     assertEquals(1, recordArchived);
 
@@ -203,7 +211,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void recreateArchivedMethodWithIdenticalNameSucceeds() {
-
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
     int recordArchived = methodDao.archiveMethod(method1.methodId());
     assertEquals(1, recordArchived);
 
