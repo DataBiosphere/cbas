@@ -2,10 +2,12 @@ package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
+import bio.terra.cbas.common.exceptions.MethodNotFoundException;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -20,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DuplicateKeyException;
 
 class TestMethodDao extends ContainerizedDatabaseTest {
 
@@ -30,7 +33,6 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   UUID methodId1 = UUID.randomUUID();
   UUID methodId2 = UUID.randomUUID();
   UUID methodWithGithubDetailsId = UUID.randomUUID();
-  UUID methodToArchiveId = UUID.randomUUID();
   String methodName = "test method";
   String methodDesc = "test method description";
   String methodSource = "GitHub";
@@ -48,6 +50,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           workspaceId,
           Optional.empty(),
           false);
+
   Method method2 =
       new Method(
           methodId2,
@@ -59,17 +62,6 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           workspaceId,
           Optional.empty(),
           false);
-  Method methodToArchive =
-      new Method(
-          methodToArchiveId,
-          "method to archive",
-          methodDesc,
-          DateUtils.currentTimeInUTC(),
-          null,
-          methodSource,
-          workspaceId,
-          Optional.empty(),
-          false); // starts un-archived
 
   Method methodWithGithubDetails =
       new Method(
@@ -120,14 +112,9 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   void init() {
     int recordsCreated1 = methodDao.createMethod(method1);
     int recordsCreated2 = methodDao.createMethod(method2);
-    int recordsCreated3 = methodDao.createMethod(methodToArchive);
 
     assertEquals(1, recordsCreated1);
     assertEquals(1, recordsCreated2);
-    assertEquals(1, recordsCreated3);
-
-    int recordArchived = methodDao.archiveMethod(methodToArchiveId);
-    assertEquals(1, recordArchived);
   }
 
   @Test
@@ -197,5 +184,42 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     methodDao.archiveMethod(method1.methodId());
     List<Method> remainingMethods = methodDao.getMethods();
     assertEquals(1, remainingMethods.size());
+  }
+
+  @Test
+  void getArchivedMethodFails() {
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+    assertThrows(MethodNotFoundException.class, () -> methodDao.getMethod(method1.methodId()));
+  }
+
+  @Test
+  void recreateArchivedMethodWithIdenticalIdFails() {
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+
+    assertThrows(DuplicateKeyException.class, () -> methodDao.createMethod(method1));
+  }
+
+  @Test
+  void recreateArchivedMethodWithIdenticalNameSucceeds() {
+
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+
+    Method methodWithIdenticalName =
+        new Method(
+            UUID.randomUUID(),
+            methodName,
+            methodDesc,
+            DateUtils.currentTimeInUTC(),
+            null,
+            methodSource,
+            workspaceId,
+            Optional.empty(),
+            false);
+
+    int methodCreationSucceeds = methodDao.createMethod(methodWithIdenticalName);
+    assertEquals(1, methodCreationSucceeds);
   }
 }
