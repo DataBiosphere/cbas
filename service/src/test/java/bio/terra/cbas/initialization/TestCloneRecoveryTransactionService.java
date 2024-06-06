@@ -9,6 +9,7 @@ import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryTransactionService;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -66,7 +67,16 @@ public class TestCloneRecoveryTransactionService {
   }
 
   Method method =
-      new Method(UUID.randomUUID(), "", "", null, null, "", null, Optional.empty(), false);
+      new Method(
+          UUID.randomUUID(),
+          "",
+          "",
+          null,
+          null,
+          "",
+          null,
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
   MethodVersion methodVersion =
       new MethodVersion(
           UUID.randomUUID(), method, "", "", null, null, "", null, "", Optional.empty());

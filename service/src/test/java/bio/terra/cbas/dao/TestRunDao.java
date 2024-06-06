@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
@@ -40,7 +41,7 @@ class TestRunDao extends ContainerizedDatabaseTest {
           "Github",
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   String methodVersionGithash = "abcd123";
   UUID methodVersionId = UUID.randomUUID();

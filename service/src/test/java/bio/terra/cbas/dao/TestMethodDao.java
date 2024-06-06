@@ -9,6 +9,7 @@ import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.MethodNotFoundException;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
@@ -48,7 +49,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           methodSource,
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   Method method2 =
       new Method(
@@ -60,7 +61,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           methodSource,
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   Method methodWithGithubDetails =
       new Method(
@@ -73,7 +74,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           workspaceId,
           Optional.of(
               new GithubMethodDetails("repo", "org", "path", false, methodWithGithubDetailsId)),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion methodVersion =
       new MethodVersion(
@@ -178,6 +179,21 @@ class TestMethodDao extends ContainerizedDatabaseTest {
   }
 
   @Test
+  void countMethods() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+    int recordsCreated2 = methodDao.createMethod(method2);
+    assertEquals(1, recordsCreated2);
+
+    int methodVersionCreated = methodVersionDao.createMethodVersion(methodVersion);
+    assertEquals(1, methodVersionCreated);
+
+    int methodCount = methodDao.countMethods(method1.name(), methodVersion.name());
+    assertEquals(1, methodCount);
+  }
+  ;
+
+  @Test
   void archiveMethod() {
     int recordsCreated1 = methodDao.createMethod(method1);
     assertEquals(1, recordsCreated1);
@@ -226,7 +242,7 @@ class TestMethodDao extends ContainerizedDatabaseTest {
             methodSource,
             workspaceId,
             Optional.empty(),
-            false);
+            CbasMethodStatus.ACTIVE);
 
     int methodCreationSucceeds = methodDao.createMethod(methodWithIdenticalName);
     assertEquals(1, methodCreationSucceeds);

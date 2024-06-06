@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
@@ -120,7 +121,7 @@ public class TestSmartRunsPollerFunctional {
                   "method source",
                   workspaceId,
                   Optional.empty(),
-                  false),
+                  CbasMethodStatus.ACTIVE),
               "version name",
               "version description",
               methodCreatedTime,

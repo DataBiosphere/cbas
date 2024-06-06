@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
@@ -55,7 +56,7 @@ class TestMethodVersionDao extends ContainerizedDatabaseTest {
           methodSource,
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
   MethodVersion methodVersion =
       new MethodVersion(
           methodVersionId,

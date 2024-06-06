@@ -10,6 +10,7 @@ import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryService.MethodTemplateUpdateManifest;
 import bio.terra.cbas.initialization.cloneRecovery.CloneRecoveryTransactionService;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
@@ -72,7 +73,7 @@ public class TestCloneRecoveryService {
           "",
           originalWorkspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion clonedMethodVersion =
       new MethodVersion(

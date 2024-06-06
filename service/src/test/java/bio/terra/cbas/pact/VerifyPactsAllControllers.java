@@ -34,6 +34,7 @@ import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -152,7 +153,7 @@ class VerifyPactsAllControllers {
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
           workspaceId,
           Optional.of(fixedGithubMethodDetails),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion fixedMethodVersion =
       new MethodVersion(
@@ -308,7 +309,7 @@ class VerifyPactsAllControllers {
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
             workspaceId,
             Optional.of(myMethodGithubMethodDetails),
-            false);
+            CbasMethodStatus.ACTIVE);
 
     MethodVersion myMethodVersion =
         new MethodVersion(

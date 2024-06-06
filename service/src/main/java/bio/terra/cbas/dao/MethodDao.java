@@ -35,9 +35,9 @@ public class MethodDao {
 
   public Method getMethod(UUID methodId) {
     String sql =
-        "SELECT * FROM method %s WHERE method.%s = :methodId AND %s = false"
+        "SELECT * FROM method %s WHERE method.%s = :methodId AND %s = 'ACTIVE'"
             .formatted(
-                METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.METHOD_ID_COL, Method.ARCHIVED_COL);
+                METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.METHOD_ID_COL, Method.METHOD_STATUS_COL);
     List<Method> queryResult =
         jdbcTemplate.query(
             sql, new MapSqlParameterSource("methodId", methodId), new MethodMapper());
@@ -51,8 +51,8 @@ public class MethodDao {
 
   public List<Method> getMethods() {
     String sql =
-        "SELECT * FROM method %s WHERE %s = false ORDER BY created DESC"
-            .formatted(METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.ARCHIVED_COL);
+        "SELECT * FROM method %s WHERE %s = 'ACTIVE' ORDER BY created DESC"
+            .formatted(METHOD_JOIN_GITHUB_METHOD_DETAILS, Method.METHOD_STATUS_COL);
     return jdbcTemplate.query(sql, new MethodMapper());
   }
 
@@ -79,8 +79,8 @@ public class MethodDao {
 
   public int archiveMethod(UUID methodId) {
     String sql =
-        "UPDATE method SET %s = true WHERE %s = :method_id"
-            .formatted(Method.ARCHIVED_COL, Method.METHOD_ID_COL);
+        "UPDATE method SET %s = 'ARCHIVED' WHERE %s = :method_id"
+            .formatted(Method.METHOD_STATUS_COL, Method.METHOD_ID_COL);
     int result = jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
     if (result == 0) {
       throw new MethodNotFoundException(methodId);
@@ -140,20 +140,20 @@ public class MethodDao {
     return jdbcTemplate.update(sql, new MapSqlParameterSource(Map.of("method_id", methodId)));
   }
 
-  public int countMethods(String methodName, String methodVersion) {
+  public int countMethods(String methodName, String methodVersionName) {
 
     String sql =
         "SELECT COUNT(*) FROM method INNER JOIN method_version "
             + "ON method.method_id = method_version.method_id "
             + "WHERE method.name = :name "
-            + "AND archived = false "
+            + "AND %s = 'ACTIVE' ".formatted(Method.METHOD_STATUS_COL)
             + "AND method_version.method_version_name = :methodVersionName ";
 
     MapSqlParameterSource params =
         new MapSqlParameterSource(
             Map.of(
                 "name", methodName,
-                "methodVersionName", methodVersion));
+                "methodVersionName", methodVersionName));
 
     return jdbcTemplate.queryForObject(sql, params, Integer.class);
   }

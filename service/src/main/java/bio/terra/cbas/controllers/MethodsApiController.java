@@ -37,6 +37,7 @@ import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
@@ -356,7 +357,7 @@ public class MethodsApiController implements MethodsApi {
             postMethodRequest.getMethodSource().toString(),
             cbasContextConfig.getWorkspaceId(),
             Optional.ofNullable(githubMethodDetails),
-            false);
+            CbasMethodStatus.ACTIVE);
 
     MethodVersion methodVersion =
         new MethodVersion(

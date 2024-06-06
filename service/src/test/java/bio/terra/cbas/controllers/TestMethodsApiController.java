@@ -891,7 +891,7 @@ class TestMethodsApiController {
           "method 1 source",
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   private static final MethodVersion method1Version1 =
       new MethodVersion(
@@ -945,7 +945,7 @@ class TestMethodsApiController {
           "method 2 source",
           workspaceId,
           Optional.empty(),
-          false);
+          CbasMethodStatus.ACTIVE);
 
   private static final GithubMethodDetails githubMethodDetails =
       new GithubMethodDetails(

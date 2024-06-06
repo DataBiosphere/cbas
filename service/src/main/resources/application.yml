@@ -82,7 +82,7 @@ workflow-engines:
     # This value comes from the config.
     baseUri: "http://localhost:8000"
     # Set this value to false for local testing.
-    fetchCromwellUrlFromLeo: true
+    fetchCromwellUrlFromLeo: false
     # For local testing, you can supply a value here. If unsupplied, we will fall back to looking up in Leonardo
     debugApiLogging: false
 
@@ -131,7 +131,7 @@ sam:
   # this should be same as "wds.instanceId"
   workspaceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   # for local testing this can be set to false
-  checkAuthAccess: true
+  checkAuthAccess: false
 
 ecm:
   baseUri: "https://externalcreds.dsde-dev.broadinstitute.org/"

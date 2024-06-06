@@ -24,6 +24,7 @@ import bio.terra.cbas.model.RunLog;
 import bio.terra.cbas.model.RunLogResponse;
 import bio.terra.cbas.model.RunResultsRequest;
 import bio.terra.cbas.model.WorkflowTerminalState;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -108,7 +109,7 @@ class TestRunsApiController {
                   "method source",
                   workspaceId,
                   Optional.empty(),
-                  false),
+                  CbasMethodStatus.ACTIVE),
               "version name",
               "version description",
               methodCreatedTime,

@@ -236,7 +236,7 @@ components:
           schema:
             $ref: '#/components/schemas/MethodListResponse'
     ArchiveMethodResponse:
-      description: Response from deleting a method
+      description: Response from archiving a method
       content:
         application/json:
           schema:
