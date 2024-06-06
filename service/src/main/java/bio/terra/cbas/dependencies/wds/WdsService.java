@@ -27,19 +27,14 @@ public class WdsService {
   public record WdsRecordResponseDetails(
       List<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {
     WdsRecordResponseDetails addAll(WdsRecordResponseDetails moreDetails) {
-      return new WdsRecordResponseDetails(
-          new ArrayList<>(recordResponseList) {
-            {
-              addAll(moreDetails.recordResponseList());
-            }
-          },
-          new HashMap<>(recordIdsWithError) {
-            {
-              putAll(moreDetails.recordIdsWithError());
-            }
-          });
+      List<RecordResponse> merged = new ArrayList<>(recordResponseList);
+      merged.addAll(moreDetails.recordResponseList());
+
+      Map<String, String> mergedErrors = new HashMap<>(recordIdsWithError);
+      mergedErrors.putAll(moreDetails.recordIdsWithError());
+
+      return new WdsRecordResponseDetails(merged, mergedErrors);
     }
-    ;
   }
 
   public WdsService(
