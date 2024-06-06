@@ -212,7 +212,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     assertEquals(1, recordsCreated1);
     int recordArchived = methodDao.archiveMethod(method1.methodId());
     assertEquals(1, recordArchived);
-    assertThrows(MethodNotFoundException.class, () -> methodDao.getMethod(method1.methodId()));
+    UUID createdMethodId = method1.methodId();
+    assertThrows(MethodNotFoundException.class, () -> methodDao.getMethod(createdMethodId));
   }
 
   @Test

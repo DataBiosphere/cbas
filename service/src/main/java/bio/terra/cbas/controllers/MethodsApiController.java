@@ -314,6 +314,7 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
+  @Override
   public ResponseEntity<ArchiveMethodResponse> archiveMethod(UUID methodId) {
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
