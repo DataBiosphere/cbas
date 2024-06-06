@@ -146,7 +146,7 @@ public class MethodDao {
         "SELECT COUNT(*) FROM method INNER JOIN method_version "
             + "ON method.method_id = method_version.method_id "
             + "WHERE method.name = :name "
-            + "AND %s = 'ACTIVE' ".formatted(Method.METHOD_STATUS_COL)
+            + "AND method.method_status = 'ACTIVE' "
             + "AND method_version.method_version_name = :methodVersionName ";
 
     MapSqlParameterSource params =
