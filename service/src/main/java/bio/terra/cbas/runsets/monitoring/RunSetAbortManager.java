@@ -7,6 +7,7 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.models.CbasRunSetStatus;
+import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.common.iam.BearerToken;
@@ -58,8 +59,9 @@ public class RunSetAbortManager {
         String msg = "Unable to abort workflow %s.".formatted(run.runId());
         log.error(msg, e);
         failedRunIds.add(run.runId().toString());
-        // Add the error message against the run
-        run.withErrorMessage(msg);
+        // Record the error message against the run:
+        runDao.updateRunStatusWithError(
+            run.runId(), CbasRunStatus.SYSTEM_ERROR, OffsetDateTime.now(), msg);
       }
     }
 
