@@ -3,9 +3,17 @@ package bio.terra.cbas.dependencies.wds;
 import bio.terra.cbas.common.exceptions.DependencyNotAvailableException;
 import bio.terra.cbas.config.WdsServerConfiguration;
 import bio.terra.common.iam.BearerToken;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.client.ApiException;
+import org.databiosphere.workspacedata.model.RecordQueryResponse;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
+import org.databiosphere.workspacedata.model.SearchFilter;
+import org.databiosphere.workspacedata.model.SearchRequest;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +23,24 @@ public class WdsService {
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
   private final RetryTemplate listenerResetRetryTemplate;
+
+  public record WdsRecordResponseDetails(
+      List<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {
+    WdsRecordResponseDetails addAll(WdsRecordResponseDetails moreDetails) {
+      return new WdsRecordResponseDetails(
+          new ArrayList<>(recordResponseList) {
+            {
+              addAll(moreDetails.recordResponseList());
+            }
+          },
+          new HashMap<>(recordIdsWithError) {
+            {
+              putAll(moreDetails.recordIdsWithError());
+            }
+          });
+    }
+    ;
+  }
 
   public WdsService(
       WdsClient wdsClient,
@@ -55,6 +81,77 @@ public class WdsService {
                   id);
           return null;
         });
+  }
+
+  public WdsRecordResponseDetails getRecords(
+      String recordType, List<String> recordIds, BearerToken userToken) {
+
+    int batches = (recordIds.size() / wdsServerConfiguration.queryWindowSize()) + 1;
+    WdsRecordResponseDetails responseDetails =
+        new WdsRecordResponseDetails(new ArrayList<>(), Map.of());
+
+    for (int i = 0; i < batches; i++) {
+      int startIndex = i * wdsServerConfiguration.queryWindowSize();
+      int endIndex = Math.min((i + 1) * wdsServerConfiguration.queryWindowSize(), recordIds.size());
+
+      List<String> batch = recordIds.subList(startIndex, endIndex);
+
+      WdsRecordResponseDetails batchResponse = getRecordsBatch(recordType, batch, userToken);
+      responseDetails = responseDetails.addAll(batchResponse);
+    }
+
+    return responseDetails;
+  }
+
+  private WdsRecordResponseDetails getRecordsBatch(
+      String recordType, List<String> recordIds, BearerToken userToken) {
+
+    try {
+      RecordQueryResponse queryResponse =
+          queryRecords(
+              new SearchRequest().filter(new SearchFilter().ids(recordIds)), recordType, userToken);
+      return interpretQueryResponse(recordIds, queryResponse);
+    } catch (WdsServiceException e) {
+      Map<String, String> allRecordIdsAreErrors =
+          recordIds.stream()
+              .map(id -> Map.entry(id, e.getMessage()))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      return new WdsRecordResponseDetails(new ArrayList<>(), allRecordIdsAreErrors);
+    }
+  }
+
+  private RecordQueryResponse queryRecords(
+      SearchRequest request, String recordType, BearerToken userToken) throws WdsServiceException {
+    return executionWithRetryTemplate(
+        listenerResetRetryTemplate,
+        () ->
+            wdsClient
+                .recordsApi(userToken)
+                .queryRecords(
+                    request,
+                    wdsServerConfiguration.instanceId(),
+                    wdsServerConfiguration.apiV(),
+                    recordType));
+  }
+
+  private WdsRecordResponseDetails interpretQueryResponse(
+      List<String> expectedIds, RecordQueryResponse recordQueryResponse) {
+    ArrayList<RecordResponse> recordResponseList = new ArrayList<>();
+    Map<String, String> recordIdsWithError = new HashMap<>();
+
+    Map<String, RecordResponse> foundResponses =
+        recordQueryResponse.getRecords().stream()
+            .collect(Collectors.toMap(RecordResponse::getId, r -> r));
+    for (String expectedId : expectedIds) {
+      RecordResponse recordResponse = foundResponses.get(expectedId);
+      if (recordResponse != null) {
+        recordResponseList.add(recordResponse);
+      } else {
+        recordIdsWithError.put(expectedId, "Record not found");
+      }
+    }
+
+    return new WdsRecordResponseDetails(recordResponseList, recordIdsWithError);
   }
 
   interface WdsAction<T> {

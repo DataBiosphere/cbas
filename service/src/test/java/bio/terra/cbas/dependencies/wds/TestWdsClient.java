@@ -22,7 +22,7 @@ class TestWdsClient {
   @Test
   void useConfiguredUrlIfAvailable() throws Exception {
     WdsServerConfiguration wdsServerConfiguration =
-        new WdsServerConfiguration("http://localhost:8001/wds", "instanceId", "apiV", false);
+        new WdsServerConfiguration("http://localhost:8001/wds", "instanceId", "apiV", 1000, false);
 
     RecordsApi recordsApi =
         new WdsClient(wdsServerConfiguration, dependencyUrlLoader)
@@ -34,7 +34,7 @@ class TestWdsClient {
   @Test
   void lookupWdsUrlWhenNecessary() throws Exception {
     WdsServerConfiguration wdsServerConfiguration =
-        new WdsServerConfiguration(null, "instanceId", "apiV", false);
+        new WdsServerConfiguration(null, "instanceId", "apiV", 1000, false);
     when(dependencyUrlLoader.loadDependencyUrl(
             eq(DependencyUrlLoader.DependencyUrlType.WDS_URL), any()))
         .thenReturn("https://my-wds-service:10101/wds");

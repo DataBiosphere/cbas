@@ -16,10 +16,8 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.wds.WdsClientUtils;
 import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
-import bio.terra.cbas.dependencies.wds.WdsServiceException;
+import bio.terra.cbas.dependencies.wds.WdsService.WdsRecordResponseDetails;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
@@ -39,7 +37,6 @@ import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -90,9 +87,6 @@ public class RunSetsService {
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
   }
-
-  private record WdsRecordResponseDetails(
-      ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
 
   private record RunAndRecordDetails(UUID runId, RecordResponse recordResponse) {}
 
@@ -184,10 +178,10 @@ public class RunSetsService {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
 
-    if (!wdsRecordResponses.recordIdsWithError.isEmpty()) {
+    if (!wdsRecordResponses.recordIdsWithError().isEmpty()) {
       String errorMsg =
           "Error while fetching WDS Records for Record ID(s): "
-              + wdsRecordResponses.recordIdsWithError;
+              + wdsRecordResponses.recordIdsWithError();
       logger.warn(errorMsg);
 
       recordRunsAndRunSetInErrorState(runSet.runSetId(), errorMsg);
@@ -201,7 +195,7 @@ public class RunSetsService {
             cromwellService,
             request,
             runSet,
-            wdsRecordResponses.recordResponseList,
+            wdsRecordResponses.recordResponseList(),
             rawMethodUrl,
             recordIdToRunIdMapping,
             userToken);
@@ -229,22 +223,7 @@ public class RunSetsService {
   private WdsRecordResponseDetails fetchWdsRecords(
       WdsService wdsService, RunSetRequest request, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
-
-    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
-    HashMap<String, String> recordIdsWithError = new HashMap<>();
-    for (String recordId : request.getWdsRecords().getRecordIds()) {
-      try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
-      } catch (WdsServiceApiException e) {
-        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
-      } catch (WdsServiceException e) {
-        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, e.getMessage());
-      }
-    }
-
-    return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
+    return wdsService.getRecords(recordType, request.getWdsRecords().getRecordIds(), userToken);
   }
 
   private RunStateResponse recordFailureToStartRun(UUID runId, String error) {
@@ -282,7 +261,7 @@ public class RunSetsService {
       CromwellService cromwellService,
       RunSetRequest request,
       RunSet runSet,
-      ArrayList<RecordResponse> recordResponses,
+      List<RecordResponse> recordResponses,
       String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken) {
