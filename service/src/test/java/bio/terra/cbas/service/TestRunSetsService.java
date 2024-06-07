@@ -301,7 +301,7 @@ class TestRunSetsService {
   }
 
   @Test
-  void wdsErrorDuringSubmission() throws Exception {
+  void wdsErrorDuringSubmission() {
     // Set up WDS API responses
     when(wdsService.getRecords(eq(recordType), eq(List.of(recordId1, recordId2)), any()))
         .thenReturn(

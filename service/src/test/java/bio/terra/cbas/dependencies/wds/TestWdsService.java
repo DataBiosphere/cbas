@@ -107,7 +107,7 @@ class TestWdsService {
     return Stream.iterate(startIndex, i -> i + 1)
         .limit(count)
         .map(i -> "foo" + i)
-        .collect(Collectors.toList());
+        .toList();
   }
 
   static Stream<BatchTestCase> batchTestCases() {
@@ -151,7 +151,7 @@ class TestWdsService {
     List<List<RecordResponse>> returnedRecordBatches = new ArrayList<>();
     for (List<String> ids : batchTestCase.anticipatedRequestBatches()) {
       List<RecordResponse> collect =
-          ids.stream().map(recordsInWds::get).collect(Collectors.toList());
+          ids.stream().map(recordsInWds::get).toList();
       returnedRecordBatches.add(collect);
     }
 
