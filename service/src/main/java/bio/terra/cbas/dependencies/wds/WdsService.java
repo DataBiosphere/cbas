@@ -104,7 +104,7 @@ public class WdsService {
     try {
       RecordQueryResponse queryResponse =
           queryRecords(
-              new SearchRequest().filter(new SearchFilter().ids(recordIds)), recordType, userToken);
+              new SearchRequest().filter(new SearchFilter().ids(recordIds)).offset(0).limit(wdsServerConfiguration.queryWindowSize()), recordType, userToken);
       return interpretQueryResponse(recordIds, queryResponse);
     } catch (WdsServiceException e) {
       Map<String, String> allRecordIdsAreErrors =
