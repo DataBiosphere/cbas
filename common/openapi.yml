@@ -73,6 +73,30 @@ paths:
           $ref: '#/components/responses/UserError'
         '500':
           $ref: '#/components/responses/ServerError'
+    patch:
+      tags: [ methods ]
+      summary: patch a method
+      operationId: patchMethod
+      parameters:
+        - in: query
+          name: method_id
+          schema:
+            type: string
+            format: uuid
+          description: >
+            Patches the method with the provided method_id.
+          required: true
+      requestBody:
+        $ref: '#/components/requestBodies/PatchMethodRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/PatchMethodResponse'
+        '400':
+          $ref: '#/components/responses/UserError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+
   "/api/batch/v1/runs":
     get:
       tags: [ runs ]
@@ -187,6 +211,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PostMethodRequest'
+    PatchMethodRequest:
+      description: Request body to patch an existing method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PatchMethodRequest'
     PostRunResultsRequest:
       description: Request body to post run results.
       content:
@@ -213,6 +243,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MethodListResponse'
+    PatchMethodResponse:
+      description: Response from patching a method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PatchMethodResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -615,6 +651,15 @@ components:
             $ref: '#/components/schemas/MethodOutputMapping'
           description: Output mapping configuration
 
+    PatchMethodRequest:
+      type: object
+      properties:
+        method_status:
+          enum:
+            - ARCHIVED
+          type: string
+          description: The new status of the method.
+
     PostMethodResponse:
       type: object
       properties:
@@ -630,6 +675,15 @@ components:
           example: 00000000-0000-0000-0000-000000000000
         error:
           type: string
+
+    PatchMethodResponse:
+      type: object
+      properties:
+        method_id:
+          type:
+            string
+          format: uuid
+          example: 00000000-0000-0000-0000-000000000000
 
     MethodDetails:
       type: object

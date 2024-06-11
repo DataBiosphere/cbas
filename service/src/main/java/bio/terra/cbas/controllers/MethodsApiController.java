@@ -31,18 +31,23 @@ import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.MethodVersionDetails;
+import bio.terra.cbas.model.PatchMethodRequest;
+import bio.terra.cbas.model.PatchMethodResponse;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -73,6 +78,7 @@ public class MethodsApiController implements MethodsApi {
   private final GitHubService gitHubService;
   private final SamService samService;
   private final MethodDao methodDao;
+  private final MethodService methodService;
   private final MethodVersionDao methodVersionDao;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
@@ -85,6 +91,7 @@ public class MethodsApiController implements MethodsApi {
       GitHubService gitHubService,
       SamService samService,
       MethodDao methodDao,
+      MethodService methodService,
       MethodVersionDao methodVersionDao,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
@@ -96,6 +103,7 @@ public class MethodsApiController implements MethodsApi {
     this.gitHubService = gitHubService;
     this.samService = samService;
     this.methodDao = methodDao;
+    this.methodService = methodService;
     this.methodVersionDao = methodVersionDao;
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
@@ -308,6 +316,27 @@ public class MethodsApiController implements MethodsApi {
     return ResponseEntity.ok(new MethodListResponse().methods(methodDetails));
   }
 
+  @Override
+  public ResponseEntity<PatchMethodResponse> patchMethod(
+      UUID methodId, PatchMethodRequest request) {
+    // extract bearer token from request to pass down to API calls
+    BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
+
+    // check if current user has write permissions on the workspace
+    if (!samService.hasWritePermission(userToken)) {
+      throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
+    }
+
+    if (request.getMethodStatus() != null
+        && request.getMethodStatus().equals(PatchMethodRequest.MethodStatusEnum.ARCHIVED)) {
+      methodService.archiveMethod(methodId);
+      return ResponseEntity.ok(new PatchMethodResponse().methodId(methodId));
+    } else {
+      throw new BadRequestException(
+          "Bad Request: PATCH only supports updating 'method_status' to 'ARCHIVED' }");
+    }
+  }
+
   private void createNewMethod(
       UUID methodId,
       UUID methodVersionId,
@@ -338,7 +367,8 @@ public class MethodsApiController implements MethodsApi {
             null,
             postMethodRequest.getMethodSource().toString(),
             cbasContextConfig.getWorkspaceId(),
-            Optional.ofNullable(githubMethodDetails));
+            Optional.ofNullable(githubMethodDetails),
+            CbasMethodStatus.ACTIVE);
 
     MethodVersion methodVersion =
         new MethodVersion(

@@ -37,6 +37,7 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.Method;
@@ -132,7 +133,8 @@ class TestRunSetsService {
                   UUID.randomUUID(),
                   "method source",
                   workspaceId,
-                  Optional.empty()),
+                  Optional.empty(),
+                  CbasMethodStatus.ACTIVE),
               "version name",
               "version description",
               OffsetDateTime.now(),
@@ -208,7 +210,8 @@ class TestRunSetsService {
               UUID.randomUUID(),
               "GitHub",
               workspaceId,
-              Optional.empty()),
+              Optional.empty(),
+              CbasMethodStatus.ACTIVE),
           "version name",
           "version description",
           OffsetDateTime.now(),

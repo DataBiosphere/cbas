@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add_method_status_column_to_method
+      author: mspector
+      changes:
+        - addColumn:
+            tableName: method
+            columns:
+              - name: method_status
+                type: varchar(20)
+                defaultValue: 'ACTIVE'

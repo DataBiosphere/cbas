@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: remove_unique_constraint_method_name
+      author: you
+      changes:
+        - dropUniqueConstraint:
+            tableName: method
+            constraintName: UC_method_name
