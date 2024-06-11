@@ -25,13 +25,14 @@ import bio.terra.cbas.dependencies.github.GitHubClient;
 import bio.terra.cbas.dependencies.github.GitHubService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
-import bio.terra.cbas.model.ArchiveMethodResponse;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.MethodVersionDetails;
+import bio.terra.cbas.model.PatchMethodRequest;
+import bio.terra.cbas.model.PatchMethodResponse;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.model.PostMethodResponse;
@@ -46,6 +47,7 @@ import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.service.MethodService;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
+import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -315,7 +317,8 @@ public class MethodsApiController implements MethodsApi {
   }
 
   @Override
-  public ResponseEntity<ArchiveMethodResponse> archiveMethod(UUID methodId) {
+  public ResponseEntity<PatchMethodResponse> patchMethod(
+      UUID methodId, PatchMethodRequest request) {
     // extract bearer token from request to pass down to API calls
     BearerToken userToken = bearerTokenFactory.from(httpServletRequest);
 
@@ -323,8 +326,15 @@ public class MethodsApiController implements MethodsApi {
     if (!samService.hasWritePermission(userToken)) {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
-    methodService.archiveMethod(methodId);
-    return ResponseEntity.ok(new ArchiveMethodResponse().methodId(methodId));
+
+    if (request.getMethodStatus() != null
+        && request.getMethodStatus().equals(PatchMethodRequest.MethodStatusEnum.ARCHIVED)) {
+      methodService.archiveMethod(methodId);
+      return ResponseEntity.ok(new PatchMethodResponse().methodId(methodId));
+    } else {
+      throw new BadRequestException(
+          "Bad Request: PATCH only supports updating 'method_status' to 'ARCHIVED' }");
+    }
   }
 
   private void createNewMethod(

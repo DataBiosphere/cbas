@@ -75,8 +75,8 @@ paths:
           $ref: '#/components/responses/ServerError'
     patch:
       tags: [ methods ]
-      summary: Archive a method
-      operationId: archiveMethod
+      summary: patch a method
+      operationId: patchMethod
       parameters:
         - in: query
           name: method_id
@@ -84,11 +84,13 @@ paths:
             type: string
             format: uuid
           description: >
-            Archives the method with the provided method_id.
+            Patches the method with the provided method_id.
           required: true
+      requestBody:
+        $ref: '#/components/requestBodies/PatchMethodRequest'
       responses:
         '200':
-          $ref: '#/components/responses/ArchiveMethodResponse'
+          $ref: '#/components/responses/PatchMethodResponse'
         '400':
           $ref: '#/components/responses/UserError'
         '500':
@@ -209,6 +211,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/PostMethodRequest'
+    PatchMethodRequest:
+      description: Request body to patch an existing method
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PatchMethodRequest'
     PostRunResultsRequest:
       description: Request body to post run results.
       content:
@@ -235,12 +243,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/MethodListResponse'
-    ArchiveMethodResponse:
-      description: Response from archiving a method
+    PatchMethodResponse:
+      description: Response from patching a method
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ArchiveMethodResponse'
+            $ref: '#/components/schemas/PatchMethodResponse'
     GetRunResponse:
       description: Details about runs
       content:
@@ -643,6 +651,15 @@ components:
             $ref: '#/components/schemas/MethodOutputMapping'
           description: Output mapping configuration
 
+    PatchMethodRequest:
+      type: object
+      properties:
+        method_status:
+          enum:
+            - ARCHIVED
+          type: string
+          description: The new status of the method.
+
     PostMethodResponse:
       type: object
       properties:
@@ -659,7 +676,7 @@ components:
         error:
           type: string
 
-    ArchiveMethodResponse:
+    PatchMethodResponse:
       type: object
       properties:
         method_id:
