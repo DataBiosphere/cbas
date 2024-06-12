@@ -3,6 +3,7 @@ package bio.terra.cbas.dao;
 import static bio.terra.cbas.dao.MethodDao.METHOD_JOIN_GITHUB_METHOD_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_GITHUB_METHOD_VERSION_DETAILS;
 import static bio.terra.cbas.dao.MethodVersionDao.METHOD_VERSION_JOIN_METHOD;
+import static bio.terra.cbas.models.Run.truncatedErrorMessage;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.dao.mappers.RunSetMapper;
@@ -109,14 +110,6 @@ public class RunDao {
                 lastModifiedTimestamp,
                 Run.LAST_POLLED_TIMESTAMP_COL,
                 currentTimestamp)));
-  }
-
-  static String truncatedErrorMessage(String errorMessage) {
-    int maxChars = 1000;
-    if (errorMessage == null) {
-      return null;
-    }
-    return errorMessage.substring(0, Math.min(errorMessage.length(), maxChars));
   }
 
   public int updateRunStatusWithError(

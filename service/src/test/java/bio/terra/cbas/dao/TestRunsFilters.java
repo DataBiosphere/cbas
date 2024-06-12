@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import bio.terra.cbas.dao.RunDao.RunsFilters;
 import bio.terra.cbas.dao.util.WhereClause;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.Run;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -139,7 +140,7 @@ class TestRunsFilters {
   @Test
   void truncateTooShortMessage() {
     String message = "This is a short message";
-    String actual = RunDao.truncatedErrorMessage(message);
+    String actual = Run.truncatedErrorMessage(message);
     assertEquals(message, actual);
     assertEquals(23, actual.length());
   }
@@ -148,7 +149,7 @@ class TestRunsFilters {
   void truncateExactLengthMessage() {
 
     String inputString = "a".repeat(1000);
-    String actual = RunDao.truncatedErrorMessage(inputString);
+    String actual = Run.truncatedErrorMessage(inputString);
 
     assertEquals(inputString, actual);
     assertEquals(1000, actual.length());
@@ -160,7 +161,7 @@ class TestRunsFilters {
     String inputString = "a".repeat(1025);
     String expectedString = "a".repeat(1000);
 
-    String actual = RunDao.truncatedErrorMessage(inputString);
+    String actual = Run.truncatedErrorMessage(inputString);
 
     assertEquals(expectedString, actual);
     assertEquals(1000, actual.length());

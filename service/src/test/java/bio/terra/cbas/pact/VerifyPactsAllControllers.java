@@ -37,6 +37,7 @@ import bio.terra.cbas.dependencies.wds.WdsService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.RunStateResponse;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -51,6 +52,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
 import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
+import bio.terra.cbas.service.MethodService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -119,6 +121,7 @@ class VerifyPactsAllControllers {
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private RunSetsService runSetsService;
+  @MockBean private MethodService methodService;
   @MockBean private BardService bardService;
   @MockBean private BardClient bardClient;
   @MockBean private BardServerConfiguration bardServerConfiguration;
@@ -155,7 +158,8 @@ class VerifyPactsAllControllers {
           fixedMethodVersionUUID,
           PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
           workspaceId,
-          Optional.of(fixedGithubMethodDetails));
+          Optional.of(fixedGithubMethodDetails),
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion fixedMethodVersion =
       new MethodVersion(
@@ -310,7 +314,8 @@ class VerifyPactsAllControllers {
             methodVersionUUID,
             PostMethodRequest.MethodSourceEnum.GITHUB.toString(),
             workspaceId,
-            Optional.of(myMethodGithubMethodDetails));
+            Optional.of(myMethodGithubMethodDetails),
+            CbasMethodStatus.ACTIVE);
 
     MethodVersion myMethodVersion =
         new MethodVersion(

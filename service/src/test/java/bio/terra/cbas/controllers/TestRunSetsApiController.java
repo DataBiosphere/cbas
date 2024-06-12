@@ -59,6 +59,7 @@ import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
@@ -257,7 +258,8 @@ class TestRunSetsApiController {
               UUID.randomUUID(),
               "GitHub",
               workspaceId,
-              Optional.of(githubMethodDetails)),
+              Optional.of(githubMethodDetails),
+              CbasMethodStatus.ACTIVE),
           "version name",
           "version description",
           OffsetDateTime.now(),
@@ -363,7 +365,8 @@ class TestRunSetsApiController {
                 UUID.randomUUID(),
                 "GitHub",
                 workspaceId,
-                Optional.of(githubMethodDetails)));
+                Optional.of(githubMethodDetails),
+                CbasMethodStatus.ACTIVE));
 
     when(methodVersionDao.getMethodVersion(methodVersionId)).thenReturn(methodVersion);
 
@@ -379,7 +382,8 @@ class TestRunSetsApiController {
                     UUID.randomUUID(),
                     "Dockstore",
                     workspaceId,
-                    Optional.empty()),
+                    Optional.empty(),
+                    CbasMethodStatus.ACTIVE),
                 "develop",
                 "version description",
                 OffsetDateTime.now(),
@@ -908,7 +912,8 @@ class TestRunSetsApiController {
                     UUID.randomUUID(),
                     "method source",
                     workspaceId,
-                    Optional.empty()),
+                    Optional.empty(),
+                    CbasMethodStatus.ACTIVE),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
@@ -946,7 +951,8 @@ class TestRunSetsApiController {
                     UUID.randomUUID(),
                     "method source",
                     workspaceId,
-                    Optional.empty()),
+                    Optional.empty(),
+                    CbasMethodStatus.ACTIVE),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
@@ -1024,7 +1030,8 @@ class TestRunSetsApiController {
                     UUID.randomUUID(),
                     "method source",
                     workspaceId,
-                    Optional.empty()),
+                    Optional.empty(),
+                    CbasMethodStatus.ACTIVE),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
@@ -1128,7 +1135,8 @@ class TestRunSetsApiController {
                     UUID.randomUUID(),
                     "method source",
                     workspaceId,
-                    Optional.empty()),
+                    Optional.empty(),
+                    CbasMethodStatus.ACTIVE),
                 "version name",
                 "version description",
                 OffsetDateTime.now(),
@@ -1556,7 +1564,8 @@ class TestRunSetsApiControllerGetSubmissionUrl {
           UUID.randomUUID(),
           GITHUB.toString(),
           UUID.randomUUID(),
-          Optional.empty());
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion getSubmissionUrlBaseMethodVersion =
       new MethodVersion(
@@ -1655,7 +1664,8 @@ class TestRunSetsApiControllerGetSubmissionUrl {
           null,
           DOCKSTORE.toString(),
           UUID.randomUUID(),
-          Optional.empty());
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion getSubmissionUrlDockstoreBaseMethodVersion =
       new MethodVersion(

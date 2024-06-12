@@ -1,5 +1,6 @@
 package bio.terra.cbas.dao.mappers;
 
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import java.sql.ResultSet;
@@ -24,6 +25,7 @@ public class MethodMapper implements RowMapper<Method> {
         rs.getObject(Method.LAST_RUN_SET_ID_COL, UUID.class),
         rs.getString(Method.METHOD_SOURCE_COL),
         rs.getObject(Method.ORIGINAL_WORKSPACE_ID_COL, UUID.class),
-        githubMethodDetails);
+        githubMethodDetails,
+        CbasMethodStatus.fromValue(rs.getString(Method.METHOD_STATUS_COL)));
   }
 }

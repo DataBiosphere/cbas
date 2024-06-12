@@ -99,6 +99,12 @@ databaseChangeLog:
       file: changesets/20240416_github_method_version_details.yaml
       relativeToChangelogFile: true
   - include:
+      file: changesets/20240521_archived_column.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changesets/20240522_remove_method_name_constraint.yaml
+      relativeToChangelogFile: true
+  - include:
       file: changesets/20231102_set_table_role.yaml
       relativeToChangelogFile: true
 # Reminder! (Leave 20231102_set_table_role.yaml at the end)
