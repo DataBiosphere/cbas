@@ -33,6 +33,7 @@ import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
 import bio.terra.cbas.model.ParameterDefinitionRecordLookup;
 import bio.terra.cbas.model.ParameterTypeDefinition;
 import bio.terra.cbas.model.ParameterTypeDefinitionPrimitive;
+import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PrimitiveParameterValueType;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunState;
@@ -41,6 +42,7 @@ import bio.terra.cbas.model.WdsRecordSet;
 import bio.terra.cbas.model.WorkflowInputDefinition;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
@@ -200,7 +202,7 @@ class TestRunSetsService {
         }
       };
 
-  private final MethodVersion methodVersion =
+  private MethodVersion methodVersion =
       new MethodVersion(
           methodVersionId,
           new Method(
@@ -211,7 +213,7 @@ class TestRunSetsService {
               UUID.randomUUID(),
               "GitHub",
               workspaceId,
-              Optional.empty()),
+              Optional.of(new GithubMethodDetails("repo", "org", "path", false, methodId))),
           "version name",
           "version description",
           OffsetDateTime.now(),
@@ -297,12 +299,11 @@ class TestRunSetsService {
         .updateStateAndRunSetDetails(
             eq(runSetId), eq(CbasRunSetStatus.RUNNING), eq(2), eq(0), any());
 
-    verify(bardService)
-        .logRunSetEvent(
-            runSetRequest,
-            methodVersion,
-            List.of(engineId1.toString(), engineId2.toString()),
-            mockToken);
+    String eventName = "workflow-submission";
+    HashMap<String, String> properties =
+        mockRunSetsService.getRunSetEventProperties(
+            runSetRequest, methodVersion, List.of(engineId1.toString(), engineId2.toString()));
+    verify(bardService).logEvent(eventName, properties, mockToken);
   }
 
   @Test
@@ -509,5 +510,64 @@ class TestRunSetsService {
     // verify that RunSet is marked in Error state
     verify(runSetDao)
         .updateStateAndRunSetDetails(any(), eq(CbasRunSetStatus.ERROR), eq(1), eq(1), any());
+  }
+
+  @Test
+  void testGetRunSetEventPropertiesDockstore() {
+    Method dockstoreMethod =
+        new Method(
+            methodId,
+            "methodname",
+            "methoddescription",
+            OffsetDateTime.now(),
+            UUID.randomUUID(),
+            PostMethodRequest.MethodSourceEnum.DOCKSTORE.toString(),
+            workspaceId,
+            Optional.empty());
+    MethodVersion dockstoreMethodVersion = methodVersion.withMethod(dockstoreMethod);
+    RunSetRequest request =
+        new RunSetRequest()
+            .runSetName("testRun")
+            .methodVersionId(dockstoreMethodVersion.methodVersionId())
+            .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
+    List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+    Map<String, String> expectedProperties =
+        getDefaultProperties(request, dockstoreMethodVersion, cromwellWorkflowIds);
+    Map<String, String> properties =
+        mockRunSetsService.getRunSetEventProperties(
+            request, dockstoreMethodVersion, cromwellWorkflowIds);
+    assertEquals(expectedProperties, properties);
+  }
+
+  @Test
+  void testGetRunSetEventPropertiesGitHub() {
+    RunSetRequest request =
+        new RunSetRequest()
+            .runSetName("testRun")
+            .methodVersionId(methodVersion.methodVersionId())
+            .wdsRecords(new WdsRecordSet().recordIds(List.of("1", "2", "3")));
+    List<String> cromwellWorkflowIds = List.of(UUID.randomUUID().toString());
+    Map<String, String> expectedProperties =
+        getDefaultProperties(request, methodVersion, cromwellWorkflowIds);
+    GithubMethodDetails githubMethodDetails = methodVersion.method().githubMethodDetails().get();
+    expectedProperties.put("githubOrganization", githubMethodDetails.organization());
+    expectedProperties.put("githubRepository", githubMethodDetails.repository());
+    expectedProperties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
+    Map<String, String> properties =
+        mockRunSetsService.getRunSetEventProperties(request, methodVersion, cromwellWorkflowIds);
+    assertEquals(expectedProperties, properties);
+  }
+
+  private HashMap<String, String> getDefaultProperties(
+      RunSetRequest request, MethodVersion methodVersion, List<String> cromwellWorkflowIds) {
+    HashMap<String, String> properties = new HashMap<>();
+    properties.put("runSetName", request.getRunSetName());
+    properties.put("methodName", methodVersion.method().name());
+    properties.put("methodSource", methodVersion.method().methodSource());
+    properties.put("methodVersionName", methodVersion.name());
+    properties.put("methodVersionUrl", methodVersion.url());
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", cromwellWorkflowIds.toString());
+    return properties;
   }
 }

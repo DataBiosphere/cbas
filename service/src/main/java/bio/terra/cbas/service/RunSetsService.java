@@ -27,6 +27,7 @@ import bio.terra.cbas.model.RunSetState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
@@ -45,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -230,7 +232,7 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
-    bardService.logRunSetEvent(
+    logRunSetEvent(
         request, methodVersion, runStateResponse.successfullyInitializedWorkflowIds(), userToken);
   }
 
@@ -392,5 +394,38 @@ public class RunSetsService {
       }
     }
     return new SubmitRunResponse(runStateResponseList, successfullyInitializedWorkflowIds);
+  }
+
+  public HashMap<String, String> getRunSetEventProperties(
+      RunSetRequest request, MethodVersion methodVersion, List<String> workflowIds) {
+    HashMap<String, String> properties = new HashMap<>();
+    properties.put("runSetName", request.getRunSetName());
+    properties.put("methodName", methodVersion.method().name());
+    properties.put("methodSource", methodVersion.method().methodSource());
+    properties.put("methodVersionName", methodVersion.name());
+    properties.put("methodVersionUrl", methodVersion.url());
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", workflowIds.toString());
+
+    Optional<GithubMethodDetails> maybeGitHubMethodDetails =
+        methodVersion.method().githubMethodDetails();
+    if (maybeGitHubMethodDetails.isPresent()) {
+      GithubMethodDetails githubMethodDetails = maybeGitHubMethodDetails.get();
+      properties.put("githubOrganization", githubMethodDetails.organization());
+      properties.put("githubRepository", githubMethodDetails.repository());
+      properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
+    }
+    return properties;
+  }
+
+  public void logRunSetEvent(
+      RunSetRequest request,
+      MethodVersion methodVersion,
+      List<String> workflowIds,
+      BearerToken userToken) {
+    String eventName = "workflow-submission";
+    HashMap<String, String> properties =
+        getRunSetEventProperties(request, methodVersion, workflowIds);
+    bardService.logEvent(eventName, properties, userToken);
   }
 }
