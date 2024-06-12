@@ -205,8 +205,10 @@ public class SmartRunsPoller {
           errors.addAll(cromwellErrors);
         }
       }
+
+      micrometerMetrics.logRunStatusUpdate(updatedRunState);
+
       // Call Run Completion handler to update results
-      micrometerMetrics.logRunCompletion("smartpoller", updatedRunState);
       var updateResult =
           runCompletionHandler.updateResults(
               updatableRun, updatedRunState, outputs, errors, engineStatusChanged, userToken);
