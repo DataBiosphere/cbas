@@ -4,7 +4,6 @@ import bio.terra.bard.api.DefaultApi;
 import bio.terra.bard.client.ApiClient;
 import bio.terra.bard.model.EventsEventLogRequest;
 import bio.terra.cbas.config.BardServerConfiguration;
-import bio.terra.cbas.dependencies.common.HealthCheck;
 import bio.terra.common.iam.BearerToken;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -13,7 +12,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BardServiceImpl implements BardService, HealthCheck {
+public class BardServiceImpl implements BardService {
 
   Logger log = LoggerFactory.getLogger(BardServiceImpl.class);
   private static final String appId = "cbas";

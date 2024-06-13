@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +33,7 @@ public class ScheduledHealthChecker {
       LeonardoService leonardoService,
       SamService samService,
       EcmService ecmService,
-      @Qualifier("bardServiceImpl") HealthCheck bardService,
+      HealthCheck bardService,
       BardServerConfiguration bardServerConfiguration) {
     this.healthCheckStatuses = new ConcurrentHashMap<>();
     this.healthCheckSystems =
