@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 public class TestCbasRunStatus {
 
-  @ParameterizedTest(name = "")
+  @ParameterizedTest()
   @CsvSource({
     "Submitted,INITIALIZING",
     "Running,RUNNING",
