@@ -2,6 +2,7 @@ package bio.terra.cbas.runsets.monitoring;
 
 import static bio.terra.cbas.models.CbasRunStatus.COMPLETE;
 import static bio.terra.cbas.models.CbasRunStatus.EXECUTOR_ERROR;
+import static bio.terra.cbas.models.CbasRunStatus.INITIALIZING;
 import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.RUNNING;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
@@ -73,6 +74,10 @@ public class TestSmartRunsPollerFunctional {
 
   private static final UUID queuedRunId = UUID.randomUUID();
   private static final String queuedRunEntityId = UUID.randomUUID().toString();
+
+  private static final UUID submittedRunId = UUID.randomUUID();
+  private static final String submittedRunEngineId = UUID.randomUUID().toString();
+  private static final String submittedRunEntityId = UUID.randomUUID().toString();
 
   private static final UUID completedRunId = UUID.randomUUID();
   private static final String completedRunEngineId = UUID.randomUUID().toString();
@@ -203,6 +208,17 @@ public class TestSmartRunsPollerFunctional {
           runningRunStatusUpdateTime,
           runningRunStatusUpdateTime,
           errorMessages);
+  final Run submittedToCromwellRun =
+      new Run(
+          submittedRunId,
+          submittedRunEngineId,
+          runSet,
+          submittedRunEntityId,
+          runSubmittedTime,
+          QUEUED,
+          runningRunStatusUpdateTime,
+          runningRunStatusUpdateTime,
+          errorMessages);
 
   @BeforeEach
   public void init() {
@@ -247,6 +263,23 @@ public class TestSmartRunsPollerFunctional {
 
     verify(runCompletionHandler, never())
         .updateResults(eq(queuedRun), any(), any(), any(), any(), any());
+    assertEquals(1, actual.updatedList().size());
+  }
+
+  @Test
+  void submittedRunsShouldBeInInitializingStatus() throws Exception {
+    when(cromwellService.runSummary(submittedRunEngineId))
+        .thenReturn(new WorkflowQueryResult().id(submittedRunEngineId).status("Submitted"));
+    when(runCompletionHandler.updateResults(
+            eq(submittedToCromwellRun), any(), any(), any(), any(), any()))
+        .thenReturn(RunCompletionResult.SUCCESS);
+
+    var actual = smartRunsPoller.updateRuns(List.of(submittedToCromwellRun), mockToken);
+
+    verify(cromwellService).runSummary(submittedRunEngineId);
+    // verify that Run that is in Submitted status in Cromwell is marked as Initializing in CBAS
+    verify(runCompletionHandler, times(1))
+        .updateResults(eq(submittedToCromwellRun), eq(INITIALIZING), any(), any(), any(), any());
     assertEquals(1, actual.updatedList().size());
   }
 
