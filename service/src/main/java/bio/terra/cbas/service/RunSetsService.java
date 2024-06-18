@@ -257,8 +257,10 @@ public class RunSetsService {
             "wds_fetch_records_timer",
             "run_set_id",
             runSet.runSetId().toString(),
-            "input_definition",
-            runSet.inputDefinition()));
+            "recordResponses",
+            recordResponses.toString(),
+            "recordIdsWithError",
+            recordIdsWithError.toString()));
 
     return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }
