@@ -15,6 +15,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -231,6 +232,7 @@ class TestRunSetsService {
   private UuidSource uuidSource;
   private ObjectMapper objectMapper;
   private CbasContextConfiguration cbasContextConfiguration;
+  private MicrometerMetrics micrometerMetrics;
 
   private RunSetsService mockRunSetsService;
 
@@ -246,6 +248,7 @@ class TestRunSetsService {
     uuidSource = mock(UuidSource.class);
     objectMapper = mock(ObjectMapper.class);
     cbasContextConfiguration = mock(CbasContextConfiguration.class);
+    micrometerMetrics = mock(MicrometerMetrics.class);
 
     mockRunSetsService =
         new RunSetsService(
@@ -258,7 +261,8 @@ class TestRunSetsService {
             cbasApiConfiguration,
             uuidSource,
             objectMapper,
-            cbasContextConfiguration);
+            cbasContextConfiguration,
+            micrometerMetrics);
   }
 
   @Test

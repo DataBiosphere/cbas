@@ -7,6 +7,7 @@ import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
@@ -37,6 +38,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +68,7 @@ public class RunSetsService {
   private final UuidSource uuidSource;
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
+  private final MicrometerMetrics micrometerMetrics;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -78,7 +82,8 @@ public class RunSetsService {
       CbasApiConfiguration cbasApiConfiguration,
       UuidSource uuidSource,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfiguration) {
+      CbasContextConfiguration cbasContextConfiguration,
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -89,6 +94,7 @@ public class RunSetsService {
     this.uuidSource = uuidSource;
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private record WdsRecordResponseDetails(
@@ -182,7 +188,8 @@ public class RunSetsService {
       BearerToken userToken,
       String rawMethodUrl) {
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
+    WdsRecordResponseDetails wdsRecordResponses =
+        fetchWdsRecords(wdsService, request, runSet, userToken);
 
     if (!wdsRecordResponses.recordIdsWithError.isEmpty()) {
       String errorMsg =
@@ -227,11 +234,13 @@ public class RunSetsService {
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
-      WdsService wdsService, RunSetRequest request, BearerToken userToken) {
+      WdsService wdsService, RunSetRequest request, RunSet runSet, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
+    MeterRegistry registry = micrometerMetrics.getRegistry();
+    Timer.Sample wdsFetchRecordsSample = Timer.start(registry);
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
@@ -243,6 +252,13 @@ public class RunSetsService {
         recordIdsWithError.put(recordId, e.getMessage());
       }
     }
+    wdsFetchRecordsSample.stop(
+        registry.timer(
+            "wds_fetch_records_timer",
+            "run_set_id",
+            runSet.runSetId().toString(),
+            "input_definition",
+            runSet.inputDefinition()));
 
     return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }

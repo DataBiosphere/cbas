@@ -22,4 +22,8 @@ public class MicrometerMetrics {
             .register(meterRegistry);
     counter.increment();
   }
+
+  public MeterRegistry getRegistry() {
+    return this.meterRegistry;
+  }
 }
