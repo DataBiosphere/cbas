@@ -42,7 +42,6 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.dockstore.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
@@ -73,7 +72,6 @@ public class RunSetsApiController implements RunSetsApi {
   private final HttpServletRequest httpServletRequest;
   private final RunSetsService runSetsService;
   private final MicrometerMetrics micrometerMetrics;
-  private final MeterRegistry micrometerRegistry;
 
   public RunSetsApiController(
       SamService samService,
@@ -100,7 +98,6 @@ public class RunSetsApiController implements RunSetsApi {
     this.httpServletRequest = httpServletRequest;
     this.runSetsService = runSetsService;
     this.micrometerMetrics = micrometerMetrics;
-    this.micrometerRegistry = micrometerMetrics.getRegistry();
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -156,13 +153,13 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   public void abortRequestTimerSample(Timer.Sample requestTimerSample) {
-    requestTimerSample.stop(
-        micrometerRegistry.timer(
-            "cromwell_request_to_initial_submission_timer",
-            "run_set_id",
-            "",
-            "requestSuccessful",
-            "false"));
+    micrometerMetrics.stopTimer(
+        requestTimerSample,
+        "cromwell_request_to_initial_submission_timer",
+        "run_set_id",
+        "",
+        "requestSuccessful",
+        "false");
   }
 
   @Override
@@ -175,7 +172,7 @@ public class RunSetsApiController implements RunSetsApi {
     }
 
     captureRequestMetrics(request);
-    Timer.Sample requestTimerSample = Timer.start(micrometerRegistry);
+    Timer.Sample requestTimerSample = micrometerMetrics.startTimer();
 
     // request validation
     List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);

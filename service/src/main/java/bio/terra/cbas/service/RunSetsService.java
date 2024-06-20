@@ -38,7 +38,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -69,7 +68,6 @@ public class RunSetsService {
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
   private final MicrometerMetrics micrometerMetrics;
-  private final MeterRegistry micrometerRegistry;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -96,7 +94,6 @@ public class RunSetsService {
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.micrometerMetrics = micrometerMetrics;
-    this.micrometerRegistry = micrometerMetrics.getRegistry();
   }
 
   private record WdsRecordResponseDetails(
@@ -243,7 +240,7 @@ public class RunSetsService {
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
-    Timer.Sample wdsFetchRecordsSample = Timer.start(micrometerRegistry);
+    Timer.Sample wdsFetchRecordsSample = micrometerMetrics.startTimer();
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
@@ -255,15 +252,15 @@ public class RunSetsService {
         recordIdsWithError.put(recordId, e.getMessage());
       }
     }
-    wdsFetchRecordsSample.stop(
-        micrometerRegistry.timer(
-            "wds_fetch_records_timer",
-            "run_set_id",
-            runSet.runSetId().toString(),
-            "recordResponses",
-            recordResponses.toString(),
-            "recordIdsWithError",
-            recordIdsWithError.toString()));
+    micrometerMetrics.stopTimer(
+        wdsFetchRecordsSample,
+        "wds_fetch_records_timer",
+        "run_set_id",
+        runSet.runSetId().toString(),
+        "recordResponses",
+        recordResponses.toString(),
+        "recordIdsWithError",
+        recordIdsWithError.toString());
 
     return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }
@@ -306,7 +303,7 @@ public class RunSetsService {
       ArrayList<RecordResponse> recordResponses,
       String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
-      Timer.Sample requestTimerSample,
+      Timer.Sample cromwellInitialRequestTimerSample,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
@@ -316,7 +313,7 @@ public class RunSetsService {
         cromwellService.buildWorkflowOptionsJson(
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
-    Timer.Sample cromwellSubmitRunsSample = Timer.start(micrometerRegistry);
+    Timer.Sample cromwellSubmitRunsSample = micrometerMetrics.startTimer();
     boolean batchIsFirst = true;
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
@@ -382,13 +379,13 @@ public class RunSetsService {
                 rawMethodUrl, engineIdToWorkflowInput, workflowOptionsJson, userToken);
 
         if (batchIsFirst) {
-          requestTimerSample.stop(
-              micrometerRegistry.timer(
-                  "cromwell_request_to_initial_submission_timer",
-                  "run_set_id",
-                  runSet.runSetId().toString(),
-                  "requestSuccessful",
-                  "true"));
+          micrometerMetrics.stopTimer(
+              cromwellInitialRequestTimerSample,
+              "cromwell_request_to_initial_submission_timer",
+              "run_set_id",
+              runSet.runSetId().toString(),
+              "requestSuccessful",
+              "true");
           batchIsFirst = false;
         }
 
@@ -417,13 +414,14 @@ public class RunSetsService {
                 .toList());
       }
     }
-    cromwellSubmitRunsSample.stop(
-        micrometerRegistry.timer(
-            "cromwell_submit_runs_timer",
-            "run_set_id",
-            runSet.runSetId().toString(),
-            "runStateResponseList",
-            runStateResponseList.toString()));
+    micrometerMetrics.stopTimer(
+        cromwellSubmitRunsSample,
+        "cromwell_submit_runs_timer",
+        "run_set_id",
+        runSet.runSetId().toString(),
+        "runStateResponseList",
+        runStateResponseList.toString());
+
     return runStateResponseList;
   }
 }

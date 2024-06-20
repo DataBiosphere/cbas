@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -325,6 +326,7 @@ class TestRunSetsApiController {
   @Mock private LeonardoService leonardoService;
   @Mock private AppUtils appUtils;
   @MockBean private RunSetsService runSetsService;
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;
