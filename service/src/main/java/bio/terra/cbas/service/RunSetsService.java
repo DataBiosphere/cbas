@@ -204,7 +204,7 @@ public class RunSetsService {
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
     List<RunStateResponse> runStateResponseList =
-        buildInputsAndSubmitRun(
+        buildInputsAndSubmitRunSet(
             cromwellService,
             request,
             runSet,
@@ -296,7 +296,7 @@ public class RunSetsService {
         runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
-  private List<RunStateResponse> buildInputsAndSubmitRun(
+  private List<RunStateResponse> buildInputsAndSubmitRunSet(
       CromwellService cromwellService,
       RunSetRequest request,
       RunSet runSet,
