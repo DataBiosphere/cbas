@@ -188,7 +188,8 @@ public class RunSetsService {
       RunSet runSet,
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
-      String rawMethodUrl) {
+      String rawMethodUrl,
+      Timer.Sample requestTimerSample) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses =
         fetchWdsRecords(wdsService, request, runSet, userToken);
@@ -213,6 +214,7 @@ public class RunSetsService {
             wdsRecordResponses.recordResponseList,
             rawMethodUrl,
             recordIdToRunIdMapping,
+            requestTimerSample,
             userToken);
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
@@ -304,6 +306,7 @@ public class RunSetsService {
       ArrayList<RecordResponse> recordResponses,
       String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
+      Timer.Sample requestTimerSample,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
 
@@ -314,6 +317,7 @@ public class RunSetsService {
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
     Timer.Sample cromwellSubmitRunsSample = Timer.start(micrometerRegistry);
+    boolean batchIsFirst = true;
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
@@ -376,6 +380,17 @@ public class RunSetsService {
         List<WorkflowIdAndStatus> submitWorkflowBatchResponse =
             cromwellService.submitWorkflowBatch(
                 rawMethodUrl, engineIdToWorkflowInput, workflowOptionsJson, userToken);
+
+        if (batchIsFirst) {
+          requestTimerSample.stop(
+              micrometerRegistry.timer(
+                  "cromwell_request_to_initial_submission_timer",
+                  "run_set_id",
+                  runSet.runSetId().toString(),
+                  "requestSuccessful",
+                  "true"));
+          batchIsFirst = false;
+        }
 
         runStateResponseList.addAll(
             submitWorkflowBatchResponse.stream()

@@ -285,7 +285,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(engineId1).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, null);
 
     // verify that Runs were set to Initializing state
     verify(runDao)
@@ -318,7 +318,7 @@ class TestRunSetsService {
         .thenReturn(List.of(run1, run2));
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, null);
 
     // verify that both Runs were set to Error state with correct error message
     verify(runDao)
@@ -368,7 +368,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, null);
 
     // verify Runs were set to Error state
     verify(runDao)
@@ -412,7 +412,7 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl);
+        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, null);
 
     // verify that Run 1 was set to Error state
     verify(runDao)

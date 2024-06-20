@@ -511,6 +511,7 @@ class TestRunSetsApiController {
             runSetArgumentCaptor.capture(),
             recordIdMappingArgumentCaptor.capture(),
             any(),
+            any(),
             any());
     assertEquals("mock-run-set", runSetRequestArgumentCaptor.getValue().getRunSetName());
     assertEquals(3, runSetRequestArgumentCaptor.getValue().getWdsRecords().getRecordIds().size());
@@ -556,7 +557,8 @@ class TestRunSetsApiController {
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
 
     // verify that async method wasn't triggered
-    verify(runSetsService, never()).triggerWorkflowSubmission(any(), any(), any(), any(), any());
+    verify(runSetsService, never())
+        .triggerWorkflowSubmission(any(), any(), any(), any(), any(), any());
 
     assertNotNull(response);
     assertEquals(
@@ -589,7 +591,8 @@ class TestRunSetsApiController {
             .andReturn();
 
     // verify that async method wasn't triggered
-    verify(runSetsService, never()).triggerWorkflowSubmission(any(), any(), any(), any(), any());
+    verify(runSetsService, never())
+        .triggerWorkflowSubmission(any(), any(), any(), any(), any(), any());
 
     // Validate that the response can be parsed as a valid RunSetStateResponse:
     RunSetStateResponse response =
