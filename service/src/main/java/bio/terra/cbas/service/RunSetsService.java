@@ -69,6 +69,7 @@ public class RunSetsService {
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
   private final MicrometerMetrics micrometerMetrics;
+  private final MeterRegistry micrometerRegistry;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -95,6 +96,7 @@ public class RunSetsService {
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.micrometerMetrics = micrometerMetrics;
+    this.micrometerRegistry = micrometerMetrics.getRegistry();
   }
 
   private record WdsRecordResponseDetails(
@@ -239,8 +241,7 @@ public class RunSetsService {
 
     ArrayList<RecordResponse> recordResponses = new ArrayList<>();
     HashMap<String, String> recordIdsWithError = new HashMap<>();
-    MeterRegistry registry = micrometerMetrics.getRegistry();
-    Timer.Sample wdsFetchRecordsSample = Timer.start(registry);
+    Timer.Sample wdsFetchRecordsSample = Timer.start(micrometerRegistry);
     for (String recordId : request.getWdsRecords().getRecordIds()) {
       try {
         recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
@@ -253,7 +254,7 @@ public class RunSetsService {
       }
     }
     wdsFetchRecordsSample.stop(
-        registry.timer(
+        micrometerRegistry.timer(
             "wds_fetch_records_timer",
             "run_set_id",
             runSet.runSetId().toString(),
@@ -312,6 +313,7 @@ public class RunSetsService {
         cromwellService.buildWorkflowOptionsJson(
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
+    Timer.Sample cromwellSubmitRunsSample = Timer.start(micrometerRegistry);
     for (List<RecordResponse> batch :
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
 
@@ -400,7 +402,13 @@ public class RunSetsService {
                 .toList());
       }
     }
-
+    cromwellSubmitRunsSample.stop(
+        micrometerRegistry.timer(
+            "cromwell_submit_runs_timer",
+            "run_set_id",
+            runSet.runSetId().toString(),
+            "runStateResponseList",
+            runStateResponseList.toString()));
     return runStateResponseList;
   }
 }
