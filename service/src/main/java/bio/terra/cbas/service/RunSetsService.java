@@ -314,10 +314,10 @@ public class RunSetsService {
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
     Timer.Sample cromwellSubmitRunsSample = micrometerMetrics.startTimer();
-    boolean batchIsFirst = true;
-    for (List<RecordResponse> batch :
-        Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
-
+    List<List<RecordResponse>> batches =
+        Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch());
+    for (int batchIdx = 0; batchIdx < batches.size(); batchIdx += 1) {
+      List<RecordResponse> batch = batches.get(batchIdx);
       // create a mapping from Engine ID -> class RunAndRecordDetails[Run ID, Record Response]
       Map<UUID, RunAndRecordDetails> engineIdToRunAndRecordMapping =
           batch.stream()
@@ -378,7 +378,7 @@ public class RunSetsService {
             cromwellService.submitWorkflowBatch(
                 rawMethodUrl, engineIdToWorkflowInput, workflowOptionsJson, userToken);
 
-        if (batchIsFirst) {
+        if (batchIdx == 0) {
           micrometerMetrics.stopTimer(
               cromwellInitialRequestTimerSample,
               "cromwell_request_to_initial_submission_timer",
@@ -386,7 +386,15 @@ public class RunSetsService {
               runSet.runSetId().toString(),
               "requestSuccessful",
               "true");
-          batchIsFirst = false;
+        }
+        if (batchIdx == batches.size() - 1) {
+          micrometerMetrics.stopTimer(
+              cromwellInitialRequestTimerSample,
+              "cromwell_request_to_final_submission_timer",
+              "run_set_id",
+              runSet.runSetId().toString(),
+              "requestSuccessful",
+              "true");
         }
 
         runStateResponseList.addAll(

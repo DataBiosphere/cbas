@@ -24,10 +24,6 @@ public class MicrometerMetrics {
     counter.increment();
   }
 
-  public MeterRegistry getRegistry() {
-    return this.meterRegistry;
-  }
-
   public Timer.Sample startTimer() {
     return Timer.start(meterRegistry);
   }
