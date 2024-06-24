@@ -243,8 +243,8 @@ public class RunSetsApiController implements RunSetsApi {
         recordIdToRunIdMapping,
         userToken,
         resolvedMethodUrl,
-        requestTimerSample,
-        methodVersion);
+        methodVersion,
+        requestTimerSample);
 
     captureResponseMetrics(response);
     // Return the result

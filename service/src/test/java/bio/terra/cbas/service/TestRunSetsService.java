@@ -297,8 +297,8 @@ class TestRunSetsService {
         recordIdToRunIdMapping,
         mockToken,
         mockWorkflowUrl,
-        null,
-        methodVersion);
+        methodVersion,
+        null);
 
     // verify that Runs were set to Initializing state
     verify(runDao)
@@ -342,8 +342,8 @@ class TestRunSetsService {
         recordIdToRunIdMapping,
         mockToken,
         mockWorkflowUrl,
-        null,
-        methodVersion);
+        methodVersion,
+        null);
 
     // verify that both Runs were set to Error state with correct error message
     verify(runDao)
@@ -399,8 +399,8 @@ class TestRunSetsService {
         recordIdToRunIdMapping,
         mockToken,
         mockWorkflowUrl,
-        null,
-        methodVersion);
+        methodVersion,
+        null);
 
     // verify Runs were set to Error state
     verify(runDao)
@@ -449,8 +449,8 @@ class TestRunSetsService {
         recordIdToRunIdMapping,
         mockToken,
         mockWorkflowUrl,
-        null,
-        methodVersion);
+        methodVersion,
+        null);
 
     // verify that Run 1 was set to Error state
     verify(runDao)

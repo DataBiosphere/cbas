@@ -193,8 +193,8 @@ public class RunSetsService {
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
       String rawMethodUrl,
-      Timer.Sample requestTimerSample,
-      MethodVersion methodVersion) {
+      MethodVersion methodVersion,
+      Timer.Sample requestTimerSample) {
     // Fetch WDS Records and keep track of errors while retrieving records
     WdsRecordResponseDetails wdsRecordResponses =
         fetchWdsRecords(wdsService, request, runSet, userToken);
