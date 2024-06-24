@@ -257,10 +257,15 @@ public class RunSetsService {
         "wds_fetch_records_timer",
         "run_set_id",
         runSet.runSetId().toString(),
-        "recordIds",
-        request.getWdsRecords().getRecordIds().toString(),
-        "recordIdsWithError",
-        recordIdsWithError.toString());
+        "total_records_requested",
+        "%s".formatted(request.getWdsRecords().getRecordIds().size()),
+        "failed_record_requests",
+        "%s".formatted(recordIdsWithError.size()),
+        "failure_rate",
+        "%s"
+            .formatted(
+                (double) recordIdsWithError.size()
+                    / request.getWdsRecords().getRecordIds().size()));
 
     return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
   }
@@ -385,9 +390,7 @@ public class RunSetsService {
               cromwellInitialRequestTimerSample,
               "cromwell_request_to_initial_submission_timer",
               "run_set_id",
-              runSet.runSetId().toString(),
-              "requestSuccessful",
-              "true");
+              runSet.runSetId().toString());
         }
         if (batchIdx == batches.size() - 1) {
           // record the time between the initial POST run set request
@@ -396,9 +399,7 @@ public class RunSetsService {
               cromwellInitialRequestTimerSample,
               "cromwell_request_to_final_submission_timer",
               "run_set_id",
-              runSet.runSetId().toString(),
-              "requestSuccessful",
-              "true");
+              runSet.runSetId().toString());
         }
 
         runStateResponseList.addAll(

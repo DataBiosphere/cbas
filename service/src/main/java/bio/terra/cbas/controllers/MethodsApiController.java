@@ -583,7 +583,7 @@ public class MethodsApiController implements MethodsApi {
         .description(methodVersion.description())
         .created(DateUtils.convertToDate(methodVersion.created()))
         .lastRun(initializeLastRunDetails(methodVersion.lastRunSetId()))
-        .url(methodVersion.url())
+        .url(methodVersion.url()) // getSubmissionUrl(methodVersion, dockstoreService)
         .branchOrTagName(methodVersion.branchOrTagName());
   }
 

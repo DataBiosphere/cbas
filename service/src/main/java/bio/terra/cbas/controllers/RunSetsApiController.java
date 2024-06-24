@@ -152,16 +152,6 @@ public class RunSetsApiController implements RunSetsApi {
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
 
-  public void abortRequestTimerSample(Timer.Sample requestTimerSample) {
-    micrometerMetrics.stopTimer(
-        requestTimerSample,
-        "cromwell_request_to_initial_submission_timer",
-        "run_set_id",
-        "",
-        "requestSuccessful",
-        "false");
-  }
-
   @Override
   public ResponseEntity<RunSetStateResponse> postRunSet(RunSetRequest request) {
     // extract bearer token from request to pass down to API calls
@@ -179,7 +169,6 @@ public class RunSetsApiController implements RunSetsApi {
     if (!requestErrors.isEmpty()) {
       String errorMsg = "Bad user request. Error(s): " + requestErrors;
       log.warn(errorMsg);
-      abortRequestTimerSample(requestTimerSample);
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
@@ -201,7 +190,6 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg =
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
-      abortRequestTimerSample(requestTimerSample);
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -214,7 +202,6 @@ public class RunSetsApiController implements RunSetsApi {
       runSet = runSetsService.registerRunSet(request, user, methodVersion);
     } catch (JsonProcessingException | RunSetCreationException e) {
       log.warn("Failed to record run set to database", e);
-      abortRequestTimerSample(requestTimerSample);
       return new ResponseEntity<>(
           new RunSetStateResponse()
               .errors("Failed to register submission request. Error(s): " + e.getMessage()),
@@ -235,7 +222,6 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg =
           "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
       log.error(errorMsg, e);
-      abortRequestTimerSample(requestTimerSample);
       return new ResponseEntity<>(
           new RunSetStateResponse()
               .errors("Failed to register submission request. Error(s): " + e.getMessage()),
