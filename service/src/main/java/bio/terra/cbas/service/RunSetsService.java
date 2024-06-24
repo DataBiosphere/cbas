@@ -379,6 +379,8 @@ public class RunSetsService {
                 rawMethodUrl, engineIdToWorkflowInput, workflowOptionsJson, userToken);
 
         if (batchIdx == 0) {
+          // record the time between the initial POST run set request
+          // and the successful submission of the *first* batch of workflows in the run set.
           micrometerMetrics.stopTimer(
               cromwellInitialRequestTimerSample,
               "cromwell_request_to_initial_submission_timer",
@@ -388,6 +390,8 @@ public class RunSetsService {
               "true");
         }
         if (batchIdx == batches.size() - 1) {
+          // record the time between the initial POST run set request
+          // and the successful submission of the *last* batch of workflows in the run set.
           micrometerMetrics.stopTimer(
               cromwellInitialRequestTimerSample,
               "cromwell_request_to_final_submission_timer",
