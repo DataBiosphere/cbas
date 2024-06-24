@@ -2,11 +2,14 @@ package bio.terra.cbas.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
+import bio.terra.cbas.common.exceptions.MethodNotFoundException;
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.Method;
@@ -16,10 +19,10 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DuplicateKeyException;
 
 class TestMethodDao extends ContainerizedDatabaseTest {
 
@@ -45,7 +48,9 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           null,
           methodSource,
           workspaceId,
-          Optional.empty());
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
+
   Method method2 =
       new Method(
           methodId2,
@@ -55,7 +60,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           null,
           methodSource,
           workspaceId,
-          Optional.empty());
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
 
   Method methodWithGithubDetails =
       new Method(
@@ -67,7 +73,8 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           methodSource,
           workspaceId,
           Optional.of(
-              new GithubMethodDetails("repo", "org", "path", false, methodWithGithubDetailsId)));
+              new GithubMethodDetails("repo", "org", "path", false, methodWithGithubDetailsId)),
+          CbasMethodStatus.ACTIVE);
 
   MethodVersion methodVersion =
       new MethodVersion(
@@ -101,17 +108,10 @@ class TestMethodDao extends ContainerizedDatabaseTest {
           "user-foo",
           workspaceId);
 
-  @BeforeEach
-  void init() {
-    int recordsCreated1 = methodDao.createMethod(method1);
-    int recordsCreated2 = methodDao.createMethod(method2);
-
-    assertEquals(1, recordsCreated1);
-    assertEquals(1, recordsCreated2);
-  }
-
   @Test
   void retrievesSingleMethod() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
     Method actual = methodDao.getMethod(methodId1);
 
     /*
@@ -128,6 +128,12 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void retrievesAllMethods() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    int recordsCreated2 = methodDao.createMethod(method2);
+
+    assertEquals(1, recordsCreated1);
+    assertEquals(1, recordsCreated2);
+
     List<Method> allMethods = methodDao.getMethods();
     assertEquals(2, allMethods.size());
 
@@ -141,6 +147,9 @@ class TestMethodDao extends ContainerizedDatabaseTest {
 
   @Test
   void unsetLastRunSetId() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+
     methodVersionDao.createMethodVersion(methodVersion);
     runSetDao.createRunSet(runSet);
     methodDao.updateLastRunWithRunSet(runSet);
@@ -167,5 +176,76 @@ class TestMethodDao extends ContainerizedDatabaseTest {
     assertEquals("org", actual.githubMethodDetails().get().organization());
     assertEquals("path", actual.githubMethodDetails().get().path());
     assertEquals(false, actual.githubMethodDetails().get().isPrivate());
+  }
+
+  @Test
+  void countMethods() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+    int recordsCreated2 = methodDao.createMethod(method2);
+    assertEquals(1, recordsCreated2);
+
+    int methodVersionCreated = methodVersionDao.createMethodVersion(methodVersion);
+    assertEquals(1, methodVersionCreated);
+
+    int methodCount = methodDao.countMethods(method1.name(), methodVersion.name());
+    assertEquals(1, methodCount);
+  }
+  ;
+
+  @Test
+  void archiveMethod() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+
+    List<Method> allMethods = methodDao.getMethods();
+    assertEquals(1, allMethods.size());
+
+    methodDao.archiveMethod(method1.methodId());
+    List<Method> remainingMethods = methodDao.getMethods();
+    assertEquals(0, remainingMethods.size());
+  }
+
+  @Test
+  void getArchivedMethodFails() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+    UUID createdMethodId = method1.methodId();
+    assertThrows(MethodNotFoundException.class, () -> methodDao.getMethod(createdMethodId));
+  }
+
+  @Test
+  void recreateArchivedMethodWithIdenticalIdFails() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+
+    assertThrows(DuplicateKeyException.class, () -> methodDao.createMethod(method1));
+  }
+
+  @Test
+  void recreateArchivedMethodWithIdenticalNameSucceeds() {
+    int recordsCreated1 = methodDao.createMethod(method1);
+    assertEquals(1, recordsCreated1);
+    int recordArchived = methodDao.archiveMethod(method1.methodId());
+    assertEquals(1, recordArchived);
+
+    Method methodWithIdenticalName =
+        new Method(
+            UUID.randomUUID(),
+            methodName,
+            methodDesc,
+            DateUtils.currentTimeInUTC(),
+            null,
+            methodSource,
+            workspaceId,
+            Optional.empty(),
+            CbasMethodStatus.ACTIVE);
+
+    int methodCreationSucceeds = methodDao.createMethod(methodWithIdenticalName);
+    assertEquals(1, methodCreationSucceeds);
   }
 }

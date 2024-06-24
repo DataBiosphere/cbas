@@ -14,6 +14,35 @@ public record Run(
     OffsetDateTime lastPolledTimestamp,
     String errorMessages) {
 
+  public static String truncatedErrorMessage(String errorMessage) {
+    int maxChars = 1000;
+    if (errorMessage == null) {
+      return null;
+    }
+    return errorMessage.substring(0, Math.min(errorMessage.length(), maxChars));
+  }
+
+  public Run(
+      UUID runId,
+      String engineId,
+      RunSet runSet,
+      String recordId,
+      OffsetDateTime submissionTimestamp,
+      CbasRunStatus status,
+      OffsetDateTime lastModifiedTimestamp,
+      OffsetDateTime lastPolledTimestamp,
+      String errorMessages) {
+    this.runId = runId;
+    this.engineId = engineId;
+    this.runSet = runSet;
+    this.recordId = recordId;
+    this.submissionTimestamp = submissionTimestamp;
+    this.status = status;
+    this.lastModifiedTimestamp = lastModifiedTimestamp;
+    this.lastPolledTimestamp = lastPolledTimestamp;
+    this.errorMessages = truncatedErrorMessage(errorMessages);
+  }
+
   // Corresponding table column names in database
   public static final String RUN_ID_COL = "run_id";
   public static final String RUN_SET_ID_COL = "run_set_id";
@@ -55,19 +84,6 @@ public record Run(
         errorMessages);
   }
 
-  public Run withErrorMessage(String message) {
-    return new Run(
-        runId,
-        engineId,
-        runSet,
-        recordId,
-        submissionTimestamp,
-        status,
-        lastModifiedTimestamp,
-        lastPolledTimestamp,
-        message);
-  }
-
   public Run withLastModified(OffsetDateTime newLastModifiedTimestamp) {
     return new Run(
         runId,
@@ -104,6 +120,6 @@ public record Run(
         status,
         lastModifiedTimestamp,
         lastPolledTimestamp,
-        newErrorMessages);
+        truncatedErrorMessage(newErrorMessages));
   }
 }

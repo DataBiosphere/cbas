@@ -11,6 +11,7 @@ import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dependencies.wds.WdsService;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
@@ -86,7 +87,8 @@ class TestRunCompletionHandlerUnit {
                   runSetId,
                   "method source",
                   workspaceId,
-                  Optional.empty()),
+                  Optional.empty(),
+                  CbasMethodStatus.ACTIVE),
               "version name",
               "version description",
               methodCreatedTime,
@@ -124,7 +126,8 @@ class TestRunCompletionHandlerUnit {
                   runSetId,
                   "method source",
                   workspaceId,
-                  Optional.empty()),
+                  Optional.empty(),
+                  CbasMethodStatus.ACTIVE),
               "version name",
               "version description",
               methodCreatedTime,

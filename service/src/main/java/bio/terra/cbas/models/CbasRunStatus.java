@@ -75,7 +75,7 @@ public enum CbasRunStatus {
 
   public static CbasRunStatus fromCromwellStatus(String status) {
     return switch (status) {
-      case "Submitted" -> CbasRunStatus.QUEUED;
+      case "Submitted" -> CbasRunStatus.INITIALIZING;
       case "Running" -> CbasRunStatus.RUNNING;
       case "Aborting" -> CbasRunStatus.CANCELING;
       case "Aborted" -> CbasRunStatus.CANCELED;

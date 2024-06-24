@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import bio.terra.cbas.dao.util.ContainerizedDatabaseTest;
+import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
@@ -20,6 +21,8 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class TestRunDao extends ContainerizedDatabaseTest {
@@ -39,7 +42,8 @@ class TestRunDao extends ContainerizedDatabaseTest {
           null,
           "Github",
           workspaceId,
-          Optional.empty());
+          Optional.empty(),
+          CbasMethodStatus.ACTIVE);
 
   String methodVersionGithash = "abcd123";
   UUID methodVersionId = UUID.randomUUID();
@@ -197,5 +201,71 @@ class TestRunDao extends ContainerizedDatabaseTest {
   void getRunByEngineIdIfExistsNullEngineIdNotFound() {
     List<Run> result = runDao.getRuns(new RunDao.RunsFilters(null, null, null));
     assertEquals(Collections.emptyList(), result);
+  }
+
+  @ParameterizedTest()
+  @ValueSource(ints = {5, 100, 1000, 10000, 1000000})
+  void safelyTruncatesLongErrorMessagesForInitialStorage(int length) {
+    String longErrorMessage = "a".repeat(length);
+    Run runWithLongErrorMessage1 =
+        new Run(
+            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
+            runSet,
+            null,
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+            CbasRunStatus.INITIALIZING,
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+            OffsetDateTime.parse("2023-01-27T19:21:24.563932Z"),
+            longErrorMessage);
+
+    Run runWithLongErrorMessage2 = run.withErrorMessages(longErrorMessage);
+
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(runWithLongErrorMessage1);
+      runDao.createRun(runWithLongErrorMessage2);
+
+      List<Run> result = runDao.getRuns(new RunDao.RunsFilters(null, null, null));
+      assertNotNull(result);
+      assertEquals(2, (long) result.size());
+    } finally {
+      try {
+        int runsDeleted = runDao.deleteRun(runWithLongErrorMessage1.runId());
+        runsDeleted += runDao.deleteRun(runWithLongErrorMessage2.runId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
+
+        assertEquals(2, runsDeleted);
+        assertEquals(1, runSetsDeleted);
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
+  }
+
+  @ParameterizedTest()
+  @ValueSource(ints = {5, 100, 1000, 10000, 1000000})
+  void safelyTruncatesLongErrorMessagesDuringUpdate(int length) {
+    String longErrorMessage = "a".repeat(length);
+
+    try {
+      runSetDao.createRunSet(runSet);
+      runDao.createRun(run);
+      int updated =
+          runDao.updateRunStatusWithError(
+              run.runId(), CbasRunStatus.SYSTEM_ERROR, OffsetDateTime.now(), longErrorMessage);
+
+      assertEquals(1, updated);
+    } finally {
+      try {
+        int runsDeleted = runDao.deleteRun(run.runId());
+        int runSetsDeleted = runSetDao.deleteRunSet(runSet.runSetId());
+
+        assertEquals(1, runsDeleted);
+        assertEquals(1, runSetsDeleted);
+      } catch (Exception ex) {
+        fail("Failure while removing test run from a database", ex);
+      }
+    }
   }
 }

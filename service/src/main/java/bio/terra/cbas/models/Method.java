@@ -12,7 +12,8 @@ public record Method(
     UUID lastRunSetId,
     String methodSource,
     UUID originalWorkspaceId,
-    Optional<GithubMethodDetails> githubMethodDetails) {
+    Optional<GithubMethodDetails> githubMethodDetails,
+    CbasMethodStatus methodStatus) {
 
   // Corresponding table column names in database
   public static final String METHOD_ID_COL = "method_id";
@@ -22,9 +23,10 @@ public record Method(
   public static final String LAST_RUN_SET_ID_COL = "last_run_set_id";
   public static final String METHOD_SOURCE_COL = "method_source";
   public static final String ORIGINAL_WORKSPACE_ID_COL = "method_original_workspace_id";
+  public static final String METHOD_STATUS_COL = "method_status";
 
-  public UUID getOriginalWorkspaceId() {
-    return originalWorkspaceId;
+  public CbasMethodStatus getMethodStatus() {
+    return methodStatus;
   }
 
   public Method withGithubMethodDetails(GithubMethodDetails githubMethodDetails) {
@@ -36,6 +38,7 @@ public record Method(
         lastRunSetId,
         methodSource,
         originalWorkspaceId,
-        Optional.ofNullable(githubMethodDetails));
+        Optional.ofNullable(githubMethodDetails),
+        CbasMethodStatus.ACTIVE);
   }
 }
