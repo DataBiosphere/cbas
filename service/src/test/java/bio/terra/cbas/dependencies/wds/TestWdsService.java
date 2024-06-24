@@ -135,6 +135,24 @@ class TestWdsService {
     assertFalse(wdsService.useSearchByIdsFilter(new BearerToken("token")));
   }
 
+  @Test
+  void shouldNotUseSearchFilterIfFalse() throws Exception {
+    Capabilities capabilities =
+        new Capabilities()
+            .capabilities(true)
+            .putAdditionalProperty("dataimport.pfb", true)
+            .putAdditionalProperty("search.filter.ids", false);
+    WdsClient wdsClient = mock(WdsClient.class);
+    CapabilitiesApi capabilitiesApi = mock(CapabilitiesApi.class);
+
+    when(wdsClient.capabilitiesApi(any())).thenReturn(capabilitiesApi);
+    when(capabilitiesApi.capabilities()).thenReturn(capabilities);
+
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
+
+    assertFalse(wdsService.useSearchByIdsFilter(new BearerToken("token")));
+  }
+
   record BatchTestCase(
       List<String> requestedIds,
       Integer wdsBatchSize,

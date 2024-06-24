@@ -28,6 +28,7 @@ public class WdsService {
   private final RetryTemplate listenerResetRetryTemplate;
 
   private static final Logger logger = LoggerFactory.getLogger(WdsService.class);
+  private static final String SEARCH_ID_FILTER = "search.filter.ids";
 
   public record WdsRecordResponseDetails(
       List<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {
@@ -94,7 +95,9 @@ public class WdsService {
       Map<String, Object> additionalProperties =
           wdsAppInstanceCapabilities.getAdditionalProperties();
 
-      return additionalProperties != null && additionalProperties.containsKey("search.filter.ids");
+      return additionalProperties != null
+          && additionalProperties.containsKey(SEARCH_ID_FILTER)
+          && additionalProperties.get(SEARCH_ID_FILTER).equals(true);
     } catch (WdsServiceException e) {
       logger.warn(
           "Failed to get capabilities of WDS app instance. Error: %s".formatted(e.getMessage()), e);
