@@ -15,10 +15,17 @@ public class MicrometerMetrics {
     this.meterRegistry = meterRegistry;
   }
 
-  public void logRunCompletion(String completionTrigger, CbasRunStatus resultsStatus) {
+  public void logRunCallback(CbasRunStatus resultsStatus) {
     Counter counter =
-        Counter.builder("run_completion")
-            .tag("completion_trigger", completionTrigger)
+        Counter.builder("run_callback")
+            .tag("status", resultsStatus.toString())
+            .register(meterRegistry);
+    counter.increment();
+  }
+
+  public void logRunStatusUpdate(CbasRunStatus resultsStatus) {
+    Counter counter =
+        Counter.builder("run_smartpoller_update")
             .tag("status", resultsStatus.toString())
             .register(meterRegistry);
     counter.increment();
