@@ -15,6 +15,7 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import au.com.dius.pact.provider.spring.junit5.PactVerificationSpringProvider;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
+import bio.terra.cbas.config.BardServerConfiguration;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.controllers.GlobalExceptionHandler;
@@ -25,6 +26,8 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
+import bio.terra.cbas.dependencies.bard.BardClient;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.github.GitHubService;
@@ -119,6 +122,9 @@ class VerifyPactsAllControllers {
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private RunSetsService runSetsService;
   @MockBean private MethodService methodService;
+  @MockBean private BardService bardService;
+  @MockBean private BardClient bardClient;
+  @MockBean private BardServerConfiguration bardServerConfiguration;
 
   // This mockMVC is what we use to test API requests and responses:
   @Autowired private MockMvc mockMvc;

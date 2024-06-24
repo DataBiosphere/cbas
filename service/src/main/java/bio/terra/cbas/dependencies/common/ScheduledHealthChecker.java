@@ -1,9 +1,12 @@
 package bio.terra.cbas.dependencies.common;
 
+import bio.terra.cbas.config.BardServerConfiguration;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.ecm.EcmService;
 import bio.terra.cbas.dependencies.leonardo.LeonardoService;
 import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
@@ -30,14 +33,20 @@ public class ScheduledHealthChecker {
       CromwellService cromwellService,
       LeonardoService leonardoService,
       SamService samService,
-      EcmService ecmService) {
+      EcmService ecmService,
+      BardService bardService,
+      BardServerConfiguration bardServerConfiguration) {
     this.healthCheckStatuses = new ConcurrentHashMap<>();
     this.healthCheckSystems =
-        Map.of(
-            "leonardo", leonardoService,
-            "sam", samService,
-            "cromwell", cromwellService,
-            "ecm", ecmService);
+        new HashMap<>(
+            Map.of(
+                "leonardo", leonardoService,
+                "sam", samService,
+                "cromwell", cromwellService,
+                "ecm", ecmService));
+    if (bardServerConfiguration.enabled().equals(Boolean.TRUE)) {
+      this.healthCheckSystems.put("bard", bardService);
+    }
   }
 
   @Scheduled(
