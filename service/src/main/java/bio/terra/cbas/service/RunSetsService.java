@@ -257,8 +257,8 @@ public class RunSetsService {
         "wds_fetch_records_timer",
         "run_set_id",
         runSet.runSetId().toString(),
-        "recordResponses",
-        recordResponses.toString(),
+        "recordIds",
+        request.getWdsRecords().getRecordIds().toString(),
         "recordIdsWithError",
         recordIdsWithError.toString());
 
