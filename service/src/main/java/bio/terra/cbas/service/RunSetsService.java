@@ -319,7 +319,7 @@ public class RunSetsService {
       ArrayList<RecordResponse> recordResponses,
       String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
-      Timer.Sample cromwellInitialRequestTimerSample,
+      Timer.Sample cromwellRequestTimerSample,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
     ArrayList<String> successfullyInitializedWorkflowIds = new ArrayList<>();
@@ -398,7 +398,7 @@ public class RunSetsService {
           // record the time between the initial POST run set request
           // and the successful submission of the *first* batch of workflows in the run set.
           micrometerMetrics.stopTimer(
-              cromwellInitialRequestTimerSample,
+              cromwellRequestTimerSample,
               "cromwell_request_to_initial_submission_timer",
               "run_set_id",
               runSet.runSetId().toString());
@@ -407,7 +407,7 @@ public class RunSetsService {
           // record the time between the initial POST run set request
           // and the successful submission of the *last* batch of workflows in the run set.
           micrometerMetrics.stopTimer(
-              cromwellInitialRequestTimerSample,
+              cromwellRequestTimerSample,
               "cromwell_request_to_final_submission_timer",
               "run_set_id",
               runSet.runSetId().toString());
