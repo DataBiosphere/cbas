@@ -233,10 +233,9 @@ public class RunSetsApiController implements RunSetsApi {
 
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
-        request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl);
+        request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl, methodVersion);
 
     captureResponseMetrics(response);
-
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
