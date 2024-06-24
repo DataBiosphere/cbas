@@ -6,6 +6,7 @@ import bio.terra.cbas.dependencies.common.DependencyUrlLoader;
 import bio.terra.common.iam.BearerToken;
 import java.util.Optional;
 import okhttp3.OkHttpClient;
+import org.databiosphere.workspacedata.api.CapabilitiesApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiClient;
 import org.springframework.stereotype.Component;
@@ -50,5 +51,9 @@ public class WdsClient {
 
   RecordsApi recordsApi(BearerToken userToken) throws DependencyNotAvailableException {
     return new RecordsApi(getApiClient(userToken));
+  }
+
+  CapabilitiesApi capabilitiesApi(BearerToken userToken) {
+    return new CapabilitiesApi(getApiClient(userToken));
   }
 }

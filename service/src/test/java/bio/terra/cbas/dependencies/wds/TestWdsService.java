@@ -1,7 +1,9 @@
 package bio.terra.cbas.dependencies.wds;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -15,8 +17,10 @@ import jakarta.ws.rs.ProcessingException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.databiosphere.workspacedata.api.CapabilitiesApi;
 import org.databiosphere.workspacedata.api.RecordsApi;
 import org.databiosphere.workspacedata.client.ApiException;
+import org.databiosphere.workspacedata.model.Capabilities;
 import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.databiosphere.workspacedata.model.RecordQueryResponse;
 import org.databiosphere.workspacedata.model.RecordResponse;
@@ -98,6 +102,39 @@ class TestWdsService {
     assertThrows(RuntimeException.class, () -> wdsService.getRecord("FOO", "foo1", bearerToken));
   }
 
+  @Test
+  void shouldUseNewSearchFilter() throws Exception {
+    Capabilities capabilities =
+        new Capabilities()
+            .capabilities(true)
+            .putAdditionalProperty("dataimport.pfb", true)
+            .putAdditionalProperty("search.filter.ids", true);
+    WdsClient wdsClient = mock(WdsClient.class);
+    CapabilitiesApi capabilitiesApi = mock(CapabilitiesApi.class);
+
+    when(wdsClient.capabilitiesApi(any())).thenReturn(capabilitiesApi);
+    when(capabilitiesApi.capabilities()).thenReturn(capabilities);
+
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
+
+    assertTrue(wdsService.useSearchByIdsFilter(new BearerToken("token")));
+  }
+
+  @Test
+  void shouldNotUseSearchFilter() throws Exception {
+    Capabilities capabilities =
+        new Capabilities().capabilities(true).putAdditionalProperty("dataimport.pfb", true);
+    WdsClient wdsClient = mock(WdsClient.class);
+    CapabilitiesApi capabilitiesApi = mock(CapabilitiesApi.class);
+
+    when(wdsClient.capabilitiesApi(any())).thenReturn(capabilitiesApi);
+    when(capabilitiesApi.capabilities()).thenReturn(capabilities);
+
+    WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
+
+    assertFalse(wdsService.useSearchByIdsFilter(new BearerToken("token")));
+  }
+
   record BatchTestCase(
       List<String> requestedIds,
       Integer wdsBatchSize,
@@ -166,7 +203,7 @@ class TestWdsService {
     WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
     WdsRecordResponseDetails responseDetails =
-        wdsService.getRecords("FOO", requestedIds, bearerToken);
+        wdsService.getRecordsUsingSearchFilter("FOO", requestedIds, bearerToken);
 
     assertEquals(requestedIds.size(), responseDetails.recordResponseList().size());
     assertEquals(
@@ -192,7 +229,7 @@ class TestWdsService {
     WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
     WdsRecordResponseDetails responseDetails =
-        wdsService.getRecords("FOO", requestedIds, bearerToken);
+        wdsService.getRecordsUsingSearchFilter("FOO", requestedIds, bearerToken);
 
     assertEquals(2, responseDetails.recordResponseList().size());
     assertEquals(1, responseDetails.recordIdsWithError().size());
@@ -223,7 +260,7 @@ class TestWdsService {
     WdsService wdsService = new WdsService(wdsClient, lowBatchConfig, template);
 
     WdsRecordResponseDetails responseDetails =
-        wdsService.getRecords("FOO", requestedIds, bearerToken);
+        wdsService.getRecordsUsingSearchFilter("FOO", requestedIds, bearerToken);
 
     assertEquals(2, responseDetails.recordResponseList().size());
     assertEquals(1, responseDetails.recordIdsWithError().size());
@@ -258,7 +295,7 @@ class TestWdsService {
     WdsService wdsService = new WdsService(wdsClient, wdsServerConfiguration, template);
 
     WdsRecordResponseDetails responseDetails =
-        wdsService.getRecords("FOO", requestedIds, bearerToken);
+        wdsService.getRecordsUsingSearchFilter("FOO", requestedIds, bearerToken);
 
     assertEquals(3, responseDetails.recordResponseList().size());
     assertEquals(0, responseDetails.recordIdsWithError().size());

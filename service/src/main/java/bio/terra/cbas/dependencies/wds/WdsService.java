@@ -9,11 +9,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.databiosphere.workspacedata.client.ApiException;
+import org.databiosphere.workspacedata.model.Capabilities;
 import org.databiosphere.workspacedata.model.RecordQueryResponse;
 import org.databiosphere.workspacedata.model.RecordRequest;
 import org.databiosphere.workspacedata.model.RecordResponse;
 import org.databiosphere.workspacedata.model.SearchFilter;
 import org.databiosphere.workspacedata.model.SearchRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +26,8 @@ public class WdsService {
   private final WdsClient wdsClient;
   private final WdsServerConfiguration wdsServerConfiguration;
   private final RetryTemplate listenerResetRetryTemplate;
+
+  private static final Logger logger = LoggerFactory.getLogger(WdsService.class);
 
   public record WdsRecordResponseDetails(
       List<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {
@@ -78,9 +83,53 @@ public class WdsService {
         });
   }
 
+  public Capabilities getCapabilities(BearerToken userToken) throws WdsServiceException {
+    return executionWithRetryTemplate(
+        listenerResetRetryTemplate, () -> wdsClient.capabilitiesApi(userToken).capabilities());
+  }
+
+  public boolean useSearchByIdsFilter(BearerToken userToken) {
+    try {
+      Capabilities wdsAppInstanceCapabilities = getCapabilities(userToken);
+      Map<String, Object> additionalProperties =
+          wdsAppInstanceCapabilities.getAdditionalProperties();
+
+      return additionalProperties != null && additionalProperties.containsKey("search.filter.ids");
+    } catch (WdsServiceException e) {
+      logger.warn(
+          "Failed to get capabilities of WDS app instance. Error: %s".formatted(e.getMessage()), e);
+      return false;
+    }
+  }
+
   public WdsRecordResponseDetails getRecords(
       String recordType, List<String> recordIds, BearerToken userToken) {
+    if (useSearchByIdsFilter(userToken))
+      return getRecordsUsingSearchFilter(recordType, recordIds, userToken);
+    else return getRecordsSerially(recordType, recordIds, userToken);
+  }
 
+  private WdsRecordResponseDetails getRecordsSerially(
+      String recordType, List<String> recordIds, BearerToken userToken) {
+    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
+    HashMap<String, String> recordIdsWithError = new HashMap<>();
+    for (String recordId : recordIds) {
+      try {
+        recordResponses.add(getRecord(recordType, recordId, userToken));
+      } catch (WdsServiceApiException e) {
+        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
+        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
+      } catch (WdsServiceException e) {
+        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
+        recordIdsWithError.put(recordId, e.getMessage());
+      }
+    }
+
+    return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
+  }
+
+  public WdsRecordResponseDetails getRecordsUsingSearchFilter(
+      String recordType, List<String> recordIds, BearerToken userToken) {
     int batches = (recordIds.size() / wdsServerConfiguration.queryWindowSize()) + 1;
     WdsRecordResponseDetails responseDetails =
         new WdsRecordResponseDetails(new ArrayList<>(), Map.of());
@@ -112,6 +161,11 @@ public class WdsService {
               userToken);
       return interpretQueryResponse(recordIds, queryResponse);
     } catch (WdsServiceException e) {
+      logger.warn(
+          "Received error while fetching WDS records using search IDs filter. Error: %s"
+              .formatted(e.getMessage()),
+          e);
+
       Map<String, String> allRecordIdsAreErrors =
           recordIds.stream()
               .map(id -> Map.entry(id, e.getMessage()))
