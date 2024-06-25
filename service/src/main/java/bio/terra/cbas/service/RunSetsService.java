@@ -7,6 +7,7 @@ import static bio.terra.cbas.models.CbasRunStatus.QUEUED;
 import static bio.terra.cbas.models.CbasRunStatus.SYSTEM_ERROR;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.InputProcessingException;
@@ -23,6 +24,7 @@ import bio.terra.cbas.dependencies.wds.WdsServiceException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
+import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
@@ -65,6 +67,7 @@ public class RunSetsService {
   private final UuidSource uuidSource;
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
+  private final MicrometerMetrics micrometerMetrics;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -78,7 +81,8 @@ public class RunSetsService {
       CbasApiConfiguration cbasApiConfiguration,
       UuidSource uuidSource,
       ObjectMapper objectMapper,
-      CbasContextConfiguration cbasContextConfiguration) {
+      CbasContextConfiguration cbasContextConfiguration,
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -89,6 +93,7 @@ public class RunSetsService {
     this.uuidSource = uuidSource;
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private record WdsRecordResponseDetails(
@@ -224,6 +229,8 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
+
+    capturePostSubmitMetrics(runSet.runSetId(), runStateResponseList);
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
@@ -384,5 +391,14 @@ public class RunSetsService {
     }
 
     return runStateResponseList;
+  }
+
+  private void capturePostSubmitMetrics(
+      UUID runSetId, List<RunStateResponse> runStateResponseList) {
+    long successfulRunsCount =
+        runStateResponseList.stream()
+            .filter(run -> run.getState() == RunState.INITIALIZING)
+            .count();
+    micrometerMetrics.logRunsSubmittedPerRunSet(runSetId, successfulRunsCount);
   }
 }

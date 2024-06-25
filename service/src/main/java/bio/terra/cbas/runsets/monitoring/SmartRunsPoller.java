@@ -1,9 +1,5 @@
 package bio.terra.cbas.runsets.monitoring;
 
-import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
-import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
-import static bio.terra.cbas.common.MetricsUtil.recordOutboundApiRequestCompletion;
-
 import bio.terra.cbas.common.MetricsUtil;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -18,6 +14,7 @@ import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.common.iam.BearerToken;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowQueryResult;
+import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -71,8 +68,10 @@ public class SmartRunsPoller {
    */
   public UpdateResult<Run> updateRuns(
       List<Run> runs, Optional<OffsetDateTime> customEndTime, BearerToken userToken) {
-    // For metrics:
     long startTimeNs = System.nanoTime();
+
+    // For metrics:
+    Timer.Sample methodStartSample = micrometerMetrics.startTimer();
     boolean successBoolean = false;
 
     OffsetDateTime actualEndTime =
@@ -99,8 +98,9 @@ public class SmartRunsPoller {
               r -> tryUpdateRun(r, userToken),
               actualEndTime);
 
-      increaseEventCounter("run updates required", runUpdateResult.totalEligible());
-      increaseEventCounter("run updates polled", runUpdateResult.totalUpdated());
+      micrometerMetrics.increaseEventCounter(
+          "run_updates_required", runUpdateResult.totalEligible());
+      micrometerMetrics.increaseEventCounter("run_updates_polled", runUpdateResult.totalUpdated());
 
       successBoolean = true;
       logger.info(
@@ -112,23 +112,27 @@ public class SmartRunsPoller {
 
       return runUpdateResult;
     } finally {
-      recordMethodCompletion(startTimeNs, successBoolean);
+      micrometerMetrics.recordMethodCompletion(methodStartSample, successBoolean);
     }
   }
 
   private Run tryUpdateRun(Run r, BearerToken userToken) {
+    // For metrics:
+    Timer.Sample getStatusStartSample = micrometerMetrics.startTimer();
+    boolean getStatusSuccess = false;
+
     logger.info("Fetching update for run %s".formatted(r.runId()));
     // Get the new workflow summary:
-    long getStatusStartNanos = System.nanoTime();
-    boolean getStatusSuccess = false;
     WorkflowQueryResult newWorkflowSummary;
     try {
       newWorkflowSummary = cromwellService.runSummary(r.engineId());
+      getStatusSuccess = true;
     } catch (ApiException | IllegalArgumentException e) {
       logger.warn("Unable to fetch summary for run {}.", r.runId(), e);
       return r;
     } finally {
-      recordOutboundApiRequestCompletion("wes/runSummary", getStatusStartNanos, getStatusSuccess);
+      micrometerMetrics.recordOutboundApiRequestCompletion(
+          getStatusStartSample, "wes/runSummary", getStatusSuccess);
     }
 
     CbasRunStatus newStatus = CbasRunStatus.UNKNOWN;
@@ -174,8 +178,10 @@ public class SmartRunsPoller {
       OffsetDateTime engineStatusChanged,
       Run updatableRun,
       BearerToken userToken) {
-    long updateDatabaseRunStatusStartNanos = System.nanoTime();
+    // For metrics:
+    Timer.Sample methodStartSample = micrometerMetrics.startTimer();
     boolean updateDatabaseRunStatusSuccess = false;
+
     ArrayList<String> errors = new ArrayList<>();
     Object outputs = null;
 
@@ -206,7 +212,7 @@ public class SmartRunsPoller {
         }
       }
 
-      micrometerMetrics.logRunStatusUpdate(updatedRunState);
+      micrometerMetrics.recordRunStatusUpdate(updatedRunState);
 
       // Call Run Completion handler to update results
       var updateResult =
@@ -214,7 +220,7 @@ public class SmartRunsPoller {
               updatableRun, updatedRunState, outputs, errors, engineStatusChanged, userToken);
       updateDatabaseRunStatusSuccess = (updateResult == RunCompletionResult.SUCCESS);
     } finally {
-      recordMethodCompletion(updateDatabaseRunStatusStartNanos, updateDatabaseRunStatusSuccess);
+      micrometerMetrics.recordMethodCompletion(methodStartSample, updateDatabaseRunStatusSuccess);
     }
     return updatableRun;
   }

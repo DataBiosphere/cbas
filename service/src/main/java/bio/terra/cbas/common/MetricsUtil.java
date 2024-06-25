@@ -1,5 +1,7 @@
 package bio.terra.cbas.common;
 
+import static bio.terra.cbas.common.JavaMethodUtil.loggableMethodName;
+
 import io.opencensus.common.Scope;
 import io.opencensus.stats.Aggregation;
 import io.opencensus.stats.BucketBoundaries;
@@ -221,22 +223,6 @@ public final class MetricsUtil {
 
   public static void recordRunsSubmittedPerRunSet(long runsSubmitted) {
     recordTaggedStat(Map.of(), M_RUNS_SUBMITTED_SUCCESSFULLY_PER_RUN_SET, runsSubmitted);
-  }
-
-  /**
-   * Traverses the call stack to find the calling method, and generate a suitable value for the
-   * TAGKEY_NAME tag.
-   *
-   * @param extraStackDepth How many additional stack frames to go down before identifying the
-   *     method. 0 is the direct caller's method name. 1 would be the caller's caller, and so on.
-   * @return The name of the calling method.
-   */
-  public static String loggableMethodName(long extraStackDepth) {
-    StackWalker.StackFrame caller =
-        StackWalker.getInstance()
-            .walk(stream -> stream.skip(1L + extraStackDepth).findFirst().get());
-
-    return String.format("%s.%s", caller.getClassName(), caller.getMethodName());
   }
 
   public static void registerAllViews() {

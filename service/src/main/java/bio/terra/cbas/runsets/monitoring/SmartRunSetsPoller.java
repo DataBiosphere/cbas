@@ -1,9 +1,7 @@
 package bio.terra.cbas.runsets.monitoring;
 
-import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
-import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
-
 import bio.terra.cbas.common.MetricsUtil;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -14,6 +12,7 @@ import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.monitoring.TimeLimitedUpdater.UpdateResult;
 import bio.terra.common.iam.BearerToken;
+import io.micrometer.core.instrument.Timer;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,6 +31,7 @@ public class SmartRunSetsPoller {
   private final RunDao runDao;
   private final RunSetDao runSetDao;
   private final CbasApiConfiguration cbasApiConfiguration;
+  private final MicrometerMetrics micrometerMetrics;
 
   private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SmartRunSetsPoller.class);
 
@@ -39,16 +39,20 @@ public class SmartRunSetsPoller {
       SmartRunsPoller smartRunsPoller,
       RunSetDao runSetDao,
       RunDao runDao,
-      CbasApiConfiguration cbasApiConfiguration) {
+      CbasApiConfiguration cbasApiConfiguration,
+      MicrometerMetrics micrometerMetrics) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.smartRunsPoller = smartRunsPoller;
     this.cbasApiConfiguration = cbasApiConfiguration;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   public UpdateResult<RunSet> updateRunSets(List<RunSet> runSets, BearerToken userToken) {
-    // For metrics:
     long startTimeNs = System.nanoTime();
+
+    // For metrics:
+    Timer.Sample methodStartSample = micrometerMetrics.startTimer();
     boolean successBoolean = false;
 
     OffsetDateTime limitedEndTime =
@@ -64,8 +68,10 @@ public class SmartRunSetsPoller {
               rs -> updateRunSet(rs, limitedEndTime, userToken),
               limitedEndTime);
 
-      increaseEventCounter("run set updates required", runSetUpdateResult.totalEligible());
-      increaseEventCounter("run set updates polled", runSetUpdateResult.totalUpdated());
+      micrometerMetrics.increaseEventCounter(
+          "run_set_updates_required", runSetUpdateResult.totalEligible());
+      micrometerMetrics.increaseEventCounter(
+          "run_set_updates_polled", runSetUpdateResult.totalUpdated());
 
       successBoolean = true;
       logger.info(
@@ -77,15 +83,15 @@ public class SmartRunSetsPoller {
 
       return runSetUpdateResult;
     } finally {
-      recordMethodCompletion(startTimeNs, successBoolean);
+      micrometerMetrics.recordMethodCompletion(methodStartSample, successBoolean);
     }
   }
 
   private RunSet updateRunSet(RunSet rs, OffsetDateTime limitedEndTime, BearerToken userToken) {
-
     // For metrics:
-    long startTimeNs = System.nanoTime();
+    Timer.Sample methodStartSample = micrometerMetrics.startTimer();
     boolean successBoolean = false;
+
     try {
       List<Run> updateableRuns =
           runDao.getRuns(new RunDao.RunsFilters(rs.runSetId(), CbasRunStatus.NON_TERMINAL_STATES));
@@ -141,7 +147,7 @@ public class SmartRunSetsPoller {
       successBoolean = true;
       return runSetDao.getRunSet(rs.runSetId());
     } finally {
-      recordMethodCompletion(startTimeNs, successBoolean);
+      micrometerMetrics.recordMethodCompletion(methodStartSample, successBoolean);
     }
   }
 

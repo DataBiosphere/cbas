@@ -1,16 +1,13 @@
 package bio.terra.cbas.controllers;
 
 import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
-import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
-import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
-import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
-import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
 import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
 
 import bio.terra.cbas.api.RunSetsApi;
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
@@ -26,7 +23,6 @@ import bio.terra.cbas.model.RunSetDetailsResponse;
 import bio.terra.cbas.model.RunSetListResponse;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetStateResponse;
-import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.MethodVersion;
@@ -69,6 +65,7 @@ public class RunSetsApiController implements RunSetsApi {
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
   private final RunSetsService runSetsService;
+  private final MicrometerMetrics micrometerMetrics;
 
   public RunSetsApiController(
       SamService samService,
@@ -81,7 +78,8 @@ public class RunSetsApiController implements RunSetsApi {
       RunSetAbortManager abortManager,
       BearerTokenFactory bearerTokenFactory,
       HttpServletRequest httpServletRequest,
-      RunSetsService runSetsService) {
+      RunSetsService runSetsService,
+      MicrometerMetrics micrometerMetrics) {
     this.samService = samService;
     this.dockstoreService = dockstoreService;
     this.methodVersionDao = methodVersionDao;
@@ -93,6 +91,7 @@ public class RunSetsApiController implements RunSetsApi {
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
     this.runSetsService = runSetsService;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private RunSetDetailsResponse convertToRunSetDetails(RunSet runSet) {
@@ -235,8 +234,6 @@ public class RunSetsApiController implements RunSetsApi {
     runSetsService.triggerWorkflowSubmission(
         request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl);
 
-    captureResponseMetrics(response);
-
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
   }
@@ -303,16 +300,10 @@ public class RunSetsApiController implements RunSetsApi {
     };
   }
 
-  public static void captureRequestMetrics(RunSetRequest request) {
-    recordInputsInRequest(request.getWorkflowInputDefinitions().size());
-    recordOutputsInRequest(request.getWorkflowOutputDefinitions().size());
-    recordRecordsInRequest(request.getWdsRecords().getRecordIds().size());
-  }
-
-  public static void captureResponseMetrics(RunSetStateResponse response) {
-    long successfulRuns =
-        response.getRuns().stream().filter(r -> r.getState() == RunState.QUEUED).count();
-    recordRunsSubmittedPerRunSet(successfulRuns);
+  public void captureRequestMetrics(RunSetRequest request) {
+    micrometerMetrics.logInputsInSubmission(request.getWorkflowInputDefinitions().size());
+    micrometerMetrics.logOutputsInSubmission(request.getWorkflowOutputDefinitions().size());
+    micrometerMetrics.logRecordIdsInSubmission(request.getWdsRecords().getRecordIds().size());
   }
 
   public static List<String> validateRequest(RunSetRequest request, CbasApiConfiguration config) {
