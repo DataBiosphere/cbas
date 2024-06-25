@@ -244,7 +244,8 @@ public class RunSetsService {
       WdsService wdsService, RunSetRequest request, RunSet runSet, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
-    WdsRecordResponseDetails responseDetails = wdsService.getRecords(recordType, request.getWdsRecords().getRecordIds(), userToken);
+    WdsRecordResponseDetails responseDetails =
+        wdsService.getRecords(recordType, request.getWdsRecords().getRecordIds(), userToken);
     Map<String, String> recordIdsWithError = responseDetails.recordIdsWithError();
     Timer.Sample wdsFetchRecordsSample = micrometerMetrics.startTimer();
     micrometerMetrics.stopTimer(
@@ -261,7 +262,6 @@ public class RunSetsService {
                     / request.getWdsRecords().getRecordIds().size()));
 
     return responseDetails;
-
   }
 
   private RunStateResponse recordFailureToStartRun(UUID runId, String error) {
