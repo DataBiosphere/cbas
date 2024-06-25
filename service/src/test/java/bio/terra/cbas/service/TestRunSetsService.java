@@ -27,7 +27,6 @@ import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
 import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.ParameterDefinition;
 import bio.terra.cbas.model.ParameterDefinitionLiteralValue;
@@ -275,12 +274,19 @@ class TestRunSetsService {
   @Test
   void submissionLaunchesSuccessfully() throws Exception {
     // Set up WDS API responses
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
+    when(wdsService.getRecords(eq(recordType), eq(List.of(recordId1, recordId2)), any()))
         .thenReturn(
-            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
-    when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
-        .thenReturn(
-            new RecordResponse().type(recordType).id(recordId2).attributes(recordAttributes2));
+            new WdsService.WdsRecordResponseDetails(
+                List.of(
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId1)
+                        .attributes(recordAttributes1),
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId2)
+                        .attributes(recordAttributes2)),
+                Map.of()));
 
     when(cromwellService.submitWorkflowBatch(eq(mockWorkflowUrl), any(), any(), any()))
         .thenReturn(
@@ -321,17 +327,17 @@ class TestRunSetsService {
   }
 
   @Test
-  void wdsErrorDuringSubmission() throws Exception {
+  void wdsErrorDuringSubmission() {
     // Set up WDS API responses
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
+    when(wdsService.getRecords(eq(recordType), eq(List.of(recordId1, recordId2)), any()))
         .thenReturn(
-            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
-    // return error when fetching record data for record ID 2
-    when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
-        .thenThrow(
-            new WdsServiceApiException(
-                new org.databiosphere.workspacedata.client.ApiException(
-                    400, "ApiException thrown for testing purposes.")));
+            new WdsService.WdsRecordResponseDetails(
+                List.of(
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId1)
+                        .attributes(recordAttributes1)),
+                Map.of(recordId2, "ApiException thrown for testing purposes.")));
 
     when(runDao.getRuns(new RunDao.RunsFilters(runSetId, List.of(QUEUED))))
         .thenReturn(List.of(run1, run2));
@@ -377,18 +383,25 @@ class TestRunSetsService {
     incorrectRecordAttributes2.put(recordAttribute1, recordAttributeValueInt2);
 
     // Set up WDS API responses
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
+    when(wdsService.getRecords(eq(recordType), eq(List.of(recordId1, recordId2)), any()))
         .thenReturn(
-            new RecordResponse()
-                .type(recordType)
-                .id(recordId1)
-                .attributes(incorrectRecordAttributes1));
-    when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
+            new WdsService.WdsRecordResponseDetails(
+                List.of(
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId1)
+                        .attributes(incorrectRecordAttributes1),
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId2)
+                        .attributes(incorrectRecordAttributes2)),
+                Map.of()));
+
+    when(cromwellService.submitWorkflowBatch(eq(mockWorkflowUrl), any(), any(), any()))
         .thenReturn(
-            new RecordResponse()
-                .type(recordType)
-                .id(recordId2)
-                .attributes(incorrectRecordAttributes2));
+            List.of(
+                new WorkflowIdAndStatus().id(engineId1.toString()).status("Running"),
+                new WorkflowIdAndStatus().id(engineId2.toString()).status("Running")));
 
     when(cbasApiConfiguration.getMaxWorkflowsInBatch()).thenReturn(10);
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
@@ -426,12 +439,19 @@ class TestRunSetsService {
   @Test
   void cromwellApiErrorDuringSubmission() throws Exception {
     // Set up WDS API responses
-    when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
+    when(wdsService.getRecords(eq(recordType), eq(List.of(recordId1, recordId2)), any()))
         .thenReturn(
-            new RecordResponse().type(recordType).id(recordId1).attributes(recordAttributes1));
-    when(wdsService.getRecord(eq(recordType), eq(recordId2), any()))
-        .thenReturn(
-            new RecordResponse().type(recordType).id(recordId2).attributes(recordAttributes2));
+            new WdsService.WdsRecordResponseDetails(
+                List.of(
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId1)
+                        .attributes(recordAttributes1),
+                    new RecordResponse()
+                        .type(recordType)
+                        .id(recordId2)
+                        .attributes(recordAttributes2)),
+                Map.of()));
 
     // throw error when submitting first workflow batch
     when(cromwellService.submitWorkflowBatch(eq(mockWorkflowUrl), any(), any(), any()))
