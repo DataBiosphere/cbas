@@ -28,7 +28,7 @@ class TestAppUtils {
           false);
 
   private final WdsServerConfiguration wdsServerConfiguration =
-      new WdsServerConfiguration("", workspaceId, "", false);
+      new WdsServerConfiguration("", workspaceId, "", 1000, false);
   private final ListAppResponse separatedWdsApp;
   private final ListAppResponse cromwellListAppResponse;
   private final ListAppResponse combinedWdsInCromwellApp;

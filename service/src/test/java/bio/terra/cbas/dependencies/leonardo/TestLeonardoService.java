@@ -27,7 +27,7 @@ import org.springframework.retry.support.RetryTemplate;
 class TestLeonardoService {
   final String workspaceId = UUID.randomUUID().toString();
   final WdsServerConfiguration wdsServerConfiguration =
-      new WdsServerConfiguration("baseUri", workspaceId, "v1", false);
+      new WdsServerConfiguration("baseUri", workspaceId, "v1", 1000, false);
 
   final RetryConfig retryConfig = new RetryConfig();
   RetryTemplate template = retryConfig.listenerResetRetryTemplate();
