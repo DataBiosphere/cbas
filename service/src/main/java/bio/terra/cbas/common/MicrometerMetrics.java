@@ -19,8 +19,8 @@ public class MicrometerMetrics {
 
   private final MeterRegistry meterRegistry;
 
-  private final String STATUS_TAG = "status";
-  private final String RESPONSE_CODE_TAG = "response_code";
+  private static final String STATUS_TAG = "status";
+  private static final String RESPONSE_CODE_TAG = "response_code";
 
   public MicrometerMetrics(MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
