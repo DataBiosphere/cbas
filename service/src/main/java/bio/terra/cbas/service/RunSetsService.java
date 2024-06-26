@@ -17,10 +17,9 @@ import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
-import bio.terra.cbas.dependencies.wds.WdsClientUtils;
+import bio.terra.cbas.dependencies.bard.BardService;
 import bio.terra.cbas.dependencies.wds.WdsService;
-import bio.terra.cbas.dependencies.wds.WdsServiceApiException;
-import bio.terra.cbas.dependencies.wds.WdsServiceException;
+import bio.terra.cbas.dependencies.wds.WdsService.WdsRecordResponseDetails;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.RunSetRequest;
 import bio.terra.cbas.model.RunSetState;
@@ -28,9 +27,11 @@ import bio.terra.cbas.model.RunState;
 import bio.terra.cbas.model.RunStateResponse;
 import bio.terra.cbas.models.CbasRunSetStatus;
 import bio.terra.cbas.models.CbasRunStatus;
+import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
 import bio.terra.cbas.models.RunSet;
+import bio.terra.cbas.models.SubmitRunResponse;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -39,12 +40,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import cromwell.client.model.WorkflowIdAndStatus;
+import io.micrometer.core.instrument.Timer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.broadinstitute.dsde.workbench.client.sam.model.UserStatusInfo;
@@ -68,6 +71,7 @@ public class RunSetsService {
   private final ObjectMapper objectMapper;
   private final CbasContextConfiguration cbasContextConfiguration;
   private final MicrometerMetrics micrometerMetrics;
+  private final BardService bardService;
 
   private final Logger logger = LoggerFactory.getLogger(RunSetsService.class);
 
@@ -82,7 +86,8 @@ public class RunSetsService {
       UuidSource uuidSource,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfiguration,
-      MicrometerMetrics micrometerMetrics) {
+      MicrometerMetrics micrometerMetrics,
+      BardService bardService) {
     this.runDao = runDao;
     this.runSetDao = runSetDao;
     this.methodDao = methodDao;
@@ -94,10 +99,8 @@ public class RunSetsService {
     this.objectMapper = objectMapper;
     this.cbasContextConfiguration = cbasContextConfiguration;
     this.micrometerMetrics = micrometerMetrics;
+    this.bardService = bardService;
   }
-
-  private record WdsRecordResponseDetails(
-      ArrayList<RecordResponse> recordResponseList, Map<String, String> recordIdsWithError) {}
 
   private record RunAndRecordDetails(UUID runId, RecordResponse recordResponse) {}
 
@@ -185,14 +188,17 @@ public class RunSetsService {
       RunSet runSet,
       Map<String, UUID> recordIdToRunIdMapping,
       BearerToken userToken,
-      String rawMethodUrl) {
+      String rawMethodUrl,
+      MethodVersion methodVersion,
+      Timer.Sample requestTimerSample) {
     // Fetch WDS Records and keep track of errors while retrieving records
-    WdsRecordResponseDetails wdsRecordResponses = fetchWdsRecords(wdsService, request, userToken);
+    WdsRecordResponseDetails wdsRecordResponses =
+        fetchWdsRecords(wdsService, request, runSet, userToken);
 
-    if (!wdsRecordResponses.recordIdsWithError.isEmpty()) {
+    if (!wdsRecordResponses.recordIdsWithError().isEmpty()) {
       String errorMsg =
           "Error while fetching WDS Records for Record ID(s): "
-              + wdsRecordResponses.recordIdsWithError;
+              + wdsRecordResponses.recordIdsWithError();
       logger.warn(errorMsg);
 
       recordRunsAndRunSetInErrorState(runSet.runSetId(), errorMsg);
@@ -201,15 +207,17 @@ public class RunSetsService {
     }
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
-    List<RunStateResponse> runStateResponseList =
-        buildInputsAndSubmitRun(
+    SubmitRunResponse runStateResponse =
+        buildInputsAndSubmitRunSet(
             cromwellService,
             request,
             runSet,
-            wdsRecordResponses.recordResponseList,
+            wdsRecordResponses.recordResponseList(),
             rawMethodUrl,
             recordIdToRunIdMapping,
+            requestTimerSample,
             userToken);
+    List<RunStateResponse> runStateResponseList = runStateResponse.runStateResponseList();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -229,29 +237,34 @@ public class RunSetsService {
         runStateResponseList.size(),
         runsInErrorState.size(),
         OffsetDateTime.now());
+    logRunSetEvent(
+        request, methodVersion, runStateResponse.successfullyInitializedWorkflowIds(), userToken);
 
     capturePostSubmitMetrics(runSet.runSetId(), runStateResponseList);
   }
 
   private WdsRecordResponseDetails fetchWdsRecords(
-      WdsService wdsService, RunSetRequest request, BearerToken userToken) {
+      WdsService wdsService, RunSetRequest request, RunSet runSet, BearerToken userToken) {
     String recordType = request.getWdsRecords().getRecordType();
 
-    ArrayList<RecordResponse> recordResponses = new ArrayList<>();
-    HashMap<String, String> recordIdsWithError = new HashMap<>();
-    for (String recordId : request.getWdsRecords().getRecordIds()) {
-      try {
-        recordResponses.add(wdsService.getRecord(recordType, recordId, userToken));
-      } catch (WdsServiceApiException e) {
-        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, WdsClientUtils.extractErrorMessage(e.getMessage()));
-      } catch (WdsServiceException e) {
-        logger.warn("Record lookup for Record ID {} failed.", recordId, e);
-        recordIdsWithError.put(recordId, e.getMessage());
-      }
-    }
+    WdsRecordResponseDetails responseDetails =
+        wdsService.getRecords(recordType, request.getWdsRecords().getRecordIds(), userToken);
+    Map<String, String> recordIdsWithError = responseDetails.recordIdsWithError();
+    Timer.Sample wdsFetchRecordsSample = micrometerMetrics.startTimer();
+    micrometerMetrics.stopTimer(
+        wdsFetchRecordsSample,
+        "wds_fetch_records_timer",
+        RunSet.RUN_SET_ID_COL,
+        runSet.runSetId().toString(),
+        "failed_record_requests",
+        "%s".formatted(recordIdsWithError.size()),
+        "failure_rate",
+        "%s"
+            .formatted(
+                (double) recordIdsWithError.size()
+                    / request.getWdsRecords().getRecordIds().size()));
 
-    return new WdsRecordResponseDetails(recordResponses, recordIdsWithError);
+    return responseDetails;
   }
 
   private RunStateResponse recordFailureToStartRun(UUID runId, String error) {
@@ -285,25 +298,28 @@ public class RunSetsService {
         runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
-  private List<RunStateResponse> buildInputsAndSubmitRun(
+  private SubmitRunResponse buildInputsAndSubmitRunSet(
       CromwellService cromwellService,
       RunSetRequest request,
       RunSet runSet,
-      ArrayList<RecordResponse> recordResponses,
+      List<RecordResponse> recordResponses,
       String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
+      Timer.Sample cromwellRequestTimerSample,
       BearerToken userToken) {
     ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
-
+    ArrayList<String> successfullyInitializedWorkflowIds = new ArrayList<>();
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
     // options will be used for all workflows submitted as part of this run set.
     String workflowOptionsJson =
         cromwellService.buildWorkflowOptionsJson(
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
-    for (List<RecordResponse> batch :
-        Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch())) {
-
+    Timer.Sample cromwellSubmitRunsSample = micrometerMetrics.startTimer();
+    List<List<RecordResponse>> batches =
+        Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch());
+    for (int batchIdx = 0; batchIdx < batches.size(); batchIdx += 1) {
+      List<RecordResponse> batch = batches.get(batchIdx);
       // create a mapping from Engine ID -> class RunAndRecordDetails[Run ID, Record Response]
       Map<UUID, RunAndRecordDetails> engineIdToRunAndRecordMapping =
           batch.stream()
@@ -355,7 +371,7 @@ public class RunSetsService {
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
       if (engineIdToWorkflowInput.isEmpty()) {
-        return runStateResponseList;
+        return new SubmitRunResponse(runStateResponseList, List.of());
       }
 
       try {
@@ -364,11 +380,31 @@ public class RunSetsService {
             cromwellService.submitWorkflowBatch(
                 rawMethodUrl, engineIdToWorkflowInput, workflowOptionsJson, userToken);
 
+        if (batchIdx == 0) {
+          // record the time between the initial POST run set request
+          // and the successful submission of the *first* batch of workflows in the run set.
+          micrometerMetrics.stopTimer(
+              cromwellRequestTimerSample,
+              "cromwell_request_to_initial_submission_timer",
+              RunSet.RUN_SET_ID_COL,
+              runSet.runSetId().toString());
+        }
+        if (batchIdx == batches.size() - 1) {
+          // record the time between the initial POST run set request
+          // and the successful submission of the *last* batch of workflows in the run set.
+          micrometerMetrics.stopTimer(
+              cromwellRequestTimerSample,
+              "cromwell_request_to_final_submission_timer",
+              RunSet.RUN_SET_ID_COL,
+              runSet.runSetId().toString());
+        }
+
         runStateResponseList.addAll(
             submitWorkflowBatchResponse.stream()
                 .map(
                     idAndStatus -> {
                       UUID engineId = UUID.fromString(idAndStatus.getId());
+                      successfullyInitializedWorkflowIds.add(engineId.toString());
                       return recordSuccessInitializingRun(
                           engineIdToRunAndRecordMapping.get(engineId).runId, engineId);
                     })
@@ -390,7 +426,47 @@ public class RunSetsService {
       }
     }
 
-    return runStateResponseList;
+    micrometerMetrics.stopTimer(
+        cromwellSubmitRunsSample,
+        "cromwell_submit_runs_timer",
+        RunSet.RUN_SET_ID_COL,
+        runSet.runSetId().toString(),
+        "runStateResponseList",
+        runStateResponseList.toString());
+    return new SubmitRunResponse(runStateResponseList, successfullyInitializedWorkflowIds);
+  }
+
+  public HashMap<String, String> getRunSetEventProperties(
+      RunSetRequest request, MethodVersion methodVersion, List<String> workflowIds) {
+    HashMap<String, String> properties = new HashMap<>();
+    properties.put("runSetName", request.getRunSetName());
+    properties.put("methodName", methodVersion.method().name());
+    properties.put("methodSource", methodVersion.method().methodSource());
+    properties.put("methodVersionName", methodVersion.name());
+    properties.put("methodVersionUrl", methodVersion.url());
+    properties.put("recordCount", String.valueOf(request.getWdsRecords().getRecordIds().size()));
+    properties.put("workflowIds", workflowIds.toString());
+
+    Optional<GithubMethodDetails> maybeGitHubMethodDetails =
+        methodVersion.method().githubMethodDetails();
+    if (maybeGitHubMethodDetails.isPresent()) {
+      GithubMethodDetails githubMethodDetails = maybeGitHubMethodDetails.get();
+      properties.put("githubOrganization", githubMethodDetails.organization());
+      properties.put("githubRepository", githubMethodDetails.repository());
+      properties.put("githubIsPrivate", githubMethodDetails.isPrivate().toString());
+    }
+    return properties;
+  }
+
+  public void logRunSetEvent(
+      RunSetRequest request,
+      MethodVersion methodVersion,
+      List<String> workflowIds,
+      BearerToken userToken) {
+    String eventName = "workflow-submission";
+    HashMap<String, String> properties =
+        getRunSetEventProperties(request, methodVersion, workflowIds);
+    bardService.logEvent(eventName, properties, userToken);
   }
 
   private void capturePostSubmitMetrics(

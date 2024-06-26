@@ -102,12 +102,15 @@ public class MicrometerMetrics {
     summary.record(count);
   }
 
-  // TODO: this method can be removed when Michael's PR is merged
+  public void recordTimerMetric(Timer.Sample sample, String name, List<Tag> tags) {
+    sample.stop(meterRegistry.timer(name, tags));
+  }
+
   public Timer.Sample startTimer() {
     return Timer.start(meterRegistry);
   }
 
-  public void recordTimerMetric(Timer.Sample sample, String name, List<Tag> tags) {
+  public void stopTimer(Timer.Sample sample, String name, String... tags) {
     sample.stop(meterRegistry.timer(name, tags));
   }
 }

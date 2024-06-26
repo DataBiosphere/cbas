@@ -63,7 +63,10 @@ cbas:
       coreThreadPoolSize: 5
       maxThreadPoolSize: 10
       queueCapacity: 500
-
+    bard:
+      coreThreadPoolSize: 5
+      maxThreadPoolSize: 10
+      queueCapacity: 500
 management:
   endpoints:
     web:
@@ -91,6 +94,7 @@ wds:
   # baseUri: "http://localhost:8001"
   instanceId: "15f36863-30a5-4cab-91f7-52be439f1175"
   apiV: "v0.2"
+  queryWindowSize: 1000
   debugApiLogging: false
 
 leonardo:
@@ -136,3 +140,8 @@ sam:
 ecm:
   baseUri: "https://externalcreds.dsde-dev.broadinstitute.org/"
   debugApiLogging: false
+
+bard:
+  baseUri: "https://terra-bard-dev.appspot.com"
+  debugApiLogging: false
+  enabled: false
