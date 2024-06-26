@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunCreationException;
 import bio.terra.cbas.common.exceptions.DatabaseConnectivityException.RunSetCreationException;
 import bio.terra.cbas.config.CbasApiConfiguration;
@@ -234,7 +235,9 @@ class TestRunSetsService {
   private UuidSource uuidSource;
   private ObjectMapper objectMapper;
   private CbasContextConfiguration cbasContextConfiguration;
+  private MicrometerMetrics micrometerMetrics;
   private BardService bardService;
+
   private RunSetsService mockRunSetsService;
 
   @BeforeEach
@@ -249,6 +252,7 @@ class TestRunSetsService {
     uuidSource = mock(UuidSource.class);
     objectMapper = mock(ObjectMapper.class);
     cbasContextConfiguration = mock(CbasContextConfiguration.class);
+    micrometerMetrics = mock(MicrometerMetrics.class);
     bardService = mock(BardService.class);
 
     mockRunSetsService =
@@ -263,6 +267,7 @@ class TestRunSetsService {
             uuidSource,
             objectMapper,
             cbasContextConfiguration,
+            micrometerMetrics,
             bardService);
   }
 
@@ -293,7 +298,13 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(engineId1).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
+        runSetRequest,
+        runSet,
+        recordIdToRunIdMapping,
+        mockToken,
+        mockWorkflowUrl,
+        methodVersion,
+        null);
 
     // verify that Runs were set to Initializing state
     verify(runDao)
@@ -332,7 +343,13 @@ class TestRunSetsService {
         .thenReturn(List.of(run1, run2));
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
+        runSetRequest,
+        runSet,
+        recordIdToRunIdMapping,
+        mockToken,
+        mockWorkflowUrl,
+        methodVersion,
+        null);
 
     // verify that both Runs were set to Error state with correct error message
     verify(runDao)
@@ -390,7 +407,13 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(UUID.randomUUID());
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
+        runSetRequest,
+        runSet,
+        recordIdToRunIdMapping,
+        mockToken,
+        mockWorkflowUrl,
+        methodVersion,
+        null);
 
     // verify Runs were set to Error state
     verify(runDao)
@@ -441,7 +464,13 @@ class TestRunSetsService {
     when(uuidSource.generateUUID()).thenReturn(UUID.randomUUID()).thenReturn(engineId2);
 
     mockRunSetsService.triggerWorkflowSubmission(
-        runSetRequest, runSet, recordIdToRunIdMapping, mockToken, mockWorkflowUrl, methodVersion);
+        runSetRequest,
+        runSet,
+        recordIdToRunIdMapping,
+        mockToken,
+        mockWorkflowUrl,
+        methodVersion,
+        null);
 
     // verify that Run 1 was set to Error state
     verify(runDao)
