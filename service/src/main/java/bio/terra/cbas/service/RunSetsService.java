@@ -30,8 +30,10 @@ import bio.terra.cbas.models.CbasRunStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.Run;
+import bio.terra.cbas.models.RunAndRecordDetails;
 import bio.terra.cbas.models.RunSet;
-import bio.terra.cbas.models.SubmitRunResponse;
+import bio.terra.cbas.models.RunSetSubmissionParameters;
+import bio.terra.cbas.models.SubmitRunSetResponse;
 import bio.terra.cbas.runsets.inputs.InputGenerator;
 import bio.terra.cbas.runsets.types.CoercionException;
 import bio.terra.cbas.util.UuidSource;
@@ -101,8 +103,6 @@ public class RunSetsService {
     this.micrometerMetrics = micrometerMetrics;
     this.bardService = bardService;
   }
-
-  private record RunAndRecordDetails(UUID runId, RecordResponse recordResponse) {}
 
   public RunSet registerRunSet(
       RunSetRequest runSetRequest, UserStatusInfo user, MethodVersion methodVersion)
@@ -207,17 +207,19 @@ public class RunSetsService {
     }
 
     // For each Record ID, build workflow inputs and submit the workflow to Cromwell
-    SubmitRunResponse runStateResponse =
-        buildInputsAndSubmitRunSet(
-            cromwellService,
+    RunSetSubmissionParameters params =
+        buildInputs(
             request,
             runSet,
-            wdsRecordResponses.recordResponseList(),
             rawMethodUrl,
+            wdsRecordResponses.recordResponseList(),
             recordIdToRunIdMapping,
-            requestTimerSample,
-            userToken);
-    List<RunStateResponse> runStateResponseList = runStateResponse.runStateResponseList();
+            cromwellService);
+
+    SubmitRunSetResponse runSetStateResponse =
+        submitRunSet(params, userToken, cromwellService, requestTimerSample);
+
+    List<RunStateResponse> runStateResponseList = runSetStateResponse.runStateResponseList();
 
     // Figure out how many runs are in Failed state. If all Runs are in an Error state then mark
     // the Run Set as Failed
@@ -238,7 +240,10 @@ public class RunSetsService {
         runsInErrorState.size(),
         OffsetDateTime.now());
     logRunSetEvent(
-        request, methodVersion, runStateResponse.successfullyInitializedWorkflowIds(), userToken);
+        request,
+        methodVersion,
+        runSetStateResponse.successfullyInitializedWorkflowIds(),
+        userToken);
 
     capturePostSubmitMetrics(runSet.runSetId(), runStateResponseList);
   }
@@ -298,28 +303,29 @@ public class RunSetsService {
         runSetId, CbasRunSetStatus.ERROR, runsCount, runsCount, OffsetDateTime.now());
   }
 
-  private SubmitRunResponse buildInputsAndSubmitRunSet(
-      CromwellService cromwellService,
+  private RunSetSubmissionParameters buildInputs(
       RunSetRequest request,
       RunSet runSet,
+      String methodUrl,
       List<RecordResponse> recordResponses,
-      String rawMethodUrl,
       Map<String, UUID> recordIdToRunIdMapping,
-      Timer.Sample cromwellRequestTimerSample,
-      BearerToken userToken) {
-    ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>();
-    ArrayList<String> successfullyInitializedWorkflowIds = new ArrayList<>();
+      CromwellService cromwellService) {
+
+    ArrayList<RunStateResponse> runStateResponseErrors = new ArrayList<>();
+
     // Build the JSON that specifies additional configuration for cromwell workflows. The same
     // options will be used for all workflows submitted as part of this run set.
     String workflowOptionsJson =
         cromwellService.buildWorkflowOptionsJson(
             Objects.requireNonNullElse(runSet.callCachingEnabled(), true));
 
-    Timer.Sample cromwellSubmitRunsSample = micrometerMetrics.startTimer();
     List<List<RecordResponse>> batches =
         Lists.partition(recordResponses, cbasApiConfiguration.getMaxWorkflowsInBatch());
-    for (int batchIdx = 0; batchIdx < batches.size(); batchIdx += 1) {
-      List<RecordResponse> batch = batches.get(batchIdx);
+
+    List<Map<UUID, String>> batchedWorkflowInputMaps = new ArrayList<>();
+    List<Map<UUID, RunAndRecordDetails>> batchedRunAndRecordMaps = new ArrayList<>();
+
+    for (List<RecordResponse> batch : batches) {
       // create a mapping from Engine ID -> class RunAndRecordDetails[Run ID, Record Response]
       Map<UUID, RunAndRecordDetails> engineIdToRunAndRecordMapping =
           batch.stream()
@@ -330,6 +336,8 @@ public class RunSetsService {
                           new RunAndRecordDetails(
                               recordIdToRunIdMapping.get(singleRecord.getId()), singleRecord)))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+      batchedRunAndRecordMaps.add(engineIdToRunAndRecordMapping);
 
       // Build the inputs set from workflow parameter definitions and the fetched record
       Map<UUID, String> engineIdToWorkflowInput =
@@ -342,19 +350,19 @@ public class RunSetsService {
                           InputGenerator.inputsToJson(
                               InputGenerator.buildInputs(
                                   request.getWorkflowInputDefinitions(),
-                                  entry.getValue().recordResponse)));
+                                  entry.getValue().recordResponse())));
                     } catch (CoercionException e) {
                       String errorMsg =
                           String.format(
                               "Input generation failed for record %s. Coercion error: %s",
-                              entry.getValue().recordResponse.getId(), e.getMessage());
+                              entry.getValue().recordResponse().getId(), e.getMessage());
                       logger.warn(errorMsg, e);
-                      runStateResponseList.add(
-                          recordFailureToStartRun(entry.getValue().runId, errorMsg));
+                      runStateResponseErrors.add(
+                          recordFailureToStartRun(entry.getValue().runId(), errorMsg));
                     } catch (InputProcessingException e) {
                       logger.warn(e.getMessage());
-                      runStateResponseList.add(
-                          recordFailureToStartRun(entry.getValue().runId, e.getMessage()));
+                      runStateResponseErrors.add(
+                          recordFailureToStartRun(entry.getValue().runId(), e.getMessage()));
                     } catch (JsonProcessingException e) {
                       // Should be super rare that jackson cannot convert an object to Json...
                       String errorMsg =
@@ -362,16 +370,49 @@ public class RunSetsService {
                               "Failed to convert inputs object to JSON for batch in RunSet %s.",
                               runSet.runSetId());
                       logger.warn(errorMsg, e);
-                      runStateResponseList.add(
-                          recordFailureToStartRun(entry.getValue().runId, errorMsg));
+                      runStateResponseErrors.add(
+                          recordFailureToStartRun(entry.getValue().runId(), errorMsg));
                     }
                     return null;
                   })
               .filter(inputs -> !Objects.isNull(inputs))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+      batchedWorkflowInputMaps.add(engineIdToWorkflowInput);
+    }
+
+    return new RunSetSubmissionParameters(
+        runSet,
+        methodUrl,
+        workflowOptionsJson,
+        batchedWorkflowInputMaps,
+        batchedRunAndRecordMaps,
+        batches,
+        runStateResponseErrors);
+  }
+
+  private SubmitRunSetResponse submitRunSet(
+      RunSetSubmissionParameters params,
+      BearerToken userToken,
+      CromwellService cromwellService,
+      Timer.Sample cromwellRequestTimerSample) {
+    RunSet runSet = params.runSet();
+    String rawMethodUrl = params.rawMethodUrl();
+    String workflowOptionsJson = params.workflowOptionsJson();
+    List<Map<UUID, String>> batchedWorkflowInputMaps = params.batchedWorkflowInputMaps();
+    List<Map<UUID, RunAndRecordDetails>> batchedRunAndRecordMaps = params.batchedRunAndRecordMaps();
+    List<List<RecordResponse>> batches = params.batches();
+    ArrayList<RunStateResponse> runStateResponseList = new ArrayList<>(params.runStateErrors());
+    ArrayList<String> successfullyInitializedWorkflowIds = new ArrayList<>();
+
+    Timer.Sample cromwellSubmitRunsSample = micrometerMetrics.startTimer();
+
+    for (int batchIdx = 0; batchIdx < batches.size(); batchIdx += 1) {
+      Map<UUID, String> engineIdToWorkflowInput = batchedWorkflowInputMaps.get(batchIdx);
+      Map<UUID, RunAndRecordDetails> engineIdToRunAndRecordMapping =
+          batchedRunAndRecordMaps.get(batchIdx);
       if (engineIdToWorkflowInput.isEmpty()) {
-        return new SubmitRunResponse(runStateResponseList, List.of());
+        return new SubmitRunSetResponse(runStateResponseList, List.of());
       }
 
       try {
@@ -406,7 +447,7 @@ public class RunSetsService {
                       UUID engineId = UUID.fromString(idAndStatus.getId());
                       successfullyInitializedWorkflowIds.add(engineId.toString());
                       return recordSuccessInitializingRun(
-                          engineIdToRunAndRecordMapping.get(engineId).runId, engineId);
+                          engineIdToRunAndRecordMapping.get(engineId).runId(), engineId);
                     })
                 .toList());
       } catch (cromwell.client.ApiException e) {
@@ -420,7 +461,7 @@ public class RunSetsService {
                 .map(
                     engineId ->
                         recordFailureToStartRun(
-                            engineIdToRunAndRecordMapping.get(engineId).runId,
+                            engineIdToRunAndRecordMapping.get(engineId).runId(),
                             errorMsg + e.getMessage()))
                 .toList());
       }
@@ -433,7 +474,7 @@ public class RunSetsService {
         runSet.runSetId().toString(),
         "runStateResponseList",
         runStateResponseList.toString());
-    return new SubmitRunResponse(runStateResponseList, successfullyInitializedWorkflowIds);
+    return new SubmitRunSetResponse(runStateResponseList, successfullyInitializedWorkflowIds);
   }
 
   public HashMap<String, String> getRunSetEventProperties(
