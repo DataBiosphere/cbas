@@ -251,7 +251,7 @@ public class RunSetsService {
     micrometerMetrics.stopTimer(
         wdsFetchRecordsSample,
         "wds_fetch_records_timer",
-        "run_set_id",
+        RunSet.RUN_SET_ID_COL,
         runSet.runSetId().toString(),
         "failed_record_requests",
         "%s".formatted(recordIdsWithError.size()),
@@ -383,7 +383,7 @@ public class RunSetsService {
           micrometerMetrics.stopTimer(
               cromwellRequestTimerSample,
               "cromwell_request_to_initial_submission_timer",
-              "run_set_id",
+              RunSet.RUN_SET_ID_COL,
               runSet.runSetId().toString());
         }
         if (batchIdx == batches.size() - 1) {
@@ -392,7 +392,7 @@ public class RunSetsService {
           micrometerMetrics.stopTimer(
               cromwellRequestTimerSample,
               "cromwell_request_to_final_submission_timer",
-              "run_set_id",
+              RunSet.RUN_SET_ID_COL,
               runSet.runSetId().toString());
         }
 
@@ -426,7 +426,7 @@ public class RunSetsService {
     micrometerMetrics.stopTimer(
         cromwellSubmitRunsSample,
         "cromwell_submit_runs_timer",
-        "run_set_id",
+        RunSet.RUN_SET_ID_COL,
         runSet.runSetId().toString(),
         "runStateResponseList",
         runStateResponseList.toString());
