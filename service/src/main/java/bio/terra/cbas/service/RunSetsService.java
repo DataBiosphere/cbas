@@ -399,6 +399,6 @@ public class RunSetsService {
         runStateResponseList.stream()
             .filter(run -> run.getState() == RunState.INITIALIZING)
             .count();
-    micrometerMetrics.logRunsSubmittedPerRunSet(runSetId, successfulRunsCount);
+    micrometerMetrics.recordRunsSubmittedPerRunSet(runSetId, successfulRunsCount);
   }
 }

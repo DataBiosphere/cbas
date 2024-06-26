@@ -132,7 +132,7 @@ public class SmartRunsPoller {
       return r;
     } finally {
       micrometerMetrics.recordOutboundApiRequestCompletion(
-          getStatusStartSample, "wes/runSummary", getStatusSuccess);
+          getStatusStartSample, "wes_runSummary", getStatusSuccess);
     }
 
     CbasRunStatus newStatus = CbasRunStatus.UNKNOWN;

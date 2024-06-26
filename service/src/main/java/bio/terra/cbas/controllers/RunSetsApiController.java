@@ -37,6 +37,7 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.dockstore.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -155,6 +156,7 @@ public class RunSetsApiController implements RunSetsApi {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
+    Timer.Sample requestStartSample = micrometerMetrics.startTimer();
     captureRequestMetrics(request);
 
     // request validation
@@ -162,6 +164,12 @@ public class RunSetsApiController implements RunSetsApi {
     if (!requestErrors.isEmpty()) {
       String errorMsg = "Bad user request. Error(s): " + requestErrors;
       log.warn(errorMsg);
+      micrometerMetrics.recordPostRunSetHandlerCompletion(
+          requestStartSample,
+          request.getWorkflowInputDefinitions().size(),
+          request.getWorkflowOutputDefinitions().size(),
+          request.getWdsRecords().getRecordIds().size(),
+          HttpStatus.BAD_REQUEST.value());
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.BAD_REQUEST);
     }
@@ -183,6 +191,12 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg =
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
+      micrometerMetrics.recordPostRunSetHandlerCompletion(
+          requestStartSample,
+          request.getWorkflowInputDefinitions().size(),
+          request.getWorkflowOutputDefinitions().size(),
+          request.getWdsRecords().getRecordIds().size(),
+          HttpStatus.INTERNAL_SERVER_ERROR.value());
       return new ResponseEntity<>(
           new RunSetStateResponse().errors(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -195,6 +209,12 @@ public class RunSetsApiController implements RunSetsApi {
       runSet = runSetsService.registerRunSet(request, user, methodVersion);
     } catch (JsonProcessingException | RunSetCreationException e) {
       log.warn("Failed to record run set to database", e);
+      micrometerMetrics.recordPostRunSetHandlerCompletion(
+          requestStartSample,
+          request.getWorkflowInputDefinitions().size(),
+          request.getWorkflowOutputDefinitions().size(),
+          request.getWdsRecords().getRecordIds().size(),
+          HttpStatus.INTERNAL_SERVER_ERROR.value());
       return new ResponseEntity<>(
           new RunSetStateResponse()
               .errors("Failed to register submission request. Error(s): " + e.getMessage()),
@@ -215,7 +235,12 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg =
           "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
       log.error(errorMsg, e);
-
+      micrometerMetrics.recordPostRunSetHandlerCompletion(
+          requestStartSample,
+          request.getWorkflowInputDefinitions().size(),
+          request.getWorkflowOutputDefinitions().size(),
+          request.getWdsRecords().getRecordIds().size(),
+          HttpStatus.INTERNAL_SERVER_ERROR.value());
       return new ResponseEntity<>(
           new RunSetStateResponse()
               .errors("Failed to register submission request. Error(s): " + e.getMessage()),
@@ -233,6 +258,13 @@ public class RunSetsApiController implements RunSetsApi {
     // trigger workflow submission
     runSetsService.triggerWorkflowSubmission(
         request, runSet, recordIdToRunIdMapping, userToken, resolvedMethodUrl);
+
+    micrometerMetrics.recordPostRunSetHandlerCompletion(
+        requestStartSample,
+        request.getWorkflowInputDefinitions().size(),
+        request.getWorkflowOutputDefinitions().size(),
+        request.getWdsRecords().getRecordIds().size(),
+        HttpStatus.OK.value());
 
     // Return the result
     return new ResponseEntity<>(response, HttpStatus.OK);
@@ -301,9 +333,12 @@ public class RunSetsApiController implements RunSetsApi {
   }
 
   public void captureRequestMetrics(RunSetRequest request) {
-    micrometerMetrics.logInputsInSubmission(request.getWorkflowInputDefinitions().size());
-    micrometerMetrics.logOutputsInSubmission(request.getWorkflowOutputDefinitions().size());
-    micrometerMetrics.logRecordIdsInSubmission(request.getWdsRecords().getRecordIds().size());
+    micrometerMetrics.recordEventDistributionMetric(
+        "inputs_per_request", request.getWorkflowInputDefinitions().size());
+    micrometerMetrics.recordEventDistributionMetric(
+        "outputs_per_request", request.getWorkflowOutputDefinitions().size());
+    micrometerMetrics.recordEventDistributionMetric(
+        "records_per_request", request.getWdsRecords().getRecordIds().size());
   }
 
   public static List<String> validateRequest(RunSetRequest request, CbasApiConfiguration config) {

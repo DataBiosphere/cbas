@@ -39,33 +39,13 @@ public class MicrometerMetrics {
     recordCounterMetric(metricName, Collections.emptyList(), count);
   }
 
-  //  public void incrementSuccessfulFileParse(String scheme, String fromType) {
-  //    recordCounterMetric("file_parse_success", List.of(new ImmutableTag("scheme",
-  // Optional.ofNullable(scheme).orElse("/")), new ImmutableTag("from_type", fromType)));
-  //  }
-  //
-  //  public void incrementUnsuccessfulFileParse(Object badValue) {
-  //    recordCounterMetric("file_parse_failure", List.of(new ImmutableTag("from_type",
-  // badValue.getClass().getSimpleName())));
-  //  }
-
   /* ******** Event distribution metrics ******** */
 
-  // TODO: should this be refactored more?
-
-  public void logRecordIdsInSubmission(int recordIdsSize) {
-    recordEventDistributionMetric("records_per_request", Collections.emptyList(), recordIdsSize);
+  public void recordEventDistributionMetric(String metricName, int count) {
+    recordEventDistributionMetric(metricName, Collections.emptyList(), count);
   }
 
-  public void logInputsInSubmission(int inputsCount) {
-    recordEventDistributionMetric("inputs_per_request", Collections.emptyList(), inputsCount);
-  }
-
-  public void logOutputsInSubmission(int outputsCount) {
-    recordEventDistributionMetric("outputs_per_request", Collections.emptyList(), outputsCount);
-  }
-
-  public void logRunsSubmittedPerRunSet(UUID runSetId, long runsCount) {
+  public void recordRunsSubmittedPerRunSet(UUID runSetId, long runsCount) {
     recordEventDistributionMetric(
         "runs_submitted_successfully_per_run_set",
         List.of(new ImmutableTag("run_set_id", runSetId.toString())),
@@ -78,9 +58,21 @@ public class MicrometerMetrics {
       Timer.Sample sample, String source, int responseCode) {
     recordTimerMetric(
         sample,
-        "post_method_completion",
+        "post_method_response_timing",
         List.of(
             new ImmutableTag("source", source),
+            new ImmutableTag("response_code", String.valueOf(responseCode))));
+  }
+
+  public void recordPostRunSetHandlerCompletion(
+      Timer.Sample sample, int inputsCount, int outputsCount, int recordsCount, int responseCode) {
+    recordTimerMetric(
+        sample,
+        "post_runset_response_timing",
+        List.of(
+            new ImmutableTag("inputs_count", String.valueOf(inputsCount)),
+            new ImmutableTag("outputs_count", String.valueOf(outputsCount)),
+            new ImmutableTag("records_count", String.valueOf(recordsCount)),
             new ImmutableTag("response_code", String.valueOf(responseCode))));
   }
 
