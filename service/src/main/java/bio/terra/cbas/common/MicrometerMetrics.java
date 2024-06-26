@@ -35,7 +35,9 @@ public class MicrometerMetrics {
 
   public void recordRunStatusUpdate(CbasRunStatus resultsStatus) {
     recordCounterMetric(
-        "run_smartpoller_update", List.of(new ImmutableTag(STATUS_TAG, resultsStatus.toString())), 1);
+        "run_smartpoller_update",
+        List.of(new ImmutableTag(STATUS_TAG, resultsStatus.toString())),
+        1);
   }
 
   public void increaseEventCounter(String metricName, long count) {
