@@ -19,6 +19,9 @@ public class MicrometerMetrics {
 
   private final MeterRegistry meterRegistry;
 
+  private final String STATUS_TAG = "status";
+  private final String RESPONSE_CODE_TAG = "response_code";
+
   public MicrometerMetrics(MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
   }
@@ -27,12 +30,12 @@ public class MicrometerMetrics {
 
   public void recordRunCallback(CbasRunStatus resultsStatus) {
     recordCounterMetric(
-        "run_callback", List.of(new ImmutableTag("status", resultsStatus.toString())), 1);
+        "run_callback", List.of(new ImmutableTag(STATUS_TAG, resultsStatus.toString())), 1);
   }
 
   public void recordRunStatusUpdate(CbasRunStatus resultsStatus) {
     recordCounterMetric(
-        "run_smartpoller_update", List.of(new ImmutableTag("status", resultsStatus.toString())), 1);
+        "run_smartpoller_update", List.of(new ImmutableTag(STATUS_TAG, resultsStatus.toString())), 1);
   }
 
   public void increaseEventCounter(String metricName, long count) {
@@ -61,7 +64,7 @@ public class MicrometerMetrics {
         "post_method_response_timing",
         List.of(
             new ImmutableTag("source", source),
-            new ImmutableTag("response_code", String.valueOf(responseCode))));
+            new ImmutableTag(RESPONSE_CODE_TAG, String.valueOf(responseCode))));
   }
 
   public void recordPostRunSetHandlerCompletion(
@@ -73,20 +76,20 @@ public class MicrometerMetrics {
             new ImmutableTag("inputs_count", String.valueOf(inputsCount)),
             new ImmutableTag("outputs_count", String.valueOf(outputsCount)),
             new ImmutableTag("records_count", String.valueOf(recordsCount)),
-            new ImmutableTag("response_code", String.valueOf(responseCode))));
+            new ImmutableTag(RESPONSE_CODE_TAG, String.valueOf(responseCode))));
   }
 
   public void recordMethodCompletion(Timer.Sample sample, boolean successBoolean) {
     recordTimerMetric(
         sample,
         loggableMethodName(1L),
-        List.of(new ImmutableTag("status", String.valueOf(successBoolean))));
+        List.of(new ImmutableTag(STATUS_TAG, String.valueOf(successBoolean))));
   }
 
   public void recordOutboundApiRequestCompletion(
       Timer.Sample sample, String apiName, boolean successBoolean) {
     recordTimerMetric(
-        sample, apiName, List.of(new ImmutableTag("status", String.valueOf(successBoolean))));
+        sample, apiName, List.of(new ImmutableTag(STATUS_TAG, String.valueOf(successBoolean))));
   }
 
   public void stopTimer(Timer.Sample sample, String name, String... tags) {
