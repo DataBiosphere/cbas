@@ -4,6 +4,7 @@ import static bio.terra.cbas.models.CbasRunStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasApiConfiguration;
 import bio.terra.cbas.dao.RunDao;
 import bio.terra.cbas.dao.RunSetDao;
@@ -29,6 +30,7 @@ public class TestSmartRunSetsPoller {
   private RunDao runDao;
   private RunSetDao runSetDao;
   private CbasApiConfiguration cbasApiConfiguration;
+  private MicrometerMetrics micrometerMetrics;
 
   private final UUID workspaceId = UUID.randomUUID();
   private final BearerToken mockToken = new BearerToken("mock-token");
@@ -39,6 +41,7 @@ public class TestSmartRunSetsPoller {
     runDao = mock(RunDao.class);
     runSetDao = mock(RunSetDao.class);
     cbasApiConfiguration = mock(CbasApiConfiguration.class);
+    micrometerMetrics = mock(MicrometerMetrics.class);
     when(cbasApiConfiguration.getMaxSmartPollRunSetUpdateSeconds()).thenReturn(1);
     when(cbasApiConfiguration.getMaxSmartPollRunUpdateSeconds()).thenReturn(1);
   }
@@ -46,7 +49,8 @@ public class TestSmartRunSetsPoller {
   @Test
   void respectPollTimeLimit() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
+        new SmartRunSetsPoller(
+            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, micrometerMetrics);
 
     UUID runSetId1 = UUID.randomUUID();
     RunSet runSetToUpdate1 =
@@ -126,7 +130,8 @@ public class TestSmartRunSetsPoller {
   @Test
   void updateRunSetToComplete() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
+        new SmartRunSetsPoller(
+            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, micrometerMetrics);
 
     UUID runSetId = UUID.randomUUID();
     RunSet runSetToUpdate =
@@ -236,7 +241,8 @@ public class TestSmartRunSetsPoller {
   @Test
   void updateLastPolledTimestampAnyway() {
     SmartRunSetsPoller smartRunSetsPoller =
-        new SmartRunSetsPoller(smartRunsPoller, runSetDao, runDao, cbasApiConfiguration);
+        new SmartRunSetsPoller(
+            smartRunsPoller, runSetDao, runDao, cbasApiConfiguration, micrometerMetrics);
 
     UUID runSetId = UUID.randomUUID();
     RunSet runSetToUpdate =
