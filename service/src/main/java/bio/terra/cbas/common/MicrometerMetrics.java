@@ -89,7 +89,15 @@ public class MicrometerMetrics {
         sample, apiName, List.of(new ImmutableTag("status", String.valueOf(successBoolean))));
   }
 
+  public void stopTimer(Timer.Sample sample, String name, String... tags) {
+    sample.stop(meterRegistry.timer(name, tags));
+  }
+
   /* ******** Helper methods ******** */
+
+  public Timer.Sample startTimer() {
+    return Timer.start(meterRegistry);
+  }
 
   private void recordCounterMetric(String metricName, List<Tag> tags, long count) {
     Counter counter = Counter.builder(metricName).tags(tags).register(meterRegistry);
@@ -102,15 +110,7 @@ public class MicrometerMetrics {
     summary.record(count);
   }
 
-  public void recordTimerMetric(Timer.Sample sample, String name, List<Tag> tags) {
-    sample.stop(meterRegistry.timer(name, tags));
-  }
-
-  public Timer.Sample startTimer() {
-    return Timer.start(meterRegistry);
-  }
-
-  public void stopTimer(Timer.Sample sample, String name, String... tags) {
+  private void recordTimerMetric(Timer.Sample sample, String name, List<Tag> tags) {
     sample.stop(meterRegistry.timer(name, tags));
   }
 }
