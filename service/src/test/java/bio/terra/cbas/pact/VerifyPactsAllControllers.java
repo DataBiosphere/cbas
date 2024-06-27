@@ -97,7 +97,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @Provider("cbas")
 @PactBroker()
 class VerifyPactsAllControllers {
-  private static final String API = "/api/batch/v1/run_sets";
   private static final String CONSUMER_BRANCH = System.getenv("CONSUMER_BRANCH");
 
   @MockBean private SamService samService;

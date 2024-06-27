@@ -131,9 +131,6 @@ class TestRunSetsApiController {
       "https://raw.githubusercontent.com/%s/%s/%s/%s"
           .formatted(gitHubOrganization, gitHubRepository, gitHubBranchOrTag, gitHubPath);
 
-  private final String gitHubWorkflowOriginalUrl =
-      "https://github.com/%s/%s/%s/%s"
-          .formatted(gitHubOrganization, gitHubRepository, gitHubBranchOrTag, gitHubPath);
   private final GithubMethodDetails githubMethodDetails =
       new GithubMethodDetails(gitHubRepository, gitHubOrganization, gitHubPath, false, methodId);
   private final Boolean isCallCachingEnabled = false;
