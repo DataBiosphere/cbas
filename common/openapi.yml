@@ -795,6 +795,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MethodDetails'
+        error:
+          type: string
     RunLogResponse:
       type: object
       properties:

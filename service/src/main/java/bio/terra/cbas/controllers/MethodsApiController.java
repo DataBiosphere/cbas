@@ -312,7 +312,7 @@ public class MethodsApiController implements MethodsApi {
           | java.net.MalformedURLException
           | java.net.URISyntaxException
           | bio.terra.dockstore.client.ApiException e) {
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.badRequest().body(new MethodListResponse().error(e.toString()));
       }
     } else {
       List<Method> methods =
