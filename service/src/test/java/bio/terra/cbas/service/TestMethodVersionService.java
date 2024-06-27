@@ -3,24 +3,28 @@ package bio.terra.cbas.service;
 import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.DOCKSTORE;
 import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.GITHUB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.dependencies.dockstore.DockstoreService;
+import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.models.CbasMethodStatus;
 import bio.terra.cbas.models.GithubMethodDetails;
 import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
+import bio.terra.dockstore.client.ApiException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
 class TestMethodVersionService {
+
   Method getSubmissionUrlBaseMethod =
       new Method(
           UUID.randomUUID(),
@@ -160,5 +164,86 @@ class TestMethodVersionService {
 
     String actual = MethodVersionService.getSubmissionUrl(versionUnderTest, mockstoreService);
     assertEquals(expected, actual);
+  }
+
+  @Test
+  void testDockstoreMethodVersionToMethodVersionDetails()
+      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+
+    String resolvedUrl = "http://my-resolved-wdl.dockstore.org";
+
+    DockstoreService dockstoreService = mock(DockstoreService.class);
+    when(dockstoreService.resolveDockstoreUrl(any())).thenReturn(resolvedUrl);
+    MethodVersionService methodVersionService = new MethodVersionService(dockstoreService);
+
+    Method method =
+        new Method(null, null, null, null, null, DOCKSTORE.toString(), null, null, null);
+
+    MethodVersion methodVersion =
+        new MethodVersion(null, method, null, null, null, null, null, null, null, null);
+
+    MethodVersionDetails details =
+        methodVersionService.methodVersionToMethodVersionDetails(methodVersion);
+    assertEquals(resolvedUrl, details.getUrl());
+  }
+
+  @Test
+  void testGithubMethodVersionToMethodVersionDetails()
+      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+
+    String inputUrl = "http://my-input-wdl.github.com";
+    MethodVersionService methodVersionService = new MethodVersionService(null);
+
+    GithubMethodDetails methodDetails =
+        new GithubMethodDetails("myRepo", "myOrg", "myPath", false, UUID.randomUUID());
+
+    GithubMethodVersionDetails methodVersionDetails =
+        new GithubMethodVersionDetails("myGitHash", UUID.randomUUID());
+
+    Method method =
+        new Method(
+            null,
+            null,
+            null,
+            null,
+            null,
+            GITHUB.toString(),
+            null,
+            Optional.of(methodDetails),
+            null);
+    MethodVersion methodVersion =
+        new MethodVersion(
+            UUID.randomUUID(),
+            method,
+            null,
+            null,
+            null,
+            null,
+            inputUrl,
+            null,
+            null,
+            Optional.of(methodVersionDetails));
+
+    MethodVersionDetails details =
+        methodVersionService.methodVersionToMethodVersionDetails(methodVersion);
+
+    assertEquals(
+        "https://raw.githubusercontent.com/myOrg/myRepo/myGitHash/myPath", details.getUrl());
+  }
+
+  @Test
+  void testOtherMethodVersionToMethodVersionDetails()
+      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+    String resolvedUrl = "http://my-resolved-wdl.someotherdomain.org";
+    MethodVersionService methodVersionService = new MethodVersionService(null);
+
+    Method method = new Method(null, null, null, null, null, "someOtherDomain", null, null, null);
+
+    MethodVersion methodVersion =
+        new MethodVersion(null, method, null, null, null, null, resolvedUrl, null, null, null);
+
+    MethodVersionDetails details =
+        methodVersionService.methodVersionToMethodVersionDetails(methodVersion);
+    assertEquals(resolvedUrl, details.getUrl());
   }
 }
