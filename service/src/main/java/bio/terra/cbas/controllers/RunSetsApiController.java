@@ -300,15 +300,7 @@ public class RunSetsApiController implements RunSetsApi {
       MethodVersion methodVersion, DockstoreService dockstoreService)
       throws MethodProcessingException, ApiException, MalformedURLException, URISyntaxException {
     return switch (convertToMethodSourceEnum(methodVersion.method().methodSource())) {
-      case DOCKSTORE -> {
-        String resolvedMethodUrl =
-            dockstoreService.descriptorGetV1(methodVersion.url(), methodVersion.name()).getUrl();
-        if (resolvedMethodUrl == null || resolvedMethodUrl.isEmpty()) {
-          throw new MethodProcessingException(
-              "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.");
-        }
-        yield resolvedMethodUrl;
-      }
+      case DOCKSTORE -> dockstoreService.resolveDockstoreUrl(methodVersion);
       case GITHUB -> getOrRebuildGithubUrl(methodVersion);
     };
   }

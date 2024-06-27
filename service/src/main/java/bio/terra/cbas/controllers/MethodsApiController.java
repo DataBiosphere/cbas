@@ -3,7 +3,9 @@ package bio.terra.cbas.controllers;
 import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.dependencies.github.GitHubService.buildRawGithubUrl;
+import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
 import static bio.terra.cbas.dependencies.github.GitHubService.validateGithubUrl;
+import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.DOCKSTORE;
 import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.GITHUB;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;
@@ -301,8 +303,16 @@ public class MethodsApiController implements MethodsApi {
 
     List<MethodDetails> methodDetails;
     if (methodVersionId != null) {
-      methodDetails =
-          List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
+      try {
+        methodDetails =
+            List.of(
+                methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
+      } catch (bio.terra.cbas.common.exceptions.MethodProcessingException
+          | java.net.MalformedURLException
+          | java.net.URISyntaxException
+          | bio.terra.dockstore.client.ApiException e) {
+        return ResponseEntity.badRequest().build();
+      }
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
@@ -583,20 +593,27 @@ public class MethodsApiController implements MethodsApi {
         .description(methodVersion.description())
         .created(DateUtils.convertToDate(methodVersion.created()))
         .lastRun(initializeLastRunDetails(methodVersion.lastRunSetId()))
-        .url(methodVersion.url())
         .branchOrTagName(methodVersion.branchOrTagName());
   }
 
-  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
+  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion)
+      throws MethodProcessingException, MalformedURLException, URISyntaxException,
+          bio.terra.dockstore.client.ApiException {
     Method method = methodVersion.method();
     Boolean isMethodPrivate = false;
-
-    if (Objects.equals(method.methodSource(), GITHUB.toString())) {
+    String resolvedUrl;
+    if (Objects.equals(method.methodSource(), DOCKSTORE.toString())) {
+      resolvedUrl = dockstoreService.resolveDockstoreUrl(methodVersion);
+    } else if (Objects.equals(method.methodSource(), GITHUB.toString())) {
+      resolvedUrl = getOrRebuildGithubUrl(methodVersion);
       GithubMethodDetails details = method.githubMethodDetails().orElse(null);
       if (details != null) {
         isMethodPrivate = details.isPrivate();
       }
+    } else {
+      resolvedUrl = methodVersion.url();
     }
+    ;
 
     return new MethodDetails()
         .methodId(method.methodId())
@@ -605,7 +622,8 @@ public class MethodsApiController implements MethodsApi {
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
         .lastRun(initializeLastRunDetails(method.lastRunSetId()))
-        .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)))
+        .methodVersions(
+            List.of(methodVersionToMethodVersionDetails(methodVersion).url(resolvedUrl)))
         .isPrivate(isMethodPrivate);
   }
 

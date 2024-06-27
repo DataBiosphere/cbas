@@ -270,6 +270,28 @@ class TestRunSetsApiController {
           "test_branch",
           Optional.empty());
 
+  private final MethodVersion dockstoreMethodVersion =
+      new MethodVersion(
+          dockstoreMethodVersionId,
+          new Method(
+              methodId,
+              "dockstore method name",
+              "dockstore method description",
+              OffsetDateTime.now(),
+              UUID.randomUUID(),
+              "Dockstore",
+              workspaceId,
+              Optional.empty(),
+              CbasMethodStatus.ACTIVE),
+          "develop",
+          "version description",
+          OffsetDateTime.now(),
+          null,
+          dockstoreWorkflowUrl,
+          workspaceId,
+          "develop",
+          Optional.empty());
+
   private final RunSet mockRunSet =
       new RunSet(
           UUID.randomUUID(),
@@ -373,27 +395,7 @@ class TestRunSetsApiController {
     when(methodVersionDao.getMethodVersion(methodVersionId)).thenReturn(methodVersion);
 
     when(methodVersionDao.getMethodVersion(dockstoreMethodVersionId))
-        .thenReturn(
-            new MethodVersion(
-                dockstoreMethodVersionId,
-                new Method(
-                    methodId,
-                    "dockstore method name",
-                    "dockstore method description",
-                    OffsetDateTime.now(),
-                    UUID.randomUUID(),
-                    "Dockstore",
-                    workspaceId,
-                    Optional.empty(),
-                    CbasMethodStatus.ACTIVE),
-                "develop",
-                "version description",
-                OffsetDateTime.now(),
-                null,
-                dockstoreWorkflowUrl,
-                workspaceId,
-                "develop",
-                Optional.empty()));
+        .thenReturn(dockstoreMethodVersion);
 
     // Set up API responses
     when(wdsService.getRecord(eq(recordType), eq(recordId1), any()))
@@ -643,7 +645,7 @@ class TestRunSetsApiController {
             result.getResponse().getContentAsString(), RunSetStateResponse.class);
 
     // verify dockstoreService was called with expected params
-    verify(dockstoreService).descriptorGetV1(dockstoreWorkflowUrl, "develop");
+    verify(dockstoreService).resolveDockstoreUrl(dockstoreMethodVersion);
 
     assertNull(response.getErrors());
     assertEquals(RunSetState.QUEUED, response.getState());
@@ -1690,12 +1692,10 @@ class TestRunSetsApiControllerGetSubmissionUrl {
         "https://raw.githubusercontent.com/dockstore/bcc2020-training/master/wdl-training/exercise1/HelloWorld.wdl";
 
     DockstoreService mockstoreService = mock(DockstoreService.class);
-    when(mockstoreService.descriptorGetV1(
-            "github.com/dockstore/bcc2020-training/HelloWorld", "develop"))
+
+    when(mockstoreService.resolveDockstoreUrl(versionUnderTest))
         .thenReturn(
-            new ToolDescriptor()
-                .url(
-                    "https://raw.githubusercontent.com/dockstore/bcc2020-training/master/wdl-training/exercise1/HelloWorld.wdl"));
+            "https://raw.githubusercontent.com/dockstore/bcc2020-training/master/wdl-training/exercise1/HelloWorld.wdl");
 
     String actual = RunSetsApiController.getSubmissionUrl(versionUnderTest, mockstoreService);
     assertEquals(expected, actual);
