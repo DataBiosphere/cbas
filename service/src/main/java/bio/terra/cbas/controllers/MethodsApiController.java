@@ -4,7 +4,6 @@ import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
 import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.dependencies.github.GitHubService.buildRawGithubUrl;
 import static bio.terra.cbas.dependencies.github.GitHubService.validateGithubUrl;
-import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.DOCKSTORE;
 import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.GITHUB;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasInputBuilder;
 import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCbasOutputBuilder;

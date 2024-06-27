@@ -53,6 +53,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.service.MethodService;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -122,6 +123,7 @@ class VerifyPactsAllControllers {
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private RunSetsService runSetsService;
   @MockBean private MethodService methodService;
+  @MockBean private MethodVersionService methodVersionService;
   @MockBean private BardService bardService;
   @MockBean private BardClient bardClient;
   @MockBean private BardServerConfiguration bardServerConfiguration;
