@@ -1,11 +1,9 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
 import static bio.terra.cbas.common.MetricsUtil.recordInputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordOutputsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRecordsInRequest;
 import static bio.terra.cbas.common.MetricsUtil.recordRunsSubmittedPerRunSet;
-import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
 
@@ -36,11 +34,11 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
-import bio.terra.dockstore.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -179,7 +177,7 @@ public class RunSetsApiController implements RunSetsApi {
     // retrieve the stored method url and use that while calling Cromwell's submit workflow endpoint
     String resolvedMethodUrl;
     try {
-      resolvedMethodUrl = getSubmissionUrl(methodVersion, dockstoreService);
+      resolvedMethodUrl = MethodVersionService.getSubmissionUrl(methodVersion, dockstoreService);
     } catch (MethodProcessingException
         | bio.terra.dockstore.client.ApiException
         | MalformedURLException
@@ -294,15 +292,6 @@ public class RunSetsApiController implements RunSetsApi {
     aborted.runs(submittedAbortWorkflows);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
-  }
-
-  public static String getSubmissionUrl(
-      MethodVersion methodVersion, DockstoreService dockstoreService)
-      throws MethodProcessingException, ApiException, MalformedURLException, URISyntaxException {
-    return switch (convertToMethodSourceEnum(methodVersion.method().methodSource())) {
-      case DOCKSTORE -> dockstoreService.resolveDockstoreUrl(methodVersion);
-      case GITHUB -> getOrRebuildGithubUrl(methodVersion);
-    };
   }
 
   public static void captureRequestMetrics(RunSetRequest request) {

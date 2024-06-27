@@ -17,6 +17,7 @@ import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.PostMethodRequest;
 import bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum;
 import bio.terra.cbas.service.MethodService;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.common.iam.BearerTokenFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -52,6 +53,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodService methodService;
   @MockBean private MethodVersionDao methodVersionDao;
+  @MockBean private MethodVersionService methodVersionService;
   @MockBean private RunSetDao runSetDao;
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
   @MockBean private BearerTokenFactory bearerTokenFactory;
@@ -176,6 +178,7 @@ class TestMethodsApiControllerUnits {
             methodDao,
             methodService,
             methodVersionDao,
+            methodVersionService,
             runSetDao,
             objectMapper,
             cbasContextConfiguration,

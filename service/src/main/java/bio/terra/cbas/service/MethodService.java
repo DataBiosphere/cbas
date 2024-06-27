@@ -1,15 +1,7 @@
 package bio.terra.cbas.service;
 
-import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
-import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
-
-import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.dao.MethodDao;
-import bio.terra.cbas.dependencies.dockstore.DockstoreService;
-import bio.terra.cbas.models.MethodVersion;
-import bio.terra.dockstore.client.ApiException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
+import bio.terra.cbas.model.MethodLastRunDetails;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -25,20 +17,14 @@ public class MethodService {
     methodDao.archiveMethod(methodId);
   }
 
-  public static String getSubmissionUrl(
-      MethodVersion methodVersion, DockstoreService dockstoreService)
-      throws MethodProcessingException, ApiException, MalformedURLException, URISyntaxException {
-    return switch (convertToMethodSourceEnum(methodVersion.method().methodSource())) {
-      case DOCKSTORE -> {
-        String resolvedMethodUrl =
-            dockstoreService.descriptorGetV1(methodVersion.url(), methodVersion.name()).getUrl();
-        if (resolvedMethodUrl == null || resolvedMethodUrl.isEmpty()) {
-          throw new MethodProcessingException(
-              "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.");
-        }
-        yield resolvedMethodUrl;
-      }
-      case GITHUB -> getOrRebuildGithubUrl(methodVersion);
-    };
+  public static MethodLastRunDetails initializeLastRunDetails(UUID lastRunSetId) {
+    MethodLastRunDetails lastRunDetails = new MethodLastRunDetails();
+    if (lastRunSetId != null) {
+      lastRunDetails.setRunSetId(lastRunSetId);
+      lastRunDetails.setPreviouslyRun(true);
+    } else {
+      lastRunDetails.setPreviouslyRun(false);
+    }
+    return lastRunDetails;
   }
 }
