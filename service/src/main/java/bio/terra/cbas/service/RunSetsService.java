@@ -250,24 +250,26 @@ public class RunSetsService {
 
   private WdsRecordResponseDetails fetchWdsRecords(
       WdsService wdsService, RunSetRequest request, RunSet runSet, BearerToken userToken) {
+    Timer.Sample wdsFetchRecordsSample = micrometerMetrics.startTimer();
+
     String recordType = request.getWdsRecords().getRecordType();
+    int totalRecords = request.getWdsRecords().getRecordIds().size();
 
     WdsRecordResponseDetails responseDetails =
         wdsService.getRecords(recordType, request.getWdsRecords().getRecordIds(), userToken);
     Map<String, String> recordIdsWithError = responseDetails.recordIdsWithError();
-    Timer.Sample wdsFetchRecordsSample = micrometerMetrics.startTimer();
+
     micrometerMetrics.stopTimer(
         wdsFetchRecordsSample,
         "wds_fetch_records_timer",
         RunSet.RUN_SET_ID_COL,
         runSet.runSetId().toString(),
+        "total_records_requests",
+        String.valueOf(totalRecords),
         "failed_record_requests",
-        "%s".formatted(recordIdsWithError.size()),
+        String.valueOf(recordIdsWithError.size()),
         "failure_rate",
-        "%s"
-            .formatted(
-                (double) recordIdsWithError.size()
-                    / request.getWdsRecords().getRecordIds().size()));
+        String.valueOf((double) recordIdsWithError.size() / totalRecords));
 
     return responseDetails;
   }
@@ -471,9 +473,7 @@ public class RunSetsService {
         cromwellSubmitRunsSample,
         "cromwell_submit_runs_timer",
         RunSet.RUN_SET_ID_COL,
-        runSet.runSetId().toString(),
-        "runStateResponseList",
-        runStateResponseList.toString());
+        runSet.runSetId().toString());
     return new SubmitRunSetResponse(runStateResponseList, successfullyInitializedWorkflowIds);
   }
 

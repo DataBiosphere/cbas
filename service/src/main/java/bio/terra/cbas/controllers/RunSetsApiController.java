@@ -158,7 +158,7 @@ public class RunSetsApiController implements RunSetsApi {
 
     captureRequestMetrics(request);
     Timer.Sample requestTimerSample = micrometerMetrics.startTimer();
-    Timer.Sample responseTimingSample = micrometerMetrics.startTimer();
+    Timer.Sample responseTimerSample = micrometerMetrics.startTimer();
 
     // request validation
     List<String> requestErrors = validateRequest(request, this.cbasApiConfiguration);
@@ -166,7 +166,7 @@ public class RunSetsApiController implements RunSetsApi {
       String errorMsg = "Bad user request. Error(s): " + requestErrors;
       log.warn(errorMsg);
       micrometerMetrics.recordPostRunSetHandlerCompletion(
-          responseTimingSample,
+          responseTimerSample,
           request.getWorkflowInputDefinitions().size(),
           request.getWorkflowOutputDefinitions().size(),
           request.getWdsRecords().getRecordIds().size(),
@@ -193,7 +193,7 @@ public class RunSetsApiController implements RunSetsApi {
           "Something went wrong while submitting workflow. Error: %s".formatted(e.getMessage());
       log.error(errorMsg, e);
       micrometerMetrics.recordPostRunSetHandlerCompletion(
-          responseTimingSample,
+          responseTimerSample,
           request.getWorkflowInputDefinitions().size(),
           request.getWorkflowOutputDefinitions().size(),
           request.getWdsRecords().getRecordIds().size(),
@@ -211,7 +211,7 @@ public class RunSetsApiController implements RunSetsApi {
     } catch (JsonProcessingException | RunSetCreationException e) {
       log.warn("Failed to record run set to database", e);
       micrometerMetrics.recordPostRunSetHandlerCompletion(
-          responseTimingSample,
+          responseTimerSample,
           request.getWorkflowInputDefinitions().size(),
           request.getWorkflowOutputDefinitions().size(),
           request.getWdsRecords().getRecordIds().size(),
@@ -237,7 +237,7 @@ public class RunSetsApiController implements RunSetsApi {
           "Failed to record runs to database for RunSet %s".formatted(runSet.runSetId());
       log.error(errorMsg, e);
       micrometerMetrics.recordPostRunSetHandlerCompletion(
-          responseTimingSample,
+          responseTimerSample,
           request.getWorkflowInputDefinitions().size(),
           request.getWorkflowOutputDefinitions().size(),
           request.getWdsRecords().getRecordIds().size(),
@@ -267,7 +267,7 @@ public class RunSetsApiController implements RunSetsApi {
         requestTimerSample);
 
     micrometerMetrics.recordPostRunSetHandlerCompletion(
-        responseTimingSample,
+        responseTimerSample,
         request.getWorkflowInputDefinitions().size(),
         request.getWorkflowOutputDefinitions().size(),
         request.getWdsRecords().getRecordIds().size(),

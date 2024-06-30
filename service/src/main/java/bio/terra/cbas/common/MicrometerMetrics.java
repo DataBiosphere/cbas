@@ -46,11 +46,11 @@ public class MicrometerMetrics {
 
   /* ******** Event distribution metrics ******** */
 
-  public void recordEventDistributionMetric(String metricName, int count) {
+  public void recordEventDistributionMetric(String metricName, double count) {
     recordEventDistributionMetric(metricName, Collections.emptyList(), count);
   }
 
-  public void recordRunsSubmittedPerRunSet(UUID runSetId, long runsCount) {
+  public void recordRunsSubmittedPerRunSet(UUID runSetId, double runsCount) {
     recordEventDistributionMetric(
         "runs_submitted_successfully_per_run_set",
         List.of(new ImmutableTag("run_set_id", runSetId.toString())),
@@ -109,7 +109,7 @@ public class MicrometerMetrics {
     counter.increment(count);
   }
 
-  private void recordEventDistributionMetric(String metricName, List<Tag> tags, long count) {
+  private void recordEventDistributionMetric(String metricName, List<Tag> tags, double count) {
     DistributionSummary summary =
         DistributionSummary.builder(metricName).tags(tags).register(meterRegistry);
     summary.record(count);
