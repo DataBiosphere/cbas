@@ -7,7 +7,9 @@ import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.primitiveOut
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException.WorkflowOutputNotFoundException;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import bio.terra.cbas.runsets.types.TypeCoercionException;
@@ -23,6 +25,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorPrimitives {
+
+  private final MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
   public TestOutputGeneratorPrimitives() {
     JSON.setGson(new Gson());
@@ -40,7 +44,8 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "String", "foo_name")),
-            cromwellOutputs);
+            cromwellOutputs,
+            micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -52,7 +57,9 @@ class TestOutputGeneratorPrimitives {
 
     RecordAttributes actual =
         OutputGenerator.buildOutputs(
-            List.of(primitiveOutputDefinition("myWorkflow.out", "Int", "foo_id")), cromwellOutputs);
+            List.of(primitiveOutputDefinition("myWorkflow.out", "Int", "foo_id")),
+            cromwellOutputs,
+            micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -65,7 +72,8 @@ class TestOutputGeneratorPrimitives {
         () ->
             OutputGenerator.buildOutputs(
                 List.of(primitiveOutputDefinition("myWorkflow.out", "Int", "foo_id")),
-                cromwellOutputs));
+                cromwellOutputs,
+                micrometerMetrics));
   }
 
   @Test
@@ -77,7 +85,8 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "Boolean", "foo_valid")),
-            cromwellOutputs);
+            cromwellOutputs,
+            micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -90,7 +99,8 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes actual =
         OutputGenerator.buildOutputs(
             List.of(primitiveOutputDefinition("myWorkflow.out", "Float", "foo_rating")),
-            cromwellOutputs);
+            cromwellOutputs,
+            micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -104,7 +114,8 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_rating", "gs://bucket/file-out");
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    RecordAttributes actual =
+        OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs, micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -117,7 +128,7 @@ class TestOutputGeneratorPrimitives {
 
     Assertions.assertThrows(
         ValueCoercionException.class,
-        () -> OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs));
+        () -> OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs, micrometerMetrics));
   }
 
   @Test
@@ -135,7 +146,8 @@ class TestOutputGeneratorPrimitives {
     expected.put("foo_name", "Harry Potter");
     expected.put("foo_rating", 8.5);
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    RecordAttributes actual =
+        OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs, micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -153,7 +165,8 @@ class TestOutputGeneratorPrimitives {
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
 
-    RecordAttributes actual = OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+    RecordAttributes actual =
+        OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs, micrometerMetrics);
     assertEquals(expected, actual);
   }
 
@@ -168,7 +181,7 @@ class TestOutputGeneratorPrimitives {
 
     Exception exception = null;
     try {
-      OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs);
+      OutputGenerator.buildOutputs(outputDefinitions, cromwellOutputs, micrometerMetrics);
     } catch (Exception e) {
       exception = e;
     }

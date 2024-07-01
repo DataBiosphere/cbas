@@ -4,7 +4,9 @@ import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.multiple
 import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.singleCromwellOutput;
 import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.optionalOutputDefinition;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
@@ -14,6 +16,8 @@ import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorOptionals {
+
+  private final MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
 
   public TestOutputGeneratorOptionals() {
     JSON.setGson(new Gson());
@@ -33,7 +37,8 @@ class TestOutputGeneratorOptionals {
     Object cromwellOutputs = singleCromwellOutput("myWorkflow.out", "\"Harry Potter\"");
 
     RecordAttributes actual =
-        OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
+        OutputGenerator.buildOutputs(
+            optionalOutputDefinitions(), cromwellOutputs, micrometerMetrics);
 
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
@@ -51,7 +56,8 @@ class TestOutputGeneratorOptionals {
             Map.of("myWorkflow.out", "\"Harry Potter\"", "myworkflow.not_out", "null"));
 
     RecordAttributes actual =
-        OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
+        OutputGenerator.buildOutputs(
+            optionalOutputDefinitions(), cromwellOutputs, micrometerMetrics);
 
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");
@@ -73,7 +79,8 @@ class TestOutputGeneratorOptionals {
                 "\"Tim The Sorcerer\""));
 
     RecordAttributes actual =
-        OutputGenerator.buildOutputs(optionalOutputDefinitions(), cromwellOutputs);
+        OutputGenerator.buildOutputs(
+            optionalOutputDefinitions(), cromwellOutputs, micrometerMetrics);
 
     RecordAttributes expected = new RecordAttributes();
     expected.put("foo_name", "Harry Potter");

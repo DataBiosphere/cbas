@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import bio.terra.cbas.common.DateUtils;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
@@ -68,6 +69,7 @@ class TestMethodsApiController {
   @MockBean private DockstoreService dockstoreService;
   @MockBean private SamService samService;
   @MockBean private GitHubService gitHubService;
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   // These mock beans are supplied to the RunSetApiController at construction time (and get used
   // later):

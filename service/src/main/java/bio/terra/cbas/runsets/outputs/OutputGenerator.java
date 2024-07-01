@@ -1,7 +1,6 @@
 package bio.terra.cbas.runsets.outputs;
 
-import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
-
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException.WorkflowOutputDestinationNotSupportedException;
 import bio.terra.cbas.common.exceptions.OutputProcessingException.WorkflowOutputNotFoundException;
@@ -19,7 +18,9 @@ public class OutputGenerator {
 
   @SuppressWarnings("unchecked")
   public static RecordAttributes buildOutputs(
-      List<WorkflowOutputDefinition> outputDefinitions, Object cromwellOutputs)
+      List<WorkflowOutputDefinition> outputDefinitions,
+      Object cromwellOutputs,
+      MicrometerMetrics micrometerMetrics)
       throws OutputProcessingException, CoercionException {
     RecordAttributes outputRecordAttributes = new RecordAttributes();
     for (WorkflowOutputDefinition outputDefinition : outputDefinitions) {
@@ -52,7 +53,7 @@ public class OutputGenerator {
 
       var coercedValue =
           CbasValue.parseValue(outputName, outputDefinition.getOutputType(), outputValue);
-      increaseEventCounter("files-updated-in-wds", coercedValue.countFiles());
+      micrometerMetrics.increaseEventCounter("files_updated_in_wds", coercedValue.countFiles());
 
       outputRecordAttributes.put(attributeName, coercedValue.asSerializableValue());
     }

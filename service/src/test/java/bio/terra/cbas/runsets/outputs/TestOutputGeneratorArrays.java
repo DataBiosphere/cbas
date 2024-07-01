@@ -3,7 +3,9 @@ package bio.terra.cbas.runsets.outputs;
 import static bio.terra.cbas.runsets.outputs.EngineOutputValueGenerator.multipleCromwellOutputs;
 import static bio.terra.cbas.runsets.outputs.StockOutputDefinitions.arrayOutputDefinition;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.model.WorkflowOutputDefinition;
 import com.google.gson.Gson;
 import cromwell.client.JSON;
@@ -13,6 +15,9 @@ import org.databiosphere.workspacedata.model.RecordAttributes;
 import org.junit.jupiter.api.Test;
 
 class TestOutputGeneratorArrays {
+
+  private final MicrometerMetrics micrometerMetrics = mock(MicrometerMetrics.class);
+
   public TestOutputGeneratorArrays() {
     JSON.setGson(new Gson());
   }
@@ -34,7 +39,7 @@ class TestOutputGeneratorArrays {
                 "myWorkflow.out_empty_array", "[]"));
 
     RecordAttributes actual =
-        OutputGenerator.buildOutputs(arrayOutputDefinitions(), cromwellOutputs);
+        OutputGenerator.buildOutputs(arrayOutputDefinitions(), cromwellOutputs, micrometerMetrics);
 
     RecordAttributes expected = new RecordAttributes();
     expected.put("look_and_say", List.of(1L, 11L, 21L, 1211L, 111221L, 312211L, 13112221L));

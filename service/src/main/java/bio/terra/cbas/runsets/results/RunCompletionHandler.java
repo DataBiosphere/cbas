@@ -1,7 +1,5 @@
 package bio.terra.cbas.runsets.results;
 
-import static bio.terra.cbas.common.MetricsUtil.recordMethodCompletion;
-
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.OutputProcessingException;
@@ -17,6 +15,7 @@ import bio.terra.common.iam.BearerToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Timer;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +54,7 @@ public class RunCompletionHandler {
       throws JsonProcessingException, CoercionException, OutputProcessingException {
     List<WorkflowOutputDefinition> outputDefinitionList =
         objectMapper.readValue(run.runSet().outputDefinition(), new TypeReference<>() {});
-    return OutputGenerator.buildOutputs(outputDefinitionList, outputs);
+    return OutputGenerator.buildOutputs(outputDefinitionList, outputs, micrometerMetrics);
   }
 
   public RunCompletionResult updateResults(
@@ -80,8 +79,10 @@ public class RunCompletionHandler {
       List<String> workflowErrors,
       OffsetDateTime engineStatusChange,
       BearerToken userToken) {
-    long updateResultsStartNanos = System.nanoTime();
+    // For metrics:
+    Timer.Sample methodStartSample = micrometerMetrics.startTimer();
     RunCompletionResult updateResult = RunCompletionResult.ERROR;
+
     try {
       if (updatableRun.status() == status
           && status != CbasRunStatus.COMPLETE
@@ -130,7 +131,8 @@ public class RunCompletionHandler {
       // Save the updated run record in database.
       updateResult = updateDatabaseRunStatus(updatableRun, status, errors, engineStatusChange);
     } finally {
-      recordMethodCompletion(updateResultsStartNanos, RunCompletionResult.SUCCESS == updateResult);
+      micrometerMetrics.recordMethodCompletion(
+          methodStartSample, RunCompletionResult.SUCCESS == updateResult);
     }
     // we should not come here
     return updateResult;
