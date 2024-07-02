@@ -18,11 +18,13 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MethodVersionService {
-
+  private final Logger logger = LoggerFactory.getLogger(MethodVersionService.class);
   private final DockstoreService dockstoreService;
 
   public MethodVersionService(DockstoreService dockstoreService) {
@@ -52,6 +54,9 @@ public class MethodVersionService {
         | URISyntaxException
         | MethodProcessingException
         | bio.terra.dockstore.client.ApiException e) {
+      logger.error(
+          "Failed to reconstruct URL for methodVersion %s: %s"
+              .formatted(methodVersion.methodVersionId(), e));
       resolvedUrl = methodVersion.url();
     }
 
