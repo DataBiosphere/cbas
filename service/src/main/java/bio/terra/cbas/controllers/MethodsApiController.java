@@ -1,7 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MetricsUtil.increaseEventCounter;
-import static bio.terra.cbas.common.MetricsUtil.recordMethodCreationCompletion;
 import static bio.terra.cbas.dependencies.github.GitHubService.buildRawGithubUrl;
 import static bio.terra.cbas.dependencies.github.GitHubService.validateGithubUrl;
 import static bio.terra.cbas.model.PostMethodRequest.MethodSourceEnum.GITHUB;
@@ -11,6 +9,7 @@ import static bio.terra.cbas.util.methods.WomtoolToCbasInputsAndOutputs.womToCba
 import bio.terra.cbas.api.MethodsApi;
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MethodUtil;
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
 import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.common.exceptions.WomtoolValueTypeProcessingException.WomtoolValueTypeNotFoundException;
@@ -54,6 +53,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.ApiException;
 import cromwell.client.model.WorkflowDescription;
+import io.micrometer.core.instrument.Timer.Sample;
 import jakarta.servlet.http.HttpServletRequest;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -85,6 +85,7 @@ public class MethodsApiController implements MethodsApi {
   private final CbasContextConfiguration cbasContextConfig;
   private final BearerTokenFactory bearerTokenFactory;
   private final HttpServletRequest httpServletRequest;
+  private final MicrometerMetrics micrometerMetrics;
 
   public MethodsApiController(
       CromwellService cromwellService,
@@ -99,7 +100,8 @@ public class MethodsApiController implements MethodsApi {
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfig,
       BearerTokenFactory bearerTokenFactory,
-      HttpServletRequest httpServletRequest) {
+      HttpServletRequest httpServletRequest,
+      MicrometerMetrics micrometerMetrics) {
     this.cromwellService = cromwellService;
     this.dockstoreService = dockstoreService;
     this.gitHubService = gitHubService;
@@ -113,6 +115,7 @@ public class MethodsApiController implements MethodsApi {
     this.cbasContextConfig = cbasContextConfig;
     this.bearerTokenFactory = bearerTokenFactory;
     this.httpServletRequest = httpServletRequest;
+    this.micrometerMetrics = micrometerMetrics;
   }
 
   private final ObjectMapper objectMapper;
@@ -127,7 +130,7 @@ public class MethodsApiController implements MethodsApi {
       throw new ForbiddenException(SamService.WRITE_ACTION, SamService.RESOURCE_TYPE_WORKSPACE);
     }
 
-    long requestStartNanos = System.nanoTime();
+    Sample requestStartSample = micrometerMetrics.startTimer();
 
     // validate request
     List<String> validationErrors = validateMethod(postMethodRequest);
@@ -198,13 +201,13 @@ public class MethodsApiController implements MethodsApi {
       String errorMsg =
           "Error while importing Dockstore workflow. Error: %s".formatted(e.getMessage());
       log.warn(errorMsg, e);
-      increaseEventCounter("Dockstore method import error", 1);
+      micrometerMetrics.increaseEventCounter("dockstore_method_import_error", 1);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     } catch (GitHubClient.GitHubClientException e) {
       String errorMsg =
           "Error while importing GitHub workflow. Error: %s".formatted(e.getMessage());
       log.warn(errorMsg, e);
-      increaseEventCounter("GitHub method import error", 1);
+      micrometerMetrics.increaseEventCounter("github_method_import_error", 1);
       return new ResponseEntity<>(new PostMethodResponse().error(errorMsg), HttpStatus.BAD_REQUEST);
     }
 
@@ -229,8 +232,8 @@ public class MethodsApiController implements MethodsApi {
                 "Bad user request. Method '%s' (resolved to %s) is invalid. Error(s): %s",
                 methodUrl, resolvedMethodUrl, String.join(". ", workflowDescription.getErrors()));
         log.warn(invalidMethodErrors);
-        recordMethodCreationCompletion(
-            methodSource.toString(), HttpStatus.BAD_REQUEST.value(), requestStartNanos);
+        micrometerMetrics.recordPostMethodHandlerCompletion(
+            requestStartSample, methodSource.toString(), HttpStatus.BAD_REQUEST.value());
 
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMethodErrors), HttpStatus.BAD_REQUEST);
@@ -247,8 +250,8 @@ public class MethodsApiController implements MethodsApi {
         String invalidMappingError =
             String.format("Bad user request. Error(s): %s", String.join(" ", invalidMappingErrors));
         log.warn(invalidMappingError);
-        recordMethodCreationCompletion(
-            methodSource.toString(), HttpStatus.BAD_REQUEST.value(), requestStartNanos);
+        micrometerMetrics.recordPostMethodHandlerCompletion(
+            requestStartSample, methodSource.toString(), HttpStatus.BAD_REQUEST.value());
 
         return new ResponseEntity<>(
             new PostMethodResponse().error(invalidMappingError), HttpStatus.BAD_REQUEST);
@@ -268,8 +271,8 @@ public class MethodsApiController implements MethodsApi {
           githubMethodVersionDetails,
           branchOrTagName);
 
-      recordMethodCreationCompletion(
-          methodSource.toString(), HttpStatus.OK.value(), requestStartNanos);
+      micrometerMetrics.recordPostMethodHandlerCompletion(
+          requestStartSample, methodSource.toString(), HttpStatus.OK.value());
       PostMethodResponse postMethodResponse =
           new PostMethodResponse().methodId(methodId).runSetId(runSetId);
 
@@ -283,8 +286,8 @@ public class MethodsApiController implements MethodsApi {
               "Something went wrong while importing the method '%s'. Error(s): %s",
               postMethodRequest.getMethodUrl(), e.getMessage());
       log.warn(errorMsg);
-      recordMethodCreationCompletion(
-          methodSource.toString(), HttpStatus.INTERNAL_SERVER_ERROR.value(), requestStartNanos);
+      micrometerMetrics.recordPostMethodHandlerCompletion(
+          requestStartSample, methodSource.toString(), HttpStatus.INTERNAL_SERVER_ERROR.value());
 
       return new ResponseEntity<>(
           new PostMethodResponse().error(errorMsg), HttpStatus.INTERNAL_SERVER_ERROR);

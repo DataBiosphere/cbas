@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -58,6 +59,7 @@ class TestMethodsApiControllerUnits {
   @MockBean private CbasContextConfiguration cbasContextConfiguration;
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private HttpServletRequest httpServletRequest;
+  @MockBean private MicrometerMetrics micrometerMetrics;
 
   String workflowDescriptionString =
       """
@@ -183,7 +185,8 @@ class TestMethodsApiControllerUnits {
             objectMapper,
             cbasContextConfiguration,
             bearerTokenFactory,
-            httpServletRequest);
+            httpServletRequest,
+            micrometerMetrics);
   }
 
   @Test
