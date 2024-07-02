@@ -1,7 +1,5 @@
 package bio.terra.cbas.controllers;
 
-import static bio.terra.cbas.common.MethodUtil.convertToMethodSourceEnum;
-import static bio.terra.cbas.dependencies.github.GitHubService.getOrRebuildGithubUrl;
 import static bio.terra.cbas.model.RunSetState.CANCELING;
 import static bio.terra.cbas.models.CbasRunSetStatus.toCbasRunSetApiState;
 
@@ -31,11 +29,11 @@ import bio.terra.cbas.monitoring.TimeLimitedUpdater;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager;
 import bio.terra.cbas.runsets.monitoring.RunSetAbortManager.AbortRequestDetails;
 import bio.terra.cbas.runsets.monitoring.SmartRunSetsPoller;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
-import bio.terra.dockstore.client.ApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.micrometer.core.instrument.Timer;
 import jakarta.servlet.http.HttpServletRequest;
@@ -181,7 +179,7 @@ public class RunSetsApiController implements RunSetsApi {
     // retrieve the stored method url and use that while calling Cromwell's submit workflow endpoint
     String resolvedMethodUrl;
     try {
-      resolvedMethodUrl = getSubmissionUrl(methodVersion, dockstoreService);
+      resolvedMethodUrl = MethodVersionService.getSubmissionUrl(methodVersion, dockstoreService);
     } catch (MethodProcessingException
         | bio.terra.dockstore.client.ApiException
         | MalformedURLException
@@ -320,23 +318,6 @@ public class RunSetsApiController implements RunSetsApi {
     aborted.runs(submittedAbortWorkflows);
 
     return new ResponseEntity<>(aborted, HttpStatus.OK);
-  }
-
-  public static String getSubmissionUrl(
-      MethodVersion methodVersion, DockstoreService dockstoreService)
-      throws MethodProcessingException, ApiException, MalformedURLException, URISyntaxException {
-    return switch (convertToMethodSourceEnum(methodVersion.method().methodSource())) {
-      case DOCKSTORE -> {
-        String resolvedMethodUrl =
-            dockstoreService.descriptorGetV1(methodVersion.url(), methodVersion.name()).getUrl();
-        if (resolvedMethodUrl == null || resolvedMethodUrl.isEmpty()) {
-          throw new MethodProcessingException(
-              "Error while retrieving WDL url for Dockstore workflow. No workflow url found specified path.");
-        }
-        yield resolvedMethodUrl;
-      }
-      case GITHUB -> getOrRebuildGithubUrl(methodVersion);
-    };
   }
 
   public void captureRequestMetrics(RunSetRequest request) {

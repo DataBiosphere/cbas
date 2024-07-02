@@ -1,14 +1,9 @@
 package bio.terra.cbas.dependencies.github;
 
-import static bio.terra.cbas.common.MethodUtil.asRawMethodUrlGithub;
-
 import bio.terra.cbas.common.validation.CbasValidVoid;
 import bio.terra.cbas.common.validation.CbasValidationError;
 import bio.terra.cbas.common.validation.CbasVoidValidation;
 import bio.terra.cbas.dependencies.ecm.EcmService;
-import bio.terra.cbas.models.GithubMethodDetails;
-import bio.terra.cbas.models.GithubMethodVersionDetails;
-import bio.terra.cbas.models.MethodVersion;
 import bio.terra.common.iam.BearerToken;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -16,7 +11,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 import org.springframework.stereotype.Component;
 
@@ -60,27 +54,6 @@ public class GitHubService {
     }
 
     return commitInfo.getSha();
-  }
-
-  // If the methodVersion has methodVersionDetails, reconstruct the url using them
-  public static String getOrRebuildGithubUrl(MethodVersion methodVersion)
-      throws MalformedURLException, URISyntaxException {
-    Optional<GithubMethodVersionDetails> methodVersionDetailsOptional =
-        methodVersion.methodVersionDetails();
-    Optional<GithubMethodDetails> methodDetailsOptional =
-        methodVersion.method().githubMethodDetails();
-
-    if (methodVersionDetailsOptional.isEmpty() || methodDetailsOptional.isEmpty()) {
-      return asRawMethodUrlGithub(methodVersion.url());
-    } else {
-      GithubMethodDetails methodDetails = methodDetailsOptional.get();
-      GithubMethodVersionDetails methodVersionDetails = methodVersionDetailsOptional.get();
-      return buildRawGithubUrl(
-          methodDetails.organization(),
-          methodDetails.repository(),
-          methodVersionDetails.githash(),
-          methodDetails.path());
-    }
   }
 
   public static String buildRawGithubUrl(String org, String repo, String githash, String path) {

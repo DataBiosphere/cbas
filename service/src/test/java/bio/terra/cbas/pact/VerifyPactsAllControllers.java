@@ -53,6 +53,7 @@ import bio.terra.cbas.runsets.monitoring.SmartRunsPoller;
 import bio.terra.cbas.runsets.results.RunCompletionHandler;
 import bio.terra.cbas.runsets.results.RunCompletionResult;
 import bio.terra.cbas.service.MethodService;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.cbas.service.RunSetsService;
 import bio.terra.cbas.util.UuidSource;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -96,7 +97,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @Provider("cbas")
 @PactBroker()
 class VerifyPactsAllControllers {
-  private static final String API = "/api/batch/v1/run_sets";
   private static final String CONSUMER_BRANCH = System.getenv("CONSUMER_BRANCH");
 
   @MockBean private SamService samService;
@@ -122,6 +122,7 @@ class VerifyPactsAllControllers {
   @MockBean private BearerTokenFactory bearerTokenFactory;
   @MockBean private RunSetsService runSetsService;
   @MockBean private MethodService methodService;
+  @MockBean private MethodVersionService methodVersionService;
   @MockBean private BardService bardService;
   @MockBean private BardClient bardClient;
   @MockBean private BardServerConfiguration bardServerConfiguration;
