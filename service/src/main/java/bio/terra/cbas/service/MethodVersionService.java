@@ -38,15 +38,20 @@ public class MethodVersionService {
     };
   }
 
-  public MethodVersionDetails methodVersionToMethodVersionDetails(MethodVersion methodVersion)
-      throws MalformedURLException, URISyntaxException, MethodProcessingException,
-          bio.terra.dockstore.client.ApiException {
+  public MethodVersionDetails methodVersionToMethodVersionDetails(MethodVersion methodVersion) {
     String resolvedUrl;
-    if (Objects.equals(methodVersion.method().methodSource(), DOCKSTORE.toString())) {
-      resolvedUrl = dockstoreService.resolveDockstoreUrl(methodVersion);
-    } else if (Objects.equals(methodVersion.method().methodSource(), GITHUB.toString())) {
-      resolvedUrl = getOrRebuildGithubUrl(methodVersion);
-    } else {
+    try {
+      if (Objects.equals(methodVersion.method().methodSource(), DOCKSTORE.toString())) {
+        resolvedUrl = dockstoreService.resolveDockstoreUrl(methodVersion);
+      } else if (Objects.equals(methodVersion.method().methodSource(), GITHUB.toString())) {
+        resolvedUrl = getOrRebuildGithubUrl(methodVersion);
+      } else {
+        resolvedUrl = methodVersion.url();
+      }
+    } catch (MalformedURLException
+        | URISyntaxException
+        | MethodProcessingException
+        | bio.terra.dockstore.client.ApiException e) {
       resolvedUrl = methodVersion.url();
     }
 

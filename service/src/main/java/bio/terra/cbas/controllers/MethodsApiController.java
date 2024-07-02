@@ -304,16 +304,8 @@ public class MethodsApiController implements MethodsApi {
 
     List<MethodDetails> methodDetails;
     if (methodVersionId != null) {
-      try {
-        methodDetails =
-            List.of(
-                methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
-      } catch (bio.terra.cbas.common.exceptions.MethodProcessingException
-          | java.net.MalformedURLException
-          | java.net.URISyntaxException
-          | bio.terra.dockstore.client.ApiException e) {
-        return ResponseEntity.badRequest().body(new MethodListResponse().error(e.toString()));
-      }
+      methodDetails =
+          List.of(methodVersionToMethodDetails(methodVersionDao.getMethodVersion(methodVersionId)));
     } else {
       List<Method> methods =
           methodId == null ? methodDao.getMethods() : List.of(methodDao.getMethod(methodId));
@@ -570,20 +562,7 @@ public class MethodsApiController implements MethodsApi {
     List<MethodVersionDetails> versions =
         includeVersions
             ? methodVersionDao.getMethodVersionsForMethod(method).stream()
-                .map(
-                    mv -> {
-                      try {
-                        return methodVersionService.methodVersionToMethodVersionDetails(mv);
-                      } catch (MalformedURLException
-                          | URISyntaxException
-                          | MethodProcessingException
-                          | bio.terra.dockstore.client.ApiException e) {
-                        log.warn(
-                            "methodVersionToMethodVersionDetails conversion failed: %s"
-                                .formatted(e));
-                        return null;
-                      }
-                    })
+                .map(methodVersionService::methodVersionToMethodVersionDetails)
                 .toList()
             : null;
 
@@ -598,9 +577,7 @@ public class MethodsApiController implements MethodsApi {
         .isPrivate(isMethodPrivate);
   }
 
-  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion)
-      throws MethodProcessingException, MalformedURLException, URISyntaxException,
-          bio.terra.dockstore.client.ApiException {
+  private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
     Method method = methodVersion.method();
     Boolean isMethodPrivate = false;
 
