@@ -16,8 +16,6 @@ import bio.terra.cbas.models.GithubMethodVersionDetails;
 import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.dockstore.client.ApiException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -168,7 +166,7 @@ class TestMethodVersionService {
 
   @Test
   void testDockstoreMethodVersionToMethodVersionDetails()
-      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+      throws MethodProcessingException, ApiException {
 
     String resolvedUrl = "http://my-resolved-wdl.dockstore.org";
 
@@ -188,8 +186,7 @@ class TestMethodVersionService {
   }
 
   @Test
-  void testGithubMethodVersionToMethodVersionDetails()
-      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+  void testGithubMethodVersionToMethodVersionDetails() {
 
     String inputUrl = "http://my-input-wdl.github.com";
     MethodVersionService methodVersionService = new MethodVersionService(null);
@@ -232,8 +229,7 @@ class TestMethodVersionService {
   }
 
   @Test
-  void testOtherMethodVersionToMethodVersionDetails()
-      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+  void testOtherMethodVersionToMethodVersionDetails() {
     String resolvedUrl = "http://my-resolved-wdl.someotherdomain.org";
     MethodVersionService methodVersionService = new MethodVersionService(null);
 

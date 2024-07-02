@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import bio.terra.cbas.common.DateUtils;
 import bio.terra.cbas.common.MicrometerMetrics;
 import bio.terra.cbas.common.exceptions.ForbiddenException;
-import bio.terra.cbas.common.exceptions.MethodProcessingException;
 import bio.terra.cbas.config.CbasContextConfiguration;
 import bio.terra.cbas.dao.MethodDao;
 import bio.terra.cbas.dao.MethodVersionDao;
@@ -39,12 +38,9 @@ import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
 import bio.terra.common.sam.exception.SamInterruptedException;
 import bio.terra.common.sam.exception.SamUnauthorizedException;
-import bio.terra.dockstore.client.ApiException;
 import bio.terra.dockstore.model.ToolDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import cromwell.client.model.WorkflowDescription;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,8 +101,7 @@ class TestMethodsApiController {
   // Set up the database query responses.
   // These answers are always the same, only the business logic that chooses them and interprets
   // the results should change:
-  private void initMocks()
-      throws MalformedURLException, MethodProcessingException, URISyntaxException, ApiException {
+  private void initMocks() {
     initSamMocks();
 
     Method neverRunMethod1WithGithub = neverRunMethod1.withGithubMethodDetails(githubMethodDetails);
