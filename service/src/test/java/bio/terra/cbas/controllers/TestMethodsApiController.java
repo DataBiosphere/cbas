@@ -28,9 +28,11 @@ import bio.terra.cbas.model.ErrorReport;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
+import bio.terra.cbas.model.MethodVersionDetails;
 import bio.terra.cbas.model.PostMethodResponse;
 import bio.terra.cbas.models.*;
 import bio.terra.cbas.service.MethodService;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.common.exception.UnauthorizedException;
 import bio.terra.common.iam.BearerToken;
 import bio.terra.common.iam.BearerTokenFactory;
@@ -76,6 +78,7 @@ class TestMethodsApiController {
   @MockBean private MethodDao methodDao;
   @MockBean private MethodService methodService;
   @MockBean private MethodVersionDao methodVersionDao;
+  @MockBean private MethodVersionService methodVersionService;
   @MockBean private RunSetDao runSetDao;
   @MockBean private EcmService ecmService;
   @MockBean private BearerTokenFactory bearerTokenFactory;
@@ -135,6 +138,22 @@ class TestMethodsApiController {
             Map.of(
                 method2RunSet1Id, method2Version1RunsetDetails,
                 method2RunSet2Id, method2Version2RunsetDetails));
+
+    when(methodVersionService.methodVersionToMethodVersionDetails(method1Version1))
+        .thenReturn(new MethodVersionDetails().lastRun(new MethodLastRunDetails()));
+
+    when(methodVersionService.methodVersionToMethodVersionDetails(method1Version2))
+        .thenReturn(new MethodVersionDetails().lastRun(new MethodLastRunDetails()));
+
+    when(methodVersionService.methodVersionToMethodVersionDetails(method2Version1))
+        .thenReturn(
+            new MethodVersionDetails()
+                .lastRun(method2Version1RunsetDetails)
+                .description(method2Version1.description())
+                .branchOrTagName(method2Version1.branchOrTagName()));
+
+    when(methodVersionService.methodVersionToMethodVersionDetails(method2Version2))
+        .thenReturn(new MethodVersionDetails().lastRun(new MethodLastRunDetails()));
   }
 
   @Test

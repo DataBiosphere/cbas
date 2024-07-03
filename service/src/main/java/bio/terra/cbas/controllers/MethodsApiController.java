@@ -26,7 +26,6 @@ import bio.terra.cbas.dependencies.sam.SamService;
 import bio.terra.cbas.dependencies.wes.CromwellService;
 import bio.terra.cbas.model.MethodDetails;
 import bio.terra.cbas.model.MethodInputMapping;
-import bio.terra.cbas.model.MethodLastRunDetails;
 import bio.terra.cbas.model.MethodListResponse;
 import bio.terra.cbas.model.MethodOutputMapping;
 import bio.terra.cbas.model.MethodVersionDetails;
@@ -45,6 +44,7 @@ import bio.terra.cbas.models.Method;
 import bio.terra.cbas.models.MethodVersion;
 import bio.terra.cbas.models.RunSet;
 import bio.terra.cbas.service.MethodService;
+import bio.terra.cbas.service.MethodVersionService;
 import bio.terra.cbas.util.methods.GithubUrlComponents;
 import bio.terra.common.exception.BadRequestException;
 import bio.terra.common.iam.BearerToken;
@@ -80,6 +80,7 @@ public class MethodsApiController implements MethodsApi {
   private final MethodDao methodDao;
   private final MethodService methodService;
   private final MethodVersionDao methodVersionDao;
+  private final MethodVersionService methodVersionService;
   private final RunSetDao runSetDao;
   private final CbasContextConfiguration cbasContextConfig;
   private final BearerTokenFactory bearerTokenFactory;
@@ -94,6 +95,7 @@ public class MethodsApiController implements MethodsApi {
       MethodDao methodDao,
       MethodService methodService,
       MethodVersionDao methodVersionDao,
+      MethodVersionService methodVersionService,
       RunSetDao runSetDao,
       ObjectMapper objectMapper,
       CbasContextConfiguration cbasContextConfig,
@@ -107,6 +109,7 @@ public class MethodsApiController implements MethodsApi {
     this.methodDao = methodDao;
     this.methodService = methodService;
     this.methodVersionDao = methodVersionDao;
+    this.methodVersionService = methodVersionService;
     this.runSetDao = runSetDao;
     this.objectMapper = objectMapper;
     this.cbasContextConfig = cbasContextConfig;
@@ -562,7 +565,7 @@ public class MethodsApiController implements MethodsApi {
     List<MethodVersionDetails> versions =
         includeVersions
             ? methodVersionDao.getMethodVersionsForMethod(method).stream()
-                .map(MethodsApiController::methodVersionToMethodVersionDetails)
+                .map(methodVersionService::methodVersionToMethodVersionDetails)
                 .toList()
             : null;
 
@@ -572,34 +575,14 @@ public class MethodsApiController implements MethodsApi {
         .description(method.description())
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
-        .lastRun(initializeLastRunDetails(method.lastRunSetId()))
+        .lastRun(MethodService.initializeLastRunDetails(method.lastRunSetId()))
         .methodVersions(versions)
         .isPrivate(isMethodPrivate);
-  }
-
-  private static MethodVersionDetails methodVersionToMethodVersionDetails(
-      MethodVersion methodVersion) {
-    return new MethodVersionDetails()
-        .methodVersionId(methodVersion.methodVersionId())
-        .methodId(methodVersion.method().methodId())
-        .name(methodVersion.name())
-        .description(methodVersion.description())
-        .created(DateUtils.convertToDate(methodVersion.created()))
-        .lastRun(initializeLastRunDetails(methodVersion.lastRunSetId()))
-        .url(methodVersion.url())
-        .branchOrTagName(methodVersion.branchOrTagName());
   }
 
   private MethodDetails methodVersionToMethodDetails(MethodVersion methodVersion) {
     Method method = methodVersion.method();
     Boolean isMethodPrivate = false;
-
-    if (Objects.equals(method.methodSource(), GITHUB.toString())) {
-      GithubMethodDetails details = method.githubMethodDetails().orElse(null);
-      if (details != null) {
-        isMethodPrivate = details.isPrivate();
-      }
-    }
 
     return new MethodDetails()
         .methodId(method.methodId())
@@ -607,19 +590,9 @@ public class MethodsApiController implements MethodsApi {
         .description(method.description())
         .source(method.methodSource())
         .created(DateUtils.convertToDate(method.created()))
-        .lastRun(initializeLastRunDetails(method.lastRunSetId()))
-        .methodVersions(List.of(methodVersionToMethodVersionDetails(methodVersion)))
+        .lastRun(MethodService.initializeLastRunDetails(method.lastRunSetId()))
+        .methodVersions(
+            List.of(methodVersionService.methodVersionToMethodVersionDetails(methodVersion)))
         .isPrivate(isMethodPrivate);
-  }
-
-  private static MethodLastRunDetails initializeLastRunDetails(UUID lastRunSetId) {
-    MethodLastRunDetails lastRunDetails = new MethodLastRunDetails();
-    if (lastRunSetId != null) {
-      lastRunDetails.setRunSetId(lastRunSetId);
-      lastRunDetails.setPreviouslyRun(true);
-    } else {
-      lastRunDetails.setPreviouslyRun(false);
-    }
-    return lastRunDetails;
   }
 }
