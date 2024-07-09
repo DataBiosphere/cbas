@@ -4,6 +4,8 @@ import bio.terra.cbas.api.PublicApi;
 import bio.terra.cbas.dependencies.common.ScheduledHealthChecker;
 import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,10 +15,24 @@ import org.springframework.stereotype.Controller;
 public class PublicApiController implements PublicApi {
 
   private final ScheduledHealthChecker scheduledHealthChecker;
+  private final Object capabilitiesResponse;
 
   @Autowired
-  public PublicApiController(ScheduledHealthChecker scheduledHealthChecker) {
+  public PublicApiController(
+      ScheduledHealthChecker scheduledHealthChecker, ObjectMapper objectMapper) {
+    // read the "capabilities.json" file from resources and parse it into response object
+    InputStream inputStream = getClass().getResourceAsStream("/capabilities.json");
+    Object tempCapabilitiesResponse;
+    try {
+      tempCapabilitiesResponse = objectMapper.readValue(inputStream, Object.class);
+      log.info("Capabilities in this CBAS version: {}", tempCapabilitiesResponse);
+    } catch (Exception e) {
+      log.error("Could not read 'capabilities.json' file. Error: {}", e.getMessage(), e);
+      tempCapabilitiesResponse = null;
+    }
+
     this.scheduledHealthChecker = scheduledHealthChecker;
+    this.capabilitiesResponse = tempCapabilitiesResponse;
   }
 
   @Override
@@ -34,5 +50,14 @@ public class PublicApiController implements PublicApi {
                         .addMessagesItem(healthCheck.message())));
 
     return new ResponseEntity<>(result, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<Object> capabilities() {
+    if (capabilitiesResponse != null) {
+      return new ResponseEntity<>(capabilitiesResponse, HttpStatus.OK);
+    }
+
+    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

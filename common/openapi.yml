@@ -197,6 +197,20 @@ paths:
         '500':
           $ref: '#/components/responses/ServerError'
 
+  /capabilities/v1:
+    get:
+      summary: Describes the capabilities of this CBAS version
+      tags: [ public ]
+      operationId: capabilities
+      security: [ ]
+      responses:
+        200:
+          description: JSON object describing capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+
 components:
   requestBodies:
     PostRunSetRequest:
