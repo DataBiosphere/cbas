@@ -2,6 +2,7 @@ package bio.terra.cbas.controllers;
 
 import bio.terra.cbas.api.PublicApi;
 import bio.terra.cbas.dependencies.common.ScheduledHealthChecker;
+import bio.terra.cbas.model.CapabilitiesResponse;
 import bio.terra.cbas.model.SystemStatus;
 import bio.terra.cbas.model.SystemStatusSystems;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,16 +16,16 @@ import org.springframework.stereotype.Controller;
 public class PublicApiController implements PublicApi {
 
   private final ScheduledHealthChecker scheduledHealthChecker;
-  private final Object capabilitiesResponse;
+  private final CapabilitiesResponse capabilitiesResponse;
 
   @Autowired
   public PublicApiController(
       ScheduledHealthChecker scheduledHealthChecker, ObjectMapper objectMapper) {
     // read the "capabilities.json" file from resources and parse it into response object
     InputStream inputStream = getClass().getResourceAsStream("/capabilities.json");
-    Object tempCapabilitiesResponse;
+    CapabilitiesResponse tempCapabilitiesResponse;
     try {
-      tempCapabilitiesResponse = objectMapper.readValue(inputStream, Object.class);
+      tempCapabilitiesResponse = objectMapper.readValue(inputStream, CapabilitiesResponse.class);
       log.info("Capabilities in this CBAS version: {}", tempCapabilitiesResponse);
     } catch (Exception e) {
       log.error("Could not read 'capabilities.json' file. Error: {}", e.getMessage(), e);
@@ -53,7 +54,7 @@ public class PublicApiController implements PublicApi {
   }
 
   @Override
-  public ResponseEntity<Object> capabilities() {
+  public ResponseEntity<CapabilitiesResponse> capabilities() {
     if (capabilitiesResponse != null) {
       return new ResponseEntity<>(capabilitiesResponse, HttpStatus.OK);
     }

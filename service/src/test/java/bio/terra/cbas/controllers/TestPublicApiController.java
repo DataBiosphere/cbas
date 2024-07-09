@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import bio.terra.cbas.model.CapabilitiesResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,8 +36,9 @@ class TestPublicApiController {
     MvcResult mvcResult =
         mockMvc.perform(get(CAPABILITIES_API)).andExpect(status().isOk()).andReturn();
 
-    Map<String, Object> parsedResponse =
-        objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Map.class);
+    CapabilitiesResponse parsedResponse =
+        objectMapper.readValue(
+            mvcResult.getResponse().getContentAsString(), CapabilitiesResponse.class);
 
     assertThat(parsedResponse).isNotNull();
 
@@ -45,6 +46,7 @@ class TestPublicApiController {
     assertEquals(200, parsedResponse.get("submission.limits.maxInputs"));
     assertEquals(300, parsedResponse.get("submission.limits.maxOutputs"));
     assertEquals(true, parsedResponse.get("workflow.archiving"));
+    assertEquals(true, parsedResponse.get("workflow.private_workflows.github"));
   }
 
   @Test
