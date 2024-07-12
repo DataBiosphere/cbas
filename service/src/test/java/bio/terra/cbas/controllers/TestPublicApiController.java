@@ -45,8 +45,6 @@ class TestPublicApiController {
     assertEquals(100, parsedResponse.get("submission.limits.maxWorkflows"));
     assertEquals(200, parsedResponse.get("submission.limits.maxInputs"));
     assertEquals(300, parsedResponse.get("submission.limits.maxOutputs"));
-    assertEquals(true, parsedResponse.get("workflow.archiving"));
-    assertEquals(true, parsedResponse.get("workflow.private-workflows.github"));
   }
 
   @Test

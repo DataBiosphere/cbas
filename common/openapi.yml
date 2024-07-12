@@ -974,4 +974,4 @@ components:
       additionalProperties: true
       example:
         submission.limits.maxWorkflows: 100
-        workflow.archiving: true
+        new-feature-namespace.feature-name: true
