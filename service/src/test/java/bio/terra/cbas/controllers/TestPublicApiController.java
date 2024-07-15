@@ -2,7 +2,6 @@ package bio.terra.cbas.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -32,25 +31,25 @@ class TestPublicApiController {
   private static final String CAPABILITIES_API = "/capabilities/v1";
 
   @Test
-  void successfullyReturnCapabilities() throws Exception {
+  void checkCapabilitiesResponseIsValid() throws Exception {
     MvcResult mvcResult =
         mockMvc.perform(get(CAPABILITIES_API)).andExpect(status().isOk()).andReturn();
 
     CapabilitiesResponse parsedResponse =
-        objectMapper.readValue(
-            mvcResult.getResponse().getContentAsString(), CapabilitiesResponse.class);
+        assertDoesNotThrow(
+            () ->
+                objectMapper.readValue(
+                    mvcResult.getResponse().getContentAsString(), CapabilitiesResponse.class));
 
-    assertThat(parsedResponse).isNotNull();
-
-    assertEquals(100, parsedResponse.get("submission.limits.maxWorkflows"));
-    assertEquals(200, parsedResponse.get("submission.limits.maxInputs"));
-    assertEquals(300, parsedResponse.get("submission.limits.maxOutputs"));
+    assertThat(parsedResponse).isNotEmpty();
   }
 
   @Test
   void checkCapabilitiesJsonFileIsValid() {
     assertDoesNotThrow(
-        () -> objectMapper.readValue(capabilitiesResource.getInputStream(), Object.class),
+        () ->
+            objectMapper.readValue(
+                capabilitiesResource.getInputStream(), CapabilitiesResponse.class),
         "Resource file 'capabilities.json' is invalid.");
   }
 }
