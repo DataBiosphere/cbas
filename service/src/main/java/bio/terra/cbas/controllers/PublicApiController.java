@@ -21,6 +21,9 @@ public class PublicApiController implements PublicApi {
 
   @Override
   public ResponseEntity<SystemStatus> getStatus() {
+
+    System.out.println("TODO: remove this before merging");
+
     SystemStatus result = new SystemStatus().ok(true);
 
     scheduledHealthChecker
