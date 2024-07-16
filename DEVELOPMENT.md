@@ -32,16 +32,18 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
     xcode-select --install
 
     brew install jenv
-    # follow postinstall instructions to activate jenv...
+    # follow postinstall instructions to activate jEnv...
 
     # to add previously installed versions of Java to jEnv, list them:
     # /usr/libexec/java_home -V
     # and then add them:
     # jenv add /Library/Java/JavaVirtualMachines/<JAVA VERSION HERE>/Contents/Home
 
-    brew install homebrew/cask-versions/temurin17
+    brew install --cask temurin@17
 
     jenv add /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+    # Note: if this command does not work, ensure that you activated jEnv
+    # as specified above
     ```
 
 **NOTE**: You may encounter issues with the application when running an unexpected version of Java. So make sure you are running `Temurin-17` as specified above.
@@ -53,17 +55,26 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 - Manual setup:
   Setup Postgres using whatever method you like.
 - Convenient app setup:
-  Install [the convenient app](https://postgresapp.com/), and create a database called `bio.terra.batchanalysis`.
+  Install [the convenient app](https://postgresapp.com/), and create a database called `cbas_db`.
 
-Make sure to use the correct version, as noted above.
+To create the database using the terminal, first enter `psql` to enter Postgres interactive mode.
 
-#### Initialize your database:
-```sh
-psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
-```
 ***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/13/bin/psql`. To add Postgres commands to your path, run the following command:
 ```sh
 sudo mkdir -p /etc/paths.d && echo /Applications/Postgres.app/Contents/Versions/13/bin | sudo tee /etc/paths.d/postgresapp
+```
+
+Once you are in interactive mode, run the following commands:
+
+```sql
+CREATE USER cbas_user;
+CREATE DATABASE cbas_db;
+GRANT ALL PRIVILEGES ON DATABASE cbas_db TO cbas_user;
+```
+
+Now run the following command in the terminal to initialize the database:
+```sh
+psql -h 127.0.0.1 -U postgres -f ./common/postgres-init.sql
 ```
 
 
