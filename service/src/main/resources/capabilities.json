@@ -1,0 +1,5 @@
+{
+  "submission.limits.maxWorkflows" : 100,
+  "submission.limits.maxInputs" : 200,
+  "submission.limits.maxOutputs" : 300
+}
