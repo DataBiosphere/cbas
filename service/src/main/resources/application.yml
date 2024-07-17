@@ -48,7 +48,7 @@ cbas:
     username: ${DATABASE_USER:cbas_user}
   cbas-api:
     # for POST/run_sets, the number of record IDs must be less than or equal to this value.
-    runSetsMaximumRecordIds: 100
+    runSetsMaximumRecordIds: 300
     maxWorkflowInputs: 200
     maxWorkflowOutputs: 300
     minSecondsBetweenRunStatusPolls: 30
