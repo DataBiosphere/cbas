@@ -31,6 +31,15 @@ class TestPublicApiController {
   private static final String CAPABILITIES_API = "/capabilities/v1";
 
   @Test
+  void checkCapabilitiesJsonFileIsValid() {
+    assertDoesNotThrow(
+        () ->
+            objectMapper.readValue(
+                capabilitiesResource.getInputStream(), CapabilitiesResponse.class),
+        "Resource file 'capabilities.json' is invalid.");
+  }
+
+  @Test
   void checkCapabilitiesResponseIsValid() throws Exception {
     MvcResult mvcResult =
         mockMvc.perform(get(CAPABILITIES_API)).andExpect(status().isOk()).andReturn();
@@ -42,14 +51,5 @@ class TestPublicApiController {
                     mvcResult.getResponse().getContentAsString(), CapabilitiesResponse.class));
 
     assertThat(parsedResponse).isNotEmpty();
-  }
-
-  @Test
-  void checkCapabilitiesJsonFileIsValid() {
-    assertDoesNotThrow(
-        () ->
-            objectMapper.readValue(
-                capabilitiesResource.getInputStream(), CapabilitiesResponse.class),
-        "Resource file 'capabilities.json' is invalid.");
   }
 }
