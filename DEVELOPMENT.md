@@ -23,7 +23,7 @@ that seems "off" is probably a result of that. Feel free to submit a PR to fix t
     - DSP-issued workstations should have everything pre-configured
   - If the command is not found, run `brew install git-secrets`
   - If there are no rules, use the script [here](https://github.com/broadinstitute/dsp-appsec-gitsecrets-client#setup) to add them
-- Install Postgres 13: https://www.postgresql.org/download/
+- Install Postgres 14: https://www.postgresql.org/download/
   - [The app](https://postgresapp.com/downloads.html) may be easier, just make sure to download the right version. It'll manage things for you and has a useful menulet where the server can be turned on and off. Don't forget to create a server if you go this route.
 - Install Adoptium Java 17 (Temurin). Here's an easy way on Mac, using [jEnv](https://www.jenv.be/) to manage the active version:
 
@@ -59,9 +59,9 @@ The Batch Analysis service relies on a Postgresql database server. There are two
 
 To create the database using the terminal, first enter `psql` to enter Postgres interactive mode.
 
-***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/13/bin/psql`. To add Postgres commands to your path, run the following command:
+***N.B.*** If you used **the convenient app**, you should run `psql` as `/Applications/Postgres.app/Contents/Versions/14/bin/psql`. To add Postgres commands to your path, run the following command:
 ```sh
-sudo mkdir -p /etc/paths.d && echo /Applications/Postgres.app/Contents/Versions/13/bin | sudo tee /etc/paths.d/postgresapp
+sudo mkdir -p /etc/paths.d && echo /Applications/Postgres.app/Contents/Versions/14/bin | sudo tee /etc/paths.d/postgresapp
 ```
 
 Once you are in interactive mode, run the following commands:
