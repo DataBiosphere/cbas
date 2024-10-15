@@ -14,11 +14,16 @@ on:
         required: true
       DSDEJENKINS_DOCKERHUB_PASSWORD:
         required: true
+      ACR_SP_PASSWORD:
+        required: true
+      ACR_SP_USER:
+        required: true
 
 env:
   SERVICE_NAME: cbas
   DOCKERHUB_ORG: broadinstitute
   GOOGLE_PROJECT: broad-dsp-gcr-public
+  ACR_REGISTRY: terradevacrpublic.azurecr.io
 
 jobs:
   tag-and-publish-job:
@@ -62,11 +67,12 @@ jobs:
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           ARTIFACTORY_REPO_KEY: "libs-release-local"
 
-      - name: Construct dockerhub and GCR image names
+      - name: Construct dockerhub, GCR, and ACR image names
         id: image-name
         run: |
           echo ::set-output name=DOCKERHUB_NAME::${DOCKERHUB_ORG}/${SERVICE_NAME}:${{ steps.tag.outputs.new_tag }}
           echo ::set-output name=GCR_NAME::us.gcr.io/${GOOGLE_PROJECT}/${SERVICE_NAME}:${{ steps.tag.outputs.new_tag }}
+          echo ::set-output name=ACR_NAME::${ACR_REGISTRY}/${SERVICE_NAME}:${{ steps.tag.outputs.new_tag }}
 
       - name: Build image locally with jib
         run: |
@@ -106,6 +112,16 @@ jobs:
 
       - name: Push GCR image
         run: docker push ${{ steps.image-name.outputs.GCR_NAME }}
+
+      - name: Re-tag image for ACR
+        run: docker tag ${{ steps.image-name.outputs.DOCKERHUB_NAME }} ${{ steps.image-name.outputs.ACR_NAME }}
+
+      - name: Push image to ACR
+        run: |
+          echo ${{ secrets.ACR_SP_PASSWORD }} | docker login ${ACR_REGISTRY} \
+          --username ${{ secrets.ACR_SP_USER }} \
+          --password-stdin
+          docker push ${{ steps.image-name.outputs.ACR_NAME }}
 
       - name: Clone terra-helmfile
         uses: actions/checkout@v3
